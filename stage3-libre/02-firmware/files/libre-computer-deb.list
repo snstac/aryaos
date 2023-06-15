@@ -1,0 +1,1 @@
+deb [arch=arm64 signed-by=/etc/apt/trusted.gpg.d/libre-computer-deb.gpg] https://deb.libre.computer/repo linux main non-free

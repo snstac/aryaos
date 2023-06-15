@@ -1,0 +1,4 @@
+1. Set Dump978 device per:
+https://github.com/sdr-enthusiasts/docker-dump978/blob/main/README.md
+
+2. Set Dump1090 device per /etc/default/dump1090 ?

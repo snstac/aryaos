@@ -1,0 +1,6 @@
+linux-image-lc-lts-arm64
+linux-headers-lc-lts-arm64
+grub-efi-arm64
+grub-uboot
+libretech-gpio
+libretech-dtoverlay

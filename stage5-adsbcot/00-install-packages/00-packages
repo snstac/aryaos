@@ -1,0 +1,7 @@
+python3-pip
+
+libatlas-base-dev 
+rtl-sdr librtlsdr-dev
+
+# Needy developer:
+tmux vim
