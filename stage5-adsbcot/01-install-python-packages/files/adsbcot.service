@@ -21,14 +21,11 @@ After=network.target
 After=dump1090-fa.service
 
 [Service]
-# User=dump1090
-# RuntimeDirectory=dump1090-fa
-RuntimeDirectoryMode=0755
-ExecStart=/usr/local/bin/adsbcot -c /boot/adsbcot.ini
+ExecStart=/usr/local/sbin/run_adsbcot.sh
 SyslogIdentifier=adsbcot
 Type=simple
 Restart=on-failure
-RestartSec=30
+RestartSec=20
 RestartPreventExitStatus=64
 Nice=-5
 

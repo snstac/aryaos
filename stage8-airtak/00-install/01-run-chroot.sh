@@ -13,9 +13,13 @@
 # limitations under the License.
 #
 
-# wget https://github.com/snstac/lincot/archive/refs/heads/main.zip
-rm -rf lincot-main
-unzip lincot-main.zip
-cd lincot-main
-python3 -m pip install .
-cd ..
+python3 -m pip install lincot==1.0.2b3
+
+systemctl enable lincot
+systemctl enable set_uuid
+
+DUMP1090_RECEIVER_SERIAL="stx:1090:0"
+sed --follow-symlinks -i -E -e "s/RECEIVER_SERIAL.*/RECEIVER_SERIAL=$DUMP1090_RECEIVER_SERIAL/" /etc/default/dump1090-fa
+
+DUMP978_RECEIVER_SERIAL="stx:978:0" 
+sed --follow-symlinks -i -E -e "s/driver=rtlsdr /driver=rtlsdr,$DUMP978_RECEIVER_SERIAL /" /etc/default/dump978-fa

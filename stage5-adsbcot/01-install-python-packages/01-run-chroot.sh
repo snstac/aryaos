@@ -15,13 +15,7 @@
 
 apt install python3-cryptography
 
-# python3 -m pip install pytak
-wget https://github.com/snstac/pytak/archive/refs/heads/multicast_fixes.zip
-rm -rf pytak-multicast_fixes
-unzip multicast_fixes.zip
-cd pytak-multicast_fixes
-python3 -m pip install .
-cd ..
+python3 -m pip install pytak==5.7.0b4
 
 python3 -m pip install takproto
 python3 -m pip install aircot

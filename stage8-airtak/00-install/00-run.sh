@@ -17,12 +17,19 @@ install -v -m 644 files/index.html	"${ROOTFS_DIR}/var/www/html/"
 cp -r files/calfire_airbases	"${ROOTFS_DIR}/var/www/html/"
 chmod +x "${ROOTFS_DIR}/var/www/html"
 install -v -m 644 files/airtak-flows.json	"${ROOTFS_DIR}/home/node-red/.node-red/"
+
 # saves having to set permissions & ownership again:
 cat "${ROOTFS_DIR}/home/node-red/.node-red/airtak-flows.json" > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"
 
-# Lincot tracker
-install -v -m 644 files/lincot-main.zip	"${ROOTFS_DIR}/"
 
+# LINCOT tracker
+install -v -m 644 files/lincot-config.txt	"${ROOTFS_DIR}/boot/"
 install -v -m 755 files/run_lincot.sh	"${ROOTFS_DIR}/usr/local/sbin/"
-install -v -m 644 files/lincot.ini	"${ROOTFS_DIR}/boot/"
 install -v -m 644 files/lincot.service	"${ROOTFS_DIR}/etc/systemd/system/"
+
+# Set UUID on first boot
+install -v -m 755 files/set_uuid.sh	"${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 644 files/set_uuid.service	"${ROOTFS_DIR}/etc/systemd/system/"
+
+# AirTAK Env configuration
+install -v -m 644 files/airtak-config.txt	"${ROOTFS_DIR}/boot/"

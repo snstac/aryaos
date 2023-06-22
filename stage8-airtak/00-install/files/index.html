@@ -34,22 +34,56 @@ a:hover { text-decoration: none; color: #C00; background: #FC0; }
 </head>
 <body>
 <div id="page">
- <div id="header">
- <h1> AirTAK v1 </h1>
-  AirTAK: Airspace surveillance for situational awareness, by Sensors & Signals.
- </div>
+ 
+  <div id="header"> 
+    <h1> AirTAK </h1>
+   Airspace surveillance for situational awareness.
+  </div>
+ 
  <div id="body">
-  <h2>Sites</h2>
-  The following sites are available on this system:
+  
+  <h2>Local Services</h2>
+  The following servicees are available on this device:
   <ul>
-    <li><a href="http://airtakT7.local:1880/map">Milsymbol Map</a></li>
-    <li><a href="http://airtakT7.local:8080">Skyaware Map</a></li>
-    <li><a href="http://airtakT7.local:9080">Configure WiFi</a></li>
+    <li><a href="http://airtak.local:1880/map">CAL FIRE Airbase Map</a> (via airtak.local)</li>
+    <li><a href="http://airtak.local:8080">Skyaware Map</a> (via airtak.local)</li>
+    <li><a href="http://airtak.local:9080">Configure WiFi</a> (via airtak.local)</li>
   </ul>
+  <ul>
+    <li><a href="http://192.168.42.1:1880/map">CAL FIRE Airbase Map</a> (via 192.168.42.1)</li>
+    <li><a href="http://192.168.42.1:8080">Skyaware Map</a> (via 192.168.42.1)</li>
+    <li><a href="http://192.168.42.1:9080">Configure WiFi</a> (via 192.168.42.1)</li>
+  </ul>
+
+
+  <h2>Tactical ETL</h2>
+  <p>
+    The Node-RED Tactical ETL is available here:
+    <ul>
+      <li><a href="http://airtak.local:1880/">Node-RED</a> (via airtak.local)</li>
+      <li><a href="http://192.168.42.1:1880/">Node-RED</a> (via 192.168.42.1)</li>
+    </ul>
+  </p>
+  
   <h2>Support</h2>
   <p>
    Support is available by emailing: <a href="mailto:info@snstac.com">info@snstac.com</a> or via Signal: +1-310-621-9598
   </p>
+
+  <h2>License</h2>
+  <pre>
+    Copyright 2023 Sensors & Signals LLC <a href="https://www.snstac.com">www.snstac.com</a>
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.  
+    </pre>
  </div>
 </div>
 </body>

@@ -13,10 +13,10 @@
 # limitations under the License.
 #
 
-IMG_NAME="airtakT7"
-TARGET_HOSTNAME="airtakT7"
+IMG_NAME="airtakT9"
+TARGET_HOSTNAME="airtak"
 FIRST_USER_NAME="pi"
-FIRST_USER_PASS="airtakT7"
+FIRST_USER_PASS="airtak415"
 STAGE_LIST="stage0 stage1 stage2 ../stage4-dump1090 ../stage5-adsbcot ../stage6-wifi-connect ../stage7-node-red ../stage8-airtak"
 DISABLE_FIRST_BOOT_USER_RENAME=1
 RELEASE="bullseye"

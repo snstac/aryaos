@@ -20,14 +20,13 @@ Wants=network.target
 After=network.target
 
 [Service]
+Type=simple
 RuntimeDirectoryMode=0755
 ExecStart=/usr/local/sbin/run_lincot.sh
 SyslogIdentifier=lincot
-Type=simple
+KillSignal=SIGINT
 Restart=on-failure
-RestartSec=30
-RestartPreventExitStatus=64
-Nice=-5
+RestartSec=20
 
 [Install]
 WantedBy=default.target

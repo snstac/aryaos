@@ -13,5 +13,6 @@
 # limitations under the License.
 #
 
-install -v -m 644 files/adsbcot.ini	"${ROOTFS_DIR}/boot/"
+install -v -m 644 files/adsbcot-config.txt	"${ROOTFS_DIR}/boot/"
+install -v -m 755 files/run_adsbcot.sh	"${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 644 files/adsbcot.service	"${ROOTFS_DIR}/etc/systemd/system/"

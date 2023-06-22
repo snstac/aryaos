@@ -1,4 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash
+# Startup file for LINCOT.
 #
 # Copyright 2023 Sensors & Signals LLC
 #
@@ -13,5 +14,40 @@
 # limitations under the License.
 #
 
-export NODEID=$(python3 -c "import uuid;nn=str(uuid.getnode());print(nn[len(nn)-4:len(nn)])")
-/usr/local/bin/lincot -c /boot/adsbcot.ini
+
+set -a
+AIRTAK_CONF="/boot/airtak-config.txt"
+LINCOT_CONF="/boot/lincot-config.txt"
+
+if [[ -f ${AIRTAK_CONF} ]]; then
+  . ${AIRTAK_CONF}
+fi
+
+if [[ -f ${LINCOT_CONF} ]]; then
+  . ${LINCOT_CONF}
+else 
+  echo "${LINCOT_CONF} doesn't exist, initializing."
+  echo 'CALLSIGN=""' >> ${LINCOT_CONF}
+fi
+
+if ! grep -qs -e 'CALLSIGN' ${LINCOT_CONF}; then
+  echo "Adding empty CALLSIGN to ${LINCOT_CONF}"
+  echo 'CALLSIGN=""' >> ${LINCOT_CONF}
+fi
+
+if [ -z "$NODE_ID" ]; then
+  echo "NODE_ID not set, will retry..."
+  exit 1
+fi
+
+if [ -z "$CALLSIGN" ]; then
+  echo "CALLSIGN not set"
+  NEW_CALLSIGN="AirTAK-${NODE_ID: -4}"
+  sed --follow-symlinks -i -E -e "s/CALLSIGN.*/CALLSIGN=$NEW_CALLSIGN/" ${LINCOT_CONF}
+  echo "CALLSIGN is now set to: $NEW_CALLSIGN"
+  export CALLSIGN=$NEW_CALLSIGN
+fi
+
+set +a
+
+/usr/local/bin/lincot
