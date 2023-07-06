@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API &mdash; PyTAK 0.1.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pytak" href="generated/pytak.html" />
+    <link rel="prev" title="Examples" href="examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyTAK
+          </a>
+              <div class="version">
+                0.1.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compat.html">Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clients.html">Clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.html">pytak</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.Worker.html">pytak.Worker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.TXWorker.html">pytak.TXWorker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.RXWorker.html">pytak.RXWorker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.QueueWorker.html">pytak.QueueWorker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.CLITool.html">pytak.CLITool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.create_udp_client.html">pytak.create_udp_client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.protocol_factory.html">pytak.protocol_factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.txworker_factory.html">pytak.txworker_factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.rxworker_factory.html">pytak.rxworker_factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.cli.html">pytak.cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.read_pref_package.html">pytak.read_pref_package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyTAK</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this heading"></a></h1>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pytak.html#module-pytak" title="pytak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak</span></code></a></p></td>
+<td><p>Python Team Awareness Kit (PyTAK) Module.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pytak.Worker.html#pytak.Worker" title="pytak.Worker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.Worker</span></code></a>(queue[, config])</p></td>
+<td><p>Meta class for all other Worker Classes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pytak.TXWorker.html#pytak.TXWorker" title="pytak.TXWorker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.TXWorker</span></code></a>(queue, config, writer)</p></td>
+<td><p>Works data queue and hands off to Protocol Workers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pytak.RXWorker.html#pytak.RXWorker" title="pytak.RXWorker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.RXWorker</span></code></a>(queue, config, reader)</p></td>
+<td><p>Async receive (input) queue worker.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pytak.QueueWorker.html#pytak.QueueWorker" title="pytak.QueueWorker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.QueueWorker</span></code></a>(queue, config)</p></td>
+<td><p>Read non-CoT Messages from an async network client.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pytak.CLITool.html#pytak.CLITool" title="pytak.CLITool"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.CLITool</span></code></a>(config[, tx_queue, rx_queue])</p></td>
+<td><p>Wrapper Object for CLITools.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pytak.create_udp_client.html#pytak.create_udp_client" title="pytak.create_udp_client"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.create_udp_client</span></code></a>(url[, iface, local_addr])</p></td>
+<td><p>Create an AsyncIO UDP network client for Unicast, Broadcast &amp; Multicast.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pytak.protocol_factory.html#pytak.protocol_factory" title="pytak.protocol_factory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.protocol_factory</span></code></a>(config)</p></td>
+<td><p>Create a network connection class instance.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pytak.txworker_factory.html#pytak.txworker_factory" title="pytak.txworker_factory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.txworker_factory</span></code></a>(queue, config)</p></td>
+<td><p>Create a PyTAK TXWorker based on URL parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pytak.rxworker_factory.html#pytak.rxworker_factory" title="pytak.rxworker_factory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.rxworker_factory</span></code></a>(queue, config)</p></td>
+<td><p>Create a PyTAK TXWorker based on URL parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pytak.cli.html#pytak.cli" title="pytak.cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.cli</span></code></a>(app_name)</p></td>
+<td><p>Abstract implementation of a Command Line Interface (CLI).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pytak.read_pref_package.html#pytak.read_pref_package" title="pytak.read_pref_package"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pytak.read_pref_package</span></code></a>(pref_package)</p></td>
+<td><p>Read a pref package / data package of preferences.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="generated/pytak.html" class="btn btn-neutral float-right" title="pytak" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023 Sensors &amp; Signals LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

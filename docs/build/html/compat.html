@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compatibility &mdash; PyTAK 0.1.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Clients" href="clients.html" />
+    <link rel="prev" title="Configuration" href="config.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyTAK
+          </a>
+              <div class="version">
+                0.1.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Compatibility</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#clients-servers">Clients &amp; Servers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#i-o-network-protocols">I/O &amp; Network Protocols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-3-6">Python 3.6+</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#freetakserver">FreeTAKServer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tak-protocol-payload-version-1-protobuf">TAK Protocol Payload - Version 1 (Protobuf)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="clients.html">Clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyTAK</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Compatibility</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/compat.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="compatibility">
+<h1>Compatibility<a class="headerlink" href="#compatibility" title="Permalink to this heading"></a></h1>
+<section id="clients-servers">
+<h2>Clients &amp; Servers<a class="headerlink" href="#clients-servers" title="Permalink to this heading"></a></h2>
+<p>PyTAK is used in mission criticial environments, every day, across all official
+<a class="reference external" href="https://tak.gov">TAK Products</a>:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://tak.gov/">WinTAK</a></p></li>
+<li><p><a class="reference external" href="https://tak.gov/">ATAK</a></p></li>
+<li><p><a class="reference external" href="https://tak.gov/">iTAK</a></p></li>
+<li><p><a class="reference external" href="https://tak.gov/">TAKX</a></p></li>
+<li><p><a class="reference external" href="https://tak.gov/">TAK Server</a></p></li>
+</ul>
+<p>PyTAK has been tested and is compatible with many situational awareness (SA) &amp; common
+operating picture (COP) systems:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/tkuester/taky">taky</a></p></li>
+<li><p><a class="reference external" href="https://github.com/FreeTAKTeam/FreeTakServer">Free TAK Server (FTS/FreeTAKServer)</a></p></li>
+<li><p>RaptorX</p></li>
+<li><p>COPERS</p></li>
+</ul>
+</section>
+<section id="i-o-network-protocols">
+<h2>I/O &amp; Network Protocols<a class="headerlink" href="#i-o-network-protocols" title="Permalink to this heading"></a></h2>
+<p>PyTAK supports the following I/O &amp; network protocols:</p>
+<ul class="simple">
+<li><p>TLS Unicast: <code class="docutils literal notranslate"><span class="pre">tls://host:port</span></code> (see <a class="reference external" href="https://github.com/snstac/pytak#tls-support">TLS Support</a> section below)</p></li>
+<li><p>TCP Unicast: <code class="docutils literal notranslate"><span class="pre">tcp://host:port</span></code></p></li>
+<li><p>UDP Multicast: <code class="docutils literal notranslate"><span class="pre">udp://group:port</span></code> (aka Mesh SA)</p></li>
+<li><p>UDP Unicast: <code class="docutils literal notranslate"><span class="pre">udp://host:port</span></code></p></li>
+<li><p>UDP Broadcast: <code class="docutils literal notranslate"><span class="pre">udp+broadcast://network:port</span></code></p></li>
+<li><p>UDP Write-only: <code class="docutils literal notranslate"><span class="pre">udp+wo://host:port</span></code></p></li>
+<li><p>stdout or stderr: <code class="docutils literal notranslate"><span class="pre">log://stdout</span></code> or <code class="docutils literal notranslate"><span class="pre">log://stderr</span></code></p></li>
+</ul>
+</section>
+<section id="python-3-6">
+<h2>Python 3.6+<a class="headerlink" href="#python-3-6" title="Permalink to this heading"></a></h2>
+<p>PyTAK requires Python 3.6 or above and WILL NOT work on Python versions below 3.6. It
+should run on almost any platform that supports Python 3.6+, including Linux, Windows,
+Raspberry Pi, Android, et al.</p>
+</section>
+<section id="freetakserver">
+<h2>FreeTAKServer<a class="headerlink" href="#freetakserver" title="Permalink to this heading"></a></h2>
+<p>FTS (Free TAK Server) has built-in anti-Denial-of-Service (DoS) support, which
+restricts the number of CoT Events a client can send to a listening TCP Port.
+Currently this FTS feature cannot be disabled or changed, so clients must meter
+their input speed.</p>
+<p>To use a PyTAK-based client with FTS, set the <code class="docutils literal notranslate"><span class="pre">FTS_COMPAT</span></code> configuration parameter
+to <code class="docutils literal notranslate"><span class="pre">True</span></code>. This will cause the PyTAK client to sleep a random number of seconds
+between transmitting CoT to a FTS server:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FTS_COMPAT</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>Alternatively you can specify a static sleep period by setting <code class="docutils literal notranslate"><span class="pre">PYTAK_SLEEP</span></code> to an
+integer number of seconds:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">PYTAK_SLEEP</span> <span class="o">=</span> <span class="mi">3</span>
+</pre></div>
+</div>
+</section>
+<section id="tak-protocol-payload-version-1-protobuf">
+<h2>TAK Protocol Payload - Version 1 (Protobuf)<a class="headerlink" href="#tak-protocol-payload-version-1-protobuf" title="Permalink to this heading"></a></h2>
+<blockquote>
+<div><p>Version 1 of the TAK Protocol Payload is a Google Protocol Buffer based
+payload.  Each Payload consists of one (and only one)
+atakmap::commoncommo::v1::TakMessage message which is serialized using
+Google protocol buffers version 3.</p>
+<p>Source: <a class="reference external" href="https://github.com/deptofdefense/AndroidTacticalAssaultKit-CIV/blob/master/commoncommo/core/impl/protobuf/protocol.txt">https://github.com/deptofdefense/AndroidTacticalAssaultKit-CIV/blob/master/commoncommo/core/impl/protobuf/protocol.txt</a></p>
+</div></blockquote>
+<p>PyTAK natively sends and receives “TAK Protocol Payload - Version 0”, aka plain XML. If
+you’d like to receive &amp; decode “Version 1” protobuf with PyTAK, install the optional
+<a class="reference external" href="https://github.com/snstac/takproto">takproto</a> Python module:</p>
+<p>When installing PyTAK:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python3 -m pip install pytak[with_takproto]
+</pre></div>
+</div>
+<p>Alternative, installing from a Debian package:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ TK TK
+</pre></div>
+</div>
+<p>Here is an example of receiving &amp; decoding “Version 1” using <code class="docutils literal notranslate"><span class="pre">takproto</span></code>.</p>
+<p>N.B. The data type returned from this implementation differs from that of the
+“Version 0” implementation (<code class="docutils literal notranslate"><span class="pre">bytes</span></code> vs <code class="docutils literal notranslate"><span class="pre">object</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+
+<span class="kn">from</span> <span class="nn">configparser</span> <span class="kn">import</span> <span class="n">ConfigParser</span>
+
+<span class="kn">import</span> <span class="nn">takproto</span>
+
+<span class="kn">import</span> <span class="nn">pytak</span>
+
+
+<span class="k">class</span> <span class="nc">MyRXWorker</span><span class="p">(</span><span class="n">pytak</span><span class="o">.</span><span class="n">RXWorker</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">readcot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="p">,</span> <span class="s1">&#39;readuntil&#39;</span><span class="p">):</span>
+            <span class="n">cot</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">readuntil</span><span class="p">(</span><span class="s2">&quot;&lt;/event&gt;&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;UTF-8&quot;</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="p">,</span> <span class="s1">&#39;recv&#39;</span><span class="p">):</span>
+            <span class="n">cot</span><span class="p">,</span> <span class="n">src</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+        <span class="n">tak_v1</span> <span class="o">=</span> <span class="n">takproto</span><span class="o">.</span><span class="n">parse_proto</span><span class="p">(</span><span class="n">cot</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tak_v1</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">cot</span> <span class="o">=</span> <span class="n">tak_v1</span>
+        <span class="k">return</span> <span class="n">cot</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">my_setup</span><span class="p">(</span><span class="n">clitool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">reader</span><span class="p">,</span> <span class="n">writer</span> <span class="o">=</span> <span class="k">await</span> <span class="n">pytak</span><span class="o">.</span><span class="n">protocol_factory</span><span class="p">(</span><span class="n">clitool</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">write_worker</span> <span class="o">=</span> <span class="n">pytak</span><span class="o">.</span><span class="n">TXWorker</span><span class="p">(</span><span class="n">clitool</span><span class="o">.</span><span class="n">tx_queue</span><span class="p">,</span> <span class="n">clitool</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">writer</span><span class="p">)</span>
+    <span class="n">read_worker</span> <span class="o">=</span> <span class="n">MyRXWorker</span><span class="p">(</span><span class="n">clitool</span><span class="o">.</span><span class="n">rx_queue</span><span class="p">,</span> <span class="n">clitool</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">reader</span><span class="p">)</span>
+    <span class="n">clitool</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">write_worker</span><span class="p">)</span>
+    <span class="n">clitool</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">read_worker</span><span class="p">)</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The main definition of your program, sets config params and</span>
+<span class="sd">    adds your serializer to the asyncio task list.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;mycottool&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;COT_URL&quot;</span><span class="p">:</span> <span class="s2">&quot;udp://239.2.3.1:6969&quot;</span><span class="p">}</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;mycottool&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Initializes worker queues and tasks.</span>
+    <span class="n">clitool</span> <span class="o">=</span> <span class="n">pytak</span><span class="o">.</span><span class="n">CLITool</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">my_setup</span><span class="p">(</span><span class="n">clitool</span><span class="p">)</span>
+
+    <span class="c1"># Start all tasks.</span>
+    <span class="k">await</span> <span class="n">clitool</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="config.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="clients.html" class="btn btn-neutral float-right" title="Clients" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023 Sensors &amp; Signals LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration &mdash; PyTAK 0.1.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Compatibility" href="compat.html" />
+    <link rel="prev" title="Installation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyTAK
+          </a>
+              <div class="version">
+                0.1.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tls-support">TLS Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="compat.html">Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clients.html">Clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyTAK</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h1>
+<p>PyTAK’s configuration parameters can be set two ways:</p>
+<ol class="arabic simple">
+<li><p>In an INI-style configuration file, typically <code class="docutils literal notranslate"><span class="pre">config.ini</span></code></p></li>
+<li><p>As environment variables.</p></li>
+</ol>
+<p>PyTAK has the following built-in configuration parameters:</p>
+<dl class="describe">
+<dt class="sig sig-object">
+<span class="sig-name descname"><span class="pre">COT_URL</span> <span class="pre">(optional)</span></span></dt>
+<dd><p>Destination for Cursor on Target messages. Defaults to <code class="docutils literal notranslate"><span class="pre">udp://239.2.3.1:6969</span></code> (ATAK Multicast UDP / Mesh SA Default)</p>
+</dd></dl>
+
+<dl>
+<dt>TAK_PROTO</dt><dd><p>Sets TAK Protocol to use for CoT output, one of: 0 (XML), 2 (Mesh), 2 (Stream).</p>
+<ul class="simple">
+<li><p>Default: 0 (XML)</p></li>
+</ul>
+</dd>
+<dt>DEBUG</dt><dd><p>Sets debug-level logging.</p>
+<ul class="simple">
+<li><p>Default: False</p></li>
+</ul>
+</dd>
+<dt>FTS_COMPAT</dt><dd><p>If set, implements random-seconds-sleep period to avoid FTS DoS protections.</p>
+<ul class="simple">
+<li><p>Default: False</p></li>
+</ul>
+</dd>
+<dt>PYTAK_SLEEP</dt><dd><p>If set, implements given sleep period of seconds between emitting CoT Events.</p>
+<ul class="simple">
+<li><p>Default: 0</p></li>
+</ul>
+</dd>
+<dt>PREF_PACKAGE</dt><dd><p>(If PyTAK is installed with optional with_crypto support.)</p>
+<p>PyTAK supports importing TAK Data Packages containing TAK Server connection settings,
+TLS certificates, etc.</p>
+<p>To use a .zip file with PyTAK, set the <code class="docutils literal notranslate"><span class="pre">PREF_PACKAGE</span></code> config parameter to the
+path to the .zip file.</p>
+<p>For example, given a Pref Package named <code class="docutils literal notranslate"><span class="pre">ADSB3_FIRE.zip</span></code>, you could either:</p>
+<p>Using <code class="docutils literal notranslate"><span class="pre">config.ini</span></code>: Add the line <code class="docutils literal notranslate"><span class="pre">PREF_PACKAGE=ADSB3_FIRE.zip</span></code></p>
+<p>Using the commandline of a utility: Add the argument <code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">DSB3_FIRE.zip</span></code></p>
+</dd>
+</dl>
+<section id="tls-support">
+<h2>TLS Support<a class="headerlink" href="#tls-support" title="Permalink to this heading"></a></h2>
+<p>PyTAK can send &amp; receive data over TLS by setting the following configuration
+parameters (at a minimum):</p>
+<ol class="arabic simple">
+<li><p>Specify <code class="docutils literal notranslate"><span class="pre">tls://</span></code> in the CoT Destination URL, for example: <code class="docutils literal notranslate"><span class="pre">tls://takserver.example.com:8089</span></code></p></li>
+<li><p>Specify the TLS Cert in <code class="docutils literal notranslate"><span class="pre">PYTAK_TLS_CLIENT_CERT</span></code>.</p></li>
+</ol>
+<p>Client Certificates, Client Key, CA Certificate &amp; Key must be specified in PEM format.</p>
+<p><em>N.B</em>: Encrypted private keys are not supported and must be saved in clear-text: <code class="docutils literal notranslate"><span class="pre">openssl</span> <span class="pre">rsa</span> <span class="pre">-in</span> <span class="pre">my_cert.key.pem</span> <span class="pre">-out</span> <span class="pre">my_cert-nopass.key.pem</span></code></p>
+<dl>
+<dt>PYTAK_TLS_CLIENT_CERT</dt><dd><p>Path to a file containing the Client Certificate for PyTAK. File must be
+unencrypted plain-text PEM.</p>
+<p>This file can contain both the Client Cert &amp; Client Key, or the Client Cert alone. In
+the later case (cert alone), <code class="docutils literal notranslate"><span class="pre">PYTAK_TLS_CLIENT_KEY</span></code> must be set to the Client Key.</p>
+<p>For example, to connect to a TAK Server listening for TLS on port 8089:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">PYTAK_TLS_CLIENT_CERT</span><span class="o">=</span><span class="n">client_cert_and_key</span><span class="o">.</span><span class="n">pem</span>
+<span class="n">COT_URL</span><span class="o">=</span><span class="n">tls</span><span class="p">:</span><span class="o">//</span><span class="n">tak</span><span class="o">.</span><span class="n">example</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="mi">8089</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p><strong>Optional TLS Configuration</strong></p>
+<dl>
+<dt>PYTAK_TLS_CLIENT_KEY</dt><dd><p>Path to a file containing the Client Private Key for the associated
+<code class="docutils literal notranslate"><span class="pre">PYTAK_TLS_CLIENT_CERT</span></code>. File must be unencrypted plain-text PEM.</p>
+</dd>
+<dt>PYTAK_TLS_DONT_VERIFY</dt><dd><p>Disable destination TLS Certificate Verification. Will print a WARNING if set.</p>
+</dd>
+<dt>PYTAK_TLS_DONT_CHECK_HOSTNAME</dt><dd><p>Disable destination TLS Certificate Common Name (CN) Verification. Will print a
+WARNING if set.</p>
+</dd>
+<dt>PYTAK_TLS_CLIENT_CAFILE</dt><dd><p>Path to a file containing the CA Trust Store to use for remote certificate verification.</p>
+</dd>
+<dt>PYTAK_TLS_CLIENT_CIPHERS</dt><dd><p>Colon (“:”) seperated list of TLS Cipher Suites to allow.</p>
+<p>For example: <code class="docutils literal notranslate"><span class="pre">PYTAK_TLS_CLIENT_CIPHERS=ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384</span></code></p>
+<ul class="simple">
+<li><p>Default: <code class="docutils literal notranslate"><span class="pre">ALL</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="install.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="compat.html" class="btn btn-neutral float-right" title="Compatibility" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023 Sensors &amp; Signals LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

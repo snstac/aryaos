@@ -15,13 +15,9 @@
 
 apt install python3-cryptography
 
-python3 -m pip install pytak==5.7.0b4
-
+python3 -m pip install pytak
 python3 -m pip install takproto
 python3 -m pip install aircot
-
-python3 -m pip install pyrtlsdr
-# python3 -m pip install adsbcot[with_pymodes]
 python3 -m pip install adsbcot
 
 systemctl enable adsbcot

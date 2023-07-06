@@ -1,0 +1,89 @@
+#!/bin/sh -e
+# Script to dispatch NetworkManager events for AirTAK.
+#
+# Copyright 2023 Sensors & Signals LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+if [ -n "$IP4_NUM_ADDRESSES" ] && [ "$IP4_NUM_ADDRESSES" -gt 0 ]; then
+   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet"
+fi
+if [ -n "$IP6_NUM_ADDRESSES" ] && [ "$IP6_NUM_ADDRESSES" -gt 0 ]; then
+   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet6"
+fi
+
+# If we have a VPN connection ignore the underlying IP address(es)
+if [ "$2" = "vpn-up" ] || [ "$2" = "vpn-down" ]; then
+   ADDRESS_FAMILIES=""
+fi
+
+if [ -n "$VPN_IP4_NUM_ADDRESSES" ] && [ "$VPN_IP4_NUM_ADDRESSES" -gt 0 ]; then
+   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet"
+fi
+if [ -n "$VPN_IP6_NUM_ADDRESSES" ] && [ "$VPN_IP6_NUM_ADDRESSES" -gt 0 ]; then
+   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet6"
+fi
+
+# We're probably bringing the interface down.
+[ -n "$ADDRESS_FAMILIES" ] || ADDRESS_FAMILIES="inet"
+
+# Fake ifupdown environment
+export IFACE="$1"
+export LOGICAL="$1"
+export METHOD="NetworkManager"
+export VERBOSITY="0"
+
+. /boot/airtak-config.txt
+
+for i in $ADDRESS_FAMILIES; do
+    export ADDRFAM="$i"
+
+    case "$2" in
+        connectivity-change)
+          if [ "$CONNECTIVITY_STATE" = "LIMITED" ]; then
+              sed --follow-symlinks -i -E -e "s/PYTAK_MULTICAST_LOCAL_ADDR.*/PYTAK_MULTICAST_LOCAL_ADDR=${WIFI_AP_IP}/" /boot/airtak-config.txt
+          elif [ "$CONNECTIVITY_STATE" = "FULL" ]; then
+              sed --follow-symlinks -i -E -e "s/PYTAK_MULTICAST_LOCAL_ADDR.*/PYTAK_MULTICAST_LOCAL_ADDR=0.0.0.0/" /boot/airtak-config.txt
+          fi
+
+          systemctl restart adsbcot
+          systemctl restart lincot
+          systemctl restart nodered
+        ;;
+
+        up|vpn-up)
+            export MODE="start"
+            export PHASE="post-up"
+            if [ -n "$DHCP4_IP_ADDRESS" && "$PYTAK_MULTICAST_LOCAL_ADDR" != "0.0.0.0" ]; then
+                sed --follow-symlinks -i -E -e "s/PYTAK_MULTICAST_LOCAL_ADDR.*/PYTAK_MULTICAST_LOCAL_ADDR=$DHCP4_IP_ADDRESS/" /boot/airtak-config.txt
+            fi
+            systemctl restart adsbcot
+            systemctl restart lincot
+            systemctl restart nodered
+
+        ;;
+
+        down|vpn-down)
+            export MODE="stop"
+            export PHASE="post-down"
+        ;;
+
+        hostname|dhcp4-change|dhcp6-change)
+            # Do nothing
+        ;;
+
+        *)
+            echo "$0: called with unknown action \`$2'" 1>&2
+            exit 1
+        ;;
+    esac
+done

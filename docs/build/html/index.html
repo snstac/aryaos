@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python Team Awareness Kit Documentation &mdash; PyTAK 0.1.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            PyTAK
+          </a>
+              <div class="version">
+                0.1.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compat.html">Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clients.html">Clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">PyTAK</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Python Team Awareness Kit Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <img alt="ATAK Screenshot with PyTAK Logo." src="_images/atak_screenshot_with_pytak_logo-x25.jpg" />
+<section id="python-team-awareness-kit-documentation">
+<h1>Python Team Awareness Kit Documentation<a class="headerlink" href="#python-team-awareness-kit-documentation" title="Permalink to this heading"></a></h1>
+<p>Python Team Awareness Kit (PyTAK) is a Python Module for creating TAK clients,
+servers &amp; gateways and includes classes for handling Cursor on Target (CoT) &amp; non-CoT
+data, as well as functions for serializing CoT data, and sending and receiving CoT data
+over a network.</p>
+<p>Check out the <a class="reference internal" href="install.html"><span class="doc">Installation</span></a> further information on installing this project. Configuration
+parameters and their behavior can be found in the <a class="reference internal" href="config.html"><span class="doc">Configuration</span></a>.</p>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#debian-ubuntu-raspberry-pi">Debian, Ubuntu, Raspberry Pi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#alternative-installation">Alternative Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#tls-support">TLS Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="compat.html">Compatibility</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="compat.html#clients-servers">Clients &amp; Servers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compat.html#i-o-network-protocols">I/O &amp; Network Protocols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compat.html#python-3-6">Python 3.6+</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compat.html#freetakserver">FreeTAKServer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compat.html#tak-protocol-payload-version-1-protobuf">TAK Protocol Payload - Version 1 (Protobuf)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="clients.html">Clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.html">pytak</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.Worker.html">pytak.Worker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.TXWorker.html">pytak.TXWorker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.RXWorker.html">pytak.RXWorker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.QueueWorker.html">pytak.QueueWorker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.CLITool.html">pytak.CLITool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.create_udp_client.html">pytak.create_udp_client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.protocol_factory.html">pytak.protocol_factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.txworker_factory.html">pytak.txworker_factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.rxworker_factory.html">pytak.rxworker_factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.cli.html">pytak.cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pytak.read_pref_package.html">pytak.read_pref_package</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference external" href="https://github.com/snstac/pytak">pytak source code on Github</a></p>
+</div>
+</section>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+<p>(pytak 0.1.1)</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023 Sensors &amp; Signals LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

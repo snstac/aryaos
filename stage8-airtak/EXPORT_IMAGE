@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-IMG_SUFFIX="-airtakT9"
+IMG_SUFFIX="-airtakR01"
 
 if [ "${USE_QEMU}" = "1" ]; then
 	export IMG_SUFFIX="${IMG_SUFFIX}-qemu"

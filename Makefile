@@ -22,7 +22,7 @@ pi-gen:
 	touch ./pi-gen/stage2/SKIP_IMAGES ./pi-gen/stage2/SKIP_NOOBS
 
 copy:
-	rsync -va ../airtak kelp.local:~/src/
+	rsync -va ../airtak kelp.local:~/src/SNS/
 
 sync: copy
 

@@ -2,7 +2,7 @@
     {
         "id": "9c4ba3cbc4bd87fa",
         "type": "tab",
-        "label": "Flow 1",
+        "label": "Map",
         "disabled": false,
         "info": "",
         "env": []
@@ -32,32 +32,12 @@
         "overlist": "DR,CO,RA,DN,BU,RW,SN,AC,TL,HM",
         "maplist": "OSMG,OSMC,OSMH,EsriC,EsriS,EsriT,EsriO,EsriDG,NatGeo,UKOS,OpTop,HB,AN,ST,SW",
         "mapname": "CalFire Airbases",
-        "mapurl": "http://192.168.42.1/calfire_airbases/{z}/{x}/{y}.png",
+        "mapurl": "http://airtak.local/calfire_airbases/{z}/{x}/{y}.png",
         "mapopt": "",
         "mapwms": true,
-        "x": 530,
-        "y": 180,
-        "wires": []
-    },
-    {
-        "id": "7d9d6be707bf80c8",
-        "type": "udp in",
-        "z": "9c4ba3cbc4bd87fa",
-        "name": "",
-        "iface": "192.168.42.1",
-        "port": "6969",
-        "ipv": "udp4",
-        "multicast": "true",
-        "group": "239.2.3.1",
-        "datatype": "buffer",
-        "x": 150,
+        "x": 550,
         "y": 120,
-        "wires": [
-            [
-                "828d600baacf7776",
-                "23843a7972ebd785"
-            ]
-        ]
+        "wires": []
     },
     {
         "id": "828d600baacf7776",
@@ -65,48 +45,34 @@
         "z": "9c4ba3cbc4bd87fa",
         "name": "TAK2Worldmap",
         "x": 360,
-        "y": 180,
+        "y": 120,
         "wires": [
             [
-                "605314ea7983779d",
-                "f943b941a33dee08"
+                "605314ea7983779d"
             ]
         ]
     },
     {
-        "id": "23843a7972ebd785",
-        "type": "debug",
+        "id": "4aa3f8001760c96a",
+        "type": "udp in",
         "z": "9c4ba3cbc4bd87fa",
-        "name": "debug 1",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 340,
-        "y": 120,
-        "wires": []
+        "name": "",
+        "iface": "",
+        "port": "6969",
+        "ipv": "udp4",
+        "multicast": "true",
+        "group": "239.2.3.1",
+        "datatype": "buffer",
+        "x": 130,
+        "y": 60,
+        "wires": [
+            [
+                "828d600baacf7776"
+            ]
+        ]
     },
     {
-        "id": "f943b941a33dee08",
-        "type": "debug",
-        "z": "9c4ba3cbc4bd87fa",
-        "name": "debug 2",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 520,
-        "y": 120,
-        "wires": []
-    },
-    {
-        "id": "aace397e54685361",
+        "id": "e0a7e9ef71a6f0e8",
         "type": "udp in",
         "z": "9c4ba3cbc4bd87fa",
         "name": "",
@@ -116,17 +82,16 @@
         "multicast": "true",
         "group": "239.2.3.1",
         "datatype": "buffer",
-        "x": 150,
-        "y": 180,
+        "x": 130,
+        "y": 120,
         "wires": [
             [
-                "828d600baacf7776",
-                "23843a7972ebd785"
+                "828d600baacf7776"
             ]
         ]
     },
     {
-        "id": "d904dc4599e10379",
+        "id": "bd6f79df66f3f373",
         "type": "udp in",
         "z": "9c4ba3cbc4bd87fa",
         "name": "",
@@ -136,12 +101,11 @@
         "multicast": "true",
         "group": "239.2.3.1",
         "datatype": "buffer",
-        "x": 150,
-        "y": 240,
+        "x": 130,
+        "y": 180,
         "wires": [
             [
-                "828d600baacf7776",
-                "23843a7972ebd785"
+                "828d600baacf7776"
             ]
         ]
     }

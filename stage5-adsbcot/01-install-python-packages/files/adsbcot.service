@@ -14,7 +14,7 @@
 #
 
 [Unit]
-Description=ADSBCOT ADS-B to TAK Gateway
+Description=ADSBCOT: ADS-B to TAK Gateway
 Documentation=https://github.com/snstac/airtak
 Wants=network.target
 After=network.target

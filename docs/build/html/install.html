@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; PyTAK 0.1.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration" href="config.html" />
+    <link rel="prev" title="Python Team Awareness Kit Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyTAK
+          </a>
+              <div class="version">
+                0.1.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#debian-ubuntu-raspberry-pi">Debian, Ubuntu, Raspberry Pi</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data-package-support">Data Package Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tak-protocol-version-1-protobuf-support">TAK Protocol Version 1 (protobuf) Support</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#alternative-installation">Alternative Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compat.html">Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clients.html">Clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyTAK</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/install.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<section id="debian-ubuntu-raspberry-pi">
+<h2>Debian, Ubuntu, Raspberry Pi<a class="headerlink" href="#debian-ubuntu-raspberry-pi" title="Permalink to this heading"></a></h2>
+<p>PyTAK is distributed as a Debian package (<code class="docutils literal notranslate"><span class="pre">.deb</span></code>). PyTAK should be compatible with
+most contemporary system-Python versions from Python 3.6 onward. The <a class="reference external" href="https://wiki.debian.org/PackageManagement">Advanced Package
+Tool (apt)</a> is used to install this
+and other related packages.</p>
+<p>To install PyTAK, download the pytak package and install using apt:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo apt update -y
+$ wget https://github.com/snstac/pytak/releases/latest/download/python3-pytak_latest_all.deb
+$ sudo apt install -f ./python3-pytak_latest_all.deb
+</pre></div>
+</div>
+<section id="data-package-support">
+<h3>Data Package Support<a class="headerlink" href="#data-package-support" title="Permalink to this heading"></a></h3>
+<p>To install PyTAK with Deta Package support, you must also install the Python
+<a class="reference external" href="https://cryptography.io/en/latest/installation/">cryptography</a> module using apt:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo apt update -y
+$ sudo apt install -y python3-cryptography
+</pre></div>
+</div>
+</section>
+<section id="tak-protocol-version-1-protobuf-support">
+<h3>TAK Protocol Version 1 (protobuf) Support<a class="headerlink" href="#tak-protocol-version-1-protobuf-support" title="Permalink to this heading"></a></h3>
+<p>To install PyTAK with TAK Protocol Version 1 (protobuf) support, you must also install
+the Python TAKProto module <a class="reference external" href="https://github.com/snstac/takproto">takproto</a>.</p>
+<p>To install the TAKProto module, download the takproto package and install using apt:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo apt update -y
+$ wget https://github.com/snstak/takproto/releases/latest/download/python3-takproto_latest_all.deb
+$ sudo apt install -f ./python3-takproto_latest_all.deb
+</pre></div>
+</div>
+</section>
+</section>
+<section id="alternative-installation">
+<h2>Alternative Installation<a class="headerlink" href="#alternative-installation" title="Permalink to this heading"></a></h2>
+<p>You can install from PyPI or from source. Both of these methods will require manual
+installation of additional libraries.</p>
+<p>1a. Debian, Ubuntu, Raspberry Pi: Install <a class="reference external" href="https://sourceware.org/libffi/">LibFFI</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo apt update -y
+$ sudo apt install libffi-dev
+</pre></div>
+</div>
+<p>1b. RedHat, CentOS: Install <a class="reference external" href="https://sourceware.org/libffi/">LibFFI</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo yum install libffi-devel
+</pre></div>
+</div>
+<p>2a. Install PyTAK from the Python Package Index:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python3 -m pip install pytak
+$ python3 -m pip install pytak[with_crypto]
+$ python3 -m pip install pytak[with_takproto]
+</pre></div>
+</div>
+<p>2b. Install PyTAK from source:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/snstac/pytak.git
+$ cd pytak/
+$ python3 -m pip install .
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Python Team Awareness Kit Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="config.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023 Sensors &amp; Signals LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

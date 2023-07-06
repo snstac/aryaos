@@ -23,3 +23,7 @@ sed --follow-symlinks -i -E -e "s/RECEIVER_SERIAL.*/RECEIVER_SERIAL=$DUMP1090_RE
 
 DUMP978_RECEIVER_SERIAL="stx:978:0" 
 sed --follow-symlinks -i -E -e "s/driver=rtlsdr /driver=rtlsdr,$DUMP978_RECEIVER_SERIAL /" /etc/default/dump978-fa
+
+systemctl set-default multi-user
+
+systemctl enable NetworkManager-dispatcher

@@ -30,7 +30,7 @@ if ! grep -qs -e 'NODE_ID' ${AIRTAK_CONF}; then
 fi
 
 if [ -z "$NODE_ID" ]; then
-  NEW_NODE_ID=$(python3 -c "import uuid;print(uuid.uuid4())")
+  NEW_NODE_ID=$(python3 -c "import uuid;print(str(uuid.uuid4()).upper())")
   echo "NODE_ID not set"
   sed --follow-symlinks -i -E -e "s/NODE_ID.*/NODE_ID=$NEW_NODE_ID/" ${AIRTAK_CONF}
   echo "NODE_ID is now set to: $NEW_NODE_ID"

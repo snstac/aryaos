@@ -33,3 +33,6 @@ install -v -m 644 files/set_uuid.service	"${ROOTFS_DIR}/etc/systemd/system/"
 
 # AirTAK Env configuration
 install -v -m 644 files/airtak-config.txt	"${ROOTFS_DIR}/boot/"
+install -v -m 755 files/99-airtak-dispatcher "${ROOTFS_DIR}//etc/NetworkManager/dispatcher.d/"
+
+install -v -m 644 files/README-AirTAK.txt "${ROOTFS_DIR}/"

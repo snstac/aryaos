@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-IMG_NAME="airtakT9"
+IMG_NAME="airtakR01"
 TARGET_HOSTNAME="airtak"
 FIRST_USER_NAME="pi"
 FIRST_USER_PASS="airtak415"
@@ -26,5 +26,5 @@ KEYBOARD_LAYOUT="English (US)"
 KEYBOARD_KEYMAP="us"
 ENABLE_SSH=1
 # DEPLOY_DIR="../deploy"
-BOARD="aml-s905x-cc"
+# BOARD="aml-s905x-cc"
 # http://boot.libre.computer/ci/aml-s905x-cc
