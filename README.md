@@ -1,13 +1,15 @@
 ![AirTAK ADS-B to TAK Gateway](https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/215a9728-55f0-438b-9a82-133012ccdb1b/airtakv1.jpg?format=512w)
 
-
 # AirTAK - Standalone ADS-B to TAK Gateway
 
 [AirTAK](https://www.snstac.com/blog/introducing-airtak-v1) is a standalone ADS-B to [TAK](https://www.tak.gov) Gateway. AirTAK Open Source is the purpose-built 
 operating system used by AirTAK gateways. It is based on Debian, and runs on most ARM64
 small-board computers, including the Raspberry Pi.
 
+You can [download the latest build of AirTAK R01 here](https://drive.google.com/file/d/1BT053aHiCUGOuCLW_IXkkuzRCJurwJOw/view?usp=sharing).
+
 Don't want to roll your own? You can order an assembled & tested [AirTAK go-kit](https://www.snstac.com/store/p/airtak-v1).
+
 
 ## What does AirTAK Do?
 
@@ -34,6 +36,7 @@ WinTAK or iTAK end-user device, AirTAK displays real-time aircraft data in nativ
 formats. This allows TAK users to gain airspace situational awareness in an easily 
 portable, turn-key device. When connected to a local or wide area network, AirTAK extends the operational coverage area and incrases airspace situational awareness.
 
+
 ## Where is AirTAK used?
 
 AirTAK is in active use by wildland fire, security, safety & response organizations world-wide.
@@ -44,30 +47,6 @@ This work is funded by the [Colorado Center of Excellence for Advanced Technolog
 ![USDA](https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/f72561b6-0cf4-4b7f-ac41-75d4bbc076d8/Logo_of_the_United_States_Department_of_Agriculture.svg.png?format=100)
 ![USFS](https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/61bde71a-14a1-455c-a8ef-90ba685f27c7/Logo_of_the_United_States_Forest_Service.svg+%281%29.png?format=100)
 
-# Building AirTAK
-
-The build environment for AirTAK is based on [pi-gen](https://github.com/RPi-Distro/pi-gen). 
-The build will create a Raspberry Pi OS image, compatible with [Raspberry Pi Imager](https://www.raspberrypi.com/software/) or [Balena Etcher](https://etcher.balena.io/).
-
-Any SD card larger than 16 GB should suffice to get started, 32 GB recommended.
-
-The AirTAK build procedure is inspired by @deltazero's [kiosk.pi](https://medium.com/@deltazero/making-kioskpi-custom-raspberry-pi-os-image-using-pi-gen-99aac2cd8cb6).
-
-## Build Steps
-
-To build initially:
-
-1. Checkout this repo.
-2. `make init` to download pi-gen.
-3. `make build` to create an image.
-
-To Update a build:
-
-1. sync repo
-2. `make skip` to skip base-os build steps.
-3. `make buld` to create an image.
-
-N.B.: THe `make build` step will attempt to sudo, and may prompt for a password.
 
 # License & Copyright
 
@@ -75,49 +54,10 @@ Copyright 2023 Sensors & Signals LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
+You may obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-# Configuration
-
-## Change default password
-
-The AirTAK OS image contains a user with a default password. It is recommended that the 
-owner of AirTAK gateway change this password.
-
-To change the default password:
-
-1. SSH into AirTAK: ``ssh pi@airtak.local``
-2. Change the password: ``passwd``
-
-**Please make note of this password. There is no password recovery feature.**
-
-See also: [Raspberry Pi Insecure first user](https://www.raspberrypi.com/news/raspberry-pi-bullseye-update-april-2022/)
-
-
-## Change CoT Destination
-
-By default, AirTAK sends Cursor on Target messages to the ATAK Mesh SA multicast group & port: ``udp://239.2.3.1:6969`` (expressed as a read-only port via ``udp+wo://...``). 
-
-To send CoT to a different destination, you'll need to SSH into AirTAK and change the 
-configuration for ``adsbcot``.
-
-1. SSH into AirTAK: ``ssh pi@airtak.local``
-2. Edit adsbcot's configuration: ``sudo nano /boot/adsbcot-config.txt`` (N.B. This is *not* an INI-style file.)
-3. Save & reboot.
-
-## Connect to WiFI
-
-1. Connect to the AirTAK WiFi network and browse to http://airtak.local
-2. Click the WiFi configuration option.
-3. Enter WiFi credentials and apply
-
-## TODO: Procedure for resetting WiFi connection
-
