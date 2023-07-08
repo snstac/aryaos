@@ -61,3 +61,32 @@ configuration for ``adsbcot``.
 
 ## TODO: Procedure for resetting WiFi connection
 
+## Change dump1090-fa & dump978-fa SDR serial numbers
+
+AirTAK comes with SDR serial numbers hard-coded for the AirTAK v1 hardware kit. If 
+you’re using the AirTAK OS with other SDRs, you’ll need to change these hard-coded values.
+
+### Changing dump1090-fa SDR serial number
+
+1. SSH into the AirTAK: ``ssh pi@airtak.local``
+2. List the serial numbers of the installed SDRs by typing the command: ``rtl_test``
+
+![Example rtl_test output with 1 SDR.](https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/8d1ecb30-17f4-4225-a7c6-76eca789b645/Screen+Shot+2023-07-08+at+11.48.45+AM.png)
+
+3. Using the Nano text editor, open the dump1090-fa configuration file: ``sudo nano /etc/default/dump1090-fa``
+
+![dump1090-fa config line](https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/44e90a93-624d-404b-b758-24d55377e626/Screen+Shot+2023-07-08+at+11.49.44+AM.png)
+
+4. Find the line beginning with RECEIVER_SERIAL and change the value to match the SN value from the rtl_test command above.
+
+5. Reload and restart dump1090-fa:
+``sudo systemctl daemon-reload``
+``sudo systemctl restart dump1090-fa``
+
+### Changing dump978-fa SDR serial number
+
+1. SSH into the AirTAK: ``ssh pi@airtak.local``
+2. List the serial numbers of the installed SDRs by typing the command: ``rtl_test``
+3. Using the Nano text editor, open the dump978-fa configuration file: 
+``sudo nano /etc/default/dump978-fa``
+4. Find the line beginning with TK TK

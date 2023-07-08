@@ -47,6 +47,9 @@ This work is funded by the [Colorado Center of Excellence for Advanced Technolog
 ![USDA](https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/f72561b6-0cf4-4b7f-ac41-75d4bbc076d8/Logo_of_the_United_States_Department_of_Agriculture.svg.png?format=100)
 ![USFS](https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/61bde71a-14a1-455c-a8ef-90ba685f27c7/Logo_of_the_United_States_Forest_Service.svg+%281%29.png?format=100)
 
+# Documentation
+
+AirTAK documentation is available [here](https://airtak.readthedocs.io).
 
 # License & Copyright
 
