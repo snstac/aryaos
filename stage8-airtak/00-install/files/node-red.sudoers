@@ -1,0 +1,4 @@
+node-red ALL=(root) NOPASSWD: /bin/systemctl restart adsbcot
+node-red ALL=(root) NOPASSWD: /sbin/reboot
+node-red ALL=(root) NOPASSWD: /sbin/shutdown
+node-red ALL=(root) NOPASSWD: /usr/local/sbin/wifi-nuke.py

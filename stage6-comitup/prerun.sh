@@ -1,4 +1,4 @@
-# Export image configuration for AirTAK
+#!/bin/bash -e
 #
 # Copyright 2023 Sensors & Signals LLC
 #
@@ -13,8 +13,6 @@
 # limitations under the License.
 #
 
-IMG_SUFFIX="-airtakR01B01"
-
-if [ "${USE_QEMU}" = "1" ]; then
-	export IMG_SUFFIX="${IMG_SUFFIX}-qemu"
+if [ ! -d "${ROOTFS_DIR}" ]; then
+	copy_previous
 fi

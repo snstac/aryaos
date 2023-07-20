@@ -13,14 +13,18 @@
 # limitations under the License.
 #
 
+# Captive portal / main page:
 install -v -m 644 files/index.html	"${ROOTFS_DIR}/var/www/html/"
 cp -r files/calfire_airbases	"${ROOTFS_DIR}/var/www/html/"
 chmod +x "${ROOTFS_DIR}/var/www/html"
+
+# Node-RED:
 install -v -m 644 files/airtak-flows.json	"${ROOTFS_DIR}/home/node-red/.node-red/"
-
-# saves having to set permissions & ownership again:
 cat "${ROOTFS_DIR}/home/node-red/.node-red/airtak-flows.json" > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"
-
+install -v -m 640 files/node-red.sudoers	"${ROOTFS_DIR}/etc/sudoers.d/node-red"
+visudo -c "${ROOTFS_DIR}/etc/sudoers.d/node-red"
+install -v -m 755 files/get_throttled.sh	"${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 755 files/wifi-nuke.py	"${ROOTFS_DIR}/usr/local/sbin/wifi-nuke.py"
 
 # LINCOT tracker
 install -v -m 644 files/lincot-config.txt	"${ROOTFS_DIR}/boot/"
@@ -33,6 +37,5 @@ install -v -m 644 files/set_uuid.service	"${ROOTFS_DIR}/etc/systemd/system/"
 
 # AirTAK Env configuration
 install -v -m 644 files/airtak-config.txt	"${ROOTFS_DIR}/boot/"
-install -v -m 755 files/99-airtak-dispatcher "${ROOTFS_DIR}//etc/NetworkManager/dispatcher.d/"
-
+install -v -m 755 files/99-airtak-dispatcher "${ROOTFS_DIR}/etc/NetworkManager/dispatcher.d/"
 install -v -m 644 files/README-AirTAK.txt "${ROOTFS_DIR}/"

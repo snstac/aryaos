@@ -1,4 +1,6 @@
-# Export image configuration for AirTAK
+#!/bin/bash -e
+#
+# Callback for comitup state changes
 #
 # Copyright 2023 Sensors & Signals LLC
 #
@@ -13,8 +15,6 @@
 # limitations under the License.
 #
 
-IMG_SUFFIX="-airtakR01B01"
+echo $* >> /tmp/comitup.log
+env >> /tmp/comitup.log
 
-if [ "${USE_QEMU}" = "1" ]; then
-	export IMG_SUFFIX="${IMG_SUFFIX}-qemu"
-fi

@@ -1,4 +1,6 @@
 #!/bin/bash -e
+# 
+# Node-RED intaller and setup script for AirTAK.
 #
 # Copyright 2023 Sensors & Signals LLC
 #
@@ -14,12 +16,23 @@
 #
 
 adduser --disabled-password --gecos 'Node-RED Service User' node-red || exit 0
+
+# FIXME: I don't think this is required?
 usermod -aG sudo node-red
+# Let node-red get GPU stats:
+usermod -aG video node-red
+# Let node-red get SDR info:
+usermod -aG plugdev node-red
+
+# Install Node-RED using the node-red installer:
 bash /usr/local/sbin/update-nodejs-and-nodered --confirm-install --nodered-user=node-red --confirm-root --no-init
 
+# Install Node-RED pallet modules:
 cd /home/node-red/.node-red
 npm install node-red-contrib-tak
 npm install node-red-contrib-web-worldmap
+npm install node-red-dashboard
+npm install node-red-node-ui-table
 
 chown -R node-red:node-red /home/node-red
 

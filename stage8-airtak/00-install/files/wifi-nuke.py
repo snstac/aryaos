@@ -1,4 +1,6 @@
-# Export image configuration for AirTAK
+#!/usr/bin/env python3
+#
+# CLI to nuke WiFi connections.
 #
 # Copyright 2023 Sensors & Signals LLC
 #
@@ -13,8 +15,25 @@
 # limitations under the License.
 #
 
-IMG_SUFFIX="-airtakR01B01"
+import sys
 
-if [ "${USE_QEMU}" = "1" ]; then
-	export IMG_SUFFIX="${IMG_SUFFIX}-qemu"
-fi
+sys.path.append("/usr/share/comitup")
+
+from comitup import client as ciu
+
+
+def get_state(ciu_client):
+    state, connection = ciu_client.ciu_state()
+    return state, connection
+
+
+def nuke(ciu_client):
+    state, connection = get_state(ciu_client)
+    if "HOTSPOT" not in state:
+        print(f"Deleting {connection}")
+        ciu_client.ciu_delete(connection)
+
+
+if __name__ == "__main__":
+    ciu_client = ciu.CiuClient()
+    nuke(ciu_client)

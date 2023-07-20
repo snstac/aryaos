@@ -1,18 +1,1641 @@
 [
     {
-        "id": "9c4ba3cbc4bd87fa",
+        "id": "94cf869050128770",
         "type": "tab",
-        "label": "Map",
+        "label": "Dashboard",
         "disabled": false,
         "info": "",
         "env": []
+    },
+    {
+        "id": "9c4ba3cbc4bd87fa",
+        "type": "tab",
+        "label": "Maps",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "76732e91104cd622",
+        "type": "tab",
+        "label": "I/O",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "edc83286b603d84a",
+        "type": "ui_tab",
+        "name": "ADS-B Dashboard",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "e828481c0c713837",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-light",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#0094CE",
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#fafafa",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#1bbfff",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#0094ce",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey",
+                "palette": "light"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "703b3b0940030133",
+        "type": "ui_group",
+        "name": "Default",
+        "tab": "edc83286b603d84a",
+        "order": 1,
+        "disp": true,
+        "width": "20",
+        "collapse": true,
+        "className": ""
+    },
+    {
+        "id": "1890881e.83819",
+        "type": "ui_group",
+        "name": "Col 1",
+        "tab": "c3173234.2636e",
+        "order": 1,
+        "disp": false,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "c5f1b8aa.45bc08",
+        "type": "ui_group",
+        "name": "Actions",
+        "tab": "c3173234.2636e",
+        "order": 5,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "9a96a8b1.92db78",
+        "type": "ui_group",
+        "name": "Col 2",
+        "tab": "c3173234.2636e",
+        "order": 2,
+        "disp": false,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "72fc319.cc425d",
+        "type": "ui_group",
+        "name": "Col 3",
+        "tab": "c3173234.2636e",
+        "order": 3,
+        "disp": false,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "c3173234.2636e",
+        "type": "ui_tab",
+        "name": "System Dashboard",
+        "icon": "dashboard",
+        "order": 2,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "98514ac85fb371eb",
+        "type": "ui_tab",
+        "name": "Debug Dashboard",
+        "icon": "dashboard",
+        "order": 3,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "985cb816630d7e12",
+        "type": "ui_group",
+        "name": "Group 1",
+        "tab": "98514ac85fb371eb",
+        "order": 1,
+        "disp": false,
+        "width": "20",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "095368571cbf1fcf",
+        "type": "ui_chart",
+        "z": "94cf869050128770",
+        "name": "Current Aircraft",
+        "group": "703b3b0940030133",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "label": "Current ADS-B Tracks",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": true,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 520,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c82e38d047199cb5",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "Current Aircraft Count",
+        "func": "let pl = msg.payload;\n\nlet payloads = [\n    { \"payload\": msg.payload.aircraft.length },\n    { \"payload\": msg.payload.messages }\n]\n\nreturn payloads;",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 100,
+        "wires": [
+            [
+                "095368571cbf1fcf",
+                "7750039932acdcc7"
+            ],
+            [
+                "16d10d070ec070d9"
+            ]
+        ]
+    },
+    {
+        "id": "16d10d070ec070d9",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "703b3b0940030133",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Total ADS-B Messages",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 550,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "2653a0b0.26d638",
+        "type": "ui_gauge",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "1890881e.83819",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "CPU Temperature",
+        "label": "C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "x": 710,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "fba68adf.14e13",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "vcgencmd measure_temp",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "name": "RPi Temp.",
+        "x": 330,
+        "y": 620,
+        "wires": [
+            [
+                "fa5b499.e176cb8"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "7c8379de.068868",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [
+            {
+                "p": "payload",
+                "v": "",
+                "vt": "date"
+            },
+            {
+                "p": "topic",
+                "v": "",
+                "vt": "str"
+            }
+        ],
+        "repeat": "10",
+        "crontab": "",
+        "once": false,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 124.5,
+        "y": 648.25,
+        "wires": [
+            [
+                "fba68adf.14e13",
+                "972ece2a.3dbe8",
+                "6242be99.26ac88"
+            ]
+        ]
+    },
+    {
+        "id": "fa5b499.e176cb8",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "",
+        "func": "str = msg.payload\nmsg.payload = str.substring(5,9);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 500,
+        "y": 600,
+        "wires": [
+            [
+                "2653a0b0.26d638",
+                "28b64a2c.b32116"
+            ]
+        ]
+    },
+    {
+        "id": "683a2b05.736204",
+        "type": "ui_button",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "label": "Reboot",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 100,
+        "y": 1020,
+        "wires": [
+            [
+                "1cf31554.2aaa63"
+            ]
+        ]
+    },
+    {
+        "id": "1cf31554.2aaa63",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "sudo /sbin/reboot",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "Reboot",
+        "x": 320,
+        "y": 1000,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "38e53dbf.ca594a",
+        "type": "ui_button",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "label": "Shutdown",
+        "color": "",
+        "bgcolor": "red",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 108.5,
+        "y": 1064.25,
+        "wires": [
+            [
+                "c409cae5.8e4128"
+            ]
+        ]
+    },
+    {
+        "id": "c409cae5.8e4128",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "sudo /sbin/shutdown -h now",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "Shutdown",
+        "x": 329.5,
+        "y": 1082.25,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "28b64a2c.b32116",
+        "type": "ui_chart",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "1890881e.83819",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "label": "",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "24",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "outputs": 1,
+        "x": 670,
+        "y": 640,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "972ece2a.3dbe8",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "top -d 0.5 -b -n2 | grep \"Cpu(s)\"| awk '{print $2 + $4}'",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "CPU Load",
+        "x": 330,
+        "y": 680,
+        "wires": [
+            [
+                "a5da1eb0f58fe89a"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "6242be99.26ac88",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "free | grep Mem | awk '{print 100*($3+$5+$6)/$2}'",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "Free Memory",
+        "x": 330,
+        "y": 740,
+        "wires": [
+            [
+                "77573ff2f632057f"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "b9372186.ed1a5",
+        "type": "ui_gauge",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "1890881e.83819",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Processor",
+        "label": "CPU",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "x": 680,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "9b301b09.8c0468",
+        "type": "ui_gauge",
+        "z": "94cf869050128770",
+        "name": "Memory",
+        "group": "9a96a8b1.92db78",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Memory",
+        "label": "RAM",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 640,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "270f61f0.9af05e",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "df -h",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "name": "Disk Usage",
+        "x": 330,
+        "y": 880,
+        "wires": [
+            [
+                "d70b7556.a0a9e"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "7ca6ecb.7512014",
+        "type": "ui_gauge",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "72fc319.cc425d",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Disk",
+        "label": "Usage",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "x": 650,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "d70b7556.a0a9e",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "",
+        "func": "var re = /([0-9]{2})%/\nvar idx = msg.payload.search(re);\nvar str = msg.payload;\nif (idx >=0) {\n    str = msg.payload.substring(idx, idx + 2);\n}\nmsg.payload = str;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 510,
+        "y": 880,
+        "wires": [
+            [
+                "7ca6ecb.7512014"
+            ]
+        ]
+    },
+    {
+        "id": "59103f97.07fed",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "repeat": "60",
+        "crontab": "",
+        "once": false,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 880,
+        "wires": [
+            [
+                "270f61f0.9af05e"
+            ]
+        ]
+    },
+    {
+        "id": "77573ff2f632057f",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "function 1",
+        "func": "msg.payload = parseFloat(msg.payload).toFixed(1)\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 740,
+        "wires": [
+            [
+                "9b301b09.8c0468"
+            ]
+        ]
+    },
+    {
+        "id": "a5da1eb0f58fe89a",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "Average CPUs",
+        "func": "const pl = msg.payload;\n\nconst loads = pl.split(\"\\n\").filter(n => n)\n\nvar total = 0;\nfor (var i = 0; i < loads.length; i++) {\n    total += loads[i];\n}\nvar avg = total / loads.length;\n\n\nmsg.payload = loads;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 680,
+        "wires": [
+            [
+                "b9372186.ed1a5"
+            ]
+        ]
+    },
+    {
+        "id": "20787a00729ffe5f",
+        "type": "link in",
+        "z": "94cf869050128770",
+        "name": "Dashboard In",
+        "links": [
+            "64fa2c00f63bdd53"
+        ],
+        "x": 155,
+        "y": 100,
+        "wires": [
+            [
+                "c82e38d047199cb5"
+            ]
+        ]
+    },
+    {
+        "id": "c1b4f4996f5aa122",
+        "type": "comment",
+        "z": "94cf869050128770",
+        "name": "ADS-B Dashboard",
+        "info": "",
+        "x": 110,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "7750039932acdcc7",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "703b3b0940030133",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "Current Tracks",
+        "label": "Current Tracks",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 520,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "43b182ea252f059a",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 110,
+        "y": 500,
+        "wires": [
+            [
+                "a8c763426a388421"
+            ]
+        ]
+    },
+    {
+        "id": "a8c763426a388421",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "gpsctl",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "gpsctl",
+        "x": 290,
+        "y": 500,
+        "wires": [
+            [
+                "6ffc305ab7e20ec7"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "6ffc305ab7e20ec7",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "GPSCTL",
+        "label": "GPS Device:",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 460,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "73eb77cde2c7a709",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "gpspipe --json -n 5|grep TPV|tail -1",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "gpspipe",
+        "x": 300,
+        "y": 420,
+        "wires": [
+            [
+                "de2c209dbe934060"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "69bd079907c39f3c",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 110,
+        "y": 420,
+        "wires": [
+            [
+                "73eb77cde2c7a709"
+            ]
+        ]
+    },
+    {
+        "id": "de2c209dbe934060",
+        "type": "json",
+        "z": "94cf869050128770",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 430,
+        "y": 400,
+        "wires": [
+            [
+                "1190f05a50aad89c"
+            ]
+        ]
+    },
+    {
+        "id": "1190f05a50aad89c",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "GPS Mode Lookup",
+        "func": "// https://gpsd.gitlab.io/gpsd/gpsd_json.html\n\nconst pl = msg.payload;\n\nmsg.payload = \"Invalid Mode\";\n\nswitch (parseInt(pl.mode)) { \n    case 0:\n        msg.payload = \"UNKNOWN\";\n        break;\n    case 1:\n        msg.payload = \"NO FIX\";\n        break;\n    case 2:\n        msg.payload = \"2D\";\n        break;\n    case 3:\n        msg.payload = \"3D\";\n        break;\n    default:\n        msg.payload = \"Invalid Mode\";\n        break;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 400,
+        "wires": [
+            [
+                "43958e20b7e848a3"
+            ]
+        ]
+    },
+    {
+        "id": "24d11b12327e6147",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "rtl_test 2>&1|grep -A2 Found|tail -n 2",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "rtl_test",
+        "x": 290,
+        "y": 320,
+        "wires": [
+            [
+                "c694287e0ecfdb11"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "b36b3af7a720fa09",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 130,
+        "y": 320,
+        "wires": [
+            [
+                "24d11b12327e6147"
+            ]
+        ]
+    },
+    {
+        "id": "c694287e0ecfdb11",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "SDR List",
+        "func": "const pl = msg.payload;\n\nconst sdrs = pl.split(\"\\n\").filter(n => n)\n\nmsg.payload = sdrs;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 300,
+        "wires": [
+            [
+                "ab8919275dc5a1bb",
+                "65b80260e6a12016"
+            ]
+        ]
+    },
+    {
+        "id": "ab8919275dc5a1bb",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "SDR 1",
+        "label": "SDR 1:",
+        "format": "{{msg.payload[0]}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 610,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "65b80260e6a12016",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "SDR 2",
+        "label": "SDR 2:",
+        "format": "{{msg.payload[1]}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 610,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "5dd1990becedf2b0",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 110,
+        "y": 1200,
+        "wires": [
+            [
+                "b1397733b1721b33"
+            ]
+        ]
+    },
+    {
+        "id": "b1397733b1721b33",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "lsusb|sort",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 300,
+        "y": 1200,
+        "wires": [
+            [
+                "3261a8dfedfae96d"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "3261a8dfedfae96d",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "",
+        "order": 5,
+        "width": "18",
+        "height": "3",
+        "format": "<strong>USB Devices</strong>\n\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 440,
+        "y": 1180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ca3080fa414c682a",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 110,
+        "y": 1280,
+        "wires": [
+            [
+                "b8c830dc7384cd97"
+            ]
+        ]
+    },
+    {
+        "id": "b8c830dc7384cd97",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "dmesg|egrep -vi '(^$)'|tail -10",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 360,
+        "y": 1280,
+        "wires": [
+            [
+                "a37cfd5ee5320ebf"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "a37cfd5ee5320ebf",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "",
+        "order": 6,
+        "width": "18",
+        "height": "4",
+        "format": "<strong>dmesg Tail</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 600,
+        "y": 1260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "43958e20b7e848a3",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "GPS Fix?",
+        "label": "GPS Mode/Fix:",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 780,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "67c1aa629a2e95af",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "/usr/local/sbin/get_throttled.sh",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 350,
+        "y": 1420,
+        "wires": [
+            [
+                "4f64ec7db13ee424"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "4f64ec7db13ee424",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "",
+        "order": 6,
+        "width": "18",
+        "height": "4",
+        "format": "<strong>Throttle Status</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 560,
+        "y": 1400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4338acd2934924cc",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 130,
+        "y": 1420,
+        "wires": [
+            [
+                "67c1aa629a2e95af"
+            ]
+        ]
+    },
+    {
+        "id": "08b06bdbca165793",
+        "type": "ui_button",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Restart adsbcot",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 140,
+        "y": 1520,
+        "wires": [
+            [
+                "e5dced56b4f75341"
+            ]
+        ]
+    },
+    {
+        "id": "e5dced56b4f75341",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "sudo /bin/systemctl restart adsbcot",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "Restart adsbcot",
+        "x": 320,
+        "y": 1520,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "2b4b6cdd321ee00f",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "systemctl status adsbcot",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 290,
+        "y": 1620,
+        "wires": [
+            [
+                "6e9d40501f8cf5ad"
+            ],
+            [],
+            [
+                "6f1c1811aba80e23"
+            ]
+        ]
+    },
+    {
+        "id": "6e9d40501f8cf5ad",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "",
+        "order": 6,
+        "width": "18",
+        "height": "4",
+        "format": "<strong>adsbcot Status</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 480,
+        "y": 1600,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7ba7a753251d58ef",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 90,
+        "y": 1720,
+        "wires": [
+            [
+                "2b4b6cdd321ee00f",
+                "46d0259afca51916",
+                "1eb20b9366ccaa48",
+                "f04d5eac0e7a1b43"
+            ]
+        ]
+    },
+    {
+        "id": "46d0259afca51916",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "systemctl status dump1090-fa",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 310,
+        "y": 1720,
+        "wires": [
+            [
+                "097d67f5adb26ee4"
+            ],
+            [],
+            [
+                "ecd7ad84354d9ff2"
+            ]
+        ]
+    },
+    {
+        "id": "097d67f5adb26ee4",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "",
+        "order": 6,
+        "width": "18",
+        "height": "4",
+        "format": "<strong>dump1090-fa Status</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 520,
+        "y": 1680,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1eb20b9366ccaa48",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "systemctl status dump978-fa",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 280,
+        "y": 1800,
+        "wires": [
+            [
+                "2ffdcfd33cf17ef6"
+            ],
+            [],
+            [
+                "49e62fb40690fd52"
+            ]
+        ]
+    },
+    {
+        "id": "2ffdcfd33cf17ef6",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "",
+        "order": 6,
+        "width": "18",
+        "height": "4",
+        "format": "<strong>dump978-fa Status</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 500,
+        "y": 1780,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ecd7ad84354d9ff2",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "function 2",
+        "func": "const pl = msg.payload;\nconst code = pl.code;\n\nswitch (code) {\n    case 0:\n        msg.payload = `OK: ${code}`;\n        break;\n    default:\n        msg.payload = `NOT OK: ${code}`\n        break;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 1720,
+        "wires": [
+            [
+                "1be5af7c7e7fce01"
+            ]
+        ]
+    },
+    {
+        "id": "1be5af7c7e7fce01",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "dump1090-fa State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 760,
+        "y": 1720,
+        "wires": []
+    },
+    {
+        "id": "23d37901f3926f93",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "adsbcot State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 700,
+        "y": 1620,
+        "wires": []
+    },
+    {
+        "id": "6f1c1811aba80e23",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "function 3",
+        "func": "const pl = msg.payload;\nconst code = pl.code;\n\nswitch (code) {\n    case 0:\n        msg.payload = `OK: ${code}`;\n        break;\n    default:\n        msg.payload = `NOT OK: ${code}`\n        break;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 1640,
+        "wires": [
+            [
+                "23d37901f3926f93"
+            ]
+        ]
+    },
+    {
+        "id": "49e62fb40690fd52",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "function 4",
+        "func": "const pl = msg.payload;\nconst code = pl.code;\n\nswitch (code) {\n    case 0:\n        msg.payload = `OK: ${code}`;\n        break;\n    default:\n        msg.payload = `NOT OK: ${code}`\n        break;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 1820,
+        "wires": [
+            [
+                "f27a7c08f4b16213"
+            ]
+        ]
+    },
+    {
+        "id": "f27a7c08f4b16213",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "dump978-fa State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 670,
+        "y": 1820,
+        "wires": []
+    },
+    {
+        "id": "8aed4279dc0c5160",
+        "type": "debug",
+        "z": "94cf869050128770",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 980,
+        "wires": []
+    },
+    {
+        "id": "f04d5eac0e7a1b43",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "systemctl status comitup",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 270,
+        "y": 1880,
+        "wires": [
+            [
+                "a0cf64935ca9edc0"
+            ],
+            [],
+            [
+                "10a3ae865e2978a2"
+            ]
+        ]
+    },
+    {
+        "id": "a0cf64935ca9edc0",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "",
+        "order": 6,
+        "width": "18",
+        "height": "4",
+        "format": "<strong>comitup Status</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 500,
+        "y": 1860,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "10a3ae865e2978a2",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "function 5",
+        "func": "const pl = msg.payload;\nconst code = pl.code;\n\nswitch (code) {\n    case 0:\n        msg.payload = `OK: ${code}`;\n        break;\n    default:\n        msg.payload = `NOT OK: ${code}`\n        break;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 1900,
+        "wires": [
+            [
+                "03dba3064caced92"
+            ]
+        ]
+    },
+    {
+        "id": "03dba3064caced92",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "comitup State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 660,
+        "y": 1900,
+        "wires": []
     },
     {
         "id": "605314ea7983779d",
         "type": "worldmap",
         "z": "9c4ba3cbc4bd87fa",
         "name": "AirTAK Map",
-        "lat": "37.16611 ",
+        "lat": "37.16611",
         "lon": "-119.44944",
         "zoom": "6",
         "layer": "Custom",
@@ -28,7 +1651,7 @@
         "showgrid": "true",
         "showruler": "false",
         "allowFileDrop": "false",
-        "path": "/map",
+        "path": "/airtak-map",
         "overlist": "DR,CO,RA,DN,BU,RW,SN,AC,TL,HM",
         "maplist": "OSMG,OSMC,OSMH,EsriC,EsriS,EsriT,EsriO,EsriDG,NatGeo,UKOS,OpTop,HB,AN,ST,SW",
         "mapname": "CalFire Airbases",
@@ -108,5 +1731,239 @@
                 "828d600baacf7776"
             ]
         ]
+    },
+    {
+        "id": "2934adb02aeb8158",
+        "type": "link in",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "Maps In",
+        "links": [
+            "64fa2c00f63bdd53"
+        ],
+        "x": 185,
+        "y": 280,
+        "wires": [
+            [
+                "21fbad99be695a04"
+            ]
+        ]
+    },
+    {
+        "id": "d15baed95c725e8c",
+        "type": "worldmap",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "AirTAK Map",
+        "lat": "37.16611",
+        "lon": "-119.44944",
+        "zoom": "6",
+        "layer": "Custom",
+        "cluster": "",
+        "maxage": "",
+        "usermenu": "show",
+        "layers": "show",
+        "panit": "false",
+        "panlock": "false",
+        "zoomlock": "false",
+        "hiderightclick": "false",
+        "coords": "deg",
+        "showgrid": "true",
+        "showruler": "false",
+        "allowFileDrop": "false",
+        "path": "/map",
+        "overlist": "DR,CO,RA,DN,BU,RW,SN,AC,TL,HM",
+        "maplist": "OSMG,OSMC,OSMH,EsriC,EsriS,EsriT,EsriO,EsriDG,NatGeo,UKOS,OpTop,HB,AN,ST,SW",
+        "mapname": "CalFire Airbases",
+        "mapurl": "http://airtak.local/calfire_airbases/{z}/{x}/{y}.png",
+        "mapopt": "",
+        "mapwms": true,
+        "x": 550,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "37a3c25966f0b291",
+        "type": "ui_worldmap",
+        "z": "9c4ba3cbc4bd87fa",
+        "group": "703b3b0940030133",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "lat": "37.16611",
+        "lon": "-119.44944",
+        "zoom": "6",
+        "layer": "Custom",
+        "cluster": "",
+        "maxage": "",
+        "usermenu": "hide",
+        "layers": "hide",
+        "panit": "false",
+        "panlock": "false",
+        "zoomlock": "false",
+        "hiderightclick": "true",
+        "coords": "none",
+        "showgrid": "false",
+        "showruler": "false",
+        "allowFileDrop": "false",
+        "path": "/ui-map",
+        "overlist": "DR,CO,RA,DN,HM",
+        "maplist": "OSMG,OSMC,EsriC,EsriS,EsriT,EsriDG,UKOS",
+        "mapname": "CalFire Airbases",
+        "mapurl": "http://airtak.local/calfire_airbases/{z}/{x}/{y}.png",
+        "mapopt": "",
+        "mapwms": true,
+        "x": 540,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "134821138a2acfc2",
+        "type": "split",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 130,
+        "y": 340,
+        "wires": [
+            [
+                "41bb4c5c359af191"
+            ]
+        ]
+    },
+    {
+        "id": "21fbad99be695a04",
+        "type": "change",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.aircraft",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 300,
+        "y": 280,
+        "wires": [
+            [
+                "134821138a2acfc2"
+            ]
+        ]
+    },
+    {
+        "id": "41bb4c5c359af191",
+        "type": "change",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload.name",
+                "pt": "msg",
+                "to": "payload.hex",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "payload.icon",
+                "pt": "msg",
+                "to": ":airplane:",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 300,
+        "y": 340,
+        "wires": [
+            [
+                "d15baed95c725e8c",
+                "37a3c25966f0b291"
+            ]
+        ]
+    },
+    {
+        "id": "3c2841160829473d",
+        "type": "file in",
+        "z": "76732e91104cd622",
+        "name": "DUMP1090 aircraft.json",
+        "filename": "/run/dump1090-fa/aircraft.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 270,
+        "y": 60,
+        "wires": [
+            [
+                "5f6eab2d3d6ad9be"
+            ]
+        ]
+    },
+    {
+        "id": "1f33287c64fa9fcb",
+        "type": "inject",
+        "z": "76732e91104cd622",
+        "name": "",
+        "props": [],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 90,
+        "y": 60,
+        "wires": [
+            [
+                "3c2841160829473d"
+            ]
+        ]
+    },
+    {
+        "id": "5f6eab2d3d6ad9be",
+        "type": "json",
+        "z": "76732e91104cd622",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 450,
+        "y": 60,
+        "wires": [
+            [
+                "64fa2c00f63bdd53"
+            ]
+        ]
+    },
+    {
+        "id": "64fa2c00f63bdd53",
+        "type": "link out",
+        "z": "76732e91104cd622",
+        "name": "aircraft Out",
+        "mode": "link",
+        "links": [
+            "20787a00729ffe5f",
+            "2934adb02aeb8158"
+        ],
+        "x": 545,
+        "y": 60,
+        "wires": []
     }
 ]

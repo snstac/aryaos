@@ -1,4 +1,5 @@
 #!/bin/sh -e
+#
 # Script to dispatch NetworkManager events for AirTAK.
 #
 # Copyright 2023 Sensors & Signals LLC
