@@ -14,3 +14,5 @@
 #
 
 # python3 -m pip install comitup
+apt install comitup || exit 0
+systemctl enable NetworkManager

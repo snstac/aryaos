@@ -15,6 +15,7 @@
 
 # Captive portal / main page:
 install -v -m 644 files/index.html	"${ROOTFS_DIR}/var/www/html/"
+rsync -va files/html/ "${ROOTFS_DIR}/var/www/html/"
 cp -r files/calfire_airbases	"${ROOTFS_DIR}/var/www/html/"
 chmod +x "${ROOTFS_DIR}/var/www/html"
 

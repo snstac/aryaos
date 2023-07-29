@@ -1,4 +1,49 @@
-node-red ALL=(root) NOPASSWD: /bin/systemctl restart adsbcot
 node-red ALL=(root) NOPASSWD: /sbin/reboot
 node-red ALL=(root) NOPASSWD: /sbin/shutdown
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmp-__boot__airtak-config.txt /boot/airtak-config.txt
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmp-__boot__adsbcot-config.txt /boot/adsbcot-config.txt
+
 node-red ALL=(root) NOPASSWD: /usr/local/sbin/wifi-nuke.py
+node-red ALL=(root) NOPASSWD: /usr/bin/nmcli device disconnect wlan0
+
+node-red ALL=(root) NOPASSWD: /bin/systemctl disable comitup
+node-red ALL=(root) NOPASSWD: /bin/systemctl enable comitup
+node-red ALL=(root) NOPASSWD: /bin/systemctl stop comitup
+node-red ALL=(root) NOPASSWD: /bin/systemctl start comitup
+node-red ALL=(root) NOPASSWD: /bin/systemctl restart comitup
+
+node-red ALL=(root) NOPASSWD: /bin/systemctl disable adsbcot
+node-red ALL=(root) NOPASSWD: /bin/systemctl enable adsbcot
+node-red ALL=(root) NOPASSWD: /bin/systemctl stop adsbcot
+node-red ALL=(root) NOPASSWD: /bin/systemctl start adsbcot
+node-red ALL=(root) NOPASSWD: /bin/systemctl restart adsbcot
+
+node-red ALL=(root) NOPASSWD: /bin/systemctl disable dump1090-fa
+node-red ALL=(root) NOPASSWD: /bin/systemctl enable dump1090-fa
+node-red ALL=(root) NOPASSWD: /bin/systemctl stop dump1090-fa
+node-red ALL=(root) NOPASSWD: /bin/systemctl start dump1090-fa
+node-red ALL=(root) NOPASSWD: /bin/systemctl restart dump1090-fa
+
+node-red ALL=(root) NOPASSWD: /bin/systemctl disable dump978-fa
+node-red ALL=(root) NOPASSWD: /bin/systemctl enable dump978-fa
+node-red ALL=(root) NOPASSWD: /bin/systemctl stop dump978-fa
+node-red ALL=(root) NOPASSWD: /bin/systemctl start dump978-fa
+node-red ALL=(root) NOPASSWD: /bin/systemctl restart dump978-fa
+
+node-red ALL=(root) NOPASSWD: /bin/systemctl disable lincot
+node-red ALL=(root) NOPASSWD: /bin/systemctl enable lincot
+node-red ALL=(root) NOPASSWD: /bin/systemctl stop lincot
+node-red ALL=(root) NOPASSWD: /bin/systemctl start lincot
+node-red ALL=(root) NOPASSWD: /bin/systemctl restart lincot
+
+node-red ALL=(root) NOPASSWD: /bin/systemctl disable gpsd
+node-red ALL=(root) NOPASSWD: /bin/systemctl enable gpsd
+node-red ALL=(root) NOPASSWD: /bin/systemctl stop gpsd
+node-red ALL=(root) NOPASSWD: /bin/systemctl start gpsd
+node-red ALL=(root) NOPASSWD: /bin/systemctl restart gpsd
+
+node-red ALL=(root) NOPASSWD: /bin/systemctl disable nodered
+node-red ALL=(root) NOPASSWD: /bin/systemctl enable nodered
+node-red ALL=(root) NOPASSWD: /bin/systemctl stop nodered
+node-red ALL=(root) NOPASSWD: /bin/systemctl start nodered
+node-red ALL=(root) NOPASSWD: /bin/systemctl restart nodered

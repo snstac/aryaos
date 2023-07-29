@@ -15,6 +15,5 @@
 # limitations under the License.
 #
 
-echo $* >> /tmp/comitup.log
-env >> /tmp/comitup.log
-
+# Ping a callback on Node-RED:
+wget -a http://127.0.0.1:1880/comitup_callback/$*

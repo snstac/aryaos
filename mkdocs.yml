@@ -1,8 +1,18 @@
 site_name: AirTAK
+site_url: https://airtak.readthedocs.io/
+repo_url: https://github.com/snstac/airtak
+site_description: AirTAK Documentation
+site_author: Greg Albrecht <gba@snstac.com>
+copyright: Copyright 2023 Sensors & Signals LLC
+
 theme:
-  name: readthedocs
+  name: material
   highlightjs: true
+
 plugins:
+  - include-markdown:
+      opening_tag: "{!"
+      closing_tag: "!}"
   - search
   - mkdocstrings:
       handlers:
@@ -10,7 +20,10 @@ plugins:
         python:
           options:
             docstring_style: sphinx
+
 markdown_extensions:
   - markdown_include.include:
       base_path: .
   - admonition
+  - toc:
+      permalink: True

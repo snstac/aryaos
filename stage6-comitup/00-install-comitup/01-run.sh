@@ -29,3 +29,5 @@ sed --follow-symlinks -i -E -e "s/port=80/port=$COMITUP_WEB_PORT/" "${ROOTFS_DIR
 
 install -v -m 644 files/comitup.conf	"${ROOTFS_DIR}/boot/"
 install -v -m 755 files/run_comitup.sh	"${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 755 files/comitup-callback.sh	"${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 644 files/comitup.service	"${ROOTFS_DIR}/lib/systemd/system/"

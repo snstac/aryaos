@@ -19,6 +19,8 @@ adduser --disabled-password --gecos 'Node-RED Service User' node-red || exit 0
 
 # FIXME: I don't think this is required?
 usermod -aG sudo node-red
+# Let node-red see systemd logs:
+usermod -aG adm node-red
 # Let node-red get GPU stats:
 usermod -aG video node-red
 # Let node-red get SDR info:
