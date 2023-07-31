@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-IMG_NAME="airtakR02B06"
+IMG_NAME="airtakR02"
 TARGET_HOSTNAME="airtak"
 FIRST_USER_NAME="pi"
 FIRST_USER_PASS="airtak415"
