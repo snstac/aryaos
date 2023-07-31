@@ -1,4 +1,4 @@
-![AirTAK ADS-B to TAK Gateway](media/airtakv1.jpg)
+![AirTAK ADS-B to TAK Gateway](https://airtak.readthedocs.io/en/latest/media/airtakv1.jpg)
 
 # AirTAK - Standalone ADS-B to TAK Gateway
 
