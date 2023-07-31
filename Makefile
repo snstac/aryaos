@@ -46,3 +46,7 @@ skip4:
 
 skip5:
 	touch stage5*/SKIP
+
+mkdocs:
+	pip install -r docs/requirements.txt
+	mkdocs serve
