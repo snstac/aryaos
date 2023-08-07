@@ -54,11 +54,16 @@ configuration for ``adsbcot``.
 2. Edit adsbcot's configuration: ``sudo nano /boot/adsbcot-config.txt`` (N.B. This is *not* an INI-style file.)
 3. Save & reboot.
 
-
 ### Change dump1090-fa & dump978-fa SDR serial numbers
 
-AirTAK comes with SDR serial numbers hard-coded for the AirTAK v1 hardware kit. If 
-you’re using the AirTAK OS with other SDRs, you’ll need to change these hard-coded values.
+Pre-assembled AirTAK devices come with SDR serial numbers pre-configured in dump1090-fa and dump978-fa. 
+
+You'll need to change the value of the SDR serial numbers configured in dump1090-fa and dump978-fa if:
+
+1. Using a self-assmbled AirTAK device.
+2. There is need to change these values (for example, replacing an SDR).
+
+An AirTAK Web Dashboard method of doing this is under development. See Issue [#21](https://github.com/snstac/airtak/issues/21).
 
 #### Changing dump1090-fa SDR serial number
 
