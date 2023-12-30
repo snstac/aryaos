@@ -1,5 +1,5 @@
 #!/bin/bash -e
-# Set the system's UUID.
+# Get the static position of the system (bypass gps).
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -19,21 +19,9 @@ AIRTAK_CONF="/boot/airtak-config.txt"
 
 if [[ -f ${AIRTAK_CONF} ]]; then
   . ${AIRTAK_CONF}
-else 
-  echo "${AIRTAK_CONF} doesn't exist, initializing."
-  echo 'NODE_ID=""' >> ${AIRTAK_CONF}
-fi
-
-if ! grep -qs -e 'NODE_ID' ${AIRTAK_CONF}; then
-  echo "Adding empty NODE_ID to ${AIRTAK_CONF}"
-  echo 'NODE_ID=""' >> ${AIRTAK_CONF}
-fi
-
-if [ -z "$NODE_ID" ]; then
-  NEW_NODE_ID=$(python3 -c "import uuid;print(str(uuid.uuid4()).upper())")
-  echo "NODE_ID not set"
-  sed --follow-symlinks -i -E -e "s/NODE_ID.*/NODE_ID=$NEW_NODE_ID/" ${AIRTAK_CONF}
-  echo "NODE_ID is now set to: $NEW_NODE_ID"
 else
-  exit 64
+  echo "${AIRTAK_CONF} doesn't exist, exiting."
+  exit 1
 fi
+
+echo "{\"class\": \"TPV\", \"lat\": ${STATIC_LAT}, \"lon\": ${STATIC_LON}, \"altHAE\": ${STATIC_ALT}, \"track\": \"9999999.0\", \"speed\": \"9999999.0\"}"

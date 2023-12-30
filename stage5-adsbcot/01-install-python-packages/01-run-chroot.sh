@@ -15,9 +15,9 @@
 
 apt install python3-cryptography
 
-python3 -m pip install pytak
-python3 -m pip install takproto
-python3 -m pip install aircot
-python3 -m pip install adsbcot
+python3 -m pip install pytak --break-system-packages
+python3 -m pip install takproto --break-system-packages
+python3 -m pip install aircot --break-system-packages
+python3 -m pip install adsbcot --break-system-packages
 
 systemctl enable adsbcot

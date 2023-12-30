@@ -1,9 +1,9 @@
 site_name: AirTAK
-site_url: https://airtak.readthedocs.io/
+site_url: https://airtak.rtfd.io/
 repo_url: https://github.com/snstac/airtak
 site_description: AirTAK Documentation
 site_author: Greg Albrecht <gba@snstac.com>
-copyright: Copyright 2023 Sensors & Signals LLC
+copyright: Copyright Sensors & Signals LLC https://www.snstac.com/
 
 theme:
   name: material

@@ -2,7 +2,7 @@
 # 
 # Node-RED intaller and setup script for AirTAK.
 #
-# Copyright 2023 Sensors & Signals LLC
+# Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,9 +32,15 @@ bash /usr/local/sbin/update-nodejs-and-nodered --confirm-install --nodered-user=
 # Install Node-RED pallet modules:
 cd /home/node-red/.node-red
 npm install node-red-contrib-tak
+npm install node-red-contrib-sitx
+npm install node-red-contrib-tfr2cot
 npm install node-red-contrib-web-worldmap
 npm install node-red-dashboard
 npm install node-red-node-ui-table
+npm install node-red-contrib-qrcode-generator
+npm install axios
+
+mkdir /home/node-red/tmpConf
 
 chown -R node-red:node-red /home/node-red
 

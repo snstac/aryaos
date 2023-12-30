@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2023 Sensors & Signals LLC
+# Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,4 @@
 # limitations under the License.
 #
 
-# python3 -m pip install comitup
-apt install comitup || exit 0
-systemctl enable NetworkManager
+install -v -m 644 files/python-networkmanager-main.zip	"${ROOTFS_DIR}/home/pi/"

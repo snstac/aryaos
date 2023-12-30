@@ -2,17 +2,17 @@
 
 # AirTAK - Standalone ADS-B to TAK Gateway
 
-[AirTAK](https://www.snstac.com/blog/introducing-airtak-v1) is a standalone ADS-B to [TAK](https://www.tak.gov) Gateway. AirTAK Open Source is the purpose-built 
-operating system used by AirTAK gateways. It is based on Debian, and runs on most ARM64
-small-board computers, including the Raspberry Pi.
+[AirTAK](https://www.snstac.com/blog/introducing-airtak-v1) is a standalone ADS-B to [TAK](https://www.tak.gov) Gateway. AirTAK works with all TAK Products, including ATAK, WinTAK, iTAK & TAKX.
 
-[AirTAK documentation is available](https://airtak.readthedocs.io).
+[AirTAK Open Source (AirTAK OS)](https://github.com/snstac/airtak) is the purpose-built operating system used by AirTAK. It is based on Debian, and runs on most ARM64 small-board computers, including the Raspberry Pi 0/3/4/5.
+
+[AirTAK documentation is available here.](https://airtak.readthedocs.io).
 
 Order an assembled & tested [AirTAK go-kit](https://www.snstac.com/store/p/airtak-v1).
 
 # License & Copyright
 
-Copyright 2023 [Sensors & Signals LLC](https://www.snstac.com)
+Copyright [Sensors & Signals LLC](https://www.snstac.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

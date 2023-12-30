@@ -2,7 +2,7 @@
 
 ## Download AirTAK Open Source
 
-* Latest: [R01](https://drive.google.com/file/d/1BT053aHiCUGOuCLW_IXkkuzRCJurwJOw/view?usp=sharing).
+* Latest: [R02](https://drive.google.com/file/d/1ZaAzdc1E-pdhytGDDaUfkhIVFpyTmuGk/view?usp=sharing).
 
 ## Build AirTAK Open Source
 

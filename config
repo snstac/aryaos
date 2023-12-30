@@ -1,6 +1,6 @@
 # pi-gen config for AirTAK
 #
-# Copyright 2023 Sensors & Signals LLC
+# Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
 # limitations under the License.
 #
 
-IMG_NAME="airtakR02"
+IMG_NAME="airtakR03B06"
+PI_GEN_RELEASE="Sensors & Signals AirTAK"
 TARGET_HOSTNAME="airtak"
 FIRST_USER_NAME="pi"
 FIRST_USER_PASS="airtak415"
 STAGE_LIST="stage0 stage1 stage2 ../stage4-dump1090 ../stage5-adsbcot ../stage6-comitup ../stage7-node-red ../stage8-airtak"
 DISABLE_FIRST_BOOT_USER_RENAME=1
-RELEASE="bullseye"
+RELEASE="bookworm"
 WPA_COUNTRY="US"
 LOCALE_DEFAULT="en_US.UTF-8"
 KEYBOARD_LAYOUT="English (US)"

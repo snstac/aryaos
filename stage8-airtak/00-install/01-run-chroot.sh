@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2023 Sensors & Signals LLC
+# Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-python3 -m pip install lincot==1.0.2b3
+python3 -m pip install lincot --break-system-packages
 
 systemctl enable lincot
 systemctl enable set_uuid
@@ -29,3 +29,6 @@ systemctl set-default multi-user
 systemctl enable NetworkManager-dispatcher
 
 sed --follow-symlinks -i -E -e "s/blank.org/airtak.local/" /usr/share/comitup/web/templates/connect.html
+
+/usr/local/sbin/install_zt.sh
+

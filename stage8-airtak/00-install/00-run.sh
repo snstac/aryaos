@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2023 Sensors & Signals LLC
+# Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ install -v -m 755 files/wifi-nuke.py	"${ROOTFS_DIR}/usr/local/sbin/wifi-nuke.py"
 # LINCOT tracker
 install -v -m 644 files/lincot-config.txt	"${ROOTFS_DIR}/boot/"
 install -v -m 755 files/run_lincot.sh	"${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 755 files/get_position.sh	"${ROOTFS_DIR}/usr/local/bin/"
 install -v -m 644 files/lincot.service	"${ROOTFS_DIR}/etc/systemd/system/"
 
 # Set UUID on first boot
@@ -40,3 +41,6 @@ install -v -m 644 files/set_uuid.service	"${ROOTFS_DIR}/etc/systemd/system/"
 install -v -m 644 files/airtak-config.txt	"${ROOTFS_DIR}/boot/"
 install -v -m 755 files/99-airtak-dispatcher "${ROOTFS_DIR}/etc/NetworkManager/dispatcher.d/"
 install -v -m 644 files/README-AirTAK.txt "${ROOTFS_DIR}/"
+
+# ZeroTier
+install -v -m 755 files/install_zt.sh	"${ROOTFS_DIR}/usr/local/sbin/"

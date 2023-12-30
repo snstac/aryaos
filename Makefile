@@ -1,6 +1,6 @@
 # Makefile for AirTAK
 #
-# Copyright 2023 Sensors & Signals LLC
+# Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,12 +31,12 @@ skip:
 	touch pi-gen/stage1/SKIP
 	touch pi-gen/stage2/SKIP
 
-copyback:
-	scp pi-gen/deploy/image*.zip gba@rorqual.local:~
-
 unskip:
 	rm -f */SKIP
 	rm -f pi-gen/*/SKIP
+
+copyback:
+	scp pi-gen/deploy/image*.zip gba@rorqual.local:~
 
 skip3:
 	touch stage3*/SKIP

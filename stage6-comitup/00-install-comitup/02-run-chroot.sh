@@ -1,4 +1,4 @@
-# LINCOT Env configuration file.
+#!/bin/bash -e
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -13,4 +13,15 @@
 # limitations under the License.
 #
 
-CALLSIGN=""
+
+
+# apt install comitup -y || exit 0
+
+# dpkg -r python3-networkmanager
+
+unzip /home/pi/python-networkmanager-main.zip
+cp python-networkmanager-main/NetworkManager.py /usr/lib/python3/dist-packages/NetworkManager.py
+
+# python3 -m pip install . --break-system-packages
+
+systemctl enable NetworkManager

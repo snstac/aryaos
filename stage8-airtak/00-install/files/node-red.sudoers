@@ -1,7 +1,9 @@
 node-red ALL=(root) NOPASSWD: /sbin/reboot
 node-red ALL=(root) NOPASSWD: /sbin/shutdown
-node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmp-__boot__airtak-config.txt /boot/airtak-config.txt
-node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmp-__boot__adsbcot-config.txt /boot/adsbcot-config.txt
+
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/airtak-config.txt /boot/airtak-config.txt
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/adsbcot-config.txt /boot/adsbcot-config.txt
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/lincot-config.txt /boot/lincot-config.txt
 
 node-red ALL=(root) NOPASSWD: /usr/local/sbin/wifi-nuke.py
 node-red ALL=(root) NOPASSWD: /usr/bin/nmcli device disconnect wlan0

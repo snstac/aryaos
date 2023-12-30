@@ -48,6 +48,22 @@
         "env": []
     },
     {
+        "id": "de725ec24f79b6b7",
+        "type": "tab",
+        "label": "TFR",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "f8d4ccf4360ea706",
+        "type": "tab",
+        "label": "Sit(x)",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "bd418afe09349324",
         "type": "group",
         "z": "1d5c7046712ea9d2",
@@ -68,6 +84,55 @@
         "y": 551.5,
         "w": 472,
         "h": 217
+    },
+    {
+        "id": "c5409a5d2b5e28d5",
+        "type": "group",
+        "z": "4fa67ac9ec0c7369",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "2d8066d127cb6c44",
+            "df765e01751751eb",
+            "bb55ecc1c7a7da19"
+        ],
+        "x": 464,
+        "y": 59,
+        "w": 302,
+        "h": 82
+    },
+    {
+        "id": "a247d145bc97ec4e",
+        "type": "group",
+        "z": "4fa67ac9ec0c7369",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "cb87c8b4398c815d",
+            "90bbf3ddaabf55d6",
+            "70a02ab5c732adf0",
+            "8f90b1c209f39ff8",
+            "e435961c35c6c50f",
+            "a693d594320c6842"
+        ],
+        "x": 454,
+        "y": 159,
+        "w": 392,
+        "h": 162
     },
     {
         "id": "edc83286b603d84a",
@@ -273,7 +338,7 @@
         "type": "ui_group",
         "name": "ADSBCOT Config",
         "tab": "1a1f481e736717f6",
-        "order": 1,
+        "order": 2,
         "disp": true,
         "width": "18",
         "collapse": false,
@@ -282,9 +347,9 @@
     {
         "id": "c9b3e02a2ade5f4f",
         "type": "ui_group",
-        "name": "PyTAK Config",
+        "name": "AirTAK Config",
         "tab": "1a1f481e736717f6",
-        "order": 2,
+        "order": 1,
         "disp": true,
         "width": "18",
         "collapse": false,
@@ -370,6 +435,51 @@
         "width": "6",
         "collapse": false,
         "className": ""
+    },
+    {
+        "id": "f3336acf327ddf7b",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "703b3b0940030133",
+        "order": 7,
+        "width": 15,
+        "height": 1
+    },
+    {
+        "id": "8eccad21e61a5466",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "703b3b0940030133",
+        "order": 8,
+        "width": 15,
+        "height": 1
+    },
+    {
+        "id": "9ab00f59e076f89a",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "703b3b0940030133",
+        "order": 9,
+        "width": 15,
+        "height": 1
+    },
+    {
+        "id": "c3850947c2c754c1",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "703b3b0940030133",
+        "order": 10,
+        "width": 15,
+        "height": 1
+    },
+    {
+        "id": "6225bafcfc61cabf",
+        "type": "sitx_config",
+        "name": "AirTAK-gba@Verizon"
     },
     {
         "id": "683a2b05.736204",
@@ -1320,7 +1430,7 @@
         "z": "94cf869050128770",
         "name": "Current Aircraft",
         "group": "703b3b0940030133",
-        "order": 7,
+        "order": 12,
         "width": 0,
         "height": 0,
         "label": "Current ADS-B Tracks",
@@ -1386,9 +1496,9 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "703b3b0940030133",
-        "order": 4,
-        "width": 0,
-        "height": 0,
+        "order": 5,
+        "width": 11,
+        "height": 1,
         "name": "",
         "label": "Total ADS-B Messages",
         "format": "{{msg.payload}}",
@@ -1782,9 +1892,9 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "703b3b0940030133",
-        "order": 5,
-        "width": 0,
-        "height": 0,
+        "order": 4,
+        "width": 4,
+        "height": 1,
         "name": "Current Tracks",
         "label": "Current Tracks",
         "format": "{{msg.payload}}",
@@ -1843,9 +1953,9 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "order": 3,
-        "width": 0,
-        "height": 0,
+        "order": 4,
+        "width": 15,
+        "height": 1,
         "name": "GPSCTL",
         "label": "GPS Device:",
         "format": "{{msg.payload}}",
@@ -1999,9 +2109,9 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "order": 4,
-        "width": 0,
-        "height": 0,
+        "order": 2,
+        "width": 15,
+        "height": 1,
         "name": "SDR 1",
         "label": "SDR 1:",
         "format": "{{msg.payload[0]}}",
@@ -2020,9 +2130,9 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "order": 5,
-        "width": 0,
-        "height": 0,
+        "order": 3,
+        "width": 15,
+        "height": 1,
         "name": "SDR 2",
         "label": "SDR 2:",
         "format": "{{msg.payload[1]}}",
@@ -2082,9 +2192,9 @@
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
         "name": "",
-        "order": 10,
-        "width": "18",
-        "height": "3",
+        "order": 14,
+        "width": 20,
+        "height": 4,
         "format": "<strong>USB Devices</strong>\n\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>",
         "storeOutMessages": true,
         "fwdInMessages": true,
@@ -2142,17 +2252,17 @@
         "type": "ui_template",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "name": "",
-        "order": 11,
-        "width": "18",
-        "height": "4",
+        "name": "dmesg Tail",
+        "order": 15,
+        "width": 20,
+        "height": 6,
         "format": "<strong>dmesg Tail</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
         "storeOutMessages": true,
         "fwdInMessages": true,
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 600,
+        "x": 610,
         "y": 1260,
         "wires": [
             []
@@ -2163,9 +2273,9 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "order": 2,
-        "width": 0,
-        "height": 0,
+        "order": 5,
+        "width": 15,
+        "height": 1,
         "name": "GPS Fix?",
         "label": "GPS Mode/Fix:",
         "format": "{{msg.payload}}",
@@ -2205,17 +2315,17 @@
         "type": "ui_template",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "name": "",
-        "order": 12,
-        "width": "18",
-        "height": "4",
+        "name": "Throttle Status",
+        "order": 13,
+        "width": 20,
+        "height": 3,
         "format": "<strong>Throttle Status</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
         "storeOutMessages": true,
         "fwdInMessages": true,
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 560,
+        "x": 580,
         "y": 1400,
         "wires": [
             []
@@ -2239,22 +2349,6 @@
                 "67c1aa629a2e95af"
             ]
         ]
-    },
-    {
-        "id": "8aed4279dc0c5160",
-        "type": "debug",
-        "z": "94cf869050128770",
-        "name": "debug 1",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 500,
-        "y": 980,
-        "wires": []
     },
     {
         "id": "16419a36256c9583",
@@ -2302,8 +2396,8 @@
         "z": "94cf869050128770",
         "group": "703b3b0940030133",
         "order": 3,
-        "width": 0,
-        "height": 0,
+        "width": 15,
+        "height": 1,
         "name": "",
         "label": "Uptime: ",
         "format": "{{msg.payload}}",
@@ -2332,8 +2426,8 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 920,
-        "y": 240,
+        "x": 200,
+        "y": 220,
         "wires": [
             []
         ]
@@ -2468,8 +2562,8 @@
         "group": "985cb816630d7e12",
         "name": "comitup Status",
         "order": 16,
-        "width": "18",
-        "height": "4",
+        "width": 20,
+        "height": 5,
         "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
         "storeOutMessages": true,
         "fwdInMessages": true,
@@ -2487,7 +2581,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "order": 9,
+        "order": 6,
         "width": 0,
         "height": 0,
         "name": "",
@@ -2674,9 +2768,9 @@
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
         "name": "adsbcot Status",
-        "order": 16,
-        "width": "18",
-        "height": "4",
+        "order": 17,
+        "width": 20,
+        "height": 5,
         "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
         "storeOutMessages": true,
         "fwdInMessages": true,
@@ -2694,7 +2788,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "order": 9,
+        "order": 7,
         "width": 0,
         "height": 0,
         "name": "",
@@ -2715,7 +2809,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "order": 9,
+        "order": 8,
         "width": 0,
         "height": 0,
         "name": "",
@@ -2757,7 +2851,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "order": 9,
+        "order": 10,
         "width": 0,
         "height": 0,
         "name": "",
@@ -2779,9 +2873,9 @@
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
         "name": "dump1090-fa Status",
-        "order": 16,
-        "width": "18",
-        "height": "4",
+        "order": 18,
+        "width": 20,
+        "height": 5,
         "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
         "storeOutMessages": true,
         "fwdInMessages": true,
@@ -2800,9 +2894,9 @@
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
         "name": "dump978-fa Status",
-        "order": 16,
-        "width": "18",
-        "height": "4",
+        "order": 19,
+        "width": 20,
+        "height": 5,
         "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
         "storeOutMessages": true,
         "fwdInMessages": true,
@@ -2821,9 +2915,9 @@
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
         "name": "Node-RED Status",
-        "order": 16,
-        "width": "18",
-        "height": "4",
+        "order": 20,
+        "width": 20,
+        "height": 5,
         "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
         "storeOutMessages": true,
         "fwdInMessages": true,
@@ -2842,9 +2936,9 @@
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
         "name": "lincot Status",
-        "order": 16,
-        "width": "18",
-        "height": "4",
+        "order": 21,
+        "width": 20,
+        "height": 5,
         "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
         "storeOutMessages": true,
         "fwdInMessages": true,
@@ -2862,7 +2956,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "order": 9,
+        "order": 11,
         "width": 0,
         "height": 0,
         "name": "",
@@ -2884,9 +2978,9 @@
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
         "name": "gpsd Status",
-        "order": 16,
-        "width": "18",
-        "height": "4",
+        "order": 22,
+        "width": 20,
+        "height": 4,
         "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
         "storeOutMessages": true,
         "fwdInMessages": true,
@@ -2904,7 +2998,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "985cb816630d7e12",
-        "order": 9,
+        "order": 12,
         "width": 0,
         "height": 0,
         "name": "",
@@ -2934,6 +3028,245 @@
             [
                 "4dfeafb5656bdb04"
             ]
+        ]
+    },
+    {
+        "id": "eba6db50839b1dd3",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.5",
+        "topic": "",
+        "x": 130,
+        "y": 1560,
+        "wires": [
+            [
+                "fe13b1777995e549"
+            ]
+        ]
+    },
+    {
+        "id": "fe13b1777995e549",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "ip -json addr",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 310,
+        "y": 1560,
+        "wires": [
+            [
+                "a8c5db14c632752a"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "a8c5db14c632752a",
+        "type": "json",
+        "z": "94cf869050128770",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 450,
+        "y": 1560,
+        "wires": [
+            [
+                "96eaefd7b076e52f"
+            ]
+        ]
+    },
+    {
+        "id": "2273e07e235feb5f",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "IP Interfaces",
+        "order": 1,
+        "width": 5,
+        "height": 4,
+        "format": "<strong>IP Interfaces</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 730,
+        "y": 1560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "96eaefd7b076e52f",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "Format",
+        "func": "const pl = msg.payload\n\nconst lo0 = pl[0]\nconst eth0 = pl[1]\nconst wlan0 = pl[2]\n\nif (eth0.addr_info.length > 0) {\n    eth0.ip = eth0.addr_info[0].local || \"[NO IP]\"\n}\n\nif (wlan0.addr_info.length > 0) {\n    wlan0.ip = wlan0.addr_info[0].local || \"[NO IP]\"\n}\n\nmsg.payload =  `${eth0.ifname}: ${eth0.ip}\\n\n${wlan0.ifname}: ${wlan0.ip}`;\n\nreturn msg;\n\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 1560,
+        "wires": [
+            [
+                "2273e07e235feb5f",
+                "08b0c289b467c651"
+            ]
+        ]
+    },
+    {
+        "id": "08b0c289b467c651",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "703b3b0940030133",
+        "name": "IP Interfaces",
+        "order": 1,
+        "width": 5,
+        "height": 3,
+        "format": "<strong>IP Interfaces</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 730,
+        "y": 1600,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9f8119755cf73778",
+        "type": "qrcode-generator",
+        "z": "94cf869050128770",
+        "name": "",
+        "qrtype": "wifi2qr",
+        "text2qrText": "",
+        "ssid": "",
+        "hiddenssid": false,
+        "wifitype": "",
+        "phonenum": "",
+        "smsphonenum": "",
+        "smstext": "",
+        "mailto": "",
+        "mailsubject": "",
+        "mailbody": "",
+        "latitude": "",
+        "longitude": "",
+        "colorlight": "#ffffff",
+        "colordark": "#000000",
+        "printstatus": true,
+        "x": 570,
+        "y": 2820,
+        "wires": [
+            [
+                "0c52692703de2835",
+                "cbbe264f84b53680"
+            ]
+        ]
+    },
+    {
+        "id": "a1642742e713d559",
+        "type": "link in",
+        "z": "94cf869050128770",
+        "name": "QR Code In",
+        "links": [
+            "b104d679e8967f58"
+        ],
+        "x": 225,
+        "y": 2800,
+        "wires": [
+            [
+                "8a9319936729c649"
+            ]
+        ]
+    },
+    {
+        "id": "8a9319936729c649",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "Set URL",
+        "func": "const pl = msg.payload\nlet nodeId = pl.match(/NODE_ID=(?<nodeId>[^\\n\\r]+)/).groups.nodeId\nlet ssid = `AirTAK-${nodeId.substr(-4, 4)}`\n\nlet wifiUrl = `WIFI:S:${ssid};T:;P:;H:false;`\nmsg.qrcodeinput = wifiUrl\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 2800,
+        "wires": [
+            [
+                "ec5307281fcd72cc",
+                "9f8119755cf73778"
+            ]
+        ]
+    },
+    {
+        "id": "ec5307281fcd72cc",
+        "type": "debug",
+        "z": "94cf869050128770",
+        "name": "debug 10",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 2780,
+        "wires": []
+    },
+    {
+        "id": "0c52692703de2835",
+        "type": "debug",
+        "z": "94cf869050128770",
+        "name": "debug 11",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 2880,
+        "wires": []
+    },
+    {
+        "id": "cbbe264f84b53680",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "703b3b0940030133",
+        "name": "QR Code",
+        "order": 6,
+        "width": 5,
+        "height": 4,
+        "format": "<div>Join AirTAK Wifi: <img src=\"{{msg.payload}}\"/></div>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 580,
+        "y": 2980,
+        "wires": [
+            []
         ]
     },
     {
@@ -3034,7 +3367,7 @@
         "type": "ui_worldmap",
         "z": "9c4ba3cbc4bd87fa",
         "group": "703b3b0940030133",
-        "order": 6,
+        "order": 11,
         "width": 0,
         "height": 0,
         "name": "",
@@ -3249,7 +3582,9 @@
         "z": "76732e91104cd622",
         "name": "adsbcot-config.txt Out",
         "mode": "link",
-        "links": [],
+        "links": [
+            "09f4ad56eb3fd133"
+        ],
         "x": 445,
         "y": 140,
         "wires": []
@@ -3308,7 +3643,7 @@
         "encoding": "none",
         "allProps": false,
         "x": 340,
-        "y": 280,
+        "y": 260,
         "wires": [
             [
                 "b104d679e8967f58"
@@ -3321,7 +3656,10 @@
         "z": "76732e91104cd622",
         "name": "airtak-config.txt Out",
         "mode": "link",
-        "links": [],
+        "links": [
+            "a1642742e713d559",
+            "09f4ad56eb3fd133"
+        ],
         "x": 445,
         "y": 240,
         "wires": []
@@ -3416,7 +3754,8 @@
         "mode": "link",
         "links": [
             "7c699e7f158dc0d5",
-            "3ffffc180cc204dd"
+            "3ffffc180cc204dd",
+            "dc87e7e88303ec78"
         ],
         "x": 325,
         "y": 440,
@@ -3427,10 +3766,10 @@
         "type": "watch",
         "z": "76732e91104cd622",
         "name": "",
-        "files": "tmp-__boot__adsbcot-config.txt",
+        "files": "tmpConf",
         "recursive": "",
-        "x": 170,
-        "y": 640,
+        "x": 100,
+        "y": 620,
         "wires": [
             [
                 "18674460572a0475"
@@ -3441,29 +3780,14 @@
         "id": "8ef58d62e7fd687c",
         "type": "link out",
         "z": "76732e91104cd622",
-        "name": "tmp-__boot__adsbcot-config.txt Out",
+        "name": "tmp- -config.txt Out",
         "mode": "link",
         "links": [
             "df765e01751751eb"
         ],
-        "x": 635,
-        "y": 680,
+        "x": 515,
+        "y": 620,
         "wires": []
-    },
-    {
-        "id": "adc689e439e03595",
-        "type": "watch",
-        "z": "76732e91104cd622",
-        "name": "",
-        "files": "tmp-__boot__adsbcot-config.txt",
-        "recursive": "",
-        "x": 170,
-        "y": 700,
-        "wires": [
-            [
-                "18674460572a0475"
-            ]
-        ]
     },
     {
         "id": "1aa83bf16aa07349",
@@ -3477,8 +3801,8 @@
         "sendError": false,
         "encoding": "none",
         "allProps": false,
-        "x": 520,
-        "y": 680,
+        "x": 420,
+        "y": 620,
         "wires": [
             [
                 "8ef58d62e7fd687c"
@@ -3512,12 +3836,13 @@
         "name": "Set Config Path",
         "func": "msg.confPath = `/home/node-red/${msg.payload}`;\n\nreturn msg;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 400,
-        "y": 680,
+        "x": 260,
+        "y": 620,
         "wires": [
             [
                 "1aa83bf16aa07349"
@@ -3538,6 +3863,38 @@
         "wires": []
     },
     {
+        "id": "58edafa9ab997436",
+        "type": "link in",
+        "z": "76732e91104cd622",
+        "name": "Out to Mesh SA",
+        "links": [
+            "ddb201c5df845268"
+        ],
+        "x": 75,
+        "y": 840,
+        "wires": [
+            [
+                "a5dbb71f6d17579d"
+            ]
+        ]
+    },
+    {
+        "id": "a5dbb71f6d17579d",
+        "type": "udp out",
+        "z": "76732e91104cd622",
+        "name": "",
+        "addr": "239.2.3.1",
+        "iface": "",
+        "port": "6969",
+        "ipv": "udp4",
+        "outport": "",
+        "base64": false,
+        "multicast": "multi",
+        "x": 210,
+        "y": 840,
+        "wires": []
+    },
+    {
         "id": "ede3aeb67d70b53d",
         "type": "ui_text_input",
         "z": "4fa67ac9ec0c7369",
@@ -3555,11 +3912,11 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 550,
-        "y": 360,
+        "x": 610,
+        "y": 400,
         "wires": [
             [
-                "889b5a54bf636cdb"
+                "9b8548552e7fbfa4"
             ]
         ]
     },
@@ -3568,14 +3925,15 @@
         "type": "function",
         "z": "4fa67ac9ec0c7369",
         "name": "Read Conf K/V",
-        "func": "const EOL = \"\\n\";  // FIXME: Should be os.EOL.\n\nconst pl = msg.payload;\nconst readEnvVars = () => pl.split(EOL);\n\n/**\n * Finds the key in conf files and returns the corresponding value\n *\n * @param {string} key Key to find\n * @returns {string|null} Value of the key\n */\nconst getConfValue = (key) => {\n    // find the line that contains the key (exact match)\n    const matchedLine = readEnvVars().find((line) => line.split(\"=\")[0] === key);\n    // split the line (delimiter is '=') and return the item at index 2\n    return matchedLine !== undefined ? matchedLine.split(\"=\")[1] : null;\n};\n\n\nmsg.confName = msg.filename;\n\nlet conf = flow.get(msg.confName) || {};\n\nlet confKeys = [];\n\nif (msg.confName === \"/boot/adsbcot-config.txt\") {\n    confKeys = [\n        \"FEED_URL\", \n        \"POLL_INTERVAL\", \n        \"ALT_UPPER\", \n        \"ALT_LOWER\"\n    ]\n} else if (msg.confName === \"/boot/airtak-config.txt\") {\n    confKeys = [\n        \"NODE_ID\",\n        \"COT_URL\",\n        \"PYTAK_MULTICAST_LOCAL_ADDR\",\n        \"PYTAK_TLS_CLIENT_CERT\",\n        \"WIFI_AP_IP\",\n    ]\n}\n\nlet k;\n\nfor (k of confKeys) {\n    let confVal = getConfValue(k)\n    if (confVal) {\n        conf[k] = confVal\n    }\n}\n\nflow.set(msg.confName, conf)\n\nmsg.payload = conf;\n\nreturn msg;",
+        "func": "const EOL = \"\\n\";  // FIXME: Should be os.EOL.\nconst pl = msg.payload;\nconst readEnvVars = () => pl.split(EOL);\n\nlet configs = flow.get(\"configs\") || {};\nlet config = configs[msg.filename]\n\n/**\n * Finds the key in conf files and returns the corresponding value\n *\n * @param {string} key Key to find\n * @returns {string|null} Value of the key\n */\nconst getConfValue = (key) => {\n    // find the line that contains the key (exact match)\n    const matchedLine = readEnvVars().find((/** @type {string} */ line) => line.split(\"=\")[0] === key);\n\n    // split the line (delimiter is '=') and return the item at index 2\n    return matchedLine !== undefined ? matchedLine.split(\"=\")[1] : null;\n};\n\n\nlet k;\n\nfor (k of Object.keys(config)) {\n    let confVal = getConfValue(k)\n    if (confVal) {\n        config[k] = confVal\n    }\n}\n\nconfigs[msg.filename] = config\nflow.set(\"configs\", configs)\n\nmsg.payload = config;\n\nreturn msg;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 620,
-        "y": 140,
+        "x": 260,
+        "y": 360,
         "wires": [
             [
                 "7790857cd1c02015"
@@ -3593,8 +3951,8 @@
         "arraySpltType": "len",
         "stream": false,
         "addname": "",
-        "x": 770,
-        "y": 140,
+        "x": 230,
+        "y": 400,
         "wires": [
             [
                 "b87a918bdc4910dc"
@@ -3641,7 +3999,27 @@
             },
             {
                 "t": "eq",
-                "v": "WIFI_AP_IP",
+                "v": "PYTAK_TLS_CLIENT_CERT",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "STATIC_ALT",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "STATIC_LAT",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "STATIC_LON",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "COT_ACCESS",
                 "vt": "str"
             },
             {
@@ -3650,9 +4028,9 @@
         ],
         "checkall": "true",
         "repair": false,
-        "outputs": 8,
-        "x": 330,
-        "y": 440,
+        "outputs": 12,
+        "x": 410,
+        "y": 580,
         "wires": [
             [
                 "2f521601ceea7ce4"
@@ -3675,6 +4053,18 @@
             [
                 "436315b0476f70b0"
             ],
+            [
+                "5ad11569a70069c4"
+            ],
+            [
+                "7b2591633f69cff2"
+            ],
+            [
+                "f1a4b452b8ad0ff2"
+            ],
+            [
+                "7e3b2c1fde544a53"
+            ],
             []
         ]
     },
@@ -3692,15 +4082,15 @@
         "passthru": true,
         "mode": "text",
         "delay": 300,
-        "topic": "topic",
+        "topic": "COT_URL",
         "sendOnBlur": true,
         "className": "",
-        "topicType": "msg",
-        "x": 540,
-        "y": 480,
+        "topicType": "str",
+        "x": 600,
+        "y": 520,
         "wires": [
             [
-                "0971095e05a7511e"
+                "52d59a8a443b3363"
             ]
         ]
     },
@@ -3719,8 +4109,8 @@
         "checkall": "true",
         "repair": false,
         "outputs": 1,
-        "x": 890,
-        "y": 140,
+        "x": 230,
+        "y": 440,
         "wires": [
             [
                 "bcd4f9fe3ff42a97"
@@ -3741,15 +4131,15 @@
         "passthru": true,
         "mode": "text",
         "delay": 300,
-        "topic": "topic",
+        "topic": "PYTAK_MULTICAST_LOCAL_ADDR",
         "sendOnBlur": true,
         "className": "",
-        "topicType": "msg",
-        "x": 630,
-        "y": 520,
+        "topicType": "str",
+        "x": 690,
+        "y": 560,
         "wires": [
             [
-                "0971095e05a7511e"
+                "52d59a8a443b3363"
             ]
         ]
     },
@@ -3759,8 +4149,8 @@
         "z": "4fa67ac9ec0c7369",
         "group": "703b3b0940030133",
         "order": 2,
-        "width": 0,
-        "height": 0,
+        "width": 15,
+        "height": 1,
         "name": "",
         "label": "NODE_ID",
         "format": "{{msg.payload}}",
@@ -3770,8 +4160,8 @@
         "font": "",
         "fontSize": 16,
         "color": "#000000",
-        "x": 540,
-        "y": 320,
+        "x": 600,
+        "y": 360,
         "wires": []
     },
     {
@@ -3792,11 +4182,11 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 550,
-        "y": 400,
+        "x": 610,
+        "y": 440,
         "wires": [
             [
-                "889b5a54bf636cdb"
+                "9b8548552e7fbfa4"
             ]
         ]
     },
@@ -3818,11 +4208,11 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 550,
-        "y": 440,
+        "x": 610,
+        "y": 480,
         "wires": [
             [
-                "889b5a54bf636cdb"
+                "9b8548552e7fbfa4"
             ]
         ]
     },
@@ -3830,6 +4220,7 @@
         "id": "cb87c8b4398c815d",
         "type": "ui_button",
         "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
         "name": "",
         "group": "1027f32817e150a0",
         "order": 1,
@@ -3842,34 +4233,16 @@
         "bgcolor": "",
         "className": "",
         "icon": "",
-        "payload": "",
-        "payloadType": "str",
+        "payload": "configs",
+        "payloadType": "flow",
         "topic": "topic",
         "topicType": "msg",
-        "x": 170,
-        "y": 660,
+        "x": 590,
+        "y": 200,
         "wires": [
             [
-                "75aa04d9bcfd3ef9"
-            ]
-        ]
-    },
-    {
-        "id": "75aa04d9bcfd3ef9",
-        "type": "function",
-        "z": "4fa67ac9ec0c7369",
-        "name": "Read Flow Configs",
-        "func": "const confs = [\"/boot/airtak-config.txt\", \"/boot/adsbcot-config.txt\"];\nlet conf\nlet confKV\n\nfor (conf of confs) {\n    confKV = flow.get(conf) || {};\n    node.send({\"payload\": confKV, \"topic\": conf})\n}\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 390,
-        "y": 660,
-        "wires": [
-            [
-                "90bbf3ddaabf55d6"
+                "a693d594320c6842",
+                "631f87c4233853a4"
             ]
         ]
     },
@@ -3892,8 +4265,8 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 160,
-        "y": 360,
+        "x": 260,
+        "y": 560,
         "wires": [
             [
                 "b29ad47e816eeb8a"
@@ -3904,15 +4277,17 @@
         "id": "90bbf3ddaabf55d6",
         "type": "function",
         "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
         "name": "Remove nulls",
         "func": "const pl = msg.payload;\nlet newpl = {};\n\nfor (const [key, value] of Object.entries(pl)) {\n    if (value !== null) {\n        newpl[key] = value\n    }\n}\n\nmsg.payload = newpl;\n\nreturn msg;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 580,
-        "y": 660,
+        "x": 560,
+        "y": 240,
         "wires": [
             [
                 "8f90b1c209f39ff8"
@@ -3923,6 +4298,7 @@
         "id": "70a02ab5c732adf0",
         "type": "file",
         "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
         "name": "",
         "filename": "tmpConfPath",
         "filenameType": "msg",
@@ -3930,11 +4306,11 @@
         "createDir": false,
         "overwriteFile": "true",
         "encoding": "none",
-        "x": 1080,
-        "y": 660,
+        "x": 700,
+        "y": 280,
         "wires": [
             [
-                "ea57e03a66b63f7f"
+                "83463f13b20d8ef3"
             ]
         ]
     },
@@ -3942,15 +4318,17 @@
         "id": "8f90b1c209f39ff8",
         "type": "function",
         "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
         "name": "Format ENV file",
         "func": "const pl = msg.payload;\nlet newpl = `# ${msg.topic} Automatically created by AirTAK Dashboard.`;\n\nfor (const [key, value] of Object.entries(pl)) {\n    if (value !== null) {\n        newpl = `${newpl}\\n${key}=${value}`\n    }\n}\n\nmsg.payload = newpl;\n\nreturn msg;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 760,
-        "y": 660,
+        "x": 740,
+        "y": 240,
         "wires": [
             [
                 "e435961c35c6c50f"
@@ -3961,15 +4339,17 @@
         "id": "e435961c35c6c50f",
         "type": "function",
         "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
         "name": "Use tmp file",
-        "func": "msg.tmpConfPath = msg.topic.replace(\"/boot/\", \"tmp-__boot__\")\n\nreturn msg;",
+        "func": "msg.tmpConfPath = msg.topic.replace(\"/boot/\", \"tmpConf/\")\n\nreturn msg;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 930,
-        "y": 660,
+        "x": 550,
+        "y": 280,
         "wires": [
             [
                 "70a02ab5c732adf0"
@@ -3980,15 +4360,17 @@
         "id": "df765e01751751eb",
         "type": "link in",
         "z": "4fa67ac9ec0c7369",
+        "g": "c5409a5d2b5e28d5",
         "name": "adsbcot-config.txt In",
         "links": [
             "8ef58d62e7fd687c"
         ],
-        "x": 205,
-        "y": 800,
+        "x": 505,
+        "y": 100,
         "wires": [
             [
-                "2d8066d127cb6c44"
+                "2d8066d127cb6c44",
+                "59b872f3a0bdee19"
             ]
         ]
     },
@@ -3996,18 +4378,21 @@
         "id": "2d8066d127cb6c44",
         "type": "function",
         "z": "4fa67ac9ec0c7369",
+        "g": "c5409a5d2b5e28d5",
         "name": "Set Cmd",
-        "func": "let realName = msg.filename.replace(\"tmp-__boot__\", \"/boot/\").replace(\"/home/node-red/\", \"\")\nmsg.payload = `sudo cp ${msg.filename} ${realName}`\n\nreturn msg;",
+        "func": "let realName = msg.filename.replace(\"tmpConf/\", \"/boot/\").replace(\"/home/node-red/\", \"\")\nmsg.payload = `sudo cp ${msg.filename} ${realName}`\n\nreturn msg;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 320,
-        "y": 800,
+        "x": 620,
+        "y": 100,
         "wires": [
             [
-                "bb55ecc1c7a7da19"
+                "bb55ecc1c7a7da19",
+                "59b872f3a0bdee19"
             ]
         ]
     },
@@ -4016,7 +4401,7 @@
         "type": "ui_text_input",
         "z": "4fa67ac9ec0c7369",
         "name": "",
-        "label": "WIFI_AP_IP",
+        "label": "PYTAK_TLS_CLIENT_CERT",
         "tooltip": "",
         "group": "c9b3e02a2ade5f4f",
         "order": 2,
@@ -4025,63 +4410,15 @@
         "passthru": true,
         "mode": "text",
         "delay": 300,
-        "topic": "topic",
+        "topic": "PYTAK_TLS_CLIENT_CERT",
         "sendOnBlur": true,
         "className": "",
-        "topicType": "msg",
-        "x": 550,
-        "y": 560,
+        "topicType": "str",
+        "x": 660,
+        "y": 600,
         "wires": [
             [
-                "0971095e05a7511e"
-            ]
-        ]
-    },
-    {
-        "id": "cfe46598f2f4b0f1",
-        "type": "inject",
-        "z": "4fa67ac9ec0c7369",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 220,
-        "y": 160,
-        "wires": [
-            [
-                "260c7a258204237b"
-            ]
-        ]
-    },
-    {
-        "id": "260c7a258204237b",
-        "type": "function",
-        "z": "4fa67ac9ec0c7369",
-        "name": "Clear Confs",
-        "func": "const confs = [\"/boot/airtak-config.txt\", \"/boot/adsbcot-config.txt\"];\nlet conf\nfor (conf of confs) {\n    flow.set(conf, {})\n}",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 370,
-        "y": 160,
-        "wires": [
-            [
-                "20bb4cfcf85404b9"
+                "52d59a8a443b3363"
             ]
         ]
     },
@@ -4101,15 +4438,15 @@
         "bgcolor": "green",
         "className": "",
         "icon": "",
-        "payload": "[\"/boot/airtak-config.txt\", \"/boot/adsbcot-config.txt\"]",
-        "payloadType": "json",
+        "payload": "configs",
+        "payloadType": "flow",
         "topic": "topic",
         "topicType": "msg",
-        "x": 140,
-        "y": 100,
+        "x": 260,
+        "y": 200,
         "wires": [
             [
-                "f03da47ad91841c2"
+                "9c77b6745bbb256f"
             ]
         ]
     },
@@ -4124,8 +4461,8 @@
         "arraySpltType": "len",
         "stream": false,
         "addname": "topic",
-        "x": 310,
-        "y": 100,
+        "x": 230,
+        "y": 280,
         "wires": [
             [
                 "1c2d5f5bc8a23c60"
@@ -4144,8 +4481,8 @@
         "sendError": false,
         "encoding": "none",
         "allProps": false,
-        "x": 440,
-        "y": 100,
+        "x": 240,
+        "y": 320,
         "wires": [
             [
                 "20bb4cfcf85404b9"
@@ -4153,66 +4490,17 @@
         ]
     },
     {
-        "id": "889b5a54bf636cdb",
-        "type": "function",
-        "z": "4fa67ac9ec0c7369",
-        "name": "Set adsbcot Conf",
-        "func": "const pl = msg.payload;\n\nlet confName = \"/boot/adsbcot-config.txt\";\n\nlet conf = flow.get(confName) || {};\nconf[msg.topic] = pl;\nflow.set(confName, conf)\n\nmsg.payload = conf;\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 790,
-        "y": 400,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "0971095e05a7511e",
-        "type": "function",
-        "z": "4fa67ac9ec0c7369",
-        "name": "Set AirTAK Conf",
-        "func": "const pl = msg.payload;\n\nlet confName = \"/boot/airtak-config.txt\";\n\nlet conf = flow.get(confName) || {};\nconf[msg.topic] = pl;\nflow.set(confName, conf)\n\nmsg.payload = conf;\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 940,
-        "y": 520,
-        "wires": [
-            []
-        ]
-    },
-    {
         "id": "bb55ecc1c7a7da19",
         "type": "link out",
         "z": "4fa67ac9ec0c7369",
+        "g": "c5409a5d2b5e28d5",
         "name": "Save Config Out",
         "mode": "link",
         "links": [
             "191a64ffb1ef6aac"
         ],
-        "x": 475,
-        "y": 800,
-        "wires": []
-    },
-    {
-        "id": "ea57e03a66b63f7f",
-        "type": "debug",
-        "z": "4fa67ac9ec0c7369",
-        "name": "debug 7",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1080,
-        "y": 760,
+        "x": 725,
+        "y": 100,
         "wires": []
     },
     {
@@ -4220,27 +4508,399 @@
         "type": "inject",
         "z": "4fa67ac9ec0c7369",
         "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
+        "props": [],
         "repeat": "",
         "crontab": "",
         "once": true,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 110,
-        "y": 40,
+        "x": 150,
+        "y": 120,
+        "wires": [
+            [
+                "38dd95c8bf4641c3"
+            ]
+        ]
+    },
+    {
+        "id": "38dd95c8bf4641c3",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "name": "Set Configs",
+        "func": "let configs = {\n    \"/boot/adsbcot-config.txt\": {\n        FEED_URL: \"file:///run/dump1090-fa/aircraft.json\", \n        POLL_INTERVAL: null, \n        ALT_UPPER: null, \n        ALT_LOWER: null\n    },\n    \"/boot/airtak-config.txt\": {\n        NODE_ID: null,\n        COT_URL: \"udp+wo://239.2.3.1:6969\",\n        PYTAK_MULTICAST_LOCAL_ADDR: \"0.0.0.0\",\n        PYTAK_TLS_CLIENT_CERT: null,\n        WIFI_AP_IP: \"10.41.0.1\",\n        COT_ACCESS: \"UNCLASSIFIED\",\n        STATIC_LAT: null,\n        STATIC_LON: null,\n        STATIC_ALT: null,\n    },\n    \"/boot/lincot-config.txt\": {\n        GPS_INFO_CMD: null,\n        CALLSIGN: null\n\n    }\n}\n\nflow.set(\"configs\", configs)\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 250,
+        "y": 160,
         "wires": [
             [
                 "9ebdda528d43e0ed"
+            ]
+        ]
+    },
+    {
+        "id": "9c77b6745bbb256f",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "name": "Set Files",
+        "func": "const configs = flow.get(\"configs\") || {}\nmsg.payload = Object.keys(configs)\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 240,
+        "y": 240,
+        "wires": [
+            [
+                "f03da47ad91841c2"
+            ]
+        ]
+    },
+    {
+        "id": "9b8548552e7fbfa4",
+        "type": "change",
+        "z": "4fa67ac9ec0c7369",
+        "name": "/boot/adsbcot-config.txt",
+        "rules": [
+            {
+                "t": "set",
+                "p": "filename",
+                "pt": "msg",
+                "to": "/boot/adsbcot-config.txt",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 850,
+        "y": 440,
+        "wires": [
+            [
+                "e0a10c197bb93cee"
+            ]
+        ]
+    },
+    {
+        "id": "52d59a8a443b3363",
+        "type": "change",
+        "z": "4fa67ac9ec0c7369",
+        "name": "/boot/airtak-config.txt",
+        "rules": [
+            {
+                "t": "set",
+                "p": "filename",
+                "pt": "msg",
+                "to": "/boot/airtak-config.txt",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1000,
+        "y": 620,
+        "wires": [
+            [
+                "e0a10c197bb93cee"
+            ]
+        ]
+    },
+    {
+        "id": "a693d594320c6842",
+        "type": "split",
+        "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "topic",
+        "x": 770,
+        "y": 200,
+        "wires": [
+            [
+                "90bbf3ddaabf55d6"
+            ]
+        ]
+    },
+    {
+        "id": "09f4ad56eb3fd133",
+        "type": "link in",
+        "z": "4fa67ac9ec0c7369",
+        "name": "Config in",
+        "links": [
+            "99875f9d26d1f50e",
+            "b104d679e8967f58"
+        ],
+        "x": 105,
+        "y": 240,
+        "wires": [
+            [
+                "9c77b6745bbb256f"
+            ]
+        ]
+    },
+    {
+        "id": "e0a10c197bb93cee",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "name": "Set Configs",
+        "func": "let configs = flow.get(\"configs\") || {};\n\nconfigs[msg.filename][msg.topic] = msg.payload\n\nflow.set(\"configs\", configs)\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1230,
+        "y": 620,
+        "wires": [
+            [
+                "8e27fbfb0a2496bb"
+            ]
+        ]
+    },
+    {
+        "id": "5ad11569a70069c4",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "STATIC_ALT",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "STATIC_ALT",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 610,
+        "y": 640,
+        "wires": [
+            [
+                "52d59a8a443b3363"
+            ]
+        ]
+    },
+    {
+        "id": "7b2591633f69cff2",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "STATIC_LAT",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "STATIC_LAT",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 610,
+        "y": 680,
+        "wires": [
+            [
+                "52d59a8a443b3363"
+            ]
+        ]
+    },
+    {
+        "id": "f1a4b452b8ad0ff2",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "STATIC_LON",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "STATIC_LON",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 610,
+        "y": 720,
+        "wires": [
+            [
+                "52d59a8a443b3363"
+            ]
+        ]
+    },
+    {
+        "id": "631f87c4233853a4",
+        "type": "debug",
+        "z": "4fa67ac9ec0c7369",
+        "name": "debug 13",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 900,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "59b872f3a0bdee19",
+        "type": "debug",
+        "z": "4fa67ac9ec0c7369",
+        "name": "debug 14",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "83463f13b20d8ef3",
+        "type": "debug",
+        "z": "4fa67ac9ec0c7369",
+        "name": "debug 16",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 900,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "ff7a0b0653db330b",
+        "type": "ui_switch",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "Use Static Position?",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "GPS_INFO_CMD",
+        "topicType": "str",
+        "style": "",
+        "onvalue": "/usr/local/bin/get_position.sh",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "null",
+        "offvalueType": "json",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 980,
+        "y": 680,
+        "wires": [
+            [
+                "68268787596399d6"
+            ]
+        ]
+    },
+    {
+        "id": "68268787596399d6",
+        "type": "change",
+        "z": "4fa67ac9ec0c7369",
+        "name": "/boot/lincot-config.txt",
+        "rules": [
+            {
+                "t": "set",
+                "p": "filename",
+                "pt": "msg",
+                "to": "/boot/lincot-config.txt",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1020,
+        "y": 740,
+        "wires": [
+            [
+                "e0a10c197bb93cee"
+            ]
+        ]
+    },
+    {
+        "id": "8e27fbfb0a2496bb",
+        "type": "debug",
+        "z": "4fa67ac9ec0c7369",
+        "name": "debug 18",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1280,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "7e3b2c1fde544a53",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "COT_ACCESS",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "COT_ACCESS",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 620,
+        "y": 760,
+        "wires": [
+            [
+                "52d59a8a443b3363"
             ]
         ]
     },
@@ -4458,5 +5118,158 @@
         "x": 460,
         "y": 140,
         "wires": []
+    },
+    {
+        "id": "eeab9ac6513e2cdf",
+        "type": "parsrer",
+        "z": "de725ec24f79b6b7",
+        "name": "",
+        "state": "",
+        "destUid": "",
+        "takMission": "",
+        "datasyncSave": false,
+        "creatorUid": "",
+        "takServerUrl": "",
+        "missionApiPort": 8443,
+        "x": 430,
+        "y": 200,
+        "wires": [
+            [
+                "cedca169d6844f15"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "1adb2eef7b22719d",
+        "type": "inject",
+        "z": "de725ec24f79b6b7",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "CA",
+        "payloadType": "str",
+        "x": 290,
+        "y": 200,
+        "wires": [
+            [
+                "eeab9ac6513e2cdf"
+            ]
+        ]
+    },
+    {
+        "id": "1e6eb6f93066814d",
+        "type": "debug",
+        "z": "de725ec24f79b6b7",
+        "name": "debug 9",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 600,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "ddb201c5df845268",
+        "type": "link out",
+        "z": "de725ec24f79b6b7",
+        "name": "TFR Out",
+        "mode": "link",
+        "links": [
+            "58edafa9ab997436",
+            "dc87e7e88303ec78"
+        ],
+        "x": 665,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "cedca169d6844f15",
+        "type": "tak",
+        "z": "de725ec24f79b6b7",
+        "name": "TAK",
+        "x": 570,
+        "y": 200,
+        "wires": [
+            [
+                "ddb201c5df845268",
+                "1e6eb6f93066814d"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "dc87e7e88303ec78",
+        "type": "link in",
+        "z": "f8d4ccf4360ea706",
+        "name": "Sit(x) In",
+        "links": [
+            "089a5c1ffeafe91b",
+            "ddb201c5df845268"
+        ],
+        "x": 175,
+        "y": 100,
+        "wires": [
+            [
+                "7ff44de3e1b9f7ce"
+            ]
+        ]
+    },
+    {
+        "id": "7ff44de3e1b9f7ce",
+        "type": "tak",
+        "z": "f8d4ccf4360ea706",
+        "name": "TAK",
+        "x": 270,
+        "y": 100,
+        "wires": [
+            [
+                "d13138584cc78f08"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "d13138584cc78f08",
+        "type": "tak",
+        "z": "f8d4ccf4360ea706",
+        "name": "TAK",
+        "x": 390,
+        "y": 100,
+        "wires": [
+            [
+                "058bbbd3ada7d52d"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "058bbbd3ada7d52d",
+        "type": "Sit(x) Node",
+        "z": "f8d4ccf4360ea706",
+        "d": true,
+        "name": "",
+        "sitx_config": "",
+        "x": 530,
+        "y": 100,
+        "wires": [
+            []
+        ]
     }
 ]
