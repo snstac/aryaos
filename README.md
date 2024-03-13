@@ -1,4 +1,4 @@
-![AryaOS Shield](https://aryaos.readthedocs.io/en/latest/media/aryaos_logo.png)
+![AryaOS Shield](https://aryaos.readthedocs.io/en/latest/media/aryaos_logo-25p.png)
 
 # AryaOS - An Operating Systems for Modern Situational Awareness
 
