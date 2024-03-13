@@ -1,0 +1,9 @@
+gpsd 
+gpsd-clients
+
+python3-pip
+
+# Needy developer:
+git
+tmux 
+vim

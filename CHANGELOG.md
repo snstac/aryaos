@@ -1,3 +1,11 @@
+## AryaOS 1.0.0
+
+Rename of AirTAK OS to AryaOS.
+
+Includes:
+* ADS-B & AIS Gateways
+* Remote ID?
+
 ## AirTAK OS R03
 
 - Fixes #38: Upgraded to Debian bookworm.

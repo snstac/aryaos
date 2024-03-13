@@ -1,4 +1,4 @@
-# AryaOS Makefile
+# AryaOS comitup.service
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -13,40 +13,18 @@
 # limitations under the License.
 #
 
+[Unit]
+Description=Comitup WiFi Management
+After=NetworkManager.service Avahi.service
+Requires=avahi-daemon.service
+Documentation=man:comitup(8)
 
-build: pi-gen
-	sudo ./build.sh
+[Service]
+Type=dbus
+BusName=com.github.davesteele.comitup
+ExecStart=/usr/local/sbin/run_comitup.sh
+Restart=always
+RestartSec=5
 
-pi-gen:
-	git clone --branch arm64 https://github.com/RPI-Distro/pi-gen.git
-	touch ./pi-gen/stage2/SKIP_IMAGES ./pi-gen/stage2/SKIP_NOOBS
-
-copy:
-	rsync -va ../aryaos kelp.local:~/src/SNS/
-
-sync: copy
-
-skip:
-	touch pi-gen/stage0/SKIP
-	touch pi-gen/stage1/SKIP
-	touch pi-gen/stage2/SKIP
-
-unskip:
-	rm -f */SKIP
-	rm -f pi-gen/*/SKIP
-
-copyback:
-	scp pi-gen/deploy/image*.zip gba@rorqual.local:~
-
-skip3:
-	touch stage3*/SKIP
-
-skip4:
-	touch stage4*/SKIP
-
-skip5:
-	touch stage5*/SKIP
-
-mkdocs:
-	pip install -r docs/requirements.txt
-	mkdocs serve
+[Install]
+WantedBy=multi-user.target

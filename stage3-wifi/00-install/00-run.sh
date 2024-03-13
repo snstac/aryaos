@@ -1,4 +1,5 @@
-# AryaOS Makefile
+#!/bin/bash -e
+# AryaOS 00-run.sh
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -13,40 +14,4 @@
 # limitations under the License.
 #
 
-
-build: pi-gen
-	sudo ./build.sh
-
-pi-gen:
-	git clone --branch arm64 https://github.com/RPI-Distro/pi-gen.git
-	touch ./pi-gen/stage2/SKIP_IMAGES ./pi-gen/stage2/SKIP_NOOBS
-
-copy:
-	rsync -va ../aryaos kelp.local:~/src/SNS/
-
-sync: copy
-
-skip:
-	touch pi-gen/stage0/SKIP
-	touch pi-gen/stage1/SKIP
-	touch pi-gen/stage2/SKIP
-
-unskip:
-	rm -f */SKIP
-	rm -f pi-gen/*/SKIP
-
-copyback:
-	scp pi-gen/deploy/image*.zip gba@rorqual.local:~
-
-skip3:
-	touch stage3*/SKIP
-
-skip4:
-	touch stage4*/SKIP
-
-skip5:
-	touch stage5*/SKIP
-
-mkdocs:
-	pip install -r docs/requirements.txt
-	mkdocs serve
+install -v -m 644 files/python-networkmanager-main.zip	"${ROOTFS_DIR}/home/pi/"

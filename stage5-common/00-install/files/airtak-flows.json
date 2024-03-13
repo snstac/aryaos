@@ -1,0 +1,5275 @@
+[
+    {
+        "id": "1d5c7046712ea9d2",
+        "type": "tab",
+        "label": "Control",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "94cf869050128770",
+        "type": "tab",
+        "label": "Dashboard",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "9c4ba3cbc4bd87fa",
+        "type": "tab",
+        "label": "Maps",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "76732e91104cd622",
+        "type": "tab",
+        "label": "I/O",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "4fa67ac9ec0c7369",
+        "type": "tab",
+        "label": "Config",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "898f970d26b5049d",
+        "type": "tab",
+        "label": "TAK",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "de725ec24f79b6b7",
+        "type": "tab",
+        "label": "TFR",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "f8d4ccf4360ea706",
+        "type": "tab",
+        "label": "Sit(x)",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "bd418afe09349324",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "name": "DANGER ZONE",
+        "style": {
+            "fill": "#ffbfbf",
+            "label": true
+        },
+        "nodes": [
+            "683a2b05.736204",
+            "1cf31554.2aaa63",
+            "38e53dbf.ca594a",
+            "c409cae5.8e4128",
+            "811dc61136e8046d",
+            "0be2a009aadd225d"
+        ],
+        "x": 674,
+        "y": 551.5,
+        "w": 472,
+        "h": 217
+    },
+    {
+        "id": "c5409a5d2b5e28d5",
+        "type": "group",
+        "z": "4fa67ac9ec0c7369",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "2d8066d127cb6c44",
+            "df765e01751751eb",
+            "bb55ecc1c7a7da19"
+        ],
+        "x": 464,
+        "y": 59,
+        "w": 302,
+        "h": 82
+    },
+    {
+        "id": "a247d145bc97ec4e",
+        "type": "group",
+        "z": "4fa67ac9ec0c7369",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "cb87c8b4398c815d",
+            "90bbf3ddaabf55d6",
+            "70a02ab5c732adf0",
+            "8f90b1c209f39ff8",
+            "e435961c35c6c50f",
+            "a693d594320c6842"
+        ],
+        "x": 454,
+        "y": 159,
+        "w": 392,
+        "h": 162
+    },
+    {
+        "id": "edc83286b603d84a",
+        "type": "ui_tab",
+        "name": "AryaOS Dashboard",
+        "icon": "dashboard",
+        "order": 2,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "e828481c0c713837",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-light",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#0094CE",
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#fafafa",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#1bbfff",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#0094ce",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey",
+                "palette": "light"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "703b3b0940030133",
+        "type": "ui_group",
+        "name": "ADS-B Default Dashboard",
+        "tab": "edc83286b603d84a",
+        "order": 1,
+        "disp": false,
+        "width": "20",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "1890881e.83819",
+        "type": "ui_group",
+        "name": "Col 1",
+        "tab": "c3173234.2636e",
+        "order": 1,
+        "disp": false,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "c5f1b8aa.45bc08",
+        "type": "ui_group",
+        "name": "Actions",
+        "tab": "3883fa5a5cd96180",
+        "order": 1,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "9a96a8b1.92db78",
+        "type": "ui_group",
+        "name": "Col 2",
+        "tab": "c3173234.2636e",
+        "order": 2,
+        "disp": false,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "72fc319.cc425d",
+        "type": "ui_group",
+        "name": "Col 3",
+        "tab": "c3173234.2636e",
+        "order": 3,
+        "disp": false,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "c3173234.2636e",
+        "type": "ui_tab",
+        "name": "System Dashboard",
+        "icon": "dashboard",
+        "order": 3,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "98514ac85fb371eb",
+        "type": "ui_tab",
+        "name": "Debug Dashboard",
+        "icon": "dashboard",
+        "order": 5,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "985cb816630d7e12",
+        "type": "ui_group",
+        "name": "Group 1",
+        "tab": "98514ac85fb371eb",
+        "order": 1,
+        "disp": false,
+        "width": "20",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "1a1f481e736717f6",
+        "type": "ui_tab",
+        "name": "System Configuration",
+        "icon": "dashboard",
+        "order": 6,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "ea29ae5e99fd702f",
+        "type": "ui_group",
+        "name": "ADSBCOT Config",
+        "tab": "1a1f481e736717f6",
+        "order": 2,
+        "disp": true,
+        "width": "18",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "c9b3e02a2ade5f4f",
+        "type": "ui_group",
+        "name": "AryaOS Config",
+        "tab": "1a1f481e736717f6",
+        "order": 1,
+        "disp": true,
+        "width": "18",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "d39a9c40a9e39a06",
+        "type": "ui_group",
+        "name": "DANGER ZONE",
+        "tab": "3883fa5a5cd96180",
+        "order": 3,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "4f5d2f631860ad85",
+        "type": "ui_group",
+        "name": "TAK Users",
+        "tab": "f26ff01359312d83",
+        "order": 1,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "f26ff01359312d83",
+        "type": "ui_tab",
+        "name": "TAK",
+        "icon": "dashboard",
+        "order": 7,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "2ff2aec393c0b08b",
+        "type": "ui_link",
+        "name": "AryaOS Home",
+        "link": "http://aryaos.local",
+        "icon": "open_in_browser",
+        "target": "newtab",
+        "order": 1
+    },
+    {
+        "id": "3883fa5a5cd96180",
+        "type": "ui_tab",
+        "name": "System Control",
+        "icon": "dashboard",
+        "order": 4,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "2372a1b55988c40f",
+        "type": "ui_group",
+        "name": "Controls",
+        "tab": "3883fa5a5cd96180",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "70391654394ec679",
+        "type": "ui_spacer",
+        "z": "1d5c7046712ea9d2",
+        "name": "spacer",
+        "group": "d39a9c40a9e39a06",
+        "order": 3,
+        "width": "4",
+        "height": "1"
+    },
+    {
+        "id": "1027f32817e150a0",
+        "type": "ui_group",
+        "name": "Group 3",
+        "tab": "1a1f481e736717f6",
+        "order": 3,
+        "disp": false,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "f3336acf327ddf7b",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "703b3b0940030133",
+        "order": 7,
+        "width": 15,
+        "height": 1
+    },
+    {
+        "id": "8eccad21e61a5466",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "703b3b0940030133",
+        "order": 8,
+        "width": 15,
+        "height": 1
+    },
+    {
+        "id": "9ab00f59e076f89a",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "703b3b0940030133",
+        "order": 9,
+        "width": 15,
+        "height": 1
+    },
+    {
+        "id": "c3850947c2c754c1",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "703b3b0940030133",
+        "order": 10,
+        "width": 15,
+        "height": 1
+    },
+    {
+        "id": "6225bafcfc61cabf",
+        "type": "sitx_config",
+        "name": "AryaOS-gba@Verizon"
+    },
+    {
+        "id": "683a2b05.736204",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "g": "bd418afe09349324",
+        "name": "",
+        "group": "d39a9c40a9e39a06",
+        "order": 1,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Reboot",
+        "tooltip": "",
+        "color": "black",
+        "bgcolor": "yellow",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 760,
+        "y": 660,
+        "wires": [
+            [
+                "1cf31554.2aaa63"
+            ]
+        ]
+    },
+    {
+        "id": "1cf31554.2aaa63",
+        "type": "exec",
+        "z": "1d5c7046712ea9d2",
+        "g": "bd418afe09349324",
+        "command": "sudo /sbin/reboot",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "Reboot",
+        "x": 940,
+        "y": 660,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "38e53dbf.ca594a",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "g": "bd418afe09349324",
+        "name": "",
+        "group": "d39a9c40a9e39a06",
+        "order": 2,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Shutdown",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 770,
+        "y": 720,
+        "wires": [
+            [
+                "c409cae5.8e4128"
+            ]
+        ]
+    },
+    {
+        "id": "c409cae5.8e4128",
+        "type": "exec",
+        "z": "1d5c7046712ea9d2",
+        "g": "bd418afe09349324",
+        "command": "sudo /sbin/shutdown -h now",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "Shutdown",
+        "x": 950,
+        "y": 720,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "08b06bdbca165793",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 1,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Restart adsbcot",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "adsbcot",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 140,
+        "y": 40,
+        "wires": [
+            [
+                "384961823b4116f8"
+            ]
+        ]
+    },
+    {
+        "id": "811dc61136e8046d",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "g": "bd418afe09349324",
+        "name": "",
+        "group": "d39a9c40a9e39a06",
+        "order": 6,
+        "width": "3",
+        "height": "1",
+        "passthru": false,
+        "label": "Reset WiFi",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "orange",
+        "className": "",
+        "icon": "",
+        "payload": "comitup",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 770,
+        "y": 600,
+        "wires": [
+            [
+                "0be2a009aadd225d"
+            ]
+        ]
+    },
+    {
+        "id": "0be2a009aadd225d",
+        "type": "exec",
+        "z": "1d5c7046712ea9d2",
+        "g": "bd418afe09349324",
+        "command": "/usr/local/sbin/wifi-nuke.py",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 1000,
+        "y": 600,
+        "wires": [
+            [
+                "3493a1a21d11eab7"
+            ],
+            [
+                "6949a7f7b06e7070"
+            ],
+            [
+                "90ed4f84f5e592ba"
+            ]
+        ]
+    },
+    {
+        "id": "f37f9b80fb0791de",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 4,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Restart dump1090-fa",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "dump1090-fa",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 120,
+        "y": 80,
+        "wires": [
+            [
+                "384961823b4116f8"
+            ]
+        ]
+    },
+    {
+        "id": "87d746e00381cae2",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 7,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Restart dump978-fa",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "dump978-fa",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 120,
+        "y": 120,
+        "wires": [
+            [
+                "384961823b4116f8"
+            ]
+        ]
+    },
+    {
+        "id": "6fc81090ee2796ba",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "d39a9c40a9e39a06",
+        "order": 4,
+        "width": "3",
+        "height": "1",
+        "passthru": false,
+        "label": "Enable WiFi",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "green",
+        "className": "",
+        "icon": "",
+        "payload": "comitup",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 230,
+        "y": 680,
+        "wires": [
+            [
+                "a903f3dcc9380af0"
+            ]
+        ]
+    },
+    {
+        "id": "35db67c1c93d5f7a",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 13,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Restart lincot",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "lincot",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 150,
+        "y": 160,
+        "wires": [
+            [
+                "384961823b4116f8"
+            ]
+        ]
+    },
+    {
+        "id": "e8fb5bb0a8855bb9",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 10,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Restart gpsd",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "lincot",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 150,
+        "y": 200,
+        "wires": [
+            [
+                "384961823b4116f8"
+            ]
+        ]
+    },
+    {
+        "id": "88eaf8eb64d89ff4",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 3,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Disable adsbcot",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "adsbcot",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 200,
+        "y": 400,
+        "wires": [
+            [
+                "08bbb4b6c1e5af69"
+            ]
+        ]
+    },
+    {
+        "id": "3493a1a21d11eab7",
+        "type": "ui_template",
+        "z": "1d5c7046712ea9d2",
+        "group": "d39a9c40a9e39a06",
+        "name": "Control stdout",
+        "order": 9,
+        "width": "12",
+        "height": "5",
+        "format": "<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
+        "storeOutMessages": false,
+        "fwdInMessages": true,
+        "resendOnRefresh": false,
+        "templateScope": "local",
+        "className": "",
+        "x": 1280,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "892008ebaff339b8",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "name": "send systemctl cmd",
+        "func": "let pl = msg.payload;\nlet cmd;\nfor (cmd of msg.cmds) {\n    msg.payload = `sudo /bin/systemctl ${cmd} ${pl}`\n    node.send(msg);\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 420,
+        "wires": [
+            [
+                "c54c8c00ef81cc1e"
+            ]
+        ]
+    },
+    {
+        "id": "08bbb4b6c1e5af69",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "name": "set cmds",
+        "func": "msg.cmds = [\"disable\", \"stop\"]\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 420,
+        "wires": [
+            [
+                "892008ebaff339b8"
+            ]
+        ]
+    },
+    {
+        "id": "a903f3dcc9380af0",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "name": "set cmds",
+        "func": "msg.cmds = [\"enable\", \"start\"]\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 780,
+        "wires": [
+            [
+                "892008ebaff339b8"
+            ]
+        ]
+    },
+    {
+        "id": "6949a7f7b06e7070",
+        "type": "ui_template",
+        "z": "1d5c7046712ea9d2",
+        "group": "d39a9c40a9e39a06",
+        "name": "Control stderr",
+        "order": 10,
+        "width": "12",
+        "height": "5",
+        "format": "<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
+        "storeOutMessages": false,
+        "fwdInMessages": true,
+        "resendOnRefresh": false,
+        "templateScope": "local",
+        "className": "",
+        "x": 1280,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3e098904e91c0153",
+        "type": "ui_text",
+        "z": "1d5c7046712ea9d2",
+        "group": "d39a9c40a9e39a06",
+        "order": 7,
+        "width": "12",
+        "height": "1",
+        "name": "",
+        "label": "Last cmd",
+        "format": "\"{{msg.payload}}\"",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1040,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "90ed4f84f5e592ba",
+        "type": "ui_text",
+        "z": "1d5c7046712ea9d2",
+        "group": "d39a9c40a9e39a06",
+        "order": 8,
+        "width": "6",
+        "height": "1",
+        "name": "",
+        "label": "Exit Code",
+        "format": "{{msg.payload.code}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1260,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "c54c8c00ef81cc1e",
+        "type": "delay",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "4",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 840,
+        "y": 420,
+        "wires": [
+            [
+                "3e098904e91c0153",
+                "3880190e670fb806",
+                "89b46799e22ef74c"
+            ]
+        ]
+    },
+    {
+        "id": "384961823b4116f8",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "name": "set cmds",
+        "func": "msg.cmds = [\"restart\"]\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 120,
+        "wires": [
+            [
+                "892008ebaff339b8"
+            ]
+        ]
+    },
+    {
+        "id": "3f668133edf0f84f",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 2,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Enable adsbcot",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "green",
+        "className": "",
+        "icon": "",
+        "payload": "adsbcot",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 220,
+        "y": 760,
+        "wires": [
+            [
+                "a903f3dcc9380af0"
+            ]
+        ]
+    },
+    {
+        "id": "cbbce818d3e35f27",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 6,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Disable dump1090-fa",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "dump1090-fa",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 180,
+        "y": 440,
+        "wires": [
+            [
+                "08bbb4b6c1e5af69"
+            ]
+        ]
+    },
+    {
+        "id": "a89b330a230704e0",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 5,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Enable dump1090-fa",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "green",
+        "className": "",
+        "icon": "",
+        "payload": "dump1090-fa",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 200,
+        "y": 800,
+        "wires": [
+            [
+                "a903f3dcc9380af0"
+            ]
+        ]
+    },
+    {
+        "id": "df17c4d78bfccd39",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 9,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Disable dump978-fa",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "dump978-fa",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 180,
+        "y": 480,
+        "wires": [
+            [
+                "08bbb4b6c1e5af69"
+            ]
+        ]
+    },
+    {
+        "id": "6f76752d1b604a7a",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 8,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Enable dump978-fa",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "green",
+        "className": "",
+        "icon": "",
+        "payload": "dump978-fa",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 210,
+        "y": 840,
+        "wires": [
+            [
+                "a903f3dcc9380af0"
+            ]
+        ]
+    },
+    {
+        "id": "ca872d53fb7f1c07",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 12,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Disable gpsd",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "gpsd",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 210,
+        "y": 520,
+        "wires": [
+            [
+                "08bbb4b6c1e5af69"
+            ]
+        ]
+    },
+    {
+        "id": "a626a2fb10efab5a",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 11,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Enable gpsd",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "green",
+        "className": "",
+        "icon": "",
+        "payload": "gpsd",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 230,
+        "y": 880,
+        "wires": [
+            [
+                "a903f3dcc9380af0"
+            ]
+        ]
+    },
+    {
+        "id": "dc0e12826769d931",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 15,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Disable lincot",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "lincot",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 200,
+        "y": 560,
+        "wires": [
+            [
+                "08bbb4b6c1e5af69"
+            ]
+        ]
+    },
+    {
+        "id": "22728d91b6fa7e95",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "c5f1b8aa.45bc08",
+        "order": 14,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Enable lincot",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "green",
+        "className": "",
+        "icon": "",
+        "payload": "lincot",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 230,
+        "y": 920,
+        "wires": [
+            [
+                "a903f3dcc9380af0"
+            ]
+        ]
+    },
+    {
+        "id": "4507524764f2e670",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "name": "",
+        "group": "d39a9c40a9e39a06",
+        "order": 5,
+        "width": "3",
+        "height": "1",
+        "passthru": false,
+        "label": "Disable WiFi",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 210,
+        "y": 300,
+        "wires": [
+            [
+                "f8a415dbee252311"
+            ]
+        ]
+    },
+    {
+        "id": "f8a415dbee252311",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "name": "set cmds",
+        "func": "node.send({ \"payload\": \"sudo /bin/systemctl disable comitup\" })\nnode.send({ \"payload\": \"sudo /bin/systemctl stop comitup\" })\nnode.send({ \"payload\": \"/usr/local/sbin/wifi-nuke.py\" })\nnode.send({ \"payload\": \"sudo /usr/bin/nmcli device disconnect wlan0\" })\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 300,
+        "wires": [
+            [
+                "89b46799e22ef74c",
+                "3e098904e91c0153"
+            ]
+        ]
+    },
+    {
+        "id": "3880190e670fb806",
+        "type": "debug",
+        "z": "1d5c7046712ea9d2",
+        "name": "debug 6",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1040,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "89b46799e22ef74c",
+        "type": "exec",
+        "z": "1d5c7046712ea9d2",
+        "command": "",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 1030,
+        "y": 360,
+        "wires": [
+            [
+                "3493a1a21d11eab7"
+            ],
+            [
+                "6949a7f7b06e7070"
+            ],
+            [
+                "90ed4f84f5e592ba",
+                "05b15b7858e7cbca"
+            ]
+        ]
+    },
+    {
+        "id": "191a64ffb1ef6aac",
+        "type": "link in",
+        "z": "1d5c7046712ea9d2",
+        "name": "Control In",
+        "links": [
+            "bb55ecc1c7a7da19"
+        ],
+        "x": 765,
+        "y": 260,
+        "wires": [
+            [
+                "89b46799e22ef74c",
+                "3e098904e91c0153"
+            ]
+        ]
+    },
+    {
+        "id": "6b7e442910d1d689",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "name": "Restart Daemons",
+        "func": "const daemons = [\"adsbcot\", \"lincot\"];\nlet daemon\nfor (daemon of daemons) {\n    node.send({ \"payload\": daemon})\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 40,
+        "wires": [
+            [
+                "384961823b4116f8"
+            ]
+        ]
+    },
+    {
+        "id": "af90dbace757338b",
+        "type": "link in",
+        "z": "1d5c7046712ea9d2",
+        "name": "Control systemctl In",
+        "links": [
+            "7ec81fe075691fa0"
+        ],
+        "x": 325,
+        "y": 40,
+        "wires": [
+            [
+                "6b7e442910d1d689"
+            ]
+        ]
+    },
+    {
+        "id": "05b15b7858e7cbca",
+        "type": "link out",
+        "z": "1d5c7046712ea9d2",
+        "name": "Exec Out",
+        "mode": "link",
+        "links": [
+            "4317408c7b784c0b"
+        ],
+        "x": 1145,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "095368571cbf1fcf",
+        "type": "ui_chart",
+        "z": "94cf869050128770",
+        "name": "Current Aircraft",
+        "group": "703b3b0940030133",
+        "order": 12,
+        "width": 0,
+        "height": 0,
+        "label": "Current ADS-B Tracks",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": true,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 520,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c82e38d047199cb5",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "Current Aircraft Count",
+        "func": "let pl = msg.payload;\n\nlet payloads = [\n    { \"payload\": msg.payload.aircraft.length },\n    { \"payload\": msg.payload.messages }\n]\n\nreturn payloads;",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 100,
+        "wires": [
+            [
+                "095368571cbf1fcf",
+                "7750039932acdcc7"
+            ],
+            [
+                "16d10d070ec070d9"
+            ]
+        ]
+    },
+    {
+        "id": "16d10d070ec070d9",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "703b3b0940030133",
+        "order": 5,
+        "width": 11,
+        "height": 1,
+        "name": "",
+        "label": "Total ADS-B Messages",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 550,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "2653a0b0.26d638",
+        "type": "ui_gauge",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "1890881e.83819",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "CPU Temperature",
+        "label": "C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "x": 710,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "fba68adf.14e13",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "vcgencmd measure_temp",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "name": "RPi Temp.",
+        "x": 330,
+        "y": 620,
+        "wires": [
+            [
+                "fa5b499.e176cb8"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "7c8379de.068868",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [
+            {
+                "p": "payload",
+                "v": "",
+                "vt": "date"
+            },
+            {
+                "p": "topic",
+                "v": "",
+                "vt": "str"
+            }
+        ],
+        "repeat": "10",
+        "crontab": "",
+        "once": false,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 124.5,
+        "y": 648.25,
+        "wires": [
+            [
+                "fba68adf.14e13",
+                "972ece2a.3dbe8",
+                "6242be99.26ac88"
+            ]
+        ]
+    },
+    {
+        "id": "fa5b499.e176cb8",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "",
+        "func": "str = msg.payload\nmsg.payload = str.substring(5,9);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 500,
+        "y": 600,
+        "wires": [
+            [
+                "2653a0b0.26d638",
+                "28b64a2c.b32116"
+            ]
+        ]
+    },
+    {
+        "id": "28b64a2c.b32116",
+        "type": "ui_chart",
+        "z": "94cf869050128770",
+        "name": "CPU Temperature",
+        "group": "1890881e.83819",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "label": "CPU Temperature",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "24",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 710,
+        "y": 640,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "972ece2a.3dbe8",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "top -d 0.5 -b -n2 | grep \"Cpu(s)\"| awk '{print $2 + $4}'",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "CPU Load",
+        "x": 330,
+        "y": 680,
+        "wires": [
+            [
+                "a5da1eb0f58fe89a"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "6242be99.26ac88",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "free | grep Mem | awk '{print 100*($3+$5+$6)/$2}'",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "Free Memory",
+        "x": 330,
+        "y": 740,
+        "wires": [
+            [
+                "77573ff2f632057f"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "b9372186.ed1a5",
+        "type": "ui_gauge",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "1890881e.83819",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Processor",
+        "label": "CPU",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "x": 680,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "9b301b09.8c0468",
+        "type": "ui_gauge",
+        "z": "94cf869050128770",
+        "name": "Memory",
+        "group": "9a96a8b1.92db78",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Memory",
+        "label": "RAM",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 640,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "270f61f0.9af05e",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "df -h",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "name": "Disk Usage",
+        "x": 330,
+        "y": 880,
+        "wires": [
+            [
+                "d70b7556.a0a9e"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "7ca6ecb.7512014",
+        "type": "ui_gauge",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "72fc319.cc425d",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Disk",
+        "label": "Usage",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "x": 650,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "d70b7556.a0a9e",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "",
+        "func": "var re = /([0-9]{2})%/\nvar idx = msg.payload.search(re);\nvar str = msg.payload;\nif (idx >=0) {\n    str = msg.payload.substring(idx, idx + 2);\n}\nmsg.payload = str;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 510,
+        "y": 880,
+        "wires": [
+            [
+                "7ca6ecb.7512014"
+            ]
+        ]
+    },
+    {
+        "id": "59103f97.07fed",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "repeat": "60",
+        "crontab": "",
+        "once": false,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 880,
+        "wires": [
+            [
+                "270f61f0.9af05e"
+            ]
+        ]
+    },
+    {
+        "id": "77573ff2f632057f",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "function 1",
+        "func": "msg.payload = parseFloat(msg.payload).toFixed(1)\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 740,
+        "wires": [
+            [
+                "9b301b09.8c0468"
+            ]
+        ]
+    },
+    {
+        "id": "a5da1eb0f58fe89a",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "Average CPUs",
+        "func": "const pl = msg.payload;\n\nconst loads = pl.split(\"\\n\").filter(n => n)\n\nvar total = 0;\nfor (var i = 0; i < loads.length; i++) {\n    total += loads[i];\n}\nvar avg = total / loads.length;\n\n\nmsg.payload = loads;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 680,
+        "wires": [
+            [
+                "b9372186.ed1a5"
+            ]
+        ]
+    },
+    {
+        "id": "20787a00729ffe5f",
+        "type": "link in",
+        "z": "94cf869050128770",
+        "name": "Dashboard In",
+        "links": [
+            "64fa2c00f63bdd53"
+        ],
+        "x": 155,
+        "y": 100,
+        "wires": [
+            [
+                "c82e38d047199cb5"
+            ]
+        ]
+    },
+    {
+        "id": "c1b4f4996f5aa122",
+        "type": "comment",
+        "z": "94cf869050128770",
+        "name": "ADS-B Dashboard",
+        "info": "",
+        "x": 110,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "7750039932acdcc7",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "703b3b0940030133",
+        "order": 4,
+        "width": 4,
+        "height": 1,
+        "name": "Current Tracks",
+        "label": "Current Tracks",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 520,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "43b182ea252f059a",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 110,
+        "y": 500,
+        "wires": [
+            [
+                "a8c763426a388421"
+            ]
+        ]
+    },
+    {
+        "id": "a8c763426a388421",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "gpsctl",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "gpsctl",
+        "x": 290,
+        "y": 500,
+        "wires": [
+            [
+                "6ffc305ab7e20ec7"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "6ffc305ab7e20ec7",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 4,
+        "width": 15,
+        "height": 1,
+        "name": "GPSCTL",
+        "label": "GPS Device:",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 460,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "73eb77cde2c7a709",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "gpspipe --json -n 5|grep TPV|tail -1",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "gpspipe",
+        "x": 300,
+        "y": 420,
+        "wires": [
+            [
+                "de2c209dbe934060"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "69bd079907c39f3c",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 110,
+        "y": 420,
+        "wires": [
+            [
+                "73eb77cde2c7a709"
+            ]
+        ]
+    },
+    {
+        "id": "de2c209dbe934060",
+        "type": "json",
+        "z": "94cf869050128770",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 430,
+        "y": 400,
+        "wires": [
+            [
+                "1190f05a50aad89c"
+            ]
+        ]
+    },
+    {
+        "id": "1190f05a50aad89c",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "GPS Mode Lookup",
+        "func": "// https://gpsd.gitlab.io/gpsd/gpsd_json.html\n\nconst pl = msg.payload;\n\nmsg.payload = \"Invalid Mode\";\n\nswitch (parseInt(pl.mode)) { \n    case 0:\n        msg.payload = \"UNKNOWN\";\n        break;\n    case 1:\n        msg.payload = \"NO FIX\";\n        break;\n    case 2:\n        msg.payload = \"2D\";\n        break;\n    case 3:\n        msg.payload = \"3D\";\n        break;\n    default:\n        msg.payload = \"Invalid Mode\";\n        break;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 400,
+        "wires": [
+            [
+                "43958e20b7e848a3"
+            ]
+        ]
+    },
+    {
+        "id": "24d11b12327e6147",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "rtl_test 2>&1|grep -A2 Found|tail -n 2",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "rtl_test",
+        "x": 290,
+        "y": 320,
+        "wires": [
+            [
+                "c694287e0ecfdb11"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "b36b3af7a720fa09",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 130,
+        "y": 320,
+        "wires": [
+            [
+                "24d11b12327e6147"
+            ]
+        ]
+    },
+    {
+        "id": "c694287e0ecfdb11",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "SDR List",
+        "func": "const pl = msg.payload;\n\nconst sdrs = pl.split(\"\\n\").filter(n => n)\n\nmsg.payload = sdrs;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 300,
+        "wires": [
+            [
+                "ab8919275dc5a1bb",
+                "65b80260e6a12016"
+            ]
+        ]
+    },
+    {
+        "id": "ab8919275dc5a1bb",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 2,
+        "width": 15,
+        "height": 1,
+        "name": "SDR 1",
+        "label": "SDR 1:",
+        "format": "{{msg.payload[0]}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 610,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "65b80260e6a12016",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 3,
+        "width": 15,
+        "height": 1,
+        "name": "SDR 2",
+        "label": "SDR 2:",
+        "format": "{{msg.payload[1]}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 610,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "5dd1990becedf2b0",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 110,
+        "y": 1220,
+        "wires": [
+            [
+                "b1397733b1721b33"
+            ]
+        ]
+    },
+    {
+        "id": "b1397733b1721b33",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "lsusb|sort",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 300,
+        "y": 1220,
+        "wires": [
+            [
+                "3261a8dfedfae96d"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "3261a8dfedfae96d",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "",
+        "order": 14,
+        "width": 20,
+        "height": 4,
+        "format": "<strong>USB Devices</strong>\n\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 460,
+        "y": 1200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ca3080fa414c682a",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 110,
+        "y": 1280,
+        "wires": [
+            [
+                "b8c830dc7384cd97"
+            ]
+        ]
+    },
+    {
+        "id": "b8c830dc7384cd97",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "dmesg|egrep -vi '(^$)'|tail -10",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 360,
+        "y": 1280,
+        "wires": [
+            [
+                "a37cfd5ee5320ebf"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "a37cfd5ee5320ebf",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "dmesg Tail",
+        "order": 15,
+        "width": 20,
+        "height": 6,
+        "format": "<strong>dmesg Tail</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 610,
+        "y": 1260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "43958e20b7e848a3",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 5,
+        "width": 15,
+        "height": 1,
+        "name": "GPS Fix?",
+        "label": "GPS Mode/Fix:",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 780,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "67c1aa629a2e95af",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "/usr/local/sbin/get_throttled.sh",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 350,
+        "y": 1420,
+        "wires": [
+            [
+                "4f64ec7db13ee424"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "4f64ec7db13ee424",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "Throttle Status",
+        "order": 13,
+        "width": 20,
+        "height": 3,
+        "format": "<strong>Throttle Status</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 580,
+        "y": 1400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4338acd2934924cc",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 130,
+        "y": 1420,
+        "wires": [
+            [
+                "67c1aa629a2e95af"
+            ]
+        ]
+    },
+    {
+        "id": "16419a36256c9583",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 1080,
+        "wires": [
+            [
+                "b1d1259dd556c68a"
+            ]
+        ]
+    },
+    {
+        "id": "b1d1259dd556c68a",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "uptime",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 270,
+        "y": 1080,
+        "wires": [
+            [
+                "267687b40c52261e"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "267687b40c52261e",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "703b3b0940030133",
+        "order": 3,
+        "width": 15,
+        "height": 1,
+        "name": "",
+        "label": "Uptime: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 420,
+        "y": 1080,
+        "wires": []
+    },
+    {
+        "id": "cdbd946522287334",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "4f5d2f631860ad85",
+        "name": "AryaOS Home",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "format": "<div><a href=\"http://aryaos.local/\">\n        <ng-md-icon icon=\"home\"></ng-md-icon>AryaOS Home\n    </a></div>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 200,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4dfeafb5656bdb04",
+        "type": "template",
+        "z": "94cf869050128770",
+        "name": "Services",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "[\n    \"adsbcot\",\n    \"dump1090-fa\",\n    \"dump978-fa\",\n    \"comitup\",\n    \"lincot\",\n    \"nodered\",\n    \"gpsd\"\n]",
+        "output": "str",
+        "x": 240,
+        "y": 1960,
+        "wires": [
+            [
+                "b4b0c83c63e4b4ff"
+            ]
+        ]
+    },
+    {
+        "id": "285ece519bd3976f",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 110,
+        "y": 1960,
+        "wires": [
+            [
+                "4dfeafb5656bdb04"
+            ]
+        ]
+    },
+    {
+        "id": "e93dc524c636e92d",
+        "type": "split",
+        "z": "94cf869050128770",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 490,
+        "y": 1960,
+        "wires": [
+            [
+                "88070f84d9e74504"
+            ]
+        ]
+    },
+    {
+        "id": "b4b0c83c63e4b4ff",
+        "type": "json",
+        "z": "94cf869050128770",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 370,
+        "y": 1960,
+        "wires": [
+            [
+                "e93dc524c636e92d"
+            ]
+        ]
+    },
+    {
+        "id": "88070f84d9e74504",
+        "type": "change",
+        "z": "94cf869050128770",
+        "name": "Set service",
+        "rules": [
+            {
+                "t": "set",
+                "p": "service",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 630,
+        "y": 1960,
+        "wires": [
+            [
+                "668b9fe6695a20aa"
+            ]
+        ]
+    },
+    {
+        "id": "668b9fe6695a20aa",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "systemctl status",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 120,
+        "y": 2080,
+        "wires": [
+            [
+                "4f78a58561400bb1"
+            ],
+            [],
+            [
+                "37f21d650f5fda44"
+            ]
+        ]
+    },
+    {
+        "id": "fb5bade2bfe9eabc",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "comitup Status",
+        "order": 16,
+        "width": 20,
+        "height": 5,
+        "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 700,
+        "y": 2020,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8fb99c80179472f1",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "comitup State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 720,
+        "y": 2340,
+        "wires": []
+    },
+    {
+        "id": "37f21d650f5fda44",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "Set HTML Payload",
+        "func": "const pl = msg.payload;\nconst code = pl.code;\n\nswitch (code) {\n    case 0:\n        msg.payload = `OK: ${code}`;\n        msg.icon = \"fa-check\"\n        msg.color = \"green\"\n        break;\n    default:\n        msg.payload = `NOT OK: ${code}`\n        msg.icon = \"fa-times-circle\"\n        msg.color = \"red\"\n        break;\n}\n\nmsg.payload = `<font color=\"${msg.color}\"><i class=\"fa ${msg.icon}\"></i>${msg.payload}</font>`\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 2160,
+        "wires": [
+            [
+                "07a741936395d2ef"
+            ]
+        ]
+    },
+    {
+        "id": "4f78a58561400bb1",
+        "type": "switch",
+        "z": "94cf869050128770",
+        "name": "",
+        "property": "service",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "comitup",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "adsbcot",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "dump1090-fa",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "dump978-fa",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "nodered",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "lincot",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "gpsd",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 7,
+        "x": 490,
+        "y": 2060,
+        "wires": [
+            [
+                "fb5bade2bfe9eabc"
+            ],
+            [
+                "cbdfeead972e8093"
+            ],
+            [
+                "b885c5ed4275cf9d"
+            ],
+            [
+                "3519c43830c4630c"
+            ],
+            [
+                "cc9530f61b75f0a5"
+            ],
+            [
+                "ef95bf31be708221"
+            ],
+            [
+                "281c50f4b51a5007"
+            ]
+        ]
+    },
+    {
+        "id": "07a741936395d2ef",
+        "type": "switch",
+        "z": "94cf869050128770",
+        "name": "",
+        "property": "service",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "comitup",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "adsbcot",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "dump1090-fa",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "dump978-fa",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "nodered",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "lincot",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "gpsd",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 7,
+        "x": 510,
+        "y": 2440,
+        "wires": [
+            [
+                "8fb99c80179472f1"
+            ],
+            [
+                "385cbd3192ee530c"
+            ],
+            [
+                "5775a3037267290d"
+            ],
+            [
+                "1350c123dc081083"
+            ],
+            [
+                "61e60948ad456327"
+            ],
+            [
+                "95220eabc9aa718f"
+            ],
+            [
+                "bad2ad8d9170ec43"
+            ]
+        ]
+    },
+    {
+        "id": "cbdfeead972e8093",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "adsbcot Status",
+        "order": 17,
+        "width": 20,
+        "height": 5,
+        "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 700,
+        "y": 2060,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "385cbd3192ee530c",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 7,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "adsbcot State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 720,
+        "y": 2380,
+        "wires": []
+    },
+    {
+        "id": "5775a3037267290d",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 8,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "dump1090-fa State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 740,
+        "y": 2420,
+        "wires": []
+    },
+    {
+        "id": "1350c123dc081083",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 9,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "dump978-fa State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 730,
+        "y": 2460,
+        "wires": []
+    },
+    {
+        "id": "61e60948ad456327",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 10,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Node-RED State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 730,
+        "y": 2500,
+        "wires": []
+    },
+    {
+        "id": "b885c5ed4275cf9d",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "dump1090-fa Status",
+        "order": 18,
+        "width": 20,
+        "height": 5,
+        "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 720,
+        "y": 2100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3519c43830c4630c",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "dump978-fa Status",
+        "order": 19,
+        "width": 20,
+        "height": 5,
+        "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 710,
+        "y": 2140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cc9530f61b75f0a5",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "Node-RED Status",
+        "order": 20,
+        "width": 20,
+        "height": 5,
+        "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 710,
+        "y": 2180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ef95bf31be708221",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "lincot Status",
+        "order": 21,
+        "width": 20,
+        "height": 5,
+        "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 690,
+        "y": 2220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "95220eabc9aa718f",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 11,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "lincot State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 710,
+        "y": 2540,
+        "wires": []
+    },
+    {
+        "id": "281c50f4b51a5007",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "gpsd Status",
+        "order": 22,
+        "width": 20,
+        "height": 4,
+        "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 690,
+        "y": 2260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bad2ad8d9170ec43",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "order": 12,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "gpsd State: ",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 710,
+        "y": 2580,
+        "wires": []
+    },
+    {
+        "id": "4317408c7b784c0b",
+        "type": "link in",
+        "z": "94cf869050128770",
+        "name": "Dashboard Status In",
+        "links": [
+            "05b15b7858e7cbca"
+        ],
+        "x": 95,
+        "y": 1900,
+        "wires": [
+            [
+                "4dfeafb5656bdb04"
+            ]
+        ]
+    },
+    {
+        "id": "eba6db50839b1dd3",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "",
+        "props": [],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.5",
+        "topic": "",
+        "x": 130,
+        "y": 1560,
+        "wires": [
+            [
+                "fe13b1777995e549"
+            ]
+        ]
+    },
+    {
+        "id": "fe13b1777995e549",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "command": "ip -json addr",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 310,
+        "y": 1560,
+        "wires": [
+            [
+                "a8c5db14c632752a"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "a8c5db14c632752a",
+        "type": "json",
+        "z": "94cf869050128770",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 450,
+        "y": 1560,
+        "wires": [
+            [
+                "96eaefd7b076e52f"
+            ]
+        ]
+    },
+    {
+        "id": "2273e07e235feb5f",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "IP Interfaces",
+        "order": 1,
+        "width": 5,
+        "height": 4,
+        "format": "<strong>IP Interfaces</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 730,
+        "y": 1560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "96eaefd7b076e52f",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "Format",
+        "func": "const pl = msg.payload\n\nconst lo0 = pl[0]\nconst eth0 = pl[1]\nconst wlan0 = pl[2]\n\nif (eth0.addr_info.length > 0) {\n    eth0.ip = eth0.addr_info[0].local || \"[NO IP]\"\n}\n\nif (wlan0.addr_info.length > 0) {\n    wlan0.ip = wlan0.addr_info[0].local || \"[NO IP]\"\n}\n\nmsg.payload =  `${eth0.ifname}: ${eth0.ip}\\n\n${wlan0.ifname}: ${wlan0.ip}`;\n\nreturn msg;\n\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 1560,
+        "wires": [
+            [
+                "2273e07e235feb5f",
+                "08b0c289b467c651"
+            ]
+        ]
+    },
+    {
+        "id": "08b0c289b467c651",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "703b3b0940030133",
+        "name": "IP Interfaces",
+        "order": 1,
+        "width": 5,
+        "height": 3,
+        "format": "<strong>IP Interfaces</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 730,
+        "y": 1600,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9f8119755cf73778",
+        "type": "qrcode-generator",
+        "z": "94cf869050128770",
+        "name": "",
+        "qrtype": "wifi2qr",
+        "text2qrText": "",
+        "ssid": "",
+        "hiddenssid": false,
+        "wifitype": "",
+        "phonenum": "",
+        "smsphonenum": "",
+        "smstext": "",
+        "mailto": "",
+        "mailsubject": "",
+        "mailbody": "",
+        "latitude": "",
+        "longitude": "",
+        "colorlight": "#ffffff",
+        "colordark": "#000000",
+        "printstatus": true,
+        "x": 570,
+        "y": 2820,
+        "wires": [
+            [
+                "0c52692703de2835",
+                "cbbe264f84b53680"
+            ]
+        ]
+    },
+    {
+        "id": "a1642742e713d559",
+        "type": "link in",
+        "z": "94cf869050128770",
+        "name": "QR Code In",
+        "links": [
+            "b104d679e8967f58"
+        ],
+        "x": 225,
+        "y": 2800,
+        "wires": [
+            [
+                "8a9319936729c649"
+            ]
+        ]
+    },
+    {
+        "id": "8a9319936729c649",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "Set URL",
+        "func": "const pl = msg.payload\nlet nodeId = pl.match(/NODE_ID=(?<nodeId>[^\\n\\r]+)/).groups.nodeId\nlet ssid = `AryaOS-${nodeId.substr(-4, 4)}`\n\nlet wifiUrl = `WIFI:S:${ssid};T:;P:;H:false;`\nmsg.qrcodeinput = wifiUrl\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 2800,
+        "wires": [
+            [
+                "ec5307281fcd72cc",
+                "9f8119755cf73778"
+            ]
+        ]
+    },
+    {
+        "id": "ec5307281fcd72cc",
+        "type": "debug",
+        "z": "94cf869050128770",
+        "name": "debug 10",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 2780,
+        "wires": []
+    },
+    {
+        "id": "0c52692703de2835",
+        "type": "debug",
+        "z": "94cf869050128770",
+        "name": "debug 11",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 2880,
+        "wires": []
+    },
+    {
+        "id": "cbbe264f84b53680",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "703b3b0940030133",
+        "name": "QR Code",
+        "order": 6,
+        "width": 5,
+        "height": 4,
+        "format": "<div>Join AryaOS Wifi: <img src=\"{{msg.payload}}\"/></div>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 580,
+        "y": 2980,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "605314ea7983779d",
+        "type": "worldmap",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "AryaOS Map",
+        "lat": "37.16611",
+        "lon": "-119.44944",
+        "zoom": "6",
+        "layer": "Custom",
+        "cluster": "",
+        "maxage": "",
+        "usermenu": "show",
+        "layers": "show",
+        "panit": "false",
+        "panlock": "false",
+        "zoomlock": "false",
+        "hiderightclick": "false",
+        "coords": "deg",
+        "showgrid": "true",
+        "showruler": "false",
+        "allowFileDrop": "false",
+        "path": "/aryaos-map",
+        "overlist": "DR,CO,RA,DN,BU,RW,SN,AC,TL,HM",
+        "maplist": "OSMG,OSMC,OSMH,EsriC,EsriS,EsriT,EsriO,EsriDG,NatGeo,UKOS,OpTop,HB,AN,ST,SW",
+        "mapname": "CalFire Airbases",
+        "mapurl": "http://aryaos.local/calfire_airbases/{z}/{x}/{y}.png",
+        "mapopt": "",
+        "mapwms": true,
+        "x": 550,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "828d600baacf7776",
+        "type": "tak2wm",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "TAK2Worldmap",
+        "x": 360,
+        "y": 120,
+        "wires": [
+            [
+                "605314ea7983779d"
+            ]
+        ]
+    },
+    {
+        "id": "2934adb02aeb8158",
+        "type": "link in",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "Maps In",
+        "links": [
+            "64fa2c00f63bdd53"
+        ],
+        "x": 185,
+        "y": 280,
+        "wires": [
+            [
+                "21fbad99be695a04"
+            ]
+        ]
+    },
+    {
+        "id": "d15baed95c725e8c",
+        "type": "worldmap",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "AryaOS Map",
+        "lat": "37.16611",
+        "lon": "-119.44944",
+        "zoom": "6",
+        "layer": "Custom",
+        "cluster": "",
+        "maxage": "",
+        "usermenu": "show",
+        "layers": "show",
+        "panit": "false",
+        "panlock": "false",
+        "zoomlock": "false",
+        "hiderightclick": "false",
+        "coords": "deg",
+        "showgrid": "true",
+        "showruler": "false",
+        "allowFileDrop": "false",
+        "path": "/map",
+        "overlist": "DR,CO,RA,DN,BU,RW,SN,AC,TL,HM",
+        "maplist": "OSMG,OSMC,OSMH,EsriC,EsriS,EsriT,EsriO,EsriDG,NatGeo,UKOS,OpTop,HB,AN,ST,SW",
+        "mapname": "CalFire Airbases",
+        "mapurl": "http://aryaos.local/calfire_airbases/{z}/{x}/{y}.png",
+        "mapopt": "",
+        "mapwms": true,
+        "x": 550,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "37a3c25966f0b291",
+        "type": "ui_worldmap",
+        "z": "9c4ba3cbc4bd87fa",
+        "group": "703b3b0940030133",
+        "order": 11,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "lat": "37.16611",
+        "lon": "-119.44944",
+        "zoom": "6",
+        "layer": "Custom",
+        "cluster": "",
+        "maxage": "",
+        "usermenu": "hide",
+        "layers": "hide",
+        "panit": "false",
+        "panlock": "false",
+        "zoomlock": "false",
+        "hiderightclick": "true",
+        "coords": "none",
+        "showgrid": "false",
+        "showruler": "false",
+        "allowFileDrop": "false",
+        "path": "/ui-map",
+        "overlist": "DR,CO,RA,DN,HM",
+        "maplist": "OSMG,OSMC,EsriC,EsriS,EsriT,EsriDG,UKOS",
+        "mapname": "CalFire Airbases",
+        "mapurl": "http://aryaos.local/calfire_airbases/{z}/{x}/{y}.png",
+        "mapopt": "",
+        "mapwms": true,
+        "x": 540,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "134821138a2acfc2",
+        "type": "split",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 130,
+        "y": 340,
+        "wires": [
+            [
+                "41bb4c5c359af191"
+            ]
+        ]
+    },
+    {
+        "id": "21fbad99be695a04",
+        "type": "change",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.aircraft",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 300,
+        "y": 280,
+        "wires": [
+            [
+                "134821138a2acfc2"
+            ]
+        ]
+    },
+    {
+        "id": "41bb4c5c359af191",
+        "type": "change",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload.name",
+                "pt": "msg",
+                "to": "payload.hex",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "payload.icon",
+                "pt": "msg",
+                "to": ":airplane:",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 300,
+        "y": 340,
+        "wires": [
+            [
+                "d15baed95c725e8c",
+                "37a3c25966f0b291"
+            ]
+        ]
+    },
+    {
+        "id": "3ffffc180cc204dd",
+        "type": "link in",
+        "z": "9c4ba3cbc4bd87fa",
+        "name": "Maps In",
+        "links": [
+            "089a5c1ffeafe91b"
+        ],
+        "x": 185,
+        "y": 120,
+        "wires": [
+            [
+                "828d600baacf7776"
+            ]
+        ]
+    },
+    {
+        "id": "5f6eab2d3d6ad9be",
+        "type": "json",
+        "z": "76732e91104cd622",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 510,
+        "y": 60,
+        "wires": [
+            [
+                "64fa2c00f63bdd53"
+            ]
+        ]
+    },
+    {
+        "id": "64fa2c00f63bdd53",
+        "type": "link out",
+        "z": "76732e91104cd622",
+        "name": "aircraft Out",
+        "mode": "link",
+        "links": [
+            "20787a00729ffe5f",
+            "2934adb02aeb8158"
+        ],
+        "x": 595,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "b068a436f07cc0bd",
+        "type": "watch",
+        "z": "76732e91104cd622",
+        "name": "",
+        "files": "/run/dump1090-fa/aircraft.json",
+        "recursive": "",
+        "x": 170,
+        "y": 60,
+        "wires": [
+            [
+                "99dfc7e97f5f8d47"
+            ]
+        ]
+    },
+    {
+        "id": "99dfc7e97f5f8d47",
+        "type": "file in",
+        "z": "76732e91104cd622",
+        "name": "",
+        "filename": "payload",
+        "filenameType": "msg",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 380,
+        "y": 60,
+        "wires": [
+            [
+                "5f6eab2d3d6ad9be"
+            ]
+        ]
+    },
+    {
+        "id": "ba3910d8c8793f4d",
+        "type": "watch",
+        "z": "76732e91104cd622",
+        "name": "",
+        "files": "/boot/adsbcot-config.txt",
+        "recursive": "",
+        "x": 150,
+        "y": 160,
+        "wires": [
+            [
+                "4e74c03efbd3034e",
+                "7ec81fe075691fa0"
+            ]
+        ]
+    },
+    {
+        "id": "99875f9d26d1f50e",
+        "type": "link out",
+        "z": "76732e91104cd622",
+        "name": "adsbcot-config.txt Out",
+        "mode": "link",
+        "links": [
+            "09f4ad56eb3fd133"
+        ],
+        "x": 445,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "5f868835544d4788",
+        "type": "inject",
+        "z": "76732e91104cd622",
+        "name": "/boot/adsbcot-config.txt",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "/boot/adsbcot-config.txt",
+        "payloadType": "str",
+        "x": 150,
+        "y": 120,
+        "wires": [
+            [
+                "4e74c03efbd3034e"
+            ]
+        ]
+    },
+    {
+        "id": "1948aec0539f51d7",
+        "type": "watch",
+        "z": "76732e91104cd622",
+        "name": "",
+        "files": "/boot/aryaos-config.txt",
+        "recursive": "",
+        "x": 140,
+        "y": 260,
+        "wires": [
+            [
+                "11af02e57d6dc86d",
+                "7ec81fe075691fa0"
+            ]
+        ]
+    },
+    {
+        "id": "11af02e57d6dc86d",
+        "type": "file in",
+        "z": "76732e91104cd622",
+        "name": "",
+        "filename": "payload",
+        "filenameType": "msg",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 340,
+        "y": 260,
+        "wires": [
+            [
+                "b104d679e8967f58"
+            ]
+        ]
+    },
+    {
+        "id": "b104d679e8967f58",
+        "type": "link out",
+        "z": "76732e91104cd622",
+        "name": "aryaos-config.txt Out",
+        "mode": "link",
+        "links": [
+            "a1642742e713d559",
+            "09f4ad56eb3fd133"
+        ],
+        "x": 445,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "1bbbc97101f3d953",
+        "type": "inject",
+        "z": "76732e91104cd622",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "/boot/aryaos-config.txt",
+        "payloadType": "str",
+        "x": 140,
+        "y": 220,
+        "wires": [
+            [
+                "11af02e57d6dc86d"
+            ]
+        ]
+    },
+    {
+        "id": "4aa3f8001760c96a",
+        "type": "udp in",
+        "z": "76732e91104cd622",
+        "name": "",
+        "iface": "",
+        "port": "6969",
+        "ipv": "udp4",
+        "multicast": "true",
+        "group": "239.2.3.1",
+        "datatype": "buffer",
+        "x": 130,
+        "y": 380,
+        "wires": [
+            [
+                "089a5c1ffeafe91b"
+            ]
+        ]
+    },
+    {
+        "id": "e0a7e9ef71a6f0e8",
+        "type": "udp in",
+        "z": "76732e91104cd622",
+        "name": "",
+        "iface": "wlan0",
+        "port": "6969",
+        "ipv": "udp4",
+        "multicast": "true",
+        "group": "239.2.3.1",
+        "datatype": "buffer",
+        "x": 130,
+        "y": 440,
+        "wires": [
+            [
+                "089a5c1ffeafe91b"
+            ]
+        ]
+    },
+    {
+        "id": "bd6f79df66f3f373",
+        "type": "udp in",
+        "z": "76732e91104cd622",
+        "name": "",
+        "iface": "eth0",
+        "port": "6969",
+        "ipv": "udp4",
+        "multicast": "true",
+        "group": "239.2.3.1",
+        "datatype": "buffer",
+        "x": 130,
+        "y": 500,
+        "wires": [
+            [
+                "089a5c1ffeafe91b"
+            ]
+        ]
+    },
+    {
+        "id": "089a5c1ffeafe91b",
+        "type": "link out",
+        "z": "76732e91104cd622",
+        "name": "Network TAK In",
+        "mode": "link",
+        "links": [
+            "7c699e7f158dc0d5",
+            "3ffffc180cc204dd",
+            "dc87e7e88303ec78"
+        ],
+        "x": 325,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "662e281141324f13",
+        "type": "watch",
+        "z": "76732e91104cd622",
+        "name": "",
+        "files": "tmpConf",
+        "recursive": "",
+        "x": 100,
+        "y": 620,
+        "wires": [
+            [
+                "18674460572a0475"
+            ]
+        ]
+    },
+    {
+        "id": "8ef58d62e7fd687c",
+        "type": "link out",
+        "z": "76732e91104cd622",
+        "name": "tmp- -config.txt Out",
+        "mode": "link",
+        "links": [
+            "df765e01751751eb"
+        ],
+        "x": 515,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "1aa83bf16aa07349",
+        "type": "file in",
+        "z": "76732e91104cd622",
+        "name": "",
+        "filename": "confPath",
+        "filenameType": "msg",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 420,
+        "y": 620,
+        "wires": [
+            [
+                "8ef58d62e7fd687c"
+            ]
+        ]
+    },
+    {
+        "id": "4e74c03efbd3034e",
+        "type": "file in",
+        "z": "76732e91104cd622",
+        "name": "",
+        "filename": "payload",
+        "filenameType": "msg",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 340,
+        "y": 140,
+        "wires": [
+            [
+                "99875f9d26d1f50e"
+            ]
+        ]
+    },
+    {
+        "id": "18674460572a0475",
+        "type": "function",
+        "z": "76732e91104cd622",
+        "name": "Set Config Path",
+        "func": "msg.confPath = `/home/node-red/${msg.payload}`;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 260,
+        "y": 620,
+        "wires": [
+            [
+                "1aa83bf16aa07349"
+            ]
+        ]
+    },
+    {
+        "id": "7ec81fe075691fa0",
+        "type": "link out",
+        "z": "76732e91104cd622",
+        "name": "Configs Out",
+        "mode": "link",
+        "links": [
+            "af90dbace757338b"
+        ],
+        "x": 315,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "58edafa9ab997436",
+        "type": "link in",
+        "z": "76732e91104cd622",
+        "name": "Out to Mesh SA",
+        "links": [
+            "ddb201c5df845268"
+        ],
+        "x": 75,
+        "y": 840,
+        "wires": [
+            [
+                "a5dbb71f6d17579d"
+            ]
+        ]
+    },
+    {
+        "id": "a5dbb71f6d17579d",
+        "type": "udp out",
+        "z": "76732e91104cd622",
+        "name": "",
+        "addr": "239.2.3.1",
+        "iface": "",
+        "port": "6969",
+        "ipv": "udp4",
+        "outport": "",
+        "base64": false,
+        "multicast": "multi",
+        "x": 210,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "ede3aeb67d70b53d",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "FEED_URL",
+        "tooltip": "Where are we getting ADS-B tracks?",
+        "group": "ea29ae5e99fd702f",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "FEED_URL",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 610,
+        "y": 400,
+        "wires": [
+            [
+                "9b8548552e7fbfa4"
+            ]
+        ]
+    },
+    {
+        "id": "20bb4cfcf85404b9",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "name": "Read Conf K/V",
+        "func": "const EOL = \"\\n\";  // FIXME: Should be os.EOL.\nconst pl = msg.payload;\nconst readEnvVars = () => pl.split(EOL);\n\nlet configs = flow.get(\"configs\") || {};\nlet config = configs[msg.filename]\n\n/**\n * Finds the key in conf files and returns the corresponding value\n *\n * @param {string} key Key to find\n * @returns {string|null} Value of the key\n */\nconst getConfValue = (key) => {\n    // find the line that contains the key (exact match)\n    const matchedLine = readEnvVars().find((/** @type {string} */ line) => line.split(\"=\")[0] === key);\n\n    // split the line (delimiter is '=') and return the item at index 2\n    return matchedLine !== undefined ? matchedLine.split(\"=\")[1] : null;\n};\n\n\nlet k;\n\nfor (k of Object.keys(config)) {\n    let confVal = getConfValue(k)\n    if (confVal) {\n        config[k] = confVal\n    }\n}\n\nconfigs[msg.filename] = config\nflow.set(\"configs\", configs)\n\nmsg.payload = config;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 260,
+        "y": 360,
+        "wires": [
+            [
+                "7790857cd1c02015"
+            ]
+        ]
+    },
+    {
+        "id": "7790857cd1c02015",
+        "type": "split",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 230,
+        "y": 400,
+        "wires": [
+            [
+                "b87a918bdc4910dc"
+            ]
+        ]
+    },
+    {
+        "id": "b29ad47e816eeb8a",
+        "type": "switch",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "NODE_ID",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "FEED_URL",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "ALT_UPPER",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "ALT_LOWER",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "COT_URL",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "PYTAK_MULTICAST_LOCAL_ADDR",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "PYTAK_TLS_CLIENT_CERT",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "STATIC_ALT",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "STATIC_LAT",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "STATIC_LON",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "COT_ACCESS",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 12,
+        "x": 410,
+        "y": 580,
+        "wires": [
+            [
+                "2f521601ceea7ce4"
+            ],
+            [
+                "ede3aeb67d70b53d"
+            ],
+            [
+                "cdd18c9e97866deb"
+            ],
+            [
+                "270527e3d2b0c57e"
+            ],
+            [
+                "09fb1bd40272d0af"
+            ],
+            [
+                "2f25f0b243e59af1"
+            ],
+            [
+                "436315b0476f70b0"
+            ],
+            [
+                "5ad11569a70069c4"
+            ],
+            [
+                "7b2591633f69cff2"
+            ],
+            [
+                "f1a4b452b8ad0ff2"
+            ],
+            [
+                "7e3b2c1fde544a53"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "09fb1bd40272d0af",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "COT_URL",
+        "tooltip": "Where are we sending Cursor on Target?",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "COT_URL",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 600,
+        "y": 520,
+        "wires": [
+            [
+                "52d59a8a443b3363"
+            ]
+        ]
+    },
+    {
+        "id": "b87a918bdc4910dc",
+        "type": "switch",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 230,
+        "y": 440,
+        "wires": [
+            [
+                "bcd4f9fe3ff42a97"
+            ]
+        ]
+    },
+    {
+        "id": "2f25f0b243e59af1",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "PYTAK_MULTICAST_LOCAL_ADDR",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "PYTAK_MULTICAST_LOCAL_ADDR",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 690,
+        "y": 560,
+        "wires": [
+            [
+                "52d59a8a443b3363"
+            ]
+        ]
+    },
+    {
+        "id": "2f521601ceea7ce4",
+        "type": "ui_text",
+        "z": "4fa67ac9ec0c7369",
+        "group": "703b3b0940030133",
+        "order": 2,
+        "width": 15,
+        "height": 1,
+        "name": "",
+        "label": "NODE_ID",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 600,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "cdd18c9e97866deb",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "ALT_UPPER",
+        "tooltip": "Upper Altitude Limit, geometric (GNSS / INS) altitude in feet referenced to the WGS84 ellipsoid.",
+        "group": "ea29ae5e99fd702f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "ALT_UPPER",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 610,
+        "y": 440,
+        "wires": [
+            [
+                "9b8548552e7fbfa4"
+            ]
+        ]
+    },
+    {
+        "id": "270527e3d2b0c57e",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "ALT_LOWER",
+        "tooltip": "Lower Altitude Limit, geometric (GNSS / INS) altitude in feet referenced to the WGS84 ellipsoid.",
+        "group": "ea29ae5e99fd702f",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "ALT_LOWER",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 610,
+        "y": 480,
+        "wires": [
+            [
+                "9b8548552e7fbfa4"
+            ]
+        ]
+    },
+    {
+        "id": "cb87c8b4398c815d",
+        "type": "ui_button",
+        "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
+        "name": "",
+        "group": "1027f32817e150a0",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Save Changes & Restart",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "configs",
+        "payloadType": "flow",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 590,
+        "y": 200,
+        "wires": [
+            [
+                "a693d594320c6842",
+                "631f87c4233853a4"
+            ]
+        ]
+    },
+    {
+        "id": "bcd4f9fe3ff42a97",
+        "type": "change",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "parts.key",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 260,
+        "y": 560,
+        "wires": [
+            [
+                "b29ad47e816eeb8a"
+            ]
+        ]
+    },
+    {
+        "id": "90bbf3ddaabf55d6",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
+        "name": "Remove nulls",
+        "func": "const pl = msg.payload;\nlet newpl = {};\n\nfor (const [key, value] of Object.entries(pl)) {\n    if (value !== null) {\n        newpl[key] = value\n    }\n}\n\nmsg.payload = newpl;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 240,
+        "wires": [
+            [
+                "8f90b1c209f39ff8"
+            ]
+        ]
+    },
+    {
+        "id": "70a02ab5c732adf0",
+        "type": "file",
+        "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
+        "name": "",
+        "filename": "tmpConfPath",
+        "filenameType": "msg",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 700,
+        "y": 280,
+        "wires": [
+            [
+                "83463f13b20d8ef3"
+            ]
+        ]
+    },
+    {
+        "id": "8f90b1c209f39ff8",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
+        "name": "Format ENV file",
+        "func": "const pl = msg.payload;\nlet newpl = `# ${msg.topic} Automatically created by AryaOS Dashboard.`;\n\nfor (const [key, value] of Object.entries(pl)) {\n    if (value !== null) {\n        newpl = `${newpl}\\n${key}=${value}`\n    }\n}\n\nmsg.payload = newpl;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 240,
+        "wires": [
+            [
+                "e435961c35c6c50f"
+            ]
+        ]
+    },
+    {
+        "id": "e435961c35c6c50f",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
+        "name": "Use tmp file",
+        "func": "msg.tmpConfPath = msg.topic.replace(\"/boot/\", \"tmpConf/\")\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 280,
+        "wires": [
+            [
+                "70a02ab5c732adf0"
+            ]
+        ]
+    },
+    {
+        "id": "df765e01751751eb",
+        "type": "link in",
+        "z": "4fa67ac9ec0c7369",
+        "g": "c5409a5d2b5e28d5",
+        "name": "adsbcot-config.txt In",
+        "links": [
+            "8ef58d62e7fd687c"
+        ],
+        "x": 505,
+        "y": 100,
+        "wires": [
+            [
+                "2d8066d127cb6c44",
+                "59b872f3a0bdee19"
+            ]
+        ]
+    },
+    {
+        "id": "2d8066d127cb6c44",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "g": "c5409a5d2b5e28d5",
+        "name": "Set Cmd",
+        "func": "let realName = msg.filename.replace(\"tmpConf/\", \"/boot/\").replace(\"/home/node-red/\", \"\")\nmsg.payload = `sudo cp ${msg.filename} ${realName}`\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 100,
+        "wires": [
+            [
+                "bb55ecc1c7a7da19",
+                "59b872f3a0bdee19"
+            ]
+        ]
+    },
+    {
+        "id": "436315b0476f70b0",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "PYTAK_TLS_CLIENT_CERT",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "PYTAK_TLS_CLIENT_CERT",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 660,
+        "y": 600,
+        "wires": [
+            [
+                "52d59a8a443b3363"
+            ]
+        ]
+    },
+    {
+        "id": "9ebdda528d43e0ed",
+        "type": "ui_button",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "group": "1027f32817e150a0",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "label": "Load Configs",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "green",
+        "className": "",
+        "icon": "",
+        "payload": "configs",
+        "payloadType": "flow",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 260,
+        "y": 200,
+        "wires": [
+            [
+                "9c77b6745bbb256f"
+            ]
+        ]
+    },
+    {
+        "id": "f03da47ad91841c2",
+        "type": "split",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "topic",
+        "x": 230,
+        "y": 280,
+        "wires": [
+            [
+                "1c2d5f5bc8a23c60"
+            ]
+        ]
+    },
+    {
+        "id": "1c2d5f5bc8a23c60",
+        "type": "file in",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "filename": "payload",
+        "filenameType": "msg",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 240,
+        "y": 320,
+        "wires": [
+            [
+                "20bb4cfcf85404b9"
+            ]
+        ]
+    },
+    {
+        "id": "bb55ecc1c7a7da19",
+        "type": "link out",
+        "z": "4fa67ac9ec0c7369",
+        "g": "c5409a5d2b5e28d5",
+        "name": "Save Config Out",
+        "mode": "link",
+        "links": [
+            "191a64ffb1ef6aac"
+        ],
+        "x": 725,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "21b1f508196e9b5a",
+        "type": "inject",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 120,
+        "wires": [
+            [
+                "38dd95c8bf4641c3"
+            ]
+        ]
+    },
+    {
+        "id": "38dd95c8bf4641c3",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "name": "Set Configs",
+        "func": "let configs = {\n    \"/boot/adsbcot-config.txt\": {\n        FEED_URL: \"file:///run/dump1090-fa/aircraft.json\", \n        POLL_INTERVAL: null, \n        ALT_UPPER: null, \n        ALT_LOWER: null\n    },\n    \"/boot/aryaos-config.txt\": {\n        NODE_ID: null,\n        COT_URL: \"udp+wo://239.2.3.1:6969\",\n        PYTAK_MULTICAST_LOCAL_ADDR: \"0.0.0.0\",\n        PYTAK_TLS_CLIENT_CERT: null,\n        WIFI_AP_IP: \"10.41.0.1\",\n        COT_ACCESS: \"UNCLASSIFIED\",\n        STATIC_LAT: null,\n        STATIC_LON: null,\n        STATIC_ALT: null,\n    },\n    \"/boot/lincot-config.txt\": {\n        GPS_INFO_CMD: null,\n        CALLSIGN: null\n\n    }\n}\n\nflow.set(\"configs\", configs)\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 250,
+        "y": 160,
+        "wires": [
+            [
+                "9ebdda528d43e0ed"
+            ]
+        ]
+    },
+    {
+        "id": "9c77b6745bbb256f",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "name": "Set Files",
+        "func": "const configs = flow.get(\"configs\") || {}\nmsg.payload = Object.keys(configs)\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 240,
+        "y": 240,
+        "wires": [
+            [
+                "f03da47ad91841c2"
+            ]
+        ]
+    },
+    {
+        "id": "9b8548552e7fbfa4",
+        "type": "change",
+        "z": "4fa67ac9ec0c7369",
+        "name": "/boot/adsbcot-config.txt",
+        "rules": [
+            {
+                "t": "set",
+                "p": "filename",
+                "pt": "msg",
+                "to": "/boot/adsbcot-config.txt",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 850,
+        "y": 440,
+        "wires": [
+            [
+                "e0a10c197bb93cee"
+            ]
+        ]
+    },
+    {
+        "id": "52d59a8a443b3363",
+        "type": "change",
+        "z": "4fa67ac9ec0c7369",
+        "name": "/boot/aryaos-config.txt",
+        "rules": [
+            {
+                "t": "set",
+                "p": "filename",
+                "pt": "msg",
+                "to": "/boot/aryaos-config.txt",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1000,
+        "y": 620,
+        "wires": [
+            [
+                "e0a10c197bb93cee"
+            ]
+        ]
+    },
+    {
+        "id": "a693d594320c6842",
+        "type": "split",
+        "z": "4fa67ac9ec0c7369",
+        "g": "a247d145bc97ec4e",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "topic",
+        "x": 770,
+        "y": 200,
+        "wires": [
+            [
+                "90bbf3ddaabf55d6"
+            ]
+        ]
+    },
+    {
+        "id": "09f4ad56eb3fd133",
+        "type": "link in",
+        "z": "4fa67ac9ec0c7369",
+        "name": "Config in",
+        "links": [
+            "99875f9d26d1f50e",
+            "b104d679e8967f58"
+        ],
+        "x": 105,
+        "y": 240,
+        "wires": [
+            [
+                "9c77b6745bbb256f"
+            ]
+        ]
+    },
+    {
+        "id": "e0a10c197bb93cee",
+        "type": "function",
+        "z": "4fa67ac9ec0c7369",
+        "name": "Set Configs",
+        "func": "let configs = flow.get(\"configs\") || {};\n\nconfigs[msg.filename][msg.topic] = msg.payload\n\nflow.set(\"configs\", configs)\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1230,
+        "y": 620,
+        "wires": [
+            [
+                "8e27fbfb0a2496bb"
+            ]
+        ]
+    },
+    {
+        "id": "5ad11569a70069c4",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "STATIC_ALT",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "STATIC_ALT",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 610,
+        "y": 640,
+        "wires": [
+            [
+                "52d59a8a443b3363"
+            ]
+        ]
+    },
+    {
+        "id": "7b2591633f69cff2",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "STATIC_LAT",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "STATIC_LAT",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 610,
+        "y": 680,
+        "wires": [
+            [
+                "52d59a8a443b3363"
+            ]
+        ]
+    },
+    {
+        "id": "f1a4b452b8ad0ff2",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "STATIC_LON",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "STATIC_LON",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 610,
+        "y": 720,
+        "wires": [
+            [
+                "52d59a8a443b3363"
+            ]
+        ]
+    },
+    {
+        "id": "631f87c4233853a4",
+        "type": "debug",
+        "z": "4fa67ac9ec0c7369",
+        "name": "debug 13",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 900,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "59b872f3a0bdee19",
+        "type": "debug",
+        "z": "4fa67ac9ec0c7369",
+        "name": "debug 14",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "83463f13b20d8ef3",
+        "type": "debug",
+        "z": "4fa67ac9ec0c7369",
+        "name": "debug 16",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 900,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "ff7a0b0653db330b",
+        "type": "ui_switch",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "Use Static Position?",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "GPS_INFO_CMD",
+        "topicType": "str",
+        "style": "",
+        "onvalue": "/usr/local/bin/get_position.sh",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "null",
+        "offvalueType": "json",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 980,
+        "y": 680,
+        "wires": [
+            [
+                "68268787596399d6"
+            ]
+        ]
+    },
+    {
+        "id": "68268787596399d6",
+        "type": "change",
+        "z": "4fa67ac9ec0c7369",
+        "name": "/boot/lincot-config.txt",
+        "rules": [
+            {
+                "t": "set",
+                "p": "filename",
+                "pt": "msg",
+                "to": "/boot/lincot-config.txt",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1020,
+        "y": 740,
+        "wires": [
+            [
+                "e0a10c197bb93cee"
+            ]
+        ]
+    },
+    {
+        "id": "8e27fbfb0a2496bb",
+        "type": "debug",
+        "z": "4fa67ac9ec0c7369",
+        "name": "debug 18",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1280,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "7e3b2c1fde544a53",
+        "type": "ui_text_input",
+        "z": "4fa67ac9ec0c7369",
+        "name": "",
+        "label": "COT_ACCESS",
+        "tooltip": "",
+        "group": "c9b3e02a2ade5f4f",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "COT_ACCESS",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 620,
+        "y": 760,
+        "wires": [
+            [
+                "52d59a8a443b3363"
+            ]
+        ]
+    },
+    {
+        "id": "cedb612803ec48f3",
+        "type": "ui_table",
+        "z": "898f970d26b5049d",
+        "group": "4f5d2f631860ad85",
+        "name": "",
+        "order": 3,
+        "width": "12",
+        "height": "15",
+        "columns": [
+            {
+                "field": "id",
+                "title": "id",
+                "width": "2",
+                "align": "center",
+                "formatter": "rownum",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "label",
+                "title": "Label",
+                "width": "",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "lastUpdate",
+                "title": "Updated",
+                "width": "",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "battery",
+                "title": "Bat",
+                "width": "",
+                "align": "left",
+                "formatter": "progress",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "battery",
+                "title": "Bat%",
+                "width": "5",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            }
+        ],
+        "outputs": 1,
+        "cts": true,
+        "x": 750,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1a05840c28615402",
+        "type": "function",
+        "z": "898f970d26b5049d",
+        "name": "Update User Table",
+        "func": "let pl = msg.payload;\n\nmsg.payload = {\n    command: \"updateOrAddData\",\n    arguments: [\n        [\n            {\n                \"id\": pl.name,\n                \"label\": pl.label || pl.name,\n                \"lastUpdate\": pl.lastUpdate,\n                'battery': pl.battery\n            }\n        ]\n    ]\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 220,
+        "wires": [
+            [
+                "cedb612803ec48f3",
+                "089d8cf88cede906"
+            ]
+        ]
+    },
+    {
+        "id": "ca452dfdb255ad66",
+        "type": "ui_chart",
+        "z": "898f970d26b5049d",
+        "name": "",
+        "group": "4f5d2f631860ad85",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "label": "chart",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "3",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 750,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "95a794098ccf72a6",
+        "type": "function",
+        "z": "898f970d26b5049d",
+        "name": "Update Battery Graph",
+        "func": "let pl = msg.payload;\n\nmsg.payload = {\n    command: \"updateOrAddData\",\n    arguments: [\n        [\n            {\n                \"id\": pl.name,\n                \"label\": pl.label || pl.name,\n                \"lastUpdate\": pl.lastUpdate,\n                'battery': pl.battery\n            }\n        ]\n    ]\n}\n\nmsg.topic = pl.label || pl.name;\nmsg.payload = pl.battery;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 260,
+        "wires": [
+            [
+                "ca452dfdb255ad66"
+            ]
+        ]
+    },
+    {
+        "id": "7c699e7f158dc0d5",
+        "type": "link in",
+        "z": "898f970d26b5049d",
+        "name": "TAK Dashboard In",
+        "links": [
+            "089a5c1ffeafe91b"
+        ],
+        "x": 175,
+        "y": 240,
+        "wires": [
+            [
+                "ddb04bc04415d51e"
+            ]
+        ]
+    },
+    {
+        "id": "ddb04bc04415d51e",
+        "type": "tak2wm",
+        "z": "898f970d26b5049d",
+        "name": "TAK2Worldmap",
+        "x": 300,
+        "y": 240,
+        "wires": [
+            [
+                "1a05840c28615402",
+                "95a794098ccf72a6",
+                "16f795d55dda4729"
+            ]
+        ]
+    },
+    {
+        "id": "089d8cf88cede906",
+        "type": "debug",
+        "z": "898f970d26b5049d",
+        "name": "debug 4",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 700,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "16f795d55dda4729",
+        "type": "debug",
+        "z": "898f970d26b5049d",
+        "name": "debug 5",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 460,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "eeab9ac6513e2cdf",
+        "type": "parsrer",
+        "z": "de725ec24f79b6b7",
+        "name": "",
+        "state": "",
+        "destUid": "",
+        "takMission": "",
+        "datasyncSave": false,
+        "creatorUid": "",
+        "takServerUrl": "",
+        "missionApiPort": 8443,
+        "x": 430,
+        "y": 200,
+        "wires": [
+            [
+                "cedca169d6844f15"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "1adb2eef7b22719d",
+        "type": "inject",
+        "z": "de725ec24f79b6b7",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "CA",
+        "payloadType": "str",
+        "x": 290,
+        "y": 200,
+        "wires": [
+            [
+                "eeab9ac6513e2cdf"
+            ]
+        ]
+    },
+    {
+        "id": "1e6eb6f93066814d",
+        "type": "debug",
+        "z": "de725ec24f79b6b7",
+        "name": "debug 9",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 600,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "ddb201c5df845268",
+        "type": "link out",
+        "z": "de725ec24f79b6b7",
+        "name": "TFR Out",
+        "mode": "link",
+        "links": [
+            "58edafa9ab997436",
+            "dc87e7e88303ec78"
+        ],
+        "x": 665,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "cedca169d6844f15",
+        "type": "tak",
+        "z": "de725ec24f79b6b7",
+        "name": "TAK",
+        "x": 570,
+        "y": 200,
+        "wires": [
+            [
+                "ddb201c5df845268",
+                "1e6eb6f93066814d"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "dc87e7e88303ec78",
+        "type": "link in",
+        "z": "f8d4ccf4360ea706",
+        "name": "Sit(x) In",
+        "links": [
+            "089a5c1ffeafe91b",
+            "ddb201c5df845268"
+        ],
+        "x": 175,
+        "y": 100,
+        "wires": [
+            [
+                "7ff44de3e1b9f7ce"
+            ]
+        ]
+    },
+    {
+        "id": "7ff44de3e1b9f7ce",
+        "type": "tak",
+        "z": "f8d4ccf4360ea706",
+        "name": "TAK",
+        "x": 270,
+        "y": 100,
+        "wires": [
+            [
+                "d13138584cc78f08"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "d13138584cc78f08",
+        "type": "tak",
+        "z": "f8d4ccf4360ea706",
+        "name": "TAK",
+        "x": 390,
+        "y": 100,
+        "wires": [
+            [
+                "058bbbd3ada7d52d"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "058bbbd3ada7d52d",
+        "type": "Sit(x) Node",
+        "z": "f8d4ccf4360ea706",
+        "d": true,
+        "name": "",
+        "sitx_config": "",
+        "x": 530,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    }
+]

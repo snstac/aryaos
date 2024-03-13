@@ -1,7 +1,7 @@
-site_name: AirTAK
-site_url: https://airtak.rtfd.io/
-repo_url: https://github.com/snstac/airtak
-site_description: AirTAK Documentation
+site_name: AryaOS
+site_url: https://aryaos.rtfd.io/
+repo_url: https://github.com/snstac/aryaos
+site_description: AryaOS Documentation
 site_author: Greg Albrecht <gba@snstac.com>
 copyright: Copyright Sensors & Signals LLC https://www.snstac.com/
 

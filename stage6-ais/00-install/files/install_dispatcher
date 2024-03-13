@@ -1,0 +1,115 @@
+#!/bin/bash
+
+VER="latest"
+if [ ! -z "$1" ]; then
+    VER="$1"
+fi
+PACKAGE="full.tar.bz2"
+MD5="full.tar.bz2.md5"
+PACKAGE_URL="https://www.aishub.net/downloads/dispatcher/packages/${VER}/${PACKAGE}"
+MD5_URL="https://www.aishub.net/downloads/dispatcher/packages/${VER}/${MD5}"
+DOWNLOAD_DIR="/tmp/dispatcher_download_${VER}"
+
+[ ! -d "$DOWNLOAD_DIR" ] && mkdir "$DOWNLOAD_DIR"
+
+PM="$(which "apt-get")" && [ ! -z "$PM" ] && PM="$PM install"
+[ -z "$PM" ] && PM="$(which "yay")" && [ ! -z "$PM" ] && PM="$PM -S"
+
+echo ':: Check dependencies'
+WGET="$(which "wget")"
+if [ ! -x "$WGET" ]; then
+    echo ' wget executable not found. Please install it'
+    exit 1
+fi
+WGET="${WGET} -q --show-progress"
+
+if ! which aha >/dev/null; then
+    echo '   Warning "aha" (Ansi HTML Adapter) executable not found!'
+    echo '   In order to have console like colors, "aha" must be installed.'
+    echo '   Debian derivatives "apt-get install aha"'
+    echo '   Arch Linux derivatives (AUR) "yay -S aha"'
+
+    echo
+    if [ ! -z "$PM" ]; then
+        read -p "   Install \"aha\" ($PM aha)? [Y/n] " ANSWER
+        if [[ "$ANSWER" =~ ^([Yy]|)$ ]]; then
+            $PM aha || exit 1
+        fi
+    fi
+
+    if ! which aha >/dev/null; then
+        read -p '   Proceed with installation (without aha)? [y/N] ' ANSWER
+        if [[ "$ANSWER" =~ ^([Nn]|)$ ]]; then
+            echo 'Abort'
+            exit 1
+        fi
+    fi
+fi
+
+check_status() {
+    echo ':: Check files'
+    if [ -f "$PACKAGE" ] && [ -f "$MD5" ] && md5sum --quiet -c "$MD5" ; then
+        return 0
+    fi
+    return 1
+}
+
+cd "$DOWNLOAD_DIR"
+if ! check_status; then
+    echo ":: Download version '${VER}'"
+    $WGET "$PACKAGE_URL"
+    $WGET "$MD5_URL"
+    if ! check_status; then
+        echo 'Download failed'
+        exit 1
+    fi
+fi
+
+echo ':: Add user "ais"'
+if id --user 'ais' >/dev/null 2>&1; then
+    read -p '   User "ais" already exists. Proceed with installation? [Y/n] ' ANSWER
+    if [[ "$ANSWER" =~ ^[Nn]$ ]]; then
+        echo 'Abort'
+        exit 1
+    fi
+else
+    if ! useradd -m -s "/bin/false" -c "AIS Dispatcher" ais; then
+        echo 'Cannot create user "ais"'
+        exit 1
+    fi
+fi
+
+if getent group 'systemd-journal' >/dev/null; then
+    echo ':: Join user "ais" to "systemd-journal" group (view log)'
+    usermod -a -G systemd-journal ais
+fi
+
+if getent group 'dialout' >/dev/null; then
+    usermod -a -G dialout ais
+else
+    echo '   If you are using a serial device connection to your AIS receiver,'
+    echo '   AIS dispatcher will need read permission from that device.'
+    read -p '   Please enter the group that owns your serial device [skip]: ' ANSWER
+    if [ ! -z "$ANSWER" ] && [ "$ANSWER" != "skip" ]; then
+        if ! getent group "$ANSWER" >/dev/null; then
+            echo "group '$ANSWER' does not exist"
+            exit 1
+        fi
+        usermod -a -G "$ANSWER" ais
+    fi
+fi
+
+echo ':: Extract archive'
+tar xfj "$PACKAGE" -C /home/ais
+
+echo ':: Enable auto start'
+loginctl enable-linger ais
+
+echo
+echo 'Install complete'
+echo 'By default web interface is accessible at http://IPADDRESS:8080/'
+echo 'To change default listening host/port check "/home/ais/etc/aiscontrol.cfg"'
+echo 'To disable auto start execute "loginctl disable-linger ais"'
+echo
+echo ':: Available IP Addresses'
+ip -br address show up scope global

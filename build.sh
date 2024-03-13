@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-#
-# build.sh for AirTAK
+# AryaOS build.sh
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #

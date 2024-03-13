@@ -1,4 +1,5 @@
-# AryaOS Makefile
+#!/bin/bash -e
+# AryaOS 01-run-chroot.sh
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -13,40 +14,16 @@
 # limitations under the License.
 #
 
+python3 -m pip install lincot --break-system-packages
 
-build: pi-gen
-	sudo ./build.sh
+systemctl enable lincot
+systemctl enable set_uuid
 
-pi-gen:
-	git clone --branch arm64 https://github.com/RPI-Distro/pi-gen.git
-	touch ./pi-gen/stage2/SKIP_IMAGES ./pi-gen/stage2/SKIP_NOOBS
+systemctl set-default multi-user
 
-copy:
-	rsync -va ../aryaos kelp.local:~/src/SNS/
+systemctl enable NetworkManager-dispatcher
 
-sync: copy
+sed --follow-symlinks -i -E -e "s/blank.org/${AT_FLAVOR}.local/" /usr/share/comitup/web/templates/connect.html
+sed --follow-symlinks -i -E -e "s/aryaos.local/${AT_FLAVOR}.local/" /var/www/html/index.html
 
-skip:
-	touch pi-gen/stage0/SKIP
-	touch pi-gen/stage1/SKIP
-	touch pi-gen/stage2/SKIP
-
-unskip:
-	rm -f */SKIP
-	rm -f pi-gen/*/SKIP
-
-copyback:
-	scp pi-gen/deploy/image*.zip gba@rorqual.local:~
-
-skip3:
-	touch stage3*/SKIP
-
-skip4:
-	touch stage4*/SKIP
-
-skip5:
-	touch stage5*/SKIP
-
-mkdocs:
-	pip install -r docs/requirements.txt
-	mkdocs serve
+/usr/local/sbin/install_zt.sh

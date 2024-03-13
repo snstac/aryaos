@@ -1,4 +1,7 @@
-# AryaOS Makefile
+#!/usr/bin/env python3
+# AryaOS wifi-nuke.py
+#
+# CLI to nuke WiFi connections.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -13,40 +16,25 @@
 # limitations under the License.
 #
 
+import sys
 
-build: pi-gen
-	sudo ./build.sh
+sys.path.append("/usr/share/comitup")
 
-pi-gen:
-	git clone --branch arm64 https://github.com/RPI-Distro/pi-gen.git
-	touch ./pi-gen/stage2/SKIP_IMAGES ./pi-gen/stage2/SKIP_NOOBS
+from comitup import client as ciu
 
-copy:
-	rsync -va ../aryaos kelp.local:~/src/SNS/
 
-sync: copy
+def get_state(ciu_client):
+    state, connection = ciu_client.ciu_state()
+    return state, connection
 
-skip:
-	touch pi-gen/stage0/SKIP
-	touch pi-gen/stage1/SKIP
-	touch pi-gen/stage2/SKIP
 
-unskip:
-	rm -f */SKIP
-	rm -f pi-gen/*/SKIP
+def nuke(ciu_client):
+    state, connection = get_state(ciu_client)
+    if "HOTSPOT" not in state:
+        print(f"Deleting {connection}")
+        ciu_client.ciu_delete(connection)
 
-copyback:
-	scp pi-gen/deploy/image*.zip gba@rorqual.local:~
 
-skip3:
-	touch stage3*/SKIP
-
-skip4:
-	touch stage4*/SKIP
-
-skip5:
-	touch stage5*/SKIP
-
-mkdocs:
-	pip install -r docs/requirements.txt
-	mkdocs serve
+if __name__ == "__main__":
+    ciu_client = ciu.CiuClient()
+    nuke(ciu_client)

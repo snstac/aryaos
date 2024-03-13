@@ -1,14 +1,22 @@
 ![AirTAK ADS-B to TAK Gateway](https://airtak.readthedocs.io/en/latest/media/airtakv1.jpg)
 
-# AirTAK - Standalone ADS-B to TAK Gateway
+# AryaOS - An Operating Systems for Modern Situational Awareness
 
-[AirTAK](https://www.snstac.com/blog/introducing-airtak-v1) is a standalone ADS-B to [TAK](https://www.tak.gov) Gateway. AirTAK works with all TAK Products, including ATAK, WinTAK, iTAK & TAKX.
+AryaOS is a Linux-based operating system with a suite of situational awareness tools pre-installed. 
 
-[AirTAK Open Source (AirTAK OS)](https://github.com/snstac/airtak) is the purpose-built operating system used by AirTAK. It is based on Debian, and runs on most ARM64 small-board computers, including the Raspberry Pi 0/3/4/5.
+Features of AryaOS:
 
-[AirTAK documentation is available here.](https://airtak.readthedocs.io).
+* Facilitates rapid test & evaluation of edge node sensors.
+* Browser based low-code development tool for visual programming & open API.
+* Works with all TAK Products, including ATAK, WinTAK, iTAK, TAKX & TAK Server.
+* Runs on inexpensive COTS & low SWaP-C small board computers, including the Raspberry Pi.
+* Includes decoders and gateways for AIS, ADS-B, Remote ID & APRS.
 
-Order an assembled & tested [AirTAK go-kit](https://www.snstac.com/store/p/airtak-v1).
+## Products using AryaOS today
+
+* [AirTAK](https://www.snstac.com/airtak): A low SWaP-C device for monitoring and analyzing aviation surveillance data via the Team Awareness Kit (TAK).
+* SeaTAK
+* AirTAK C-UAS
 
 # License & Copyright
 

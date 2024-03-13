@@ -1,4 +1,6 @@
-# pi-gen config for AirTAK
+# AryaOS config
+#
+# pi-gen config for AryaOS
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -13,12 +15,16 @@
 # limitations under the License.
 #
 
-IMG_NAME="airtakR03B06"
-PI_GEN_RELEASE="Sensors & Signals AirTAK"
-TARGET_HOSTNAME="airtak"
+AOS_FLAVOR="aryaos"
+AOS_FLAVOR_ST="AryaOS"
+
+IMG_NAME="aryaos-1.0.0-beta1"
+
+PI_GEN_RELEASE="AryaOS: An Operating System for Modern Situational Awareness."
+TARGET_HOSTNAME="aryaos"
 FIRST_USER_NAME="pi"
-FIRST_USER_PASS="airtak415"
-STAGE_LIST="stage0 stage1 stage2 ../stage4-dump1090 ../stage5-adsbcot ../stage6-comitup ../stage7-node-red ../stage8-airtak"
+FIRST_USER_PASS="aryaos415"
+STAGE_LIST="stage0 stage1 stage2 ../stage3-wifi ../stage4-node-red ../stage5-common ../stage6-dump1090 ../stage7-adsbcot"
 DISABLE_FIRST_BOOT_USER_RENAME=1
 RELEASE="bookworm"
 WPA_COUNTRY="US"
@@ -26,6 +32,7 @@ LOCALE_DEFAULT="en_US.UTF-8"
 KEYBOARD_LAYOUT="English (US)"
 KEYBOARD_KEYMAP="us"
 ENABLE_SSH=1
-# DEPLOY_DIR="../deploy"
-# BOARD="aml-s905x-cc"
-# http://boot.libre.computer/ci/aml-s905x-cc
+
+DUMP1090_RECEIVER_SERIAL="stx:1090:0"
+DUMP978_RECEIVER_SERIAL="stx:978:0" 
+

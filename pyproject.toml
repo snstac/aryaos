@@ -1,4 +1,4 @@
 [project]
-name = "AirTAK"
+name = "AryaOS"
 authors = [{name = "Greg Albrecht", email = "gba@snstac.com"}]
 dynamic = ["version", "description"]
