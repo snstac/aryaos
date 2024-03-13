@@ -1,4 +1,4 @@
-![AirTAK ADS-B to TAK Gateway](https://airtak.readthedocs.io/en/latest/media/airtakv1.jpg)
+![AryaOS Shield](https://aryaos.readthedocs.io/en/latest/media/aryaos_logo.png)
 
 # AryaOS - An Operating Systems for Modern Situational Awareness
 
