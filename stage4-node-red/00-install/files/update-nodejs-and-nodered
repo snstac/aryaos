@@ -1,6 +1,8 @@
 #!/bin/bash
+# AryaOS update-nodejs-and-nodered
+# Source: https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered
 #
-# Copyright 2016,2023 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2024 JS Foundation and other contributors, https://js.foundation/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +28,7 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.19.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.4.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.10.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.11.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 # tgtl20=None      # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
@@ -195,6 +197,12 @@ if [ "$EUID" == "0" ]; then
   SUDO=''
   SUDOE=''
   id -u nobody &>/dev/null || adduser --no-create-home --shell /dev/null --disabled-password --disabled-login --gecos '' nobody &>/dev/null
+else
+    groups "$USER" | grep -q '\bsudo\b' && GRS="Y" || GRS="N"
+    if [[ "$GRS" == "N" ]]; then
+        echo "User $NODERED_USER not in sudoers group. Exiting"
+        exit 1;
+    fi
 fi
 
 # setup user, home and group
@@ -205,7 +213,11 @@ if [[ "$NODERED_USER" == "" ]]; then
 else
     NODERED_GROUP="$NODERED_USER"
     NODERED_HOME="/home/$NODERED_USER"
+    if [[ "$NODERED_USER" == "root" ]]; then
+        NODERED_HOME="/root"
+    fi
 fi
+SUDOU="sudo -u $NODERED_USER"
 
 if [[ "$(uname)" != "Darwin" ]]; then
 if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
@@ -260,7 +272,8 @@ case $yn in
         echo -e "\nRunning Node-RED $EXTRAW for user $NODERED_USER at $NODERED_HOME on $MYOS\n"
 
         nv=0
-        nv2=""
+        # nv2=""
+        nv2=`dpkg -s nodejs 2>/dev/null | grep Version | cut -d ' ' -f 2`
         nrv=`echo $NODERED_VERSION | cut -d "." -f1`
 
         if [[ "$APTOK" == "false" ]]; then
@@ -279,10 +292,10 @@ case $yn in
         if [[ "$APTOK" == "true" ]]; then
             ndeb=$(apt-cache policy nodejs | grep Installed | awk '{print $2}')
         fi
-        if HAS_NODE; then
+        if HAS_NODE && HAS_NPM; then
             nv=`node -v | cut -d "." -f1 | cut -d "v" -f2`
             nvs=`node -v | cut -d "." -f2`
-            nv2=`node -v`
+            # nv2=`node -v`
             # nv2=`apt list nodejs 2>/dev/null | grep dfsg | cut -d ' ' -f 2 | cut -d '-' -f 1`
             echo "Already have nodejs $nv2" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
         fi
@@ -305,7 +318,7 @@ case $yn in
                 # echo "  "
                 # echo "  You can use the old v1 branch by specifying --nodered-version=1.*"
                 echo "  "
-                echo "  You can force an install of node 16, 18 or 20 by adding --node16, --node18 or --node20 to the end of the command line above."
+                echo "  You can force an install of node 16, 18 or 20 by adding --node18 or --node20 to the end of the command line above."
                 echo "  However doing so may break some nodes that may need re-installing manually."
                 echo "  Generally it is recommended to update all nodes to their latest versions before upgrading."
                 echo "  "
@@ -318,7 +331,7 @@ case $yn in
                 fi
                 echo "  Please backup your installation and flows before upgrading."
                 echo "  "
-                if ! $SUDO grep -q BCM2 /proc/cpuinfo; then
+                if ! $SUDO grep -q Raspberry /proc/cpuinfo; then
                     echo "  Note: not all embedded hardware can be updated via this method - please check before proceeding."
                     echo "  "
                 fi
@@ -373,7 +386,7 @@ case $yn in
             echo -ne "  Leave existing Node.js              :"
         elif [[ "$NODE_VERSION" == "" && "$nv" -ne 0 ]]; then
             CHAR="-"
-            echo -ne "  Node option not specified           :   --node16, --node18 or --node20\n"
+            echo -ne "  Node option not specified           :   --node18 or --node20\n"
             echo -ne "  Leave existing Node.js              :"
         else
             if [[ "$NODE_VERSION" == "12" ]]; then
@@ -484,8 +497,13 @@ case $yn in
                 echo -ne "  Remove old version of Node.js       \033[1;32m\u2714\033[0m   $nv2\r\n"
                 echo "Grab the LTS bundle" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Install Node.js $NODE_VERSION LTS              \r"
-                # use the official script to install for other debian platforms
 
+                # block debian nodejs install
+                echo "Package: nodejs" | $SUDO tee /etc/apt/preferences.d/nodejs.pref >>/dev/null
+                echo "Pin: release a=stable-security" | $SUDO tee -a /etc/apt/preferences.d/nodejs.pref >>/dev/null
+                echo "Pin-Priority: -1" | $SUDO tee -a /etc/apt/preferences.d/nodejs.pref >>/dev/null
+
+                # use the official script to install for other debian platforms
                 $SUDO apt install -y ca-certificates curl gnupg 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 $SUDO mkdir -p /etc/apt/keyrings 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | $SUDOE gpg --batch --yes --dearmor -o /etc/apt/keyrings/nodesource.gpg 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
@@ -493,7 +511,9 @@ case $yn in
                 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" | $SUDOE tee -a /etc/apt/sources.list.d/nodesource.list >>/dev/null
                 $SUDO apt-get update 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 if $SUDO apt install -y nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                echo -ne "  Install Node.js $NODE_VERSION LTS              $CHAR"
+                nov2=$(dpkg -s nodejs | grep Version | cut -d ' ' -f 2)
+                echo -ne "  Install Node $nov2   $CHAR"
+                # echo -ne "  Install Node.js $NODE_VERSION LTS              $CHAR"
             fi
         fi
 
@@ -667,12 +687,12 @@ case $yn in
         # remove unneeded large sentiment library to save space and load time
         $SUDO rm -f /usr/lib/node_modules/node-red/node_modules/multilang-sentiment/build/output/build-all.json 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
         # on LXDE add launcher to top bar, refresh desktop menu
-        file=/home/$NODERED_USER/.config/lxpanel/LXDE-pi/panels/panel
-        if [ -e $file ]; then
+        pfile=/home/$NODERED_USER/.config/lxpanel/LXDE-pi/panels/panel
+        if [ -e $pfile ]; then
             if ! grep -q "Node-RED" $file; then
                 mat="lxterminal.desktop"
                 ins="lxterminal.desktop\n    }\n    Button {\n      id=Node-RED.desktop"
-                $SUDO sed -i "s|$mat|$ins|" $file 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO sed -i "s|$mat|$ins|" $pfile 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 if xhost >& /dev/null ; then
                     export DISPLAY=:0 && lxpanelctl restart 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 fi
@@ -681,10 +701,22 @@ case $yn in
 
         # on Pi, add launcher to top bar, add cpu temp example, make sure ping works
         echo "Now add launcher to top bar, add cpu temp example, make sure ping works" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-        if $SUDO grep -q BCM2 /proc/cpuinfo; then
+        if $SUDO grep -q Raspberry /proc/cpuinfo; then
             # $SUDO setcap cap_net_raw+eip $(eval readlink -f `which node`) 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
             $SUDO adduser $NODERED_USER gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-            $SUDO apt install -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+            FAM=$(cat /etc/issue | cut -d ' ' -f 1)
+            ISS=$(cat /etc/issue | cut -d '/' -f 2 | cut -d ' ' -f 2)
+            if [[ "$FAM" == *"bian" ]]; then
+                if (($ISS > 11)); then
+                    echo "Replace old rpi.gpio with lgpio" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    $SUDO apt purge -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    $SUDO apt install -y python3-pip 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    $SUDO pip3 install --break-system-packages rpi-lgpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                else
+                    echo "Leaving old rpi.gpio" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    $SUDO apt install -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                fi
+            fi
         fi
         $SUDO setcap cap_net_raw=ep /bin/ping 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
 
@@ -723,6 +755,9 @@ case $yn in
         echo "Finished:  $(date)" | $SUDO tee -a /var/log/nodered-install.log
 
         file=/home/$NODERED_USER/.node-red/settings.js
+        if [[ "$NODERED_USER" == "root" ]]; then
+            file=/root/.node-red/settings.js
+        fi
         if [ ! -f $file ]; then
             echo " "
         elif ! diff -q /usr/lib/node_modules/node-red/settings.js $file &>/dev/null 2>&1 ; then
@@ -752,7 +787,7 @@ case $yn in
             echo "      sudo rm -f /etc/sudoers.d/010_pi-nopasswd"
             echo " "
         fi
-        if [ ! -f ~/.node-red/settings.js ]; then
+        if [ ! -f $file ]; then
             echo "  - You can customise the initial settings by running:"
             echo " "
             echo "      node-red admin init"
@@ -774,21 +809,26 @@ case $yn in
         fi
         echo "**********************************************************************************"
         echo " "
-        if [ ! -f ~/.node-red/settings.js ]; then
+        if [ ! -f $file ]; then
             initset="${INITSET}"
-            [ ! "${INITSET}" ] && read -t 60 -p "  Would you like to customise the settings now (y/N) ? " initset
+            # [ ! "${INITSET}" ] && read -t 60 -p "  Would you like to customise the settings now (y/N) ? " initset
             case $initset in
                 [Yy]* )
-                node-red admin init
-                $SUDO chown 0:0 ~/.node-red/settings.js
+                export HOSTIP=`hostname -I | cut -d ' ' -f 1`
+                $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red 2>&1 >>/dev/null
+                $SUDOU /usr/bin/node-red admin init
+                $SUDO chown 0:0 $file
                 ;;
-                "n")
+                [Nn]* )
                 echo "Settings not initialized."
                 exit 0
                 ;;
                 * )
-                echo " "
-                exit 1
+                # echo " "
+                # exit 1
+                $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
+                $SUDOU /usr/bin/node-red admin init
+                $SUDO chown 0:0 $file
                 ;;
             esac
         fi

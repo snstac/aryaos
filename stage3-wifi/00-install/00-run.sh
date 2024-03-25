@@ -14,4 +14,5 @@
 # limitations under the License.
 #
 
-install -v -m 644 files/python-networkmanager-main.zip	"${ROOTFS_DIR}/home/pi/"
+# FIXME DEPRECATED: Replace old NetworkManager Python module. https://github.com/snstac/aryaos/issues/54 
+install -v -m 644   files/NetworkManager.py	  "${ROOTFS_DIR}/usr/lib/python3/dist-packages/NetworkManager.py"

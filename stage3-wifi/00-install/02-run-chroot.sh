@@ -14,9 +14,4 @@
 # limitations under the License.
 #
 
-# FIXME: Remove when fix is merged to NetworManager
-# Apply fix to NetworkManager.
-unzip -o /home/pi/python-networkmanager-main.zip
-cp python-networkmanager-main/NetworkManager.py /usr/lib/python3/dist-packages/NetworkManager.py
-
 systemctl enable NetworkManager

@@ -16,14 +16,7 @@
 
 python3 -m pip install lincot --break-system-packages
 
-systemctl enable lincot
-systemctl enable set_uuid
-
-systemctl set-default multi-user
-
 systemctl enable NetworkManager-dispatcher
 
 sed --follow-symlinks -i -E -e "s/blank.org/${AT_FLAVOR}.local/" /usr/share/comitup/web/templates/connect.html
 sed --follow-symlinks -i -E -e "s/aryaos.local/${AT_FLAVOR}.local/" /var/www/html/index.html
-
-/usr/local/sbin/install_zt.sh

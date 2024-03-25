@@ -15,24 +15,27 @@
 # limitations under the License.
 #
 
-AOS_FLAVOR="aryaos"
-AOS_FLAVOR_ST="AryaOS"
+AOS_FLAVOR="AryaOS"
 
-IMG_NAME="aryaos-1.0.0-beta1"
+IMG_NAME="aryaos-1.0.0-beta9"
 
 PI_GEN_RELEASE="AryaOS: An Operating System for Modern Situational Awareness."
 TARGET_HOSTNAME="aryaos"
 FIRST_USER_NAME="pi"
 FIRST_USER_PASS="aryaos415"
-STAGE_LIST="stage0 stage1 stage2 ../stage3-wifi ../stage4-node-red ../stage5-common ../stage6-dump1090 ../stage7-adsbcot"
+STAGE_LIST="stage0 stage1 stage2 ../stage3-base ../stage3-wifi ../stage4-node-red ../stage5-common ../stage6-air ../stage7-sea ../stage8-docker"
 DISABLE_FIRST_BOOT_USER_RENAME=1
 RELEASE="bookworm"
+WPA_ESSID="AryaOS-WiFi"
+WPA_PASSWORD="aryaos415"
 WPA_COUNTRY="US"
 LOCALE_DEFAULT="en_US.UTF-8"
 KEYBOARD_LAYOUT="English (US)"
 KEYBOARD_KEYMAP="us"
 ENABLE_SSH=1
+APT_PROXY="http://172.17.2.88:3142"
 
 DUMP1090_RECEIVER_SERIAL="stx:1090:0"
 DUMP978_RECEIVER_SERIAL="stx:978:0" 
-
+COMITUP_WEB_PORT="9080"
+AOS_SERVICES="AISCOT ADSBCOT LINCOT nodered"

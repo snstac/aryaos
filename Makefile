@@ -23,6 +23,7 @@ pi-gen:
 
 copy:
 	rsync -va ../aryaos kelp.local:~/src/SNS/
+	rsync -va ../aryaos titan2.local:~/src/SNS/
 
 sync: copy
 

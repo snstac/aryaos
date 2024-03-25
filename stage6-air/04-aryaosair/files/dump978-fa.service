@@ -1,0 +1,21 @@
+# AryaOS dump978-fa.service
+# dump978-fa service for systemd
+
+[Unit]
+Description=dump978-fa ADS-B UAT receiver
+Documentation=https://flightaware.com/adsb/piaware/
+Wants=AryaAir.target
+After=AryaAir.target
+
+[Service]
+User=dump978
+ExecStart=/usr/share/dump978-fa/start-dump978-fa
+SyslogIdentifier=dump978-fa
+Type=simple
+Restart=on-failure
+RestartSec=30
+RestartPreventExitStatus=64
+Nice=-5
+
+[Install]
+WantedBy=AryaAir.target

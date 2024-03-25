@@ -1,17 +1,17 @@
 # Download or Build
 
-## Download AirTAK Open Source
+## Download AyraOS
 
-* Latest: [R02](https://drive.google.com/file/d/1ZaAzdc1E-pdhytGDDaUfkhIVFpyTmuGk/view?usp=sharing).
+* FIXME TK
 
-## Build AirTAK Open Source
+## Build AryaOS
 
-The build environment for AirTAK is based on [pi-gen](https://github.com/RPi-Distro/pi-gen). 
-The build will create a Raspberry Pi OS image, compatible with [Raspberry Pi Imager](https://www.raspberrypi.com/software/) or [Balena Etcher](https://etcher.balena.io/).
+The build environment for AryaOS is based on [pi-gen](https://github.com/RPi-Distro/pi-gen). 
+The build will create a Raspberry Pi OS image, compatible with [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
 
 Any SD card larger than 16 GB should suffice to get started, 32 GB recommended.
 
-The AirTAK build procedure is inspired by @deltazero's [kiosk.pi](https://medium.com/@deltazero/making-kioskpi-custom-raspberry-pi-os-image-using-pi-gen-99aac2cd8cb6).
+The AryaOS build procedure is inspired by @deltazero's [kiosk.pi](https://medium.com/@deltazero/making-kioskpi-custom-raspberry-pi-os-image-using-pi-gen-99aac2cd8cb6).
 
 ### Build Steps
 
@@ -27,4 +27,4 @@ To Update a build:
 2. `make skip` to skip base-os build steps.
 3. `make buld` to create an image.
 
-N.B.: THe `make build` step will attempt to sudo, and may prompt for a password.
+N.B.: The `make build` step will attempt to sudo, and may prompt for a password.

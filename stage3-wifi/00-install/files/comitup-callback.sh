@@ -17,6 +17,6 @@
 #
 
 # FIXME: https://github.com/snstac/aryaos/issues/48
-logger "comitup callback: $*"
+logger "AryaOS comitup callback: $*"
 # Ping a callback on Node-RED:
 wget -a http://127.0.0.1:1880/comitup_callback/$*

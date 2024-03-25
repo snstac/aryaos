@@ -1,5 +1,5 @@
 #!/bin/bash
-# AryaOS run_lincot.sh
+# AryaOS run_LINCOT.sh
 #
 # Startup file for LINCOT.
 #
@@ -16,25 +16,28 @@
 # limitations under the License.
 #
 
-
 set -a
-ARYAOS_CONF="/boot/aryaos-config.txt"
-LINCOT_CONF="/boot/lincot-config.txt"
+AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
 
-if [[ -f ${ARYAOS_CONF} ]]; then
-  . ${ARYAOS_CONF}
+if [-f $AOS_CONFIG ]; then
+  . $AOS_CONFIG
+else
+  echo "$AOS_CONFIG doesn't exist, exiting."
+  exit 1
 fi
 
-if [[ -f ${LINCOT_CONF} ]]; then
-  . ${LINCOT_CONF}
+LINCOT_CONF="/boot/LINCOT-config.txt"
+
+if [ -f $LINCOT_CONF ]; then
+  . $LINCOT_CONF
 else 
-  echo "${LINCOT_CONF} doesn't exist, initializing."
-  echo 'CALLSIGN=""' >> ${LINCOT_CONF}
+  echo "$LINCOT_CONF doesn't exist, initializing."
+  echo 'CALLSIGN=""' >> $LINCOT_CONF
 fi
 
-if ! grep -qs -e 'CALLSIGN' ${LINCOT_CONF}; then
-  echo "Adding empty CALLSIGN to ${LINCOT_CONF}"
-  echo 'CALLSIGN=""' >> ${LINCOT_CONF}
+if ! grep -qs -e 'CALLSIGN' $LINCOT_CONF; then
+  echo "Adding empty CALLSIGN to $LINCOT_CONF"
+  echo 'CALLSIGN=""' >> $LINCOT_CONF
 fi
 
 if [ -z "$NODE_ID" ]; then
@@ -44,9 +47,9 @@ fi
 
 if [ -z "$CALLSIGN" ]; then
   echo "CALLSIGN not set"
-  NEW_CALLSIGN="AryaOS-${NODE_ID: -4}"
-  sed --follow-symlinks -i -E -e "s/CALLSIGN.*/CALLSIGN=$NEW_CALLSIGN/" ${LINCOT_CONF}
-  echo "CALLSIGN is now set to: $NEW_CALLSIGN"
+  NEW_CALLSIGN="${AOS_FLAVOR:-AryaOS}-${NODE_ID: -4}"
+  sed --follow-symlinks -i -E -e "s/CALLSIGN.*/CALLSIGN=$NEW_CALLSIGN/" $LINCOT_CONF
+  logger "AryaOS LINCOT callsign is now set to: $NEW_CALLSIGN"
   export CALLSIGN=$NEW_CALLSIGN
 fi
 

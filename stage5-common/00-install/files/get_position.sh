@@ -17,13 +17,13 @@
 #
 
 set -a
-ARYAOS_CONF="/boot/aryaos-config.txt"
+AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
 
-if [[ -f ${ARYAOS_CONF} ]]; then
-  . ${ARYAOS_CONF}
+if [-f $AOS_CONFIG ]; then
+  . $AOS_CONFIG
 else
-  echo "${ARYAOS_CONF} doesn't exist, exiting."
+  echo "$AOS_CONFIG doesn't exist, exiting."
   exit 1
 fi
 
-echo "{\"class\": \"TPV\", \"lat\": ${STATIC_LAT}, \"lon\": ${STATIC_LON}, \"altHAE\": ${STATIC_ALT}, \"track\": \"9999999.0\", \"speed\": \"9999999.0\"}"
+echo "{\"class\": \"TPV\", \"lat\": $STATIC_LAT, \"lon\": $STATIC_LON, \"altHAE\": $STATIC_ALT, \"track\": \"9999999.0\", \"speed\": \"9999999.0\"}"
