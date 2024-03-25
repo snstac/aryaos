@@ -1,117 +1,121 @@
-- uses: usimd/pi-gen-action@v1
-  with:
-    # Compression to apply on final image (either "none", "zip", "xz" or "gz").
-    compression: zip
+jobs:
+  pi-gen-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: usimd/pi-gen-action@v1
+        with:
+          # Compression to apply on final image (either "none", "zip", "xz" or "gz").
+          compression: zip
 
-    # Compression level to be used. From 0 to 9 (refer to the tool man page for more 
-    # information on this. Usually 0 is no compression but very fast, up to 9 with the 
-    # best compression but very slow).
-    compression-level: 6
+          # Compression level to be used. From 0 to 9 (refer to the tool man page for more 
+          # information on this. Usually 0 is no compression but very fast, up to 9 with the 
+          # best compression but very slow).
+          compression-level: 6
 
-    # Disable the renaming of the first user during the first boot. This make it so 
-    # 'username' stays activated. 'username' must be set for this to work. Please be 
-    # aware of the implied security risk of defining a default username and password 
-    # for your devices.
-    disable-first-boot-user-rename: 1
+          # Disable the renaming of the first user during the first boot. This make it so 
+          # 'username' stays activated. 'username' must be set for this to work. Please be 
+          # aware of the implied security risk of defining a default username and password 
+          # for your devices.
+          disable-first-boot-user-rename: 1
 
-    # Additional options to include in PIGEN_DOCKER_OPTS
-    docker-opts: ''
+          # Additional options to include in PIGEN_DOCKER_OPTS
+          docker-opts: ''
 
-    # Set whether a NOOBS image should be built as well. If enabled, the output 
-    # directory containing the NOOBS files will be saved as output variable 
-    # 'image-noobs-path'.
-    enable-noobs: false
+          # Set whether a NOOBS image should be built as well. If enabled, the output 
+          # directory containing the NOOBS files will be saved as output variable 
+          # 'image-noobs-path'.
+          enable-noobs: false
 
-    # Enable SSH access to Pi.
-    enable-ssh: 1
+          # Enable SSH access to Pi.
+          enable-ssh: 1
 
-    # If this feature is enabled, the action will configure pi-gen to not export any 
-    # stage as image but the last one defined in property 'stage-list'. This is 
-    # helpful when building a single image flavor (in contrast to building a 
-    # lite/server and full-blown desktop image), since it speeds up the build process 
-    # significantly.
-    export-last-stage-only: true
+          # If this feature is enabled, the action will configure pi-gen to not export any 
+          # stage as image but the last one defined in property 'stage-list'. This is 
+          # helpful when building a single image flavor (in contrast to building a 
+          # lite/server and full-blown desktop image), since it speeds up the build process 
+          # significantly.
+          export-last-stage-only: true
 
-    # Comma or whitespace separated list of additional packages to install on host 
-    # before running pi-gen. Use this list to add any packages your custom stages may 
-    # require. Note that this is not affecting the final image. In order to add 
-    # additional packages, you need to add a respective 'XX-packages' file in your 
-    # custom stage.
-    extra-host-dependencies: ''
+          # Comma or whitespace separated list of additional packages to install on host 
+          # before running pi-gen. Use this list to add any packages your custom stages may 
+          # require. Note that this is not affecting the final image. In order to add 
+          # additional packages, you need to add a respective 'XX-packages' file in your 
+          # custom stage.
+          extra-host-dependencies: ''
 
-    # Comma or whitespace separated list of additional modules to load on host before 
-    # running pi-gen. If your custom stage requires additional software or kernel 
-    # modules to be loaded, add them here. Note that this is not meant to configure 
-    # modules to be loaded in the target image.
-    extra-host-modules: ''
+          # Comma or whitespace separated list of additional modules to load on host before 
+          # running pi-gen. If your custom stage requires additional software or kernel 
+          # modules to be loaded, add them here. Note that this is not meant to configure 
+          # modules to be loaded in the target image.
+          extra-host-modules: ''
 
-    # Token to use for checking out pi-gen repo.
-    github-token: ${{ github.token }}
+          # Token to use for checking out pi-gen repo.
+          github-token: ${{ github.token }}
 
-    # Host name of the image.
-    hostname: aryaos
+          # Host name of the image.
+          hostname: aryaos
 
-    # Final image name.
-    image-name: aryaos
+          # Final image name.
+          image-name: aryaos
 
-    # Default keyboard keymap.
-    keyboard-keymap: us
+          # Default keyboard keymap.
+          keyboard-keymap: us
 
-    # Default keyboard layout.
-    keyboard-layout: English (US)
+          # Default keyboard layout.
+          keyboard-layout: English (US)
 
-    # Default locale of the system image.
-    locale: en_US.UTF-8
+          # Default locale of the system image.
+          locale: en_US.UTF-8
 
-    # Password of the intial user account, locked if empty.
-    password: aryaos415
+          # Password of the intial user account, locked if empty.
+          password: aryaos415
 
-    # Path where selected pi-gen ref will be checked out to. If the path does not yet 
-    # exist, it will be created (including its parents).
-    pi-gen-dir: pi-gen
+          # Path where selected pi-gen ref will be checked out to. If the path does not yet 
+          # exist, it will be created (including its parents).
+          pi-gen-dir: pi-gen
 
-    # The release name to use in `/etc/issue.txt`. The default should only be used for 
-    # official Raspberry Pi builds.
-    pi-gen-release: 'AryaOS: An Operating System for Modern Situational Awareness'
+          # The release name to use in `/etc/issue.txt`. The default should only be used for 
+          # official Raspberry Pi builds.
+          pi-gen-release: 'AryaOS: An Operating System for Modern Situational Awareness'
 
-    # GitHub repository to fetch pi-gen from, must be a fork from RPi-Distro/pi-gen.
-    pi-gen-repository: RPi-Distro/pi-gen
+          # GitHub repository to fetch pi-gen from, must be a fork from RPi-Distro/pi-gen.
+          pi-gen-repository: RPi-Distro/pi-gen
 
-    # Release version of pi-gen to use. This can both be a branch or tag name known in 
-    # the pi-gen repository.
-    pi-gen-version: arm64
+          # Release version of pi-gen to use. This can both be a branch or tag name known in 
+          # the pi-gen repository.
+          pi-gen-version: arm64
 
-    # The release version to build images against. Valid values are jessie, stretch, 
-    # buster, bullseye, bookworm, and testing.
-    release: bookworm
+          # The release version to build images against. Valid values are jessie, stretch, 
+          # buster, bullseye, bookworm, and testing.
+          release: bookworm
 
-    # Setting to `1` will prevent pi-gen from dropping the "capabilities" feature. 
-    # Generating the root filesystem with capabilities enabled and running it from a 
-    # filesystem that does not support capabilities (like NFS) can cause issues. Only 
-    # enable this if you understand what it is.
-    setfcap: ''
+          # Setting to `1` will prevent pi-gen from dropping the "capabilities" feature. 
+          # Generating the root filesystem with capabilities enabled and running it from a 
+          # filesystem that does not support capabilities (like NFS) can cause issues. Only 
+          # enable this if you understand what it is.
+          setfcap: ''
 
-    # List of stage name to execute in given order. Relative and absolute paths to 
-    # custom stage directories are allowed here. Note that by default pi-gen exports 
-    # images in stage2 (lite), stage4 and stage5. You probably want to hook in custom 
-    # stages before one of the exported stages. Otherwise, the action will make sure 
-    # any custom stage will include an image export directive.
-    stage-list: stage0 stage1 stage2
+          # List of stage name to execute in given order. Relative and absolute paths to 
+          # custom stage directories are allowed here. Note that by default pi-gen exports 
+          # images in stage2 (lite), stage4 and stage5. You probably want to hook in custom 
+          # stages before one of the exported stages. Otherwise, the action will make sure 
+          # any custom stage will include an image export directive.
+          stage-list: stage0 stage1 stage2
 
-    # System timezone.
-    timezone: UTC
+          # System timezone.
+          timezone: UTC
 
-    # Name of the initial user account.
-    username: pi
+          # Name of the initial user account.
+          username: pi
 
-    # Print all output from pi-gen.
-    verbose-output: true
+          # Print all output from pi-gen.
+          verbose-output: true
 
-    # Wifi country code of default network to connect to.
-    wpa-country: US
+          # Wifi country code of default network to connect to.
+          wpa-country: US
 
-    # SSID of a default wifi network to connect to.
-    wpa-essid: AryaOS-WiFi
+          # SSID of a default wifi network to connect to.
+          wpa-essid: AryaOS-WiFi
 
-    # Password of default wifi network to connect to.
-    wpa-password: aryaos415
+          # Password of default wifi network to connect to.
+          wpa-password: aryaos415
