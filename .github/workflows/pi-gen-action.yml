@@ -1,3 +1,11 @@
+name: pi-gen-action
+
+on:
+  push:
+    branches: [ main, aryaos_1.0.0 ]
+  pull_request:
+    branches: [ main ]
+
 jobs:
   pi-gen-action:
     runs-on: ubuntu-latest
