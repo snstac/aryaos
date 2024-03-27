@@ -1,7 +1,7 @@
-#!/bin/bash -e
-# AryaOS set_UUID.sh
+#!/bin/bash
+# AryaOS run_DroneCOT.sh
 #
-# Set the system's UUID.
+# Startup file for DroneCOT.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -18,27 +18,15 @@
 
 set -a
 AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
+TOOL_CONFIG="/boot/DroneCOT-config.txt"
 
 if [ -f $AOS_CONFIG ]; then
   . $AOS_CONFIG
-else 
-  logger "$AOS_CONFIG doesn't exist, initializing."
-  echo 'NODE_ID=""' >> $AOS_CONFIG
 fi
 
-if [ ! grep -qs -e 'NODE_ID' $AOS_CONFIG ]; then
-  logger "Adding empty NODE_ID to $AOS_CONFIG"
-  echo 'NODE_ID=""' >> $AOS_CONFIG
+if [ -f $TOOL_CONFIG ]; then
+  . $TOOL_CONFIG
 fi
 
-if [ -z "$NODE_ID" ]; then
-  if [ -f /sys/firmware/devicetree/base/serial-number ]; then
-    NEW_NODE_ID=$(cat /sys/firmware/devicetree/base/serial-number)
-  else
-    NEW_NODE_ID=$(python3 -c "import uuid;print(str(uuid.uuid4()).upper())")
-  fi
-  sed --follow-symlinks -i -E -e "s/NODE_ID.*/NODE_ID=$NEW_NODE_ID/" $AOS_CONFIG
-  logger "AryaOS NODE_ID is now set to: $NEW_NODE_ID"
-else
-  exit 64
-fi
+set +a
+/usr/local/bin/dronecot
