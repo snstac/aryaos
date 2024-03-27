@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: List working directory
-        run: tree ../aryaos/
+        run: tree ../aryaos/aryaos/
     
       - name: Run pi-gen build
         uses: usimd/pi-gen-action@v1
