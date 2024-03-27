@@ -109,7 +109,7 @@ jobs:
           # images in stage2 (lite), stage4 and stage5. You probably want to hook in custom 
           # stages before one of the exported stages. Otherwise, the action will make sure 
           # any custom stage will include an image export directive.
-          stage-list: stage0 stage1 stage2 ./stage3-base ./stage3-wifi ./stage4-node-red ./stage5-common ./stage6-air ./stage7-sea ./stage8-uas ./stage9-docker
+          stage-list: stage0 stage1 stage2 ./stage3-base 
 
           # System timezone.
           timezone: UTC
