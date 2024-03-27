@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  DUMP1090_RECEIVER_SERIAL: stx:1090:0
+  DUMP978_RECEIVER_SERIAL: stx:978:0
+  COMITUP_WEB_PORT: 9080
+  AOS_SERVICES: AISCOT ADSBCOT LINCOT DroneCOT nodered 
+
 jobs:
   pi-gen-action:
     runs-on: ubuntu-latest
