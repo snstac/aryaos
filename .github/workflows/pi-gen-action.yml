@@ -10,7 +10,11 @@ jobs:
   pi-gen-action:
     runs-on: ubuntu-latest
     steps:
-      - uses: usimd/pi-gen-action@v1
+      - name: List working directory
+        run: tree 
+    
+      - name: Run pi-gen build
+        uses: usimd/pi-gen-action@v1
         id: build
         with:
           # Compression to apply on final image (either "none", "zip", "xz" or "gz").
