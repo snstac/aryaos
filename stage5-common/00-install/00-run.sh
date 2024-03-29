@@ -40,7 +40,9 @@ cat "${ROOTFS_DIR}/home/node-red/.node-red/aryaos-flows.json" > "${ROOTFS_DIR}/h
 install -v -m 640 files/node-red.sudoers "${ROOTFS_DIR}/etc/sudoers.d/node-red"
 SUDO_SERVICES="dump1090-fa dump978-fa gpsd comitup ${AOS_SERVICES}"
 gen_aos_service_sudoers "${SUDO_SERVICES}" >> "${ROOTFS_DIR}/etc/sudoers.d/node-red"
-/usr/sbin/visudo -c "${ROOTFS_DIR}/etc/sudoers.d/node-red"
+
+# FIXME: Disabled to work-around https://github.com/snstac/aryaos/issues/56
+# visudo -c "${ROOTFS_DIR}/etc/sudoers.d/node-red"
 
 # LINCOT tracker
 install -v -m 755 files/get_position.sh         "${ROOTFS_DIR}/usr/local/bin/"
