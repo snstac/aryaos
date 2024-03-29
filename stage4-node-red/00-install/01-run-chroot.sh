@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-adduser --disabled-password --gecos 'Node-RED Service User' node-red || exit 0
+id node-red || adduser --disabled-password --gecos 'Node-RED Service User' node-red
 
 # FIXME: I don't think this is required?
 usermod -aG sudo node-red
