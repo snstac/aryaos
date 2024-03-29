@@ -49,7 +49,7 @@ install -v -m 755 files/get_position.sh         "${ROOTFS_DIR}/usr/local/bin/"
 
 id lincot || useradd --system lincot
 
-export APP_NAME="LINCOT"
+APP_NAME="LINCOT"
 install -v -m 644 "files/${APP_NAME}-config.txt" "${ROOTFS_DIR}/boot/"
 install -v -m 755 "files/run_${APP_NAME}.sh"     "${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 644 "files/${APP_NAME}.service"     "${ROOTFS_DIR}/lib/systemd/system/"
