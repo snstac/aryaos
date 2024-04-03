@@ -1,13 +1,12 @@
 
 # Introduction
 
-## What does AirTAK Do?
+## What does AryaOS Do?
 
 Any smartphone or computer running ATAK, WinTAK or iTAK, when paired to an AirTAK gateway, 
 displays aircraft data in native TAK formats.
 
-For example, in this field configuration, a Samsung Galaxy S20 smartphone running ATAK was paired to an AirTAK device carried in a backpack. The AirTAK was powered by a portable USB battery 
-also in the backpack. No outside internet connectivity (no LTE, no WiFi) was utilized by the smartphone or AirTAK gateway
+For example, in this field configuration, a Samsung Galaxy S20 smartphone running ATAK was paired to an AirTAK device carried in a backpack. The AirTAK was powered by a portable USB battery also in the backpack. No outside internet connectivity (no LTE, no WiFi) was utilized by the smartphone or AirTAK gateway
 
 ![AirTAK attached to a backpack](media/backpack.png)
 

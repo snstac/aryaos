@@ -14,35 +14,40 @@
 # limitations under the License.
 #
 
-# Captive portal / main page:
-# install -D -v -m 644 files/html/	"${ROOTFS_DIR}/var/www/"
+function gen_aos_service_sudoers() {
+    SERVICES=${1:-$AOS_SERVICES}
+    for srv in ${SERVICES}; do
+        echo "node-red ALL=(root) NOPASSWD: /bin/systemctl disable ${srv}"
+        echo "node-red ALL=(root) NOPASSWD: /bin/systemctl enable ${srv}"
+        echo "node-red ALL=(root) NOPASSWD: /bin/systemctl start ${srv}"
+        echo "node-red ALL=(root) NOPASSWD: /bin/systemctl stop ${srv}"
+        echo "node-red ALL=(root) NOPASSWD: /bin/systemctl restart ${srv}"
+    done
+}
+
+# Captive portal / main page
 mkdir -p "${ROOTFS_DIR}/var/www/"
-rsync -va files/html/ "${ROOTFS_DIR}/var/www/"
-rsync -va files/calfire_airbases/ "${ROOTFS_DIR}/var/www/html/"
+rsync -va files/html/ "${ROOTFS_DIR}/var/www/html/"
+rsync -va files/calfire_airbases/ "${ROOTFS_DIR}/var/www/html/calfire_airbases/"
 chmod +x "${ROOTFS_DIR}/var/www/html"
 
-# Node-RED:
-install -v -m 644 files/aryaos-flows.json	"${ROOTFS_DIR}/home/node-red/.node-red/"
-cat "${ROOTFS_DIR}/home/node-red/.node-red/aryaos-flows.json" > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"
-install -v -m 640 files/node-red.sudoers	"${ROOTFS_DIR}/etc/sudoers.d/node-red"
-visudo -c "${ROOTFS_DIR}/etc/sudoers.d/node-red"
-install -v -m 755 files/get_throttled.sh	"${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 755 files/wifi-nuke.py	"${ROOTFS_DIR}/usr/local/sbin/wifi-nuke.py"
 
+# Node-RED
+install -v -m 644 files/AryaOS_flows.json	"${ROOTFS_DIR}/home/node-red/.node-red/"
+cat "${ROOTFS_DIR}/home/node-red/.node-red/AryaOS_flows.json" > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"
+
+install -v -m 640 files/node-red.sudoers "${ROOTFS_DIR}/etc/sudoers.d/node-red"
+SUDO_SERVICES="dump1090-fa dump978-fa gpsd comitup aiscatcher AISCOT LINCOT ADSBCOT DroneCOT ${AOS_SERVICES} AryaSea AryaAir AryaUAS"
+gen_aos_service_sudoers "${SUDO_SERVICES}" >> "${ROOTFS_DIR}/etc/sudoers.d/node-red"
+
+# FIXME: Disabled to work-around https://github.com/snstac/aryaos/issues/56
+# visudo -c "${ROOTFS_DIR}/etc/sudoers.d/node-red"
+
 # LINCOT tracker
-install -v -m 644 files/lincot-config.txt	"${ROOTFS_DIR}/boot/"
-install -v -m 755 files/run_lincot.sh	"${ROOTFS_DIR}/usr/local/sbin/"
-install -v -m 755 files/get_position.sh	"${ROOTFS_DIR}/usr/local/bin/"
-install -v -m 644 files/lincot.service	"${ROOTFS_DIR}/etc/systemd/system/"
+install -v -m 755 files/get_position.sh         "${ROOTFS_DIR}/usr/local/bin/"
 
-# Set UUID on first boot
-install -v -m 755 files/set_uuid.sh	"${ROOTFS_DIR}/usr/local/sbin/"
-install -v -m 644 files/set_uuid.service	"${ROOTFS_DIR}/etc/systemd/system/"
-
-# AryaOS Env configuration
-install -v -m 644 files/aryaos-config.txt	"${ROOTFS_DIR}/boot/"
-install -v -m 755 files/99-aryaos-dispatcher "${ROOTFS_DIR}/etc/NetworkManager/dispatcher.d/"
-install -v -m 644 files/README-AryaOS.txt "${ROOTFS_DIR}/"
-
-# ZeroTier
-install -v -m 755 files/install_zt.sh	"${ROOTFS_DIR}/usr/local/sbin/"
+APP_NAME="LINCOT"
+install -v -m 644 "files/${APP_NAME}-config.txt" "${ROOTFS_DIR}/boot/"
+install -v -m 755 "files/run_${APP_NAME}.sh"     "${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 644 "files/${APP_NAME}.service"     "${ROOTFS_DIR}/lib/systemd/system/"

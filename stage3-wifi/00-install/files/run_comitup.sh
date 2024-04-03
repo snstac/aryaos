@@ -17,32 +17,33 @@
 #
 
 
-AOS_CONFIG="/boot/${AOS_FLAVOR}-config.txt"
-COMITUP_CONF="/boot/comitup.conf"
+AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
+COMITUP_CONF="/etc/comitup.conf"
 
-if [[ -f ${AOS_CONFIG} ]]; then
-  . ${AOS_CONFIG}
+if [ -f $AOS_CONFIG ]; then
+  . $AOS_CONFIG
 fi
 
-if [[ ! -f ${COMITUP_CONF} ]]; then
-  echo "${COMITUP_CONF} doesn't exist, initializing."
-  echo "# ap_name:" >> ${COMITUP_CONF}
+if [ ! -f $COMITUP_CONF ]; then
+  echo "$COMITUP_CONF doesn't exist, initializing."
+  echo "# ap_name:" >> $COMITUP_CONF
 fi
 
-if ! grep -qs -e 'ap_name' ${COMITUP_CONF}; then
-  echo "Adding empty ap_name to ${COMITUP_CONF}"
-  echo "# ap_name:" >> ${COMITUP_CONF}
+if ! grep -qs -e 'ap_name' $COMITUP_CONF; then
+  echo "Adding empty ap_name to $COMITUP_CONF"
+  echo "# ap_name:" >> $COMITUP_CONF
 fi
 
-if [ -z "$NODE_ID" ]; then
-  echo "NODE_ID not set, will retry..."
-  exit 1
+if [ -z "$WIFI_SSID" ]; then
+  if [ -z "$NODE_ID" ]; then
+    echo "NODE_ID not set, will retry..."
+    exit 1
+  fi
+  WIFI_SSID="${AOS_FLAVOR:-AryaOS}-${NODE_ID: -4}"
+  logger "AryaOS comitup generated new WIFI_SSID: $WIFI_SSID"
 fi
 
-
-NEW_SSID="${AT_FLAVOR_ST}-${NODE_ID: -4}"
-sed --follow-symlinks -i -E -e "s/# ap_name:.*/ap_name: $NEW_SSID/" ${COMITUP_CONF}
-echo "comitup SSID is: $NEW_SSID"
-logger "comitup SSID: $NEW_SSID"
+sed --follow-symlinks -i -E -e "s/# ap_name:.*/ap_name: $WIFI_SSID/" $COMITUP_CONF
+logger "AryaOS comitup using SSID: $WIFI_SSID"
 
 /usr/sbin/comitup

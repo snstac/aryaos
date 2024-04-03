@@ -1,5 +1,5 @@
-## No ADS-B Tracks in ATAK
+## No ADS-B Tracks in AryaOS
 
-### Enable Mesh SA in ATAK.
+### Enable Mesh SA in AryaOS.
 
-From ATAK, open the Settings gear.
+From AryaOS, open the Settings gear.
