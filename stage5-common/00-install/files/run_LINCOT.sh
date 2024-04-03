@@ -19,7 +19,7 @@
 set -a
 AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
 
-if [-f $AOS_CONFIG ]; then
+if [ -f $AOS_CONFIG ]; then
   . $AOS_CONFIG
 else
   echo "$AOS_CONFIG doesn't exist, exiting."

@@ -18,7 +18,7 @@
 
 
 AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
-COMITUP_CONF="/boot/comitup.conf"
+COMITUP_CONF="/etc/comitup.conf"
 
 if [ -f $AOS_CONFIG ]; then
   . $AOS_CONFIG

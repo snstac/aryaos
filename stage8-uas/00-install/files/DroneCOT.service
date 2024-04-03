@@ -28,10 +28,10 @@ RuntimeDirectoryMode=0755
 ExecStart=/usr/local/sbin/run_DroneCOT.sh
 SyslogIdentifier=DroneCOT
 Type=simple
-Restart=on-failure
+Restart=always
 RestartSec=20
 RestartPreventExitStatus=64
 Nice=-5
 
 [Install]
-WantedBy=AryaUAS.target
+WantedBy=AryaUAS.service

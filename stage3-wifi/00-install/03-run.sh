@@ -16,9 +16,9 @@
 
 # The main branch of comitup uses a different syntax.
 # sed --follow-symlinks -i -E -e "s/SERVER_PORT = 80/SERVER_PORT = ${COMITUP_WEB_PORT}/" /usr/share/comitup/web/comitupweb.py
-sed --follow-symlinks -i -E -e "s/port=80/port=${COMITUP_WEB_PORT}/" "${ROOTFS_DIR}/usr/share/comitup/web/comitupweb.py"
+sed --follow-symlinks -i -E -e "s/port=80/port=9080/" "${ROOTFS_DIR}/usr/share/comitup/web/comitupweb.py"
 
-install -v -m 644   files/comitup.conf	        "${ROOTFS_DIR}/boot/"
+install -v -m 644   files/comitup.conf	        "${ROOTFS_DIR}/etc/"
 install -v -m 755   files/run_comitup.sh	      "${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 755   files/comitup-callback.sh	  "${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 644   files/comitup.service	      "${ROOTFS_DIR}/lib/systemd/system/"

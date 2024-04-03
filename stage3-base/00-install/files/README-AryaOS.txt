@@ -1,5 +1,5 @@
 
-June 26, 2023
+April 2, 2024
 -------------
 
 Thank you for purchasing or downloading AryaOS. Our hope is that this project serves 

@@ -15,6 +15,8 @@
 #
 
 install -v -m 644 files/AryaSea.service "${ROOTFS_DIR}/lib/systemd/system/"
+install -v -m 755 files/enable_AryaSea.sh "${ROOTFS_DIR}/usr/local/sbin"
+install -v -m 644 "files/AryaSea_flows.json" "${ROOTFS_DIR}/home/node-red/.node-red"
 
 install -v -m 755 files/uart_control "${ROOTFS_DIR}/home/pi"
 

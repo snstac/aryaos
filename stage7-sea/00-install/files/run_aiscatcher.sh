@@ -19,9 +19,5 @@
 set -a
 AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
 
-CONFIG=""
-while read -r line; do CONFIG="\${CONFIG} \$line"; done < /etc/aiscatcher.conf
-
 set +a
-# cd ${INSTALL_FOLDER}
-/usr/local/sbin/aiscatcher \${CONFIG}
+/usr/local/sbin/aiscatcher -u 127.0.0.1 5050 -e 38400 /dev/ttyUSB0 -v 10

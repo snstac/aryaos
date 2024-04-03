@@ -1,6 +1,7 @@
-# AryaOS AISCOT.service
+#!/bin/bash
+# AryaOS enable_AryaUAS.sh
 #
-# AISCOT service for systemd
+# Enables AryaUAS services.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -15,23 +16,19 @@
 # limitations under the License.
 #
 
-[Unit]
-Description=AISCOT: AIS to TAK Gateway
-Documentation=https://github.com/SNSTAC/AISCOT
-PartOf=AryaSea.service
-After=AryaSea.service
+set -a
+AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
 
-[Service]
-User=aiscot
-RuntimeDirectory=AISCOT
-RuntimeDirectoryMode=0755
-ExecStart=/usr/local/sbin/run_AISCOT.sh
-SyslogIdentifier=AISCOT
-Type=simple
-Restart=always
-RestartSec=20
-RestartPreventExitStatus=64
-Nice=-5
+set +a
+logger "Enabling AryaUAS services."
+systemctl enable AryaUAS --now
+systemctl enable DroneCOT --now
+systemctl enable LINCOT --now
 
-[Install]
-WantedBy=AryaSea.service
+# cd /home/pi/docker-uas-broker
+# docker compose up -d
+
+# cd /home/pi/docker-uas-sensor
+# docker compose up -d
+
+# sed --follow-symlinks -i -E -e "s/flowFile:.*,/flowFile: 'AryaUAS_flows.json',/" /home/node-red/.node-red/settings.js

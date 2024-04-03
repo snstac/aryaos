@@ -15,6 +15,7 @@
 #
 
 install -v -m 644 files/AryaAir.service     "${ROOTFS_DIR}/lib/systemd/system/"
+install -v -m 755 files/enable_AryaAir.sh   "${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 644 files/dump1090-fa.service "${ROOTFS_DIR}/lib/systemd/system/"
 install -v -m 644 files/dump978-fa.service  "${ROOTFS_DIR}/lib/systemd/system/"
 

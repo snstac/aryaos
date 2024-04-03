@@ -36,10 +36,11 @@ cd /usr/share/aiscatcher
 mkdir -p my-plugins
 cp AIS-catcher/plugins/* my-plugins/
 
-id aiscat || useradd --system aiscat
-usermod -a -G plugdev aiscat
+id aiscatcher || useradd --system aiscatcher
+usermod -a -G plugdev aiscatcher
+usermod -a -G dialout aiscatcher
 
-chown aiscat:aiscat -R /usr/share/aiscatcher
+chown aiscatcher:aiscatcher -R /usr/share/aiscatcher
 
 systemctl disable hciuart
 
@@ -50,4 +51,4 @@ python3 -m pip install aiscot --break-system-packages
 systemctl daemon-reload
 systemctl disable aiscatcher
 systemctl disable AISCOT
-systemctl disable AryaAir
+systemctl disable AryaSea

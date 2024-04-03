@@ -21,7 +21,7 @@ PartOf=AryaSea.service
 After=AryaSea.service
 
 [Service]
-User=aiscat
+User=aiscatcher
 RuntimeDirectory=aiscatcher
 RuntimeDirectoryMode=0755
 ExecStart=/usr/local/sbin/run_aiscatcher.sh
@@ -33,4 +33,4 @@ RestartPreventExitStatus=64
 Nice=-5
 
 [Install]
-WantedBy=AryaSea.target
+WantedBy=AryaSea.service

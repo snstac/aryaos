@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash
 # AryaOS 99-AryaOS-Dispatcher
 #
 # Script to dispatch NetworkManager events for AryaOS.
@@ -50,20 +50,25 @@ if [ -f $AOS_CONFIG ]; then
   . $AOS_CONFIG
 fi
 
-function restart_aos_services() {
+restart_aos_services() {
     for srv in $AOS_SERVICES; do
         if [ systemctl is-enabled $srv ]; then
             logger "99-AryaOS-Dispatcher restarting $srv"
+            echo "99-AryaOS-Dispatcher restarting $srv" | systemd-cat -p info -t 99-AryaOS-Dispatcher
             systemctl restart $srv || exit 0
         fi
     done
 }
 
-function set_pytak_mc_addr() {
+set_pytak_mc_addr() {
     MC_ADDR="${1:-0.0.0.0}"
     sed --follow-symlinks -i -E -e "s/PYTAK_MULTICAST_LOCAL_ADDR.*/PYTAK_MULTICAST_LOCAL_ADDR=$MC_ADDR/" $AOS_CONFIG
 }
 
+set_index_addr() {
+    ADDR="${1:-10.41.0.1}"
+    sed --follow-symlinks -E -e "s/aryaos.local/$ADDR/" < /var/www/html/index2.html > /var/www/html/index.html
+}
 
 for i in $ADDRESS_FAMILIES; do
     export ADDRFAM="$i"
@@ -72,8 +77,10 @@ for i in $ADDRESS_FAMILIES; do
         connectivity-change)
           if [ "$CONNECTIVITY_STATE" = "LIMITED" ]; then
             set_pytak_mc_addr $WIFI_AP_IP
+            set_index_addr $WIFI_AP_IP
           elif [ "$CONNECTIVITY_STATE" = "FULL" ]; then
             set_pytak_mc_addr
+
           fi
           restart_aos_services
 
@@ -84,6 +91,7 @@ for i in $ADDRESS_FAMILIES; do
             export PHASE="post-up"
             if [ -n "$DHCP4_IP_ADDRESS" && "$PYTAK_MULTICAST_LOCAL_ADDR" != "0.0.0.0" ]; then
                 set_pytak_mc_addr $DHCP4_IP_ADDRESS 
+                set_index_addr $DHCP4_IP_ADDRESS
             fi
             restart_aos_services
 

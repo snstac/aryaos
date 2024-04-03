@@ -27,18 +27,18 @@ function gen_aos_service_sudoers() {
 
 # Captive portal / main page
 mkdir -p "${ROOTFS_DIR}/var/www/"
-rsync -va files/html/ "${ROOTFS_DIR}/var/www/"
-rsync -va files/calfire_airbases/ "${ROOTFS_DIR}/var/www/html/"
+rsync -va files/html/ "${ROOTFS_DIR}/var/www/html/"
+rsync -va files/calfire_airbases/ "${ROOTFS_DIR}/var/www/html/calfire_airbases/"
 chmod +x "${ROOTFS_DIR}/var/www/html"
 
 install -v -m 755 files/wifi-nuke.py	"${ROOTFS_DIR}/usr/local/sbin/wifi-nuke.py"
 
 # Node-RED
-install -v -m 644 files/aryaos-flows.json	"${ROOTFS_DIR}/home/node-red/.node-red/"
-cat "${ROOTFS_DIR}/home/node-red/.node-red/aryaos-flows.json" > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"
+install -v -m 644 files/AryaOS_flows.json	"${ROOTFS_DIR}/home/node-red/.node-red/"
+cat "${ROOTFS_DIR}/home/node-red/.node-red/AryaOS_flows.json" > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"
 
 install -v -m 640 files/node-red.sudoers "${ROOTFS_DIR}/etc/sudoers.d/node-red"
-SUDO_SERVICES="dump1090-fa dump978-fa gpsd comitup ${AOS_SERVICES}"
+SUDO_SERVICES="dump1090-fa dump978-fa gpsd comitup aiscatcher AISCOT LINCOT ADSBCOT DroneCOT ${AOS_SERVICES} AryaSea AryaAir AryaUAS"
 gen_aos_service_sudoers "${SUDO_SERVICES}" >> "${ROOTFS_DIR}/etc/sudoers.d/node-red"
 
 # FIXME: Disabled to work-around https://github.com/snstac/aryaos/issues/56
@@ -46,8 +46,6 @@ gen_aos_service_sudoers "${SUDO_SERVICES}" >> "${ROOTFS_DIR}/etc/sudoers.d/node-
 
 # LINCOT tracker
 install -v -m 755 files/get_position.sh         "${ROOTFS_DIR}/usr/local/bin/"
-
-id lincot || useradd --system lincot
 
 APP_NAME="LINCOT"
 install -v -m 644 "files/${APP_NAME}-config.txt" "${ROOTFS_DIR}/boot/"

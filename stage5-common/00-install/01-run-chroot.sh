@@ -18,5 +18,11 @@ python3 -m pip install lincot --break-system-packages
 
 systemctl enable NetworkManager-dispatcher
 
-sed --follow-symlinks -i -E -e "s/blank.org/${AT_FLAVOR}.local/" /usr/share/comitup/web/templates/connect.html
-sed --follow-symlinks -i -E -e "s/aryaos.local/${AT_FLAVOR}.local/" /var/www/html/index.html
+id lincot || useradd --system lincot
+
+sed --follow-symlinks -i -E -e "s/blank.org/aryaos.local/" /usr/share/comitup/web/templates/connect.html
+# sed --follow-symlinks -i -E -e "s/aryaos.local/${AT_FLAVOR}.local/" /var/www/html/index.html
+
+# sed --follow-symlinks -i -E -e "s/flows.json/AryaOS_flows.json/" /home/node-red/.node-red/settings.js
+
+#sed --follow-symlinks -i -E -e "s/flowFile:.*,/flowFile: 'AryaOS_flows.json',/" /home/node-red/.node-red/settings.js

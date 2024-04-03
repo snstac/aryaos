@@ -15,8 +15,13 @@
 #
 
 install -v -m 644 files/AryaUAS.service     "${ROOTFS_DIR}/lib/systemd/system/"
+install -v -m 755 files/enable_AryaUAS.sh "${ROOTFS_DIR}/usr/local/sbin"
+# install -v -m 644 "files/AryaUAS_flows.json" "${ROOTFS_DIR}/home/node-red/.node-red"
 
 export APP_NAME="DroneCOT"
 install -v -m 644 "files/${APP_NAME}-config.txt"  "${ROOTFS_DIR}/boot/"
 install -v -m 755 "files/run_${APP_NAME}.sh"      "${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 644 "files/${APP_NAME}.service"     "${ROOTFS_DIR}/lib/systemd/system/"
+
+rsync -va files/docker-uas-broker "${ROOTFS_DIR}/home/pi/"
+rsync -va files/docker-uas-sensor "${ROOTFS_DIR}/home/pi/"

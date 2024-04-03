@@ -17,7 +17,7 @@
 
 AOS_FLAVOR="AryaOS"
 
-IMG_NAME="aryaos-1.0.0-beta10"
+IMG_NAME="aryaos-1.0.0"
 
 PI_GEN_RELEASE="AryaOS: An Operating System for Modern Situational Awareness."
 TARGET_HOSTNAME="aryaos"

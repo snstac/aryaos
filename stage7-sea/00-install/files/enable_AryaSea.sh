@@ -1,6 +1,7 @@
-# AryaOS AISCOT.service
+#!/bin/bash
+# AryaOS enable_AryaSea.sh
 #
-# AISCOT service for systemd
+# Enables AryaSea services.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -15,23 +16,14 @@
 # limitations under the License.
 #
 
-[Unit]
-Description=AISCOT: AIS to TAK Gateway
-Documentation=https://github.com/SNSTAC/AISCOT
-PartOf=AryaSea.service
-After=AryaSea.service
+set -a
+AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
 
-[Service]
-User=aiscot
-RuntimeDirectory=AISCOT
-RuntimeDirectoryMode=0755
-ExecStart=/usr/local/sbin/run_AISCOT.sh
-SyslogIdentifier=AISCOT
-Type=simple
-Restart=always
-RestartSec=20
-RestartPreventExitStatus=64
-Nice=-5
+set +a
+logger "Enabling AryaSea services."
+systemctl enable AryaSea --now
+systemctl enable AISCOT --now
+systemctl enable aiscatcher --now
+systemctl enable LINCOT --now
 
-[Install]
-WantedBy=AryaSea.service
+sed --follow-symlinks -i -E -e "s/flowFile:.*,/flowFile: 'AryaSea_flows.json',/" /home/node-red/.node-red/settings.js
