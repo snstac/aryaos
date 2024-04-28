@@ -8,7 +8,6 @@ on:
 jobs:
   build-deb:
     runs-on: ubuntu-latest
-    needs: linux-arm64
     steps:
       - name: Create package structure
         run: |
