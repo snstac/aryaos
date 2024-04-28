@@ -3,8 +3,9 @@
 Rename of AirTAK OS to AryaOS.
 
 Includes:
-* ADS-B & AIS Gateways
-* Remote ID?
+* ADS-B Gateway
+* AIS Gateway
+* Remote ID Gateway
 
 ## AirTAK OS R03
 

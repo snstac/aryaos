@@ -17,7 +17,7 @@
 
 AOS_FLAVOR="AryaOS"
 
-IMG_NAME="aryaos-1.0.0"
+IMG_NAME="aryaos-1.1.0-beta5"
 
 PI_GEN_RELEASE="AryaOS: An Operating System for Modern Situational Awareness."
 TARGET_HOSTNAME="aryaos"
@@ -38,4 +38,4 @@ APT_PROXY="http://172.17.2.88:3142"
 DUMP1090_RECEIVER_SERIAL="stx:1090:0"
 DUMP978_RECEIVER_SERIAL="stx:978:0" 
 COMITUP_WEB_PORT="9080"
-AOS_SERVICES="AISCOT ADSBCOT LINCOT DroneCOT nodered"
+AOS_SERVICES="AISCOT ADSBCOT LINCOT DroneCOT nodered readsb"

@@ -1,7 +1,5 @@
-#!/bin/bash
-# AryaOS enable_AryaAir.sh
-#
-# Enables AryaAir services.
+# AryaOS dump1090-fa.service
+# dump1090-fa service for systemd
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -16,13 +14,24 @@
 # limitations under the License.
 #
 
-set -a
-AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
 
-set +a
-logger "Enabling AryaAir services."
-systemctl enable AryaAir --now
-systemctl enable dump1090-fa --now
-systemctl enable dump978-fa --now
-systemctl enable ADSBCOT --now
-systemctl enable LINCOT --now
+[Unit]
+Description=dump1090-fa ADS-B receiver
+Documentation=https://flightaware.com/adsb/piaware/
+PartOf=AryaAir.service
+After=AryaAir.service
+
+[Service]
+User=dump1090
+RuntimeDirectory=adsb
+RuntimeDirectoryMode=0755
+ExecStart=/usr/share/dump1090-fa/start-dump1090-fa --write-json /run/adsb
+SyslogIdentifier=dump1090-fa
+Type=simple
+Restart=on-failure
+RestartSec=30
+RestartPreventExitStatus=64
+Nice=-5
+
+[Install]
+WantedBy=AryaAir.service

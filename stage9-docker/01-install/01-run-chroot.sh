@@ -16,3 +16,4 @@
 
 
 usermod -aG docker pi
+usermod -aG docker node-red

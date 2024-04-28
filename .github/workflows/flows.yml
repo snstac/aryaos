@@ -1,0 +1,58 @@
+name: Build AryaOS Flows package
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+    needs: linux-arm64
+    steps:
+      - name: Create package structure
+        run: |
+          mkdir -p .debpkg/home/node-red/.node-red
+          cp stage5-common/00-install/files/AryaOS_flows.json .debpkg/home/node-red/.node-red/flows.json
+          # create DEBIAN directory if you want to add other pre/post scripts
+          mkdir -p .debpkg/DEBIAN
+          echo -e "chown node-red:node-red /home/node-red/.node-red/flows.json" > .debpkg/DEBIAN/postinst
+          chmod +x .debpkg/DEBIAN/postinst
+
+      - name: Run build-deb-action from jiro4989
+        uses: jiro4989/build-deb-action@v3
+        with:
+          package: AryaOS_Flows
+          package_root: .debpkg
+          maintainer: gba@snstac.com
+          version: ${{ github.ref }}
+          arch: 'arm64'
+          desc: 'Node-RED flows for AryaOS.'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-deb
+          path: |
+            *.deb
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: |
+            *.deb
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true

@@ -14,16 +14,40 @@
 # limitations under the License.
 #
 
+
+# dump1090
+DUMP1090_RECEIVER_SERIAL="stx:1090:0"
 sed --follow-symlinks -i -E -e "s/RECEIVER_SERIAL.*/RECEIVER_SERIAL=$DUMP1090_RECEIVER_SERIAL/" /etc/default/dump1090-fa
+
+
+# dump978
+DUMP978_RECEIVER_SERIAL="stx:978:0"
 sed --follow-symlinks -i -E -e "s/driver=rtlsdr /driver=rtlsdr,serial=$DUMP978_RECEIVER_SERIAL /" /etc/default/dump978-fa
 
-id adsbcot || useradd --system adsbcot
 
+# ADSBCOT
+id adsbcot || useradd --system adsbcot
 python3 -m pip install aircot --break-system-packages
 python3 -m pip install adsbcot --break-system-packages
 
-systemctl daemon-reload
-systemctl disable dump1090-fa
-systemctl disable dump978-fa
-systemctl disable ADSBCOT
-systemctl disable AryaAir
+
+# readsb
+# bash /home/pi/readsb-install.sh
+dpkg -i /home/pi/readsb_3.14.1621_arm64.deb
+cp /home/pi/readsb.service /lib/systemd/system/
+
+# tar1090
+bash /home/pi/tar1090-install.sh
+
+
+# Disable everything
+systemctl disable --now dump1090-fa &>/dev/null || true
+systemctl disable --now dump978-fa &>/dev/null || true
+systemctl disable --now ADSBCOT &>/dev/null || true
+systemctl disable --now AryaAir &>/dev/null || true
+systemctl disable --now readsb &>/dev/null || true
+systemctl disable --now readsb-mutability &>/dev/null || true
+systemctl disable --now dump1090-mutability &>/dev/null || true
+systemctl disable --now dump1090 &>/dev/null || true
+systemctl disable --now tar1090 &>/dev/null || true
+systemctl disable --now skyaware &>/dev/null || true

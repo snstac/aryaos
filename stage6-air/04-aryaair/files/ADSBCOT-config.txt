@@ -1,6 +1,6 @@
-# AryaOS ADSBCOT.service
+# AryaOS ADSBCOT-config.txt
 #
-# ADSBCOT service for systemd
+# ADSBCOT Env configuration file.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -15,23 +15,5 @@
 # limitations under the License.
 #
 
-[Unit]
-Description=ADSBCOT: ADS-B to TAK Gateway
-Documentation=https://github.com/SNSTAC/ADSBCOT
-PartOf=AryaAir.service
-After=AryaAir.service
-
-[Service]
-User=adsbcot
-RuntimeDirectory=ADSBCOT
-RuntimeDirectoryMode=0755
-ExecStart=/usr/local/sbin/run_ADSBCOT.sh
-SyslogIdentifier=ADSBCOT
-Type=simple
-Restart=always
-RestartSec=20
-RestartPreventExitStatus=64
-Nice=-5
-
-[Install]
-WantedBy=AryaAir.target
+FEED_URL=file:///run/adsb/aircraft.json
+TFR_STATE=CA

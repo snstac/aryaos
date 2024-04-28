@@ -29,4 +29,12 @@ if [ -f $TOOL_CONFIG ]; then
 fi
 
 set +a
+
+modprobe -r rtw88_8821cu || true
+modprobe rtw88_8821cu rtw_power_mgnt=0 rtw_ips_mode=0 rtw_enusbss=0 || true
+nmcli dev set wlan0 managed no || true
+nmcli dev set wlan1 managed no || true
+nmcli dev set wlan2 managed no || true
+nmcli dev set wlan3 managed no || true
+
 /usr/local/bin/dronecot

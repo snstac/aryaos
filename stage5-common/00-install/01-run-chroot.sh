@@ -26,3 +26,6 @@ sed --follow-symlinks -i -E -e "s/blank.org/aryaos.local/" /usr/share/comitup/we
 # sed --follow-symlinks -i -E -e "s/flows.json/AryaOS_flows.json/" /home/node-red/.node-red/settings.js
 
 #sed --follow-symlinks -i -E -e "s/flowFile:.*,/flowFile: 'AryaOS_flows.json',/" /home/node-red/.node-red/settings.js
+
+mkdir -p /var/www/html/logs
+chown node-red /var/www/html/logs

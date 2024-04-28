@@ -1,7 +1,5 @@
-#!/bin/bash
-# AryaOS enable_AryaSea.sh
-#
-# Enables AryaSea services.
+# AryaOS dump978-fa.service
+# dump978-fa service for systemd
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -16,15 +14,22 @@
 # limitations under the License.
 #
 
-set -a
-AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
 
-set +a
-logger "Enabling AryaSea services."
-systemctl enable AryaSea --now
-systemctl enable AISCOT --now
-systemctl enable aiscatcher --now
-systemctl enable LINCOT --now
+[Unit]
+Description=dump978-fa ADS-B UAT receiver
+Documentation=https://flightaware.com/adsb/piaware/
+Wants=AryaAir.target
+After=AryaAir.target
 
-# FIXME: Normalize Node-RED dashboard:
-sed --follow-symlinks -i -E -e "s/flowFile:.*,/flowFile: 'AryaSea_flows.json',/" /home/node-red/.node-red/settings.js
+[Service]
+User=dump978
+ExecStart=/usr/share/dump978-fa/start-dump978-fa
+SyslogIdentifier=dump978-fa
+Type=simple
+Restart=on-failure
+RestartSec=30
+RestartPreventExitStatus=64
+Nice=-5
+
+[Install]
+WantedBy=AryaAir.service

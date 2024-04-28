@@ -16,12 +16,21 @@
 node-red ALL=(root) NOPASSWD: /sbin/reboot
 node-red ALL=(root) NOPASSWD: /sbin/shutdown
 
-node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/aryaos-config.txt /boot/aryaos-config.txt
-node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/adsbcot-config.txt /boot/adsbcot-config.txt
-node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/lincot-config.txt /boot/lincot-config.txt
-node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/aiscot-config.txt /boot/aiscot-config.txt
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/AryaOS-config.txt /boot/AryaOS-config.txt
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/ADSBCOT-config.txt /boot/ADSBCOT-config.txt
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/LINCOT-config.txt /boot/LINCOT-config.txt
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/AISCOT-config.txt /boot/AISCOT-config.txt
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/DroneCOT-config.txt /boot/DroneCOT-config.txt
 
 node-red ALL=(root) NOPASSWD: /usr/local/sbin/wifi-nuke.py
 node-red ALL=(root) NOPASSWD: /usr/bin/nmcli device disconnect wlan0
+
+node-red ALL=(root) NOPASSWD: /bin/systemctl disable readsb
+node-red ALL=(root) NOPASSWD: /bin/systemctl enable readsb
+node-red ALL=(root) NOPASSWD: /bin/systemctl start readsb
+node-red ALL=(root) NOPASSWD: /bin/systemctl stop readsb
+node-red ALL=(root) NOPASSWD: /bin/systemctl restart readsb
+
+node-red ALL=(root) NOPASSWD: /usr/bin/dpkg -i /home/node-red/update.deb
 
 # Content below this line is generated:

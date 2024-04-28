@@ -38,7 +38,7 @@ install -v -m 644 files/AryaOS_flows.json	"${ROOTFS_DIR}/home/node-red/.node-red
 cat "${ROOTFS_DIR}/home/node-red/.node-red/AryaOS_flows.json" > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"
 
 install -v -m 640 files/node-red.sudoers "${ROOTFS_DIR}/etc/sudoers.d/node-red"
-SUDO_SERVICES="dump1090-fa dump978-fa gpsd comitup aiscatcher AISCOT LINCOT ADSBCOT DroneCOT ${AOS_SERVICES} AryaSea AryaAir AryaUAS"
+SUDO_SERVICES="dump1090-fa dump978-fa gpsd comitup aiscatcher AISCOT LINCOT ADSBCOT DroneCOT ${AOS_SERVICES} AryaSea AryaAir AryaUAS readsb"
 gen_aos_service_sudoers "${SUDO_SERVICES}" >> "${ROOTFS_DIR}/etc/sudoers.d/node-red"
 
 # FIXME: Disabled to work-around https://github.com/snstac/aryaos/issues/56

@@ -1,7 +1,7 @@
 #!/bin/bash
-# AryaOS enable_AryaSea.sh
+# AryaOS enable_AryaAir.sh
 #
-# Enables AryaSea services.
+# Enables AryaAir-dump1090-fa services.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -20,11 +20,10 @@ set -a
 AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
 
 set +a
-logger "Enabling AryaSea services."
-systemctl enable AryaSea --now
-systemctl enable AISCOT --now
-systemctl enable aiscatcher --now
+logger "Enabling AryaAir+dump1090-fa services."
+systemctl enable AryaAir --now
+systemctl enable dump1090-fa --now
+systemctl disable readsb --now
+systemctl enable dump978-fa --now
+systemctl enable ADSBCOT --now
 systemctl enable LINCOT --now
-
-# FIXME: Normalize Node-RED dashboard:
-sed --follow-symlinks -i -E -e "s/flowFile:.*,/flowFile: 'AryaSea_flows.json',/" /home/node-red/.node-red/settings.js

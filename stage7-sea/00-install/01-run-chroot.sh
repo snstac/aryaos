@@ -14,41 +14,25 @@
 # limitations under the License.
 #
 
-cd /usr/share/aiscatcher
 
-rm -rf AIS-catcher
-git clone https://github.com/jvde-github/AIS-catcher.git
-cd AIS-catcher
-git config --global --add safe.directory AIS-catcher
-git fetch --all
-git reset --hard origin/main
-
-rm -rf build
-mkdir -p build
-cd build
-cmake ..
-make
-cd ..
-
-cp /usr/share/aiscatcher/AIS-catcher/build/AIS-catcher /usr/local/sbin/aiscatcher
-
-cd /usr/share/aiscatcher
-mkdir -p my-plugins
-cp AIS-catcher/plugins/* my-plugins/
-
+# AIS-catcher
+dpkg -i /home/pi/AIS-catcher_0.58.0_arm64.deb
 id aiscatcher || useradd --system aiscatcher
 usermod -a -G plugdev aiscatcher
 usermod -a -G dialout aiscatcher
-
 chown aiscatcher:aiscatcher -R /usr/share/aiscatcher
 
+
+# FIXME: Lost child
 systemctl disable hciuart
 
+
+# AISCOT
 id aiscot || useradd --system aiscot
+python3 -m pip install --break-system-packages aiscot
 
-python3 -m pip install aiscot --break-system-packages
 
-systemctl daemon-reload
+# Disable everything
 systemctl disable aiscatcher
 systemctl disable AISCOT
 systemctl disable AryaSea

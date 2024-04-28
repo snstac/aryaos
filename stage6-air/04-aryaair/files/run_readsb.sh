@@ -1,6 +1,7 @@
-# AryaOS LINCOT-config.txt
+#!/bin/bash
+# AryaOS run_readsb.sh
 #
-# LINCOT Env configuration file.
+# Startup file for readsb.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -15,5 +16,21 @@
 # limitations under the License.
 #
 
+set -a
 
-CALLSIGN=""
+AOS_CONFIG="/boot/${AOS_FLAVOR:-AryaOS}-config.txt"
+READSB_CONFIG="/boot/readsb-config.txt"
+
+if [ -f $AOS_CONFIG ]; then
+  . $AOS_CONFIG
+fi
+
+if [ -f $READSB_CONFIG ]; then
+  . $READSB_CONFIG
+fi
+
+set +a
+
+/usr/bin/readsb \
+ $RECEIVER_OPTIONS $DECODER_OPTIONS $NET_OPTIONS $JSON_OPTIONS \
+ --write-json $ADSB_JSON --quiet

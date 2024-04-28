@@ -2994,7 +2994,7 @@
         "type": "watch",
         "z": "76732e91104cd622",
         "name": "",
-        "files": "/run/dump1090-fa/aircraft.json",
+        "files": "/run/adsb/aircraft.json",
         "recursive": "",
         "x": 170,
         "y": 60,

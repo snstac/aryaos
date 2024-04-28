@@ -21,6 +21,7 @@ systemctl set-default multi-user
 
 python3 -m pip install pytak --break-system-packages
 python3 -m pip install takproto --break-system-packages
+python3 -m pip install aprscot --break-system-packages
 
 echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections
 echo "tshark-common tshark-common/install-setuid boolean true" | debconf-set-selections
