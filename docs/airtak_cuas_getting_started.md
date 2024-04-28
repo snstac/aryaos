@@ -7,6 +7,8 @@ AirTAK C-UAS should operate plug & play out of the box with nothing more than a 
 
 This method uses AirTAK C-UAS' built-in WiFi hotspot to reconfigure the device to connect to an existing WiFi network, disabling the on-board WiFi hotspot.
 
+![AryaOS WiFi Config](./media/aryaos_wifi.png)
+
 1. Connect the USB power supply to the device. Ensure color-coded direction of connector (yellow to yellow, black to black).
 2. After a 2 minutes, a new WiFi network should appear with a name like `AryaOS-XXXX`. Connect to this network.
 3. From a web browser (Chrome, Safari), browse to: http://aryaos.local . If that doesn't resolve, try: http://10.41.0.1
