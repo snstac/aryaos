@@ -9,6 +9,12 @@ jobs:
   build-deb:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: List working directory
+        run: ls -alR ..
+    
       - name: Create package structure
         run: |
           mkdir -p .debpkg/home/node-red/.node-red
