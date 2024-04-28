@@ -12,7 +12,8 @@ jobs:
       - name: Create package structure
         run: |
           mkdir -p .debpkg/home/node-red/.node-red
-          cp stage5-common/00-install/files/AryaOS_flows.json .debpkg/home/node-red/.node-red/flows.json
+          ls -alR
+          cp aryaos/stage5-common/00-install/files/AryaOS_flows.json .debpkg/home/node-red/.node-red/flows.json
           # create DEBIAN directory if you want to add other pre/post scripts
           mkdir -p .debpkg/DEBIAN
           echo -e "chown node-red:node-red /home/node-red/.node-red/flows.json" > .debpkg/DEBIAN/postinst
