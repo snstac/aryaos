@@ -7,8 +7,29 @@ AirTAK C-UAS should operate plug & play out of the box with nothing more than a 
 
 * When in-doubt, reboot.
 
-## Initial setup
-### Using WiFi
+## Initial Setup
+
+AirTAK C-UAS can operate in one of three modes:
+
+1. Standalone: One or more EUDs connected directly to the AirTAK's WiFi Hotspot or Ethernet. **This mode requires no additional configuration is the default - off-the-shelf/out-of-the-box - configuration.**
+2. LAN, MANET: AirTAK's WiFi or Ethernet connected directly to a LAN or MANET.
+3. TAK Server: AirTAK's WiFi or Ethernet connected to a LAN, and configured to send CoT to a TAK Server.
+
+![AirTAK CONOP Modes](./media/conop_modes.png)
+
+### Standalone using WiFi
+
+This mode uses AirTAK's built-in WiFi Hotspot to provide connectivity to the TAK EUD. CoT events are sent directly to the EUD over this WiFi network.
+
+1. Connect the USB power supply to the device. Ensure color-coded direction of connector (yellow to yellow, black to black).
+2. After a 2 minutes, a new WiFi network should appear with a name like `AryaOS-XXXX`. Connect to this network. 
+  
+    ![AryaOS WiFi Hotspot SSID](./media/aryaos_ssid.png)
+
+3. Open ATAK, WinTAK or iTAK.
+
+
+### LAN, MANET, TAK Server using WiFi
 
 This method uses AirTAK C-UAS' built-in WiFi hotspot to reconfigure the device to connect to an existing WiFi network, disabling the on-board WiFi hotspot.
 
@@ -32,7 +53,7 @@ This method uses AirTAK C-UAS' built-in WiFi hotspot to reconfigure the device t
 
 Once you've connected AirTAK C-UAS to a WiFi network, the `AryaOS-XXXX` hotspot AP will no longer broadcast an SSID. You can access the device dashboard by accessing its IP address, for example, if your WiFi network is using DHCP and has given AirTAK C-UAS an IP of 192.168.0.3, you'll browse to: [http://192.168.0.3](http://192.168.0.3).
 
-### Using Ethernet
+### LAN, MANET, TAK Server using Ethernet
 
 This method uses the built-in Ethernet port to connect to an existing network.
 
