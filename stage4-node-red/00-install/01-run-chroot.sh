@@ -38,7 +38,7 @@ npm install node-red-contrib-tfr2cot
 npm install node-red-contrib-web-worldmap
 npm install node-red-dashboard
 npm install node-red-node-ui-table
-npm install node-red-node-ui-upload
+npm install node-red-contrib-ui-upload
 npm install node-red-contrib-qrcode-generator
 npm install axios
 
