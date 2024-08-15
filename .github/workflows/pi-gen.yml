@@ -16,7 +16,7 @@ jobs:
       - name: Copy .env file
         run: |
           ls -al
-          cp aryaos/pi-gen/config aryaos/pi-gen/.env
+          cp pi-gen/config pi-gen/.env
       
       - name: Load .env file
         uses: xom9ikk/dotenv@v2.3.0
