@@ -9,20 +9,42 @@ jobs:
   pi-gen-aryaos:
     runs-on: ubuntu-latest
     steps:
-      - name: dotenv
-        uses: falti/dotenv-action@v1.1.4
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      # add a step to copy the pi-gen/config file to pi-gen/.env:
+      - name: Copy .env file
+        run: cp pi-gen/config pi-gen/.env
+      
+      - name: Load .env file
+        uses: xom9ikk/dotenv@v2.3.0
         with:
-          path: ./pi-gen/config
+          path: pi-gen/
+          
       - uses: usimd/pi-gen-action@v1
+        working-directory: pi-gen
         with:
           # Disable the renaming of the first user during the first boot. This make it so 
           # 'username' stays activated. 'username' must be set for this to work. Please be 
           # aware of the implied security risk of defining a default username and password 
           # for your devices.
-          disable-first-boot-user-rename: 1
+          disable-first-boot-user-rename: ${{ env.DISABLE_FIRST_BOOT_USER_RENAME || 1 }}
 
           # Enable SSH access to Pi.
-          enable-ssh: 1
+          enable-ssh: ${{ env.ENABLE_SSH || 1 }}
 
-          image-name: test
-          stage-list: stage0 stage1 stage2 ./test-stage
+          image-name: ${{ env.IMG_NAME || 'aryaos' }}-${{ github.GITHUB_SHA || 'SHAundef' }}
+
+          hostname: ${{ env.TARGET_HOSTNAME || 'aryaos' }}
+          locale: ${{ env.LOCALE_DEFAULT || 'en_US.UTF-8' }}
+          password: ${{ env.FIRST_USER_PASS || 'aryaos415' }}
+          pi-gen-release: ${{ env.PI_GEN_RELEASE || 'AryaOS: The Operating System for Modern Situational Awareness.' }}
+          release: ${{ env.RELEASE || 'bookworm' }}
+          stage-list: ${{ env.STAGE_LIST || 'stage0 stage1 stage2 ./stage03-base ./stage04-wifi ./stage05-node-red ./stage06-common ./stage07-air ./stage08-sea ./stage09-uas ./stage10-docker' }}
+          wpa-country: ${{ env.WPA_COUNTRY || 'US' }}
+          wpa-essid: ${{ env.WPA_ESSID || 'AryaOS-WiFi' }}
+          wpa-password: ${{ env.WPA_PASSWORD || 'aryaos415' }}
+          keyboard-layout: ${{ env.KEYBOARD_LAYOUT || 'English (US)' }}
+          keyboard-keymap: ${{ env.KEYBOARD_KEYMAP || 'us' }}
+          pi-gen-version: arm64
+          verbose-output: true
