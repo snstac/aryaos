@@ -19,16 +19,16 @@
 install -v -m 755 "${SHARED_FILES}/aryaos/get_throttled.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 
 # Set UUID on first boot
-install -v -m 755 "${SHARED_FILES}/aryaos//set_uuid.sh"	      "${ROOTFS_DIR}/usr/local/sbin/"
-install -v -m 644 "${SHARED_FILES}/aryaos//set_uuid.service"  "${ROOTFS_DIR}/etc/systemd/system/"
+install -v -m 755 "${SHARED_FILES}/aryaos/set_uuid.sh"	      "${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 644 "${SHARED_FILES}/aryaos/set_uuid.service"  "${ROOTFS_DIR}/etc/systemd/system/"
 
 # AryaOS Env configuration
-install -v -m 644 "${SHARED_FILES}/aryaos//aryaos-config.txt"     "${ROOTFS_DIR}/etc/"
-install -v -m 755 "${SHARED_FILES}/aryaos//99-aryaos-dispatcher"  "${ROOTFS_DIR}/etc/NetworkManager/dispatcher.d/"
-install -v -m 644 "${SHARED_FILES}/aryaos//README-aryaos.txt"     "${ROOTFS_DIR}/"
+install -v -m 644 "${SHARED_FILES}/aryaos/aryaos-config.txt"     "${ROOTFS_DIR}/etc/"
+install -v -m 755 "${SHARED_FILES}/aryaos/99-aryaos-dispatcher"  "${ROOTFS_DIR}/etc/NetworkManager/dispatcher.d/"
+install -v -m 644 "${SHARED_FILES}/aryaos/README-aryaos.txt"     "${ROOTFS_DIR}/"
 
 # ZeroTier
-install -v -m 755 "${SHARED_FILES}/aryaos//install_zt.sh"     "${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 755 "${SHARED_FILES}/aryaos/install_zt.sh"     "${ROOTFS_DIR}/usr/local/sbin/"
 
 # Required libraries
 install -v -m 644 "${SHARED_FILES}/aryaos/python3-asyncinotify_4.0.9-1_all.deb"  "${ROOTFS_DIR}/home/pi/"

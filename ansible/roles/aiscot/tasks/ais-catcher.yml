@@ -18,7 +18,7 @@
 
 - name: Extract AIS-catcher source
   ansible.builtin.unarchive:
-    src: "{{ shared_files }}/ais/AIS-catcher-main.zip"
+    src: "{{ shared_files }}/sea/AIS-catcher-main.zip"
     dest: /usr/src
     creates: /usr/src/AIS-catcher-main
 
@@ -39,13 +39,13 @@
 
 - name: Copy AIS-catcher systemd config
   ansible.builtin.copy:
-    src: "{{ shared_files }}/ais/AIS-catcher.service"
+    src: "{{ shared_files }}/sea/AIS-catcher.service"
     dest: /lib/systemd/system/ais-catcher.service
     mode: "0644"
 
 - name: Copy AIS-catcher default config
   ansible.builtin.copy:
-    src: ../../AIS-catcher.default.conf
+    src: "{{ shared_files }}/sea/AIS-catcher.default.conf"
     dest: /etc/default/ais-catcher
     mode: "0644"
 

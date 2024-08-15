@@ -17,7 +17,7 @@
 #
 
 - name: Include AISCOT
-  include_tasks: aiscot.yml
+  ansible.builtin.include_tasks: aiscot.yml
 
 - name: Include AIS-Catcher
-  include_tasks: ais-catcher.yml
+  ansible.builtin.include_tasks: ais-catcher.yml

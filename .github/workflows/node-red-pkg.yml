@@ -16,7 +16,7 @@ jobs:
         run: |
           mkdir -p .debpkg/home/node-red/.node-red
           ls -alR
-          cp shared_files/node_red/aryaos_flows.json .debpkg/home/node-red/.node-red/flows.json
+          cp shared_files/node-red/aryaos_flows.json .debpkg/home/node-red/.node-red/flows.json
           # create DEBIAN directory if you want to add other pre/post scripts
           mkdir -p .debpkg/DEBIAN
           echo -e "chown node-red:node-red /home/node-red/.node-red/flows.json" > .debpkg/DEBIAN/postinst
@@ -25,7 +25,7 @@ jobs:
       - name: Run build-deb-action from jiro4989
         uses: jiro4989/build-deb-action@v3
         with:
-          package: AryaOS_Flows
+          package: aryaos-flows
           package_root: .debpkg
           maintainer: gba@snstac.com
           version: ${{ github.ref }}

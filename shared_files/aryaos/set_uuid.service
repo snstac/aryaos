@@ -1,11 +1,12 @@
-# AryaOS set_uuid.service
-# Defines set_uuid systemd service.
+# set_uuid.service Defines set_uuid systemd service.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+# You may obtain a copy of the License at 
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +16,8 @@
 #
 
 [Unit]
-Description=Sets UUID on the AryaOS system.
-Documentation=https://aryaos.readthedocs.io/en/stable/
+Description=Sets UUID on the AryaOS systems.
+Documentation=https://aryaos.rtfd.io/en/stable/
 Wants=network.target
 After=network.target
 

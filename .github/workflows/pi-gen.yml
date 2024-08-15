@@ -26,6 +26,8 @@ jobs:
 
       - name: Build AryaOS image
         uses: usimd/pi-gen-action@v1
+        env:
+          SHARED_FILES: ${{ env.SHARED_FILES }}
         with:
           pi-gen-dir: pi-gen-src
           # Disable the renaming of the first user during the first boot. This make it so 
