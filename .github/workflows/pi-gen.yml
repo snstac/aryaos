@@ -1,0 +1,28 @@
+name: Build pi-gen image
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  pi-gen-aryaos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: dotenv
+        uses: falti/dotenv-action@v1.1.4
+        with:
+          path: ./pi-gen/config
+      - uses: usimd/pi-gen-action@v1
+        with:
+          # Disable the renaming of the first user during the first boot. This make it so 
+          # 'username' stays activated. 'username' must be set for this to work. Please be 
+          # aware of the implied security risk of defining a default username and password 
+          # for your devices.
+          disable-first-boot-user-rename: 1
+
+          # Enable SSH access to Pi.
+          enable-ssh: 1
+
+          image-name: test
+          stage-list: stage0 stage1 stage2 ./test-stage

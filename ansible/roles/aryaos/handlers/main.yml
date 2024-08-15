@@ -1,0 +1,21 @@
+# code: language=ansible
+
+- name: Restart lighttpd
+  ansible.builtin.service:
+    name: lighttpd
+    state: restarted
+
+- name: Restart tar1090
+  ansible.builtin.service:
+    name: tar1090
+    state: restarted
+
+- name: Restart dump1090-fa
+  ansible.builtin.service:
+    name: dump1090-fa
+    state: restarted
+
+- name: Restart dump978-fa
+  ansible.builtin.service:
+    name: dump978-fa
+    state: restarted

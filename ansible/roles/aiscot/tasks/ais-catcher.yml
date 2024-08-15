@@ -1,0 +1,65 @@
+# code: language=ansible
+# ais-catcher.yml - Build & Install AIS-catcher.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Extract AIS-catcher source
+  ansible.builtin.unarchive:
+    src: "{{ shared_files }}/ais/AIS-catcher-main.zip"
+    dest: /usr/src
+    creates: /usr/src/AIS-catcher-main
+
+- name: Create AIS-catcher build directory
+  ansible.builtin.file:
+    path: /usr/src/AIS-catcher-main/build
+    state: directory
+    mode: "0755"
+
+- name: Build AIS-catcher
+  ansible.builtin.shell:
+    cmd: |
+      cmake ..
+      make
+      make install
+    creates: /usr/local/bin/AIS-catcher
+    chdir: /usr/src/AIS-catcher-main/build
+
+- name: Copy AIS-catcher systemd config
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/ais/AIS-catcher.service"
+    dest: /lib/systemd/system/ais-catcher.service
+    mode: "0644"
+
+- name: Copy AIS-catcher default config
+  ansible.builtin.copy:
+    src: ../../AIS-catcher.default.conf
+    dest: /etc/default/ais-catcher
+    mode: "0644"
+
+- name: Add ais-catcher to dialout (USB access)
+  ansible.builtin.user:
+    name: aiscatcher
+    groups: dialout
+    comment: ais-catcher system user
+    append: true
+    system: true
+    create_home: false
+
+- name: Enable AIS-catcher service
+  ansible.builtin.systemd_service:
+    name: ais-catcher.service
+    enabled: true
+    daemon_reload: true

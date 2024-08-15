@@ -1,0 +1,123 @@
+#!/bin/bash
+# AryaOS 99-aryaos-dispatcher
+# Dispatch NetworkManager events to AryaOS services for restart.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+AOS_CONFIG="/etc/aryaos-config.txt"
+
+if [ -n "$IP4_NUM_ADDRESSES" ] && [ "$IP4_NUM_ADDRESSES" -gt 0 ]; then
+   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet"
+fi
+if [ -n "$IP6_NUM_ADDRESSES" ] && [ "$IP6_NUM_ADDRESSES" -gt 0 ]; then
+   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet6"
+fi
+
+# If we have a VPN connection ignore the underlying IP address(es)
+if [ "$2" = "vpn-up" ] || [ "$2" = "vpn-down" ]; then
+   ADDRESS_FAMILIES=""
+fi
+
+if [ -n "$VPN_IP4_NUM_ADDRESSES" ] && [ "$VPN_IP4_NUM_ADDRESSES" -gt 0 ]; then
+   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet"
+fi
+if [ -n "$VPN_IP6_NUM_ADDRESSES" ] && [ "$VPN_IP6_NUM_ADDRESSES" -gt 0 ]; then
+   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet6"
+fi
+
+# We're probably bringing the interface down.
+[ -n "$ADDRESS_FAMILIES" ] || ADDRESS_FAMILIES="inet"
+
+# Fake 'ifupdown' environment
+export IFACE="$1"
+export LOGICAL="$1"
+export METHOD="NetworkManager"
+export VERBOSITY="0"
+
+
+# Import base AryaOS environment.
+if [ -f "$AOS_CONFIG" ]; then
+    # shellcheck source=aryaos-config.txt
+  . "$AOS_CONFIG"
+fi
+
+
+# "I'm gonna go-ahead and need you to turn it off, and turn it back on again."
+# - John Leonard, summer 2004.
+restart_aos_services() {
+    for srv in $AOS_SERVICES; do
+        if [ "$(systemctl is-enabled "$srv")" = "enabled" ]; then
+            echo "99-aryaos-dispatcher restarting $srv"
+            systemctl restart "$srv" || exit 0
+        fi
+    done
+}
+
+
+# Update PyTAK's multicast local address, protect pernicious network libraries.
+set_pytak_mc_addr() {
+    MC_ADDR="${1:-0.0.0.0}"
+    sed --follow-symlinks -i -E -e "s/PYTAK_MULTICAST_LOCAL_ADDR.*/PYTAK_MULTICAST_LOCAL_ADDR=$MC_ADDR/" $AOS_CONFIG
+}
+
+
+# Update URL in captive portal web landing page.
+set_index_addr() {
+    ADDR="${1:-10.41.0.1}"
+    sed --follow-symlinks -E -e "s/aryaos.local/$ADDR/" < /var/www/html/index2.html > /var/www/html/index.html
+}
+
+
+for i in $ADDRESS_FAMILIES; do
+    export ADDRFAM="$i"
+
+    case "$2" in
+        connectivity-change)
+          if [ "$CONNECTIVITY_STATE" = "LIMITED" ]; then
+            set_pytak_mc_addr "$WIFI_AP_IP"
+            set_index_addr "$WIFI_AP_IP"
+          elif [ "$CONNECTIVITY_STATE" = "FULL" ]; then
+            set_pytak_mc_addr
+
+          fi
+          restart_aos_services
+
+        ;;
+
+        up|vpn-up)
+            export MODE="start"
+            export PHASE="post-up"
+            if [ -n "$DHCP4_IP_ADDRESS" ] && [ "$PYTAK_MULTICAST_LOCAL_ADDR" != "0.0.0.0" ]; then
+                set_pytak_mc_addr "$DHCP4_IP_ADDRESS" 
+                set_index_addr "$DHCP4_IP_ADDRESS"
+            fi
+            restart_aos_services
+
+        ;;
+
+        down|vpn-down)
+            export MODE="stop"
+            export PHASE="post-down"
+        ;;
+
+        hostname|dhcp4-change|dhcp6-change)
+            # Do nothing
+        ;;
+
+        *)
+            echo "$0: called with unknown action \`$2'" 1>&2
+            exit 1
+        ;;
+    esac
+done

@@ -1,0 +1,35 @@
+# AryaOS node-red.sudoers
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+node-red ALL=(root) NOPASSWD: /bin/bash /tmp/update-nodejs-and-nodered --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
+
+node-red ALL=(root) NOPASSWD: /sbin/reboot
+node-red ALL=(root) NOPASSWD: /usr/bin/apt update -qq
+node-red ALL=(root) NOPASSWD: /usr/bin/apt update
+node-red ALL=(root) NOPASSWD: /sbin/shutdown
+node-red ALL=(root) NOPASSWD: /bin/systemctl status
+
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/adsbcot /etc/default/adsbcot
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/aiscot /etc/default/aiscot
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/lincot /etc/default/lincot
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/dronecot /etc/default/dronecot
+
+node-red ALL=(root) NOPASSWD: /usr/local/sbin/wifi-nuke.py
+node-red ALL=(root) NOPASSWD: /usr/bin/nmcli device disconnect wlan0
+
+node-red ALL=(root) NOPASSWD: /usr/bin/dpkg -i /home/node-red/update.deb
+
+# FIXME: Repalce with services list
+node-red ALL=(ALL) NOPASSWD:ALL

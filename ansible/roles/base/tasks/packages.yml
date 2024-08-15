@@ -1,0 +1,71 @@
+# code: language=ansible
+# packages.yml - Install base packages.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Install base OS packages.
+  ansible.builtin.package:
+    update_cache: true
+    name:
+      - curl
+      - rtl-sdr
+      - vim
+      - librtlsdr-dev
+      - gqrx-sdr
+      - net-tools
+      - git
+      - build-essential
+      - devscripts
+      - debhelper
+      - libboost-system-dev
+      - libboost-program-options-dev
+      - libboost-regex-dev
+      - libboost-filesystem-dev
+      - libsoapysdr-dev
+      - soapysdr-module-rtlsdr
+      - lighttpd
+      - gpsd
+      - gpsd-clients
+      - python3-pip
+      - python3-cryptography
+      - tcpdump
+      - netcat-openbsd
+      - nmap
+      - socat
+      - net-tools
+      - tmux
+      - wget
+      - ca-certificates
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - python3-pip
+      - virtualenv
+      - python3-setuptools
+      - libssl-dev
+      - aha
+      - git
+      - make
+      - gcc
+      - g++
+      - cmake
+      - pkg-config
+      - librtlsdr-dev
+      - whiptail
+      - libpq-dev
+      - build-essential
+      - acl

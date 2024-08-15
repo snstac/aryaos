@@ -1,0 +1,37 @@
+# AryaOS aryaos-config.txt
+# Global environmental configuration file for AryaOS-based systems. 
+# Configures PyTAK, et al.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Where do we send our Cursor on Target TAK messages?
+# See: https://pytak.readthedocs.io/en/stable/configuration/
+COT_URL=udp+wo://239.2.3.1:6969
+
+
+# For Mesh SA & multicast COT_URLs: Which network interface (wifi, ethernet) do we bind to?
+# Options are IP, or 0.0.0.0 for all. Default is WiFi AP IP: 10.41.0.1
+PYTAK_MULTICAST_LOCAL_ADDR=10.41.0.1
+
+# DEPRECATED: Legacy setting.
+WIFI_AP_IP=10.41.0.1
+
+
+# List of services to restart if network state changes (wifi up, ethernet down, etc).
+AOS_SERVICES="readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-mutability gpsd aiscatcher nodered aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
+
+
+# Our ID, used to generate WiFi AP SSID, lincot UID, etc. 
+# Automatically set on first-boot, do not modify. NO STEP. 
+NODE_ID=""

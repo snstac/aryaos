@@ -1,0 +1,30 @@
+# code: language=ansible
+# recorder.yml
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Copy AryaOS recorder lighttpd config
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/99-aryaos-recorder.conf"
+    dest: /etc/lighttpd/conf-available/99-aryaos-recorder.conf
+    mode: "0644"
+
+- name: Enable AryaOS recorder lighttpd config
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/99-aryaos-recorder.conf
+    dest: /etc/lighttpd/conf-enabled/99-aryaos-recorder.conf
+    state: link
+  notify: Restart lighttpd

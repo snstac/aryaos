@@ -50,7 +50,7 @@ To send CoT to a different destination, you'll need to SSH into AryaOS and chang
 configuration for ``adsbcot``.
 
 1. SSH into AryaOS: ``ssh pi@AryaOS.local``
-2. Edit adsbcot's configuration: ``sudo nano /boot/adsbcot-config.txt`` (N.B. This is *not* an INI-style file.)
+2. Edit adsbcot's configuration: ``sudo nano /etc/adsbcot-config.txt`` (N.B. This is *not* an INI-style file.)
 3. Save & reboot.
 
 ### Change dump1090-fa & dump978-fa SDR serial numbers

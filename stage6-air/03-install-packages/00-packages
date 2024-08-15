@@ -1,4 +1,0 @@
-dump1090-fa
-dump978-fa
-git wget unzip
-git wget unzip curl build-essential python3-dev socat python3-venv ncurses-dev ncurses-bin uuid-runtime zlib1g-dev zlib1g
