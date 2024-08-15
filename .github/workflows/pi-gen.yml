@@ -21,8 +21,9 @@ jobs:
         with:
           path: pi-gen/
           
-      - uses: usimd/pi-gen-action@v1
-        working-directory: pi-gen
+      - name: Build AryaOS image
+        uses: usimd/pi-gen-action@v1
+        working-directory: ./pi-gen
         with:
           # Disable the renaming of the first user during the first boot. This make it so 
           # 'username' stays activated. 'username' must be set for this to work. Please be 
