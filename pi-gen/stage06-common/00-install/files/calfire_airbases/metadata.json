@@ -1,0 +1,13 @@
+{
+  "name": "calfire_airbases",
+  "version": "1.1.0",
+  "description": "",
+  "attribution": "Rendered with <a href=\"https://www.maptiler.com/desktop/\">MapTiler Desktop</a>",
+  "type": "overlay",
+  "format": "png",
+  "minzoom": "4",
+  "maxzoom": "8",
+  "scale": "1.000000",
+  "bounds": [-124.63639367, 31.94081340, -114.00960011, 45.11961613],
+  "profile": "mercator"
+}

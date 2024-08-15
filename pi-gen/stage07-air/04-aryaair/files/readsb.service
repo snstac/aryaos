@@ -1,0 +1,26 @@
+# AryaOS readsb.service
+# readsb service for systemd
+
+[Unit]
+Description=readsb ADS-B receiver
+Documentation=https://github.com/wiedehopf/readsb
+Wants=network.target
+After=network.target
+
+[Service]
+# EnvironmentFile=/etc/default/readsb
+User=readsb
+RuntimeDirectoryMode=0755
+# Allows centralized aircraft.json:
+RuntimeDirectory=adsb
+ExecStart=/usr/local/sbin/run_readsb.sh
+Type=simple
+Type=simple
+Restart=always
+RestartSec=15
+StartLimitInterval=1
+StartLimitBurst=100
+Nice=-5
+
+[Install]
+WantedBy=default.target
