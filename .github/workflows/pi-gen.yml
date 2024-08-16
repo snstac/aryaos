@@ -21,6 +21,12 @@ jobs:
         with:
           path: pi-gen/
 
+      - name: Set env
+        run: cat pi-gen/config >> $GITHUB_ENV
+     
+      - name: Echo env variables
+        run: env
+
       - name: Build AryaOS image
         uses: usimd/pi-gen-action@v1
         with:
