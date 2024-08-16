@@ -22,7 +22,7 @@ jobs:
           path: pi-gen/
 
       - name: Set env
-        run: cat pi-gen/config >> $GITHUB_ENV
+        run: egrep -vi '(^#|^export|^$)' pi-gen/config >> $GITHUB_ENV
      
       - name: Echo env variables
         run: env
