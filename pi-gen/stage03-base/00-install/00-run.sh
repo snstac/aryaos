@@ -17,17 +17,17 @@
 #
 
 # SHARED_FILES should be set, if not, set it to ../shared_files
-SHARED_FILES=${SHARED_FILES:-../../../shared_files}
-
-echo "pwd"
+SHARED_FILES=${SHARED_FILES:-../../shared_files}
+ls
+echo 'pwd'
 pwd
 
-echo "../"
-ls ../
 echo "../../"
 ls ../../
-echo "../../../"
-ls ../../../
+
+echo "/home/runner/work/aryaos/aryaos/"
+ls -al /home/runner/work/aryaos/aryaos
+
 
 install -v -m 755 "${SHARED_FILES}/aryaos/get_throttled.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 
