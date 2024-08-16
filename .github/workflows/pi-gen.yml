@@ -43,7 +43,7 @@ jobs:
           # Enable SSH access to Pi.
           enable-ssh: ${{ env.ENABLE_SSH || 1 }}
 
-          image-name: ${{ env.IMG_NAME || 'aryaos' }}-${{ github.GITHUB_SHA || 'SHAundef' }}
+          image-name: ${{ env.IMG_NAME || 'aryaos' }}-${{ github.GITHUB_REF_NAME || 'undef' }}
 
           hostname: ${{ env.TARGET_HOSTNAME || 'aryaos' }}
           locale: ${{ env.LOCALE_DEFAULT || 'en_US.UTF-8' }}
