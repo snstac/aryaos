@@ -17,7 +17,10 @@
 #
 
 # SHARED_FILES should be set, if not, set it to ../shared_files
-SHARED_FILES=${SHARED_FILES:-../../shared_files}
+SHARED_FILES=${SHARED_FILES:-../shared_files}
+pwd
+ls ../
+ls ../../
 
 install -v -m 755 "${SHARED_FILES}/aryaos/get_throttled.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 
