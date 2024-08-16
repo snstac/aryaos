@@ -18,7 +18,7 @@
 #
 
 # shellcheck disable=SC2034
-IMG_NAME="aryaos-$(git describe --exact-match --tags HEAD 2>/dev/null || git rev-parse --short HEAD)"
+IMG_NAME="aryaos"
 PI_GEN_RELEASE="AryaOS: The Operating System for Modern Situational Awareness."
 TARGET_HOSTNAME="aryaos"
 FIRST_USER_NAME="pi"
