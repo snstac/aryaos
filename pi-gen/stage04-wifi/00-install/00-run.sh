@@ -5,7 +5,9 @@
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+# You may obtain a copy of the License at 
+#
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,4 +17,4 @@
 #
 
 # FIXME DEPRECATED: Replace old NetworkManager Python module. https://github.com/snstac/aryaos/issues/54 
-install -v -m 644   "${SHARED_FILES/aryaos/NetworkManager.py"	  "${ROOTFS_DIR}/usr/lib/python3/dist-packages/NetworkManager.py"
+install -v -m 644 "${SHARED_FILES}/aryaos/NetworkManager.py" "${ROOTFS_DIR}/usr/lib/python3/dist-packages/NetworkManager.py"

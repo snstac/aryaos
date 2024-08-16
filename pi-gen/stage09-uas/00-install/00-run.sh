@@ -1,5 +1,5 @@
 #!/bin/bash -e
-# AryaOS 00-run.sh
+# 00-run.sh
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -14,6 +14,10 @@
 # limitations under the License.
 #
 
+rsync -va "${SHARED_FILES}/uas/docker-uas-broker" "${ROOTFS_DIR}/usr/src/"
+rsync -va "${SHARED_FILES}/uas/docker-uas-sensor" "${ROOTFS_DIR}/usr/src/"
 
-rsync -va "${SHARED_FILES}/uas/docker-uas-broker" "${ROOTFS_DIR}/home/pi/"
-rsync -va "${SHARED_FILES}/uas/docker-uas-sensor" "${ROOTFS_DIR}/home/pi/"
+install -v -m 755 "${SHARED_FILES}/uas/reset_wlan.sh" "${ROOTFS_DIR}/usr/local/sbin/"
+
+mkdir -p "${ROOTFS_DIR}/etc/systemd/service/dronecot.service.d"
+install -v -m 0644 "${SHARED_FILES}/uas/execprestart.conf" "${ROOTFS_DIR}/etc/systemd/service/dronecot.service.d"

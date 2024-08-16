@@ -1,5 +1,5 @@
 #!/bin/bash -e
-# AryaOS 01-run-chroot.sh
+# 01-run-chroot.sh
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #

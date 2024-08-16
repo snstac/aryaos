@@ -1,13 +1,13 @@
 #!/bin/bash
-# AryaOS run_dronecot.sh
-#
-# Startup file for dronecot.
+# reset_wlan.sh Reset WLAN interfaces.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+# You may obtain a copy of the License at 
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,15 +17,11 @@
 #
 
 set -a
-AOS_CONFIG="/etc/${AOS_FLAVOR:-AryaOS}-config.txt"
-TOOL_CONFIG="/etc/dronecot-config.txt"
+AOS_CONFIG="/etc/aryaos-config.txt"
 
-if [ -f $AOS_CONFIG ]; then
-  . $AOS_CONFIG
-fi
-
-if [ -f $TOOL_CONFIG ]; then
-  . $TOOL_CONFIG
+if [ -f ${AOS_CONFIG} ]; then
+  # shellcheck source=../aryaos/aryaos-config.txt
+  . "${AOS_CONFIG}"
 fi
 
 set +a
@@ -36,5 +32,3 @@ nmcli dev set wlan0 managed no || true
 nmcli dev set wlan1 managed no || true
 nmcli dev set wlan2 managed no || true
 nmcli dev set wlan3 managed no || true
-
-/usr/local/bin/dronecot

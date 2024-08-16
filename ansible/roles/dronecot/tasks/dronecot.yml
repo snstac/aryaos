@@ -25,3 +25,21 @@
 - name: Install DroneCOT Debian package
   ansible.builtin.apt:
     deb: /usr/src/{{ dronecot_deb }}
+
+- name: Copy reset_wlan.sh to /usr/local/sbin
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/uas/reset_wlan.sh"
+    dest: /usr/local/sbin/
+    mode: "0755"
+
+- name: Create /etc/systemd/service/dronecot.service.d
+  ansible.builtin.file:
+    path: /etc/systemd/service/dronecot.service.d
+    state: directory
+    mode: "0755"
+
+- name: Copy execprestart.conf to /etc/systemd/service/dronecot.service.d
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/uas/execprestart.conf"
+    dest: /etc/systemd/service/dronecot.service.d/
+    mode: "0644"

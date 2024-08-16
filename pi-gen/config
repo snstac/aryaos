@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # AryaOS config
 #
 # pi-gen config for AryaOS
@@ -16,8 +18,7 @@
 #
 
 # shellcheck disable=SC2034
-AOS_FLAVOR="AryaOS"
-IMG_NAME="aryaos"
+IMG_NAME="aryaos-$(git describe --exact-match --tags HEAD 2>/dev/null || git rev-parse --short HEAD)"
 PI_GEN_RELEASE="AryaOS: The Operating System for Modern Situational Awareness."
 TARGET_HOSTNAME="aryaos"
 FIRST_USER_NAME="pi"
@@ -33,8 +34,6 @@ KEYBOARD_LAYOUT="English (US)"
 KEYBOARD_KEYMAP="us"
 ENABLE_SSH=1
 APT_PROXY="http://172.17.2.88:3142"
-DUMP1090_RECEIVER_SERIAL="stx:1090:0"
-DUMP978_RECEIVER_SERIAL="stx:978:0" 
-COMITUP_WEB_PORT="9080"
+# Hack: This is a workaround for the fact that the shared_files directory is not being copied to the build directory.
 SHARED_FILES="../../../shared_files"
 export SHARED_FILES="../../../shared_files"
