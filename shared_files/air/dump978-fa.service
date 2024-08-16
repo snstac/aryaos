@@ -1,13 +1,12 @@
-#!/bin/bash
-# AryaOS run_readsb.sh
-#
-# Startup file for readsb.
+# dump978-fa.service dump978-fa service for systemd
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+# You may obtain a copy of the License at 
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,21 +15,22 @@
 # limitations under the License.
 #
 
-set -a
 
-AOS_CONFIG="/etc/aryaos-config.txt"
-READSB_CONFIG="/etc/default/readsb"
+[Unit]
+Description=dump978-fa ADS-B UAT receiver
+Documentation=https://flightaware.com/adsb/piaware/
+Wants=network.target
+After=network.target
 
-if [ -f $AOS_CONFIG ]; then
-  . $AOS_CONFIG
-fi
+[Service]
+User=dump978
+ExecStart=/usr/share/dump978-fa/start-dump978-fa
+SyslogIdentifier=dump978-fa
+Type=simple
+Restart=always
+RestartSec=30
+RestartPreventExitStatus=64
+Nice=-5
 
-if [ -f $READSB_CONFIG ]; then
-  . $READSB_CONFIG
-fi
-
-set +a
-
-/usr/bin/readsb \
- $RECEIVER_OPTIONS $DECODER_OPTIONS $NET_OPTIONS $JSON_OPTIONS \
- --write-json $ADSB_JSON --quiet
+[Install]
+WantedBy=default.target

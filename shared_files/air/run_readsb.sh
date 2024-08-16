@@ -1,12 +1,12 @@
-#!/bin/bash -e
-# 00-run.sh Configures pi image for AIS-catcher install, including serial settings.
+#!/bin/bash
+# run_readsb.sh Startup file for readsb.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at 
-#
+# 
 # http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
@@ -16,7 +16,23 @@
 # limitations under the License.
 #
 
-install -v -m 644 "${SHARED_FILES}/sea/AIS-catcher_0.58.1_arm64.deb" "${ROOTFS_DIR}/usr/src/"
-install -v -m 644 "${SHARED_FILES}/sea/ais-catcher.default.conf" "${ROOTFS_DIR}/etc/default/ais-catcher"
-install -v -m 644 "${SHARED_FILES}/sea/ais-catcher.service"	"${ROOTFS_DIR}/lib/systemd/system/"
+set -a
 
+AOS_CONFIG="/etc/aryaos-config.txt"
+READSB_CONFIG="/etc/default/readsb"
+
+if [ -f "${AOS_CONFIG}" ]; then
+  # shellcheck source=../aryaos/aryaos-config.txt
+  . "${AOS_CONFIG}"
+fi
+
+if [ -f "${READSB_CONFIG}" ]; then
+  # shellcheck source=readsb-config.txt
+  . "${READSB_CONFIG}"
+fi
+
+set +a
+
+/usr/bin/readsb \
+ "${RECEIVER_OPTIONS}" "${DECODER_OPTIONS}" "${NET_OPTIONS}" "${JSON_OPTIONS}" \
+ --write-json "${ADSB_JSON}" --quiet

@@ -14,5 +14,5 @@
 # limitations under the License.
 #
 
-install -v -m 600 files/blacklist-rtl-sdr.conf	"${ROOTFS_DIR}/etc/modprobe.d/"
-install -v -m 600 files/flightaware-apt-repository_1.2_all.deb	"${ROOTFS_DIR}/tmp/flightaware-apt-repository_1.2_all.deb"
+install -v -m 600 "${SHARED_FILES}/air/blacklist-rtl-sdr.conf"	"${ROOTFS_DIR}/etc/modprobe.d/"
+install -v -m 600 "${SHARED_FILES}/air/flightaware-apt-repository_1.2_all.deb"	"${ROOTFS_DIR}/usr/src/flightaware-apt-repository_1.2_all.deb"

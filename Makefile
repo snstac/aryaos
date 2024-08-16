@@ -14,6 +14,9 @@
 #
 
 
+sync:
+	rsync -va ../aryaos kelp.local:~/src/SNS/
+
 mkdocs:
 	pip install -r docs/requirements.txt
 	mkdocs serve

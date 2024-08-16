@@ -25,6 +25,7 @@ DUMP978_RECEIVER_SERIAL="stx:978:0"
 sed --follow-symlinks -i -E -e "s/driver=rtlsdr /driver=rtlsdr,serial=$DUMP978_RECEIVER_SERIAL /" /etc/default/dump978-fa
 
 
+cd /usr/src
 wget https://github.com/snstac/aircot/releases/latest/download/aircot_latest_all.deb
 apt install -f ./aircot_latest_all.deb
 
@@ -33,12 +34,13 @@ apt install -f ./adsbcot_latest_all.deb
 
 # readsb
 # bash /home/pi/readsb-install.sh
-dpkg -i /home/pi/readsb_3.14.1621_arm64.deb
+dpkg -i /usr/src/readsb_3.14.1621_arm64.deb
+
 READSB_RECEIVER_SERIAL="stx:1090:0"
 sed --follow-symlinks -i -E -e "s/RECEIVER_OPTIONS.*/RECEIVER_OPTIONS=\"--device $READSB_RECEIVER_SERIAL  --device-type rtlsdr --gain -10 --ppm 0\"/" /etc/default/readsb
 
 # tar1090
-bash /home/pi/tar1090-install.sh
+bash /usr/src/tar1090-install.sh
 
 
 # Disable everything

@@ -15,5 +15,5 @@
 #
 
 
-rsync -va files/docker-uas-broker "${ROOTFS_DIR}/home/pi/"
-rsync -va files/docker-uas-sensor "${ROOTFS_DIR}/home/pi/"
+rsync -va "${SHARED_FILES}/uas/docker-uas-broker" "${ROOTFS_DIR}/home/pi/"
+rsync -va "${SHARED_FILES}/uas/docker-uas-sensor" "${ROOTFS_DIR}/home/pi/"

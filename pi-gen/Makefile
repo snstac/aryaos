@@ -21,9 +21,6 @@ pi-gen:
 	git clone --branch arm64 https://github.com/RPI-Distro/pi-gen.git
 	touch ./pi-gen/stage2/SKIP_IMAGES ./pi-gen/stage2/SKIP_NOOBS
 
-copy:
-	rsync -va ../../aryaos kelp.local:~/src/SNS/
-
 sync: copy
 
 skip:

@@ -14,5 +14,5 @@
 # limitations under the License.
 #
 
-dpkg -i /tmp/flightaware-apt-repository_1.2_all.deb
+dpkg -i /usr/src/flightaware-apt-repository_1.2_all.deb
 apt update

@@ -16,11 +16,12 @@
 
 
 # AIS-catcher
-dpkg -i /home/pi/AIS-catcher_0.58.1_arm64.deb
+dpkg -i /usr/src/AIS-catcher_0.58.1_arm64.deb
 id aiscatcher || useradd --system aiscatcher
 usermod -a -G plugdev aiscatcher
 usermod -a -G dialout aiscatcher
 
 # aiscot
+cd /usr/src
 wget https://github.com/snstac/aiscot/releases/latest/download/aiscot_latest_all.deb
 apt install -f ./aiscot_latest_all.deb

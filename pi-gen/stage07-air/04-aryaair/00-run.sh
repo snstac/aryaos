@@ -14,18 +14,20 @@
 # limitations under the License.
 #
 
-install -v -m 755 files/99-aryaos-recorder.conf           "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/"
+install -v -m 755 "${SHARED_FILES}/aryaos/99-aryaos-recorder.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/"
 
 # dump1090-fa
-install -v -m 644 files/dump1090-fa.service           "${ROOTFS_DIR}/lib/systemd/system/"
-install -v -m 644 files/dump978-fa.service            "${ROOTFS_DIR}/lib/systemd/system/"
+install -v -m 644 "${SHARED_FILES}/air/dump1090-fa.service" "${ROOTFS_DIR}/lib/systemd/system/"
+install -v -m 644 "${SHARED_FILES}/air/dump978-fa.service" "${ROOTFS_DIR}/lib/systemd/system/"
 
 # readsb
-install -v -m 755 files/readsb-install.sh          "${ROOTFS_DIR}/home/pi/"
-install -v -m 755 files/tar1090-install.sh         "${ROOTFS_DIR}/home/pi/"
-install -v -m 755 files/readsb-set-location.sh     "${ROOTFS_DIR}/usr/local/bin/"
-install -v -m 755 files/readsb-gain.sh             "${ROOTFS_DIR}/usr/local/bin/"
-install -v -m 755 files/run_readsb.sh              "${ROOTFS_DIR}/usr/local/sbin/"
-install -v -m 644 files/readsb_3.14.1621_arm64.deb "${ROOTFS_DIR}/home/pi/"
+install -v -m 755 "${SHARED_FILES}/air/readsb-install.sh" "${ROOTFS_DIR}/usr/src/"
+install -v -m 755 "${SHARED_FILES}/air/tar1090-install.sh" "${ROOTFS_DIR}/usr/src/"
 
-install -v -m 755 files/89-skyaware.conf           "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/"
+install -v -m 755 "${SHARED_FILES}/air/readsb-set-location.sh" "${ROOTFS_DIR}/usr/local/bin/"
+install -v -m 755 "${SHARED_FILES}/air/readsb-gain.sh" "${ROOTFS_DIR}/usr/local/bin/"
+install -v -m 755 "${SHARED_FILES}/air/run_readsb.sh" "${ROOTFS_DIR}/usr/local/sbin/"
+
+install -v -m 644 "${SHARED_FILES}/air/readsb_3.14.1621_arm64.deb" "${ROOTFS_DIR}/usr/src/"
+
+install -v -m 755 "${SHARED_FILES}/air/89-skyaware.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/"
