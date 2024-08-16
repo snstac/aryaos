@@ -16,7 +16,8 @@ jobs:
         run: |
           mkdir -p .debpkg/home/node-red/.node-red
           ls -al
-          cp shared_files/node-red/aryaos_flows.json .debpkg/home/node-red/.node-red/flows.json
+          ls -alR shared_files/node-red
+          cp ./shared_files/node-red/aryaos_flows.json .debpkg/home/node-red/.node-red/flows.json
           # create DEBIAN directory if you want to add other pre/post scripts
           mkdir -p .debpkg/DEBIAN
           echo -e "chown node-red:node-red /home/node-red/.node-red/flows.json" > .debpkg/DEBIAN/postinst

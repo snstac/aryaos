@@ -21,14 +21,17 @@ jobs:
         with:
           path: pi-gen/
 
-      - name: Set env
-        run: egrep -vi '(^#|^export|^$)' pi-gen/config >> $GITHUB_ENV
+      # - name: Set env
+      #   run: egrep -vi '(^#|^export|^$)' pi-gen/config >> $GITHUB_ENV
      
-      - name: Echo env variables
-        run: env
+      # - name: Echo env variables
+      #   run: env
 
       - name: Build AryaOS image
         uses: usimd/pi-gen-action@v1
+        # set an environment variable for SHARED_FILES
+        env:
+          SHARED_FILES: ${{ github.workspace }}/shared_files
         with:
           pi-gen-dir: pi-gen-src
           # Disable the renaming of the first user during the first boot. This make it so 
