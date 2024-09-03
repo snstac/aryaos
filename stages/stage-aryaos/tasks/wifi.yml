@@ -1,0 +1,85 @@
+# code: language=ansible
+# wifi.yml - Configure WiFi portal.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Copy modified NetworkManager
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/NetworkManager.py"
+    dest: /usr/lib/python3/dist-packages/NetworkManager.py
+    mode: "0644"
+
+- name: Fix comitup port
+  ansible.builtin.lineinfile:
+    path: /usr/share/comitup/web/comitupweb.py
+    regexp: 'port=80'
+    line: 'port=9080'
+
+# Change the default port for the comitup web server to 9080 (main branch)
+- name: Change comitup port (main branch)
+  ansible.builtin.lineinfile:
+    path: /usr/share/comitup/web/comitupweb.py
+    regexp: 'SERVER_PORT = 80'
+    line: 'SERVER_PORT = 9080'
+
+- name: Copy comitup configs
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/comitup.conf"
+    dest: /etc
+    mode: "0644"
+
+- name: Copy comitup script
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/run_comitup.sh"
+    dest: /usr/local/sbin/
+    mode: "0755"
+
+- name: Copy comitup callback
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/comitup-callback.sh"
+    dest: /usr/local/sbin/
+    mode: "0755"
+
+- name: Copy comitup service
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/comitup.service"
+    dest: /lib/systemd/system/
+    mode: "0644"
+
+- name: Copy comitup json
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/comitup.json"
+    dest: /var/lib/comitup/
+    mode: "0644"
+
+- name: Copy wifi nuke
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/wifi-nuke.py"
+    dest: /usr/local/sbin/
+    mode: "0755"
+
+# Remove the string ;http://blank.org/ from the connect.html file.
+- name: Remove blank.org from connect.html
+  ansible.builtin.lineinfile:
+    path: /usr/share/comitup/web/templates/connect.html
+    regexp: ';http://blank.org/'
+    line: ''
+
+- name: Upload AryaOS Config
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/99-aryaos-dispatcher"
+    dest: /etc/NetworkManager/dispatcher.d/
+    mode: "0644"

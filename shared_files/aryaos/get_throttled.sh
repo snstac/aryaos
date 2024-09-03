@@ -24,6 +24,13 @@
 # SOFTWARE.
 #
 
+AOS_CONFIG="/etc/aryaos/aryaos-config.txt"
+
+if [ -f $AOS_CONFIG ]; then
+  # shellcheck source=aryaos-config.txt
+  . $AOS_CONFIG
+fi
+
 ISSUES_MAP=( \
   [0]="Under-voltage detected" \
   [1]="Arm frequency capped" \

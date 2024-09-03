@@ -1,0 +1,19 @@
+{
+  "name": "aryaos-flows",
+  "description": "AryaOS Node-RED flows",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^1.7.2",
+    "install": "^0.13.0",
+    "node-red-contrib-qrcode-generator": "^0.4.0",
+    "node-red-contrib-sitx": "^1.0.2",
+    "node-red-contrib-tak": "^4.1.1",
+    "node-red-contrib-tfr2cot": "^1.1.6",
+    "node-red-contrib-ui-upload": "^0.8.1",
+    "node-red-contrib-web-worldmap": "^4.8.0",
+    "node-red-dashboard": "^3.6.5",
+    "node-red-node-ui-table": "^0.4.3",
+    "npm": "^10.8.1"
+  }
+}

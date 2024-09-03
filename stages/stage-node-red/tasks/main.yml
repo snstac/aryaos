@@ -1,0 +1,144 @@
+# Node-RED
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Upload Node-RED installer script
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/node-red/update-nodejs-and-nodered"
+    dest: /usr/src
+    mode: "0755"
+
+- name: Create node-red user
+  ansible.builtin.user:
+    name: node-red
+    comment: Node-RED service user
+    groups: sudo, plugdev, video, adm, dialout
+    append: true
+    password: "!"
+
+- name: Copy node-red.sudoers
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/node-red/node-red.sudoers"
+    dest: /etc/sudoers.d/node-red
+    mode: "0440"
+
+- name: Run update-nodejs-and-nodered installer
+  ansible.builtin.command:
+    cmd: /bin/bash /usr/src/update-nodejs-and-nodered --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
+    creates: /home/node-red/.node-red
+  become: true
+  become_user: node-red
+
+- name: Copy settings.js
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/node-red/settings.js"
+    dest: /home/node-red/.node-red/settings.js
+    owner: node-red
+    group: node-red
+    mode: "0640"
+
+# - name: Copy flows_cred.json
+#   ansible.builtin.copy:
+#     src: "{{ shared_files }}/node-red/flows_cred.json"
+#     dest: /home/node-red/.node-red/flows_cred.json
+#     owner: node-red
+#     group: node-red
+#     mode: "0640"
+
+- name: Copy package.json
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/node-red/package.json"
+    dest: /home/node-red/.node-red/package.json
+    owner: node-red
+    group: node-red
+    mode: "0640"
+
+- name: Copy aryaos_flows.json to aryaos_flows.json
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/node-red/aryaos_flows.json"
+    dest: /home/node-red/.node-red/aryaos_flows.json
+    owner: node-red
+    group: node-red
+    mode: "0640"
+
+- name: Copy aryaos_flows.json to flows.json
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/node-red/aryaos_flows.json"
+    dest: /home/node-red/.node-red/flows.json
+    owner: node-red
+    group: node-red
+    mode: "0640"
+
+- name: Install Node-RED Nodes
+  ansible.builtin.command:
+    cmd: npm install 
+    chdir: /home/node-red/.node-red
+    creates: /home/node-red/.node-red/node_modules/node-red-contrib-tak
+  become: true
+  become_user: node-red
+
+- name: Set ownership of /var/www/html/index.html to node-red
+  ansible.builtin.file:
+    name: /var/www/html/index.html
+    owner: node-red
+    group: node-red
+    mode: "0644"
+
+- name: Set ownership of /var/www/html/recorder to node-red
+  ansible.builtin.file:
+    name: /var/www/html/recorder
+    owner: node-red
+    group: node-red
+    mode: "0755"
+
+- name: Set ownership of /var/www/html to node-red
+  ansible.builtin.file:
+    name: /var/www/html
+    owner: node-red
+    group: node-red
+    mode: "0755"
+
+# Set ownership of /etc/default/*cot to node-red
+- name: Set ownership of /etc/default/*cot to node-red
+  ansible.builtin.find:
+    paths: /etc/default
+    patterns: "*cot"
+  register: cot_files
+
+- name: Set ownership of /etc/default/*cot to node-red
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: node-red
+    group: node-red
+    mode: "0644"
+  with_items: "{{ cot_files.files }}"
+  when: cot_files.matched > 0
+
+- name: Enable node-red service
+  ansible.builtin.systemd_service:
+    name: nodered.service
+    enabled: true
+    daemon_reload: true
+
+# FIXME: Doesn't work in Docker?
+# - name: Test AryaOS Dashboard
+#   ansible.builtin.uri:
+#     url: http://localhost:1880/ui
+#     return_content: true
+#   register: aryaos_dashboard
+#   until: "'Dashboard' not in aryaos_dashboard.content"
+#   retries: 3
+#   when: ansible_virtualization_type != 'docker'

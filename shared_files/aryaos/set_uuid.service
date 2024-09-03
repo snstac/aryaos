@@ -16,7 +16,7 @@
 #
 
 [Unit]
-Description=Sets UUID on the AryaOS systems.
+Description=Sets UUID in AryaOS.
 Documentation=https://aryaos.rtfd.io/en/stable/
 Wants=network.target
 After=network.target

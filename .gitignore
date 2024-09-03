@@ -1,3 +1,7 @@
 /deploy/
 /config.local
 .DS_Store
+/deploy/
+/pi-gen/
+/config.local
+.DS_Store

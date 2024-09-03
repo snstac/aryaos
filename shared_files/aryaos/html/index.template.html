@@ -1,0 +1,101 @@
+<!--
+  AryaOS index.html
+
+  Copyright Sensors & Signals LLC https://www.snstac.com
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+  <head>
+    <title>Welcome to AryaOS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uikit.min.css"/>
+    <link href="css/styles.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <div>
+      <h1 class="uk-heading-medium uk-heading-line"><span>AryaOS</span></h1>
+      <p class="uk-margin">The Operating System for Modern Situational Awareness.</p>
+      <p class="uk-margin">IP: {{payload.IP_ADDR}}</p>
+    </div>
+
+    <div uk-grid class=".uk-child-width-expand">
+      <div class="uk-column-1 uk-grid">
+
+        <div>
+          <a class="uk-button uk-button-primary" href="http://{{payload.IP_ADDR}}:1880/ui/">AryaOS Dashboard</a>
+          <div class="uk-list">
+            <ol>
+              <li><a href="http://aryaos.local:1880/ui/">http://aryaos.local:1880/ui/</a></li>
+              <li><a href="http://10.41.0.1:1880/ui/">http://10.41.0.1.local:1880/ui/</a></li>
+              <li><a href="http://{{payload.IP_ADDR}}:1880/ui/">http://{{payload.IP_ADDR}}:1880/ui/</a></li>
+            </ol>
+          </div>
+        </div>
+
+        <div>
+          <a class="uk-button uk-button-secondary" href="http://{{payload.IP_ADDR}}:9080">WiFi Configuration</a>
+          <div class="uk-list">
+            <ol>
+              <li><a href="http://aryaos.local:9080">http://aryaos.local:9080</a></li>
+              <li><a href="http://10.41.0.1:9080">http://10.41.0.1:9080</a></li>
+              <li><a href="http://{{payload.IP_ADDR}}:9080">http://{{payload.IP_ADDR}}:9080</a></li>
+            </ol>
+          </div>
+
+        </div>
+
+        <div>
+          <a class="uk-button uk-button-danger" href="http://{{payload.IP_ADDR}}:1880">Node-RED</a>
+          <div class="uk-list">
+            <ol>
+              <li><a href="http://aryaos.local:1880">http://aryaos.local:1880</a></li>
+              <li><a href="http://10.41.0.1:1880">http://10.41.0.1:1880</a></li>
+              <li><a href="http://{{payload.IP_ADDR}}:1880">http://{{payload.IP_ADDR}}:1880</a></li>
+            </ol>
+          </div>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="uk-heading-small uk-heading-line">Support</h3>
+      <p class="uk-margin-auto-top">Support is available by emailing: <a href="mailto:info@snstac.com">info@snstac.com</a> or +1-415-598-8226</p>
+    </div>
+
+    <div>
+      <h3 class="uk-heading-small">License</h3>
+      <pre>
+      Copyright Sensors & Signals LLC <a href="https://www.snstac.com">www.snstac.com</a>
+
+        Licensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.  
+      </pre>
+    </div>
+  
+    <script src="js/uikit.min.js"></script>
+    <script src="js/uikit-icons.min.js"></script>
+  </body>
+</html>

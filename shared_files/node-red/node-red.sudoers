@@ -15,6 +15,8 @@
 
 node-red ALL=(root) NOPASSWD: /bin/bash /tmp/update-nodejs-and-nodered --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
 
+node-red ALL=(root) NOPASSWD: /bin/bash /usr/src/update-nodejs-and-nodered --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
+
 node-red ALL=(root) NOPASSWD: /sbin/reboot
 node-red ALL=(root) NOPASSWD: /usr/bin/apt update -qq
 node-red ALL=(root) NOPASSWD: /usr/bin/apt update
@@ -25,6 +27,7 @@ node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/adsbcot /etc/de
 node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/aiscot /etc/default/aiscot
 node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/lincot /etc/default/lincot
 node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/dronecot /etc/default/dronecot
+node-red ALL=(root) NOPASSWD: /usr/bin/cp /home/node-red/tmpConf/aryaos-config.txt /etc/aryaos/aryaos-config.txt
 
 node-red ALL=(root) NOPASSWD: /usr/local/sbin/wifi-nuke.py
 node-red ALL=(root) NOPASSWD: /usr/bin/nmcli device disconnect wlan0

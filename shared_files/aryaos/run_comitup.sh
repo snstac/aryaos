@@ -16,14 +16,14 @@
 # limitations under the License.
 #
 
-
-AOS_CONFIG="/etc/aryaos-config.txt"
-COMITUP_CONF="/etc/comitup.conf"
+AOS_CONFIG="/etc/aryaos/aryaos-config.txt"
 
 if [ -f $AOS_CONFIG ]; then
   # shellcheck source=aryaos-config.txt
-  . "${AOS_CONFIG}"
+  . $AOS_CONFIG
 fi
+
+COMITUP_CONF="/etc/comitup.conf"
 
 if [ ! -f ${COMITUP_CONF} ]; then
   echo "${COMITUP_CONF} doesn't exist, initializing."

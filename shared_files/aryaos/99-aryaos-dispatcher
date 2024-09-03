@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-AOS_CONFIG="/etc/aryaos-config.txt"
+AOS_CONFIG="/etc/aryaos/aryaos-config.txt"
 
 if [ -n "$IP4_NUM_ADDRESSES" ] && [ "$IP4_NUM_ADDRESSES" -gt 0 ]; then
    ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet"

@@ -1,3 +1,7 @@
+## AryaOS 2.0.0
+
+Complete re-write of AryaOS to support both Ansible and Pi-Gen.
+
 ## AryaOS 1.0.0
 
 Rename of AirTAK OS to AryaOS.

@@ -16,6 +16,13 @@
 # limitations under the License.
 #
 
+AOS_CONFIG="/etc/aryaos/aryaos-config.txt"
+
+if [ -f $AOS_CONFIG ]; then
+  # shellcheck source=aryaos-config.txt
+  . $AOS_CONFIG
+fi
+
 # FIXME: https://github.com/snstac/aryaos/issues/48
 logger "AryaOS comitup callback: $*"
 

@@ -119,8 +119,8 @@
             "df765e01751751eb",
             "bb55ecc1c7a7da19"
         ],
-        "x": 464,
-        "y": 59,
+        "x": 724,
+        "y": 159,
         "w": 302,
         "h": 82
     },
@@ -145,16 +145,16 @@
             "e435961c35c6c50f",
             "a693d594320c6842"
         ],
-        "x": 454,
-        "y": 159,
-        "w": 392,
-        "h": 162
+        "x": 714,
+        "y": 259,
+        "w": 572,
+        "h": 142
     },
     {
         "id": "fb90e60944764ed9",
         "type": "group",
         "z": "94cf869050128770",
-        "name": "GPS Fix Dashboard Item",
+        "name": "GPS",
         "style": {
             "fill": "#bfdbef",
             "label": true,
@@ -167,12 +167,14 @@
             "de2c209dbe934060",
             "f20627a1cbc79171",
             "1190f05a50aad89c",
-            "43958e20b7e848a3"
+            "43958e20b7e848a3",
+            "6ffc305ab7e20ec7",
+            "7d93763937acd108"
         ],
-        "x": 34,
-        "y": 379,
-        "w": 692,
-        "h": 162
+        "x": 14,
+        "y": 491.5,
+        "w": 572,
+        "h": 189.5
     },
     {
         "id": "a1d4fe25968a5368",
@@ -189,8 +191,8 @@
             "4f64ec7db13ee424",
             "4338acd2934924cc"
         ],
-        "x": 494,
-        "y": 559,
+        "x": 614,
+        "y": 439,
         "w": 632,
         "h": 109.5
     },
@@ -215,7 +217,7 @@
             "681d2876a7db4f51",
             "d85368cd75bb347e"
         ],
-        "x": 34,
+        "x": 74,
         "y": 19,
         "w": 652,
         "h": 202
@@ -237,7 +239,7 @@
             "ab8919275dc5a1bb",
             "65b80260e6a12016"
         ],
-        "x": 34,
+        "x": 14,
         "y": 239,
         "w": 592,
         "h": 122
@@ -257,9 +259,9 @@
             "b1d1259dd556c68a",
             "267687b40c52261e"
         ],
-        "x": 34,
-        "y": 571.5,
-        "w": 452,
+        "x": 14,
+        "y": 811.5,
+        "w": 412,
         "h": 97
     },
     {
@@ -332,8 +334,8 @@
             "2d5d9381afea8c59",
             "6ee20da0ae45fefa"
         ],
-        "x": 554,
-        "y": 679,
+        "x": 614,
+        "y": 559,
         "w": 912,
         "h": 122
     },
@@ -353,8 +355,8 @@
             "8a9319936729c649",
             "cbbe264f84b53680"
         ],
-        "x": 744,
-        "y": 439,
+        "x": 684,
+        "y": 339,
         "w": 582,
         "h": 82
     },
@@ -373,10 +375,506 @@
             "b2825e8d13e21f82",
             "d033dfa14fa3a005"
         ],
-        "x": 34,
+        "x": 14,
         "y": 691.5,
         "w": 472,
         "h": 97
+    },
+    {
+        "id": "17bfcdcfdf2a4d27",
+        "type": "group",
+        "z": "94cf869050128770",
+        "name": "Get IP Address(es)",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000",
+            "fill": "#bfdbef"
+        },
+        "nodes": [
+            "eba6db50839b1dd3",
+            "fe13b1777995e549",
+            "a8c5db14c632752a",
+            "2273e07e235feb5f",
+            "96eaefd7b076e52f",
+            "08b0c289b467c651",
+            "0461c96c7176906e",
+            "3ffebbc8f353e474",
+            "95371d51b8c1615b",
+            "61d60cef9a4e57a1",
+            "51bd1b0de1b34ae1",
+            "45262697685cd99a",
+            "02fe893dadaa3353",
+            "ca9f0660df3a7823",
+            "773d1f54a175ce44"
+        ],
+        "x": 754,
+        "y": 31.5,
+        "w": 752,
+        "h": 249.5
+    },
+    {
+        "id": "42d1bc7ae7b142a6",
+        "type": "group",
+        "z": "94cf869050128770",
+        "name": "RPI Stats",
+        "style": {
+            "fill": "#bfdbef",
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
+        },
+        "nodes": [
+            "2653a0b0.26d638",
+            "fba68adf.14e13",
+            "7c8379de.068868",
+            "fa5b499.e176cb8",
+            "28b64a2c.b32116",
+            "972ece2a.3dbe8",
+            "6242be99.26ac88",
+            "b9372186.ed1a5",
+            "9b301b09.8c0468",
+            "77573ff2f632057f",
+            "a5da1eb0f58fe89a"
+        ],
+        "x": 14,
+        "y": 919,
+        "w": 692,
+        "h": 229.5
+    },
+    {
+        "id": "ed89357254442b04",
+        "type": "group",
+        "z": "94cf869050128770",
+        "name": "AIS Radio",
+        "style": {
+            "fill": "#bfdbef",
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
+        },
+        "nodes": [
+            "26de6169ed90e52e",
+            "95606cfcb2fc5c04",
+            "617789ed06e6dcdd"
+        ],
+        "x": 14,
+        "y": 371.5,
+        "w": 512,
+        "h": 97
+    },
+    {
+        "id": "96ffdbd12837f1c9",
+        "type": "group",
+        "z": "94cf869050128770",
+        "name": "Uname",
+        "style": {
+            "fill": "#bfdbef",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "6a76f861923d5e5b",
+            "49ef8ba8db452f65",
+            "a7d3342e1a0fbcd2"
+        ],
+        "x": 514,
+        "y": 691.5,
+        "w": 452,
+        "h": 97
+    },
+    {
+        "id": "e06b4c7b65609aad",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "08b06bdbca165793",
+            "88eaf8eb64d89ff4",
+            "3f668133edf0f84f",
+            "0a23b4e8bf31de44"
+        ],
+        "x": 74,
+        "y": 579,
+        "w": 332,
+        "h": 162
+    },
+    {
+        "id": "4e9781912059b8a1",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "37f5c4d1bb24f9e6",
+            "ed16625464077060",
+            "7a51c3912e23af57",
+            "8ea2f2bb4b6daa34"
+        ],
+        "x": 74,
+        "y": 759,
+        "w": 332,
+        "h": 162
+    },
+    {
+        "id": "dee807671e82a919",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "cbbce818d3e35f27",
+            "f37f9b80fb0791de",
+            "a89b330a230704e0",
+            "bafc60ea5328cece"
+        ],
+        "x": 14,
+        "y": 939,
+        "w": 392,
+        "h": 162
+    },
+    {
+        "id": "215c65a24a048d3d",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "e8d964e7b344a009",
+            "cdf495d24dca37ad",
+            "b616c13f08bb9dc2",
+            "a0fafbc376c73af7"
+        ],
+        "x": 54,
+        "y": 1659,
+        "w": 332,
+        "h": 162
+    },
+    {
+        "id": "df4230958ad39177",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "b9352e86c36440c2",
+            "0b1ad5c1909d96d3",
+            "5924d9e81efa421c",
+            "567267aa7e191c59"
+        ],
+        "x": 54,
+        "y": 1479,
+        "w": 332,
+        "h": 162
+    },
+    {
+        "id": "138154d4cd79321b",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "49dd21993eb40575",
+            "1705375d70d3114e",
+            "d7a8d6efef1f9e28",
+            "e8bd7dae231080c6"
+        ],
+        "x": 64,
+        "y": 1299,
+        "w": 332,
+        "h": 162
+    },
+    {
+        "id": "5819e967ea8c9b0f",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "8c1bc2c88f0deda1",
+            "f752b25886f124fc",
+            "4c6c8944f810f549",
+            "d3af8906b419a10d"
+        ],
+        "x": 54,
+        "y": 1119,
+        "w": 352,
+        "h": 162
+    },
+    {
+        "id": "cfb8a93dac2f0ef2",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "df17c4d78bfccd39",
+            "6f76752d1b604a7a",
+            "87d746e00381cae2",
+            "d43d0588bc6618ec"
+        ],
+        "x": 14,
+        "y": 2019,
+        "w": 372,
+        "h": 162
+    },
+    {
+        "id": "4c9fe40da0bdac25",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "d3d073a637fa7533",
+            "aec366735b90c72c",
+            "a8563af155324cda",
+            "de14f2b55b25a970"
+        ],
+        "x": 34,
+        "y": 1839,
+        "w": 352,
+        "h": 162
+    },
+    {
+        "id": "370ef393a7a6d6b9",
+        "type": "group",
+        "z": "1d5c7046712ea9d2",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "845b9d1177e3b3cb",
+            "b93477f99610cb33",
+            "c5ece3c8f3979de8",
+            "3db46a136fb7a24b"
+        ],
+        "x": 34,
+        "y": 2199,
+        "w": 352,
+        "h": 162
+    },
+    {
+        "id": "4b39414d47d8990e",
+        "type": "group",
+        "z": "94cf869050128770",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "4dfeafb5656bdb04",
+            "285ece519bd3976f",
+            "e93dc524c636e92d",
+            "b4b0c83c63e4b4ff",
+            "88070f84d9e74504",
+            "668b9fe6695a20aa",
+            "4317408c7b784c0b",
+            "37f21d650f5fda44"
+        ],
+        "x": 34,
+        "y": 2019,
+        "w": 572,
+        "h": 222
+    },
+    {
+        "id": "ef944c45efbb9c65",
+        "type": "group",
+        "z": "94cf869050128770",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "270f61f0.9af05e",
+            "7ca6ecb.7512014",
+            "d70b7556.a0a9e",
+            "59103f97.07fed"
+        ],
+        "x": 474,
+        "y": 811.5,
+        "w": 632,
+        "h": 97
+    },
+    {
+        "id": "c1ac067b71b7f0d1",
+        "type": "group",
+        "z": "94cf869050128770",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "5dd1990becedf2b0",
+            "b1397733b1721b33",
+            "3261a8dfedfae96d"
+        ],
+        "x": 714,
+        "y": 931.5,
+        "w": 472,
+        "h": 97
+    },
+    {
+        "id": "191c390f76d0d2ec",
+        "type": "group",
+        "z": "94cf869050128770",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "ca3080fa414c682a",
+            "b8c830dc7384cd97",
+            "a37cfd5ee5320ebf"
+        ],
+        "x": 714,
+        "y": 1051.5,
+        "w": 592,
+        "h": 97
+    },
+    {
+        "id": "81280d45cc541850",
+        "type": "group",
+        "z": "94cf869050128770",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "a28b315020b7d27a",
+            "c60c4db3ba0e4894",
+            "542f98595d544bf1",
+            "011958f14ff20b6e",
+            "27f01ee6e020e629",
+            "631e1d7b744b697f"
+        ],
+        "x": 54,
+        "y": 1579,
+        "w": 472,
+        "h": 122
+    },
+    {
+        "id": "6314f8898c679cd3",
+        "type": "group",
+        "z": "4fa67ac9ec0c7369",
+        "name": "Read Config Files",
+        "style": {
+            "stroke": "#000000",
+            "fill": "#bfdbef",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "20bb4cfcf85404b9",
+            "7790857cd1c02015",
+            "b87a918bdc4910dc",
+            "bcd4f9fe3ff42a97",
+            "9ebdda528d43e0ed",
+            "f03da47ad91841c2",
+            "1c2d5f5bc8a23c60",
+            "21b1f508196e9b5a",
+            "38dd95c8bf4641c3",
+            "9c77b6745bbb256f",
+            "09f4ad56eb3fd133"
+        ],
+        "x": 14,
+        "y": 19,
+        "w": 652,
+        "h": 242
     },
     {
         "id": "edc83286b603d84a",
@@ -612,7 +1110,7 @@
         "id": "2ff2aec393c0b08b",
         "type": "ui_link",
         "name": "Home",
-        "link": "http://AryaOS.local",
+        "link": "/home/",
         "icon": "open_in_browser",
         "target": "newtab",
         "order": 1
@@ -641,7 +1139,7 @@
         "id": "20776b02c778704b",
         "type": "ui_link",
         "name": "Recorder",
-        "link": "http://aryaos.local/logs/",
+        "link": "/recorder/",
         "icon": "open_in_browser",
         "target": "newtab",
         "order": 2
@@ -737,6 +1235,66 @@
         "group": "d39a9c40a9e39a06",
         "order": 4,
         "width": 2,
+        "height": 1
+    },
+    {
+        "id": "82605fd0c2672638",
+        "type": "ui_tab",
+        "name": "ADS-B",
+        "icon": "dashboard",
+        "order": 10,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "cd633a77f0c6d2b5",
+        "type": "ui_group",
+        "name": "Stats",
+        "tab": "82605fd0c2672638",
+        "order": 1,
+        "disp": true,
+        "width": "16",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "c6990f638a0669c9",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "f9087e66bb4cd9b2",
+        "order": 6,
+        "width": 10,
+        "height": 1
+    },
+    {
+        "id": "404fe1dd6ef29342",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "f9087e66bb4cd9b2",
+        "order": 26,
+        "width": 10,
+        "height": 1
+    },
+    {
+        "id": "97f9f6249ca11d42",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "f9087e66bb4cd9b2",
+        "order": 36,
+        "width": 10,
+        "height": 1
+    },
+    {
+        "id": "44b2ed38a4ec4913",
+        "type": "ui_spacer",
+        "z": "94cf869050128770",
+        "name": "spacer",
+        "group": "f9087e66bb4cd9b2",
+        "order": 42,
+        "width": 10,
         "height": 1
     },
     {
@@ -841,9 +1399,10 @@
         "id": "08b06bdbca165793",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "e06b4c7b65609aad",
         "name": "Restart adsbcot",
         "group": "f9087e66bb4cd9b2",
-        "order": 11,
+        "order": 24,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -857,11 +1416,11 @@
         "payloadType": "str",
         "topic": "restart",
         "topicType": "str",
-        "x": 430,
-        "y": 620,
+        "x": 180,
+        "y": 700,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "0a23b4e8bf31de44"
             ]
         ]
     },
@@ -872,7 +1431,7 @@
         "g": "bd418afe09349324",
         "name": "",
         "group": "f9087e66bb4cd9b2",
-        "order": 7,
+        "order": 50,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -924,9 +1483,10 @@
         "id": "f37f9b80fb0791de",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "dee807671e82a919",
         "name": "Restart dump1090-fa",
         "group": "f9087e66bb4cd9b2",
-        "order": 21,
+        "order": 16,
         "width": 3,
         "height": 1,
         "passthru": false,
@@ -940,11 +1500,11 @@
         "payloadType": "str",
         "topic": "restart",
         "topicType": "str",
-        "x": 240,
-        "y": 880,
+        "x": 140,
+        "y": 1020,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "bafc60ea5328cece"
             ]
         ]
     },
@@ -952,9 +1512,10 @@
         "id": "87d746e00381cae2",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "cfb8a93dac2f0ef2",
         "name": "Restart dump978-fa",
         "group": "f9087e66bb4cd9b2",
-        "order": 37,
+        "order": 20,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -968,11 +1529,11 @@
         "payloadType": "str",
         "topic": "restart",
         "topicType": "str",
-        "x": 180,
-        "y": 980,
+        "x": 140,
+        "y": 2060,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "d43d0588bc6618ec"
             ]
         ]
     },
@@ -980,9 +1541,10 @@
         "id": "88eaf8eb64d89ff4",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "e06b4c7b65609aad",
         "name": "Disable adsbcot",
         "group": "f9087e66bb4cd9b2",
-        "order": 10,
+        "order": 23,
         "width": 2,
         "height": 1,
         "passthru": false,
@@ -996,11 +1558,11 @@
         "payloadType": "str",
         "topic": "disable",
         "topicType": "str",
-        "x": 430,
-        "y": 580,
+        "x": 180,
+        "y": 660,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "0a23b4e8bf31de44"
             ]
         ]
     },
@@ -1158,9 +1720,10 @@
         "id": "3f668133edf0f84f",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "e06b4c7b65609aad",
         "name": "Enable adsbcot",
         "group": "f9087e66bb4cd9b2",
-        "order": 12,
+        "order": 25,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1174,11 +1737,11 @@
         "payloadType": "str",
         "topic": "enable",
         "topicType": "str",
-        "x": 430,
-        "y": 540,
+        "x": 180,
+        "y": 620,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "0a23b4e8bf31de44"
             ]
         ]
     },
@@ -1186,9 +1749,10 @@
         "id": "cbbce818d3e35f27",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "dee807671e82a919",
         "name": "Disable dump1090-fa",
         "group": "f9087e66bb4cd9b2",
-        "order": 20,
+        "order": 15,
         "width": 2,
         "height": 1,
         "passthru": false,
@@ -1202,11 +1766,11 @@
         "payloadType": "str",
         "topic": "disable",
         "topicType": "str",
-        "x": 240,
-        "y": 840,
+        "x": 140,
+        "y": 980,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "bafc60ea5328cece"
             ]
         ]
     },
@@ -1214,9 +1778,10 @@
         "id": "a89b330a230704e0",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "dee807671e82a919",
         "name": "Enable dump1090-fa",
         "group": "f9087e66bb4cd9b2",
-        "order": 22,
+        "order": 17,
         "width": 3,
         "height": 1,
         "passthru": false,
@@ -1230,11 +1795,11 @@
         "payloadType": "str",
         "topic": "enable",
         "topicType": "str",
-        "x": 240,
-        "y": 920,
+        "x": 140,
+        "y": 1060,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "bafc60ea5328cece"
             ]
         ]
     },
@@ -1242,9 +1807,10 @@
         "id": "df17c4d78bfccd39",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "cfb8a93dac2f0ef2",
         "name": "Disable dump978-fa",
         "group": "f9087e66bb4cd9b2",
-        "order": 36,
+        "order": 19,
         "width": 2,
         "height": 1,
         "passthru": false,
@@ -1258,11 +1824,11 @@
         "payloadType": "str",
         "topic": "disable",
         "topicType": "str",
-        "x": 180,
-        "y": 1060,
+        "x": 140,
+        "y": 2140,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "d43d0588bc6618ec"
             ]
         ]
     },
@@ -1270,9 +1836,10 @@
         "id": "6f76752d1b604a7a",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "cfb8a93dac2f0ef2",
         "name": "Enable dump978-fa",
         "group": "f9087e66bb4cd9b2",
-        "order": 38,
+        "order": 21,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1286,11 +1853,11 @@
         "payloadType": "str",
         "topic": "enable",
         "topicType": "str",
-        "x": 190,
-        "y": 1020,
+        "x": 150,
+        "y": 2100,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "d43d0588bc6618ec"
             ]
         ]
     },
@@ -1300,7 +1867,7 @@
         "z": "1d5c7046712ea9d2",
         "name": "",
         "group": "f9087e66bb4cd9b2",
-        "order": 6,
+        "order": 49,
         "width": 2,
         "height": 1,
         "passthru": false,
@@ -1453,9 +2020,10 @@
         "id": "37f5c4d1bb24f9e6",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "4e9781912059b8a1",
         "name": "Restart readsb",
         "group": "f9087e66bb4cd9b2",
-        "order": 17,
+        "order": 12,
         "width": 3,
         "height": 1,
         "passthru": false,
@@ -1469,11 +2037,11 @@
         "payloadType": "str",
         "topic": "disable",
         "topicType": "str",
-        "x": 340,
-        "y": 780,
+        "x": 180,
+        "y": 880,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "8ea2f2bb4b6daa34"
             ]
         ]
     },
@@ -1481,9 +2049,10 @@
         "id": "ed16625464077060",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "4e9781912059b8a1",
         "name": "Disable readsb",
         "group": "f9087e66bb4cd9b2",
-        "order": 16,
+        "order": 11,
         "width": 2,
         "height": 1,
         "passthru": false,
@@ -1497,11 +2066,11 @@
         "payloadType": "str",
         "topic": "disable",
         "topicType": "str",
-        "x": 340,
-        "y": 740,
+        "x": 180,
+        "y": 840,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "8ea2f2bb4b6daa34"
             ]
         ]
     },
@@ -1509,9 +2078,10 @@
         "id": "7a51c3912e23af57",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "4e9781912059b8a1",
         "name": "Enable readsb",
         "group": "f9087e66bb4cd9b2",
-        "order": 18,
+        "order": 13,
         "width": 3,
         "height": 1,
         "passthru": false,
@@ -1525,11 +2095,11 @@
         "payloadType": "str",
         "topic": "enable",
         "topicType": "str",
-        "x": 340,
-        "y": 700,
+        "x": 180,
+        "y": 800,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "8ea2f2bb4b6daa34"
             ]
         ]
     },
@@ -1545,8 +2115,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 570,
-        "y": 1040,
+        "x": 650,
+        "y": 1440,
         "wires": [
             [
                 "892008ebaff339b8"
@@ -1557,9 +2127,10 @@
         "id": "8c1bc2c88f0deda1",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "5819e967ea8c9b0f",
         "name": "Restart Node-RED",
         "group": "f9087e66bb4cd9b2",
-        "order": 25,
+        "order": 58,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1573,11 +2144,11 @@
         "payloadType": "str",
         "topic": "restart",
         "topicType": "str",
-        "x": 230,
-        "y": 1120,
+        "x": 170,
+        "y": 1160,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "d3af8906b419a10d"
             ]
         ]
     },
@@ -1585,9 +2156,10 @@
         "id": "f752b25886f124fc",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "5819e967ea8c9b0f",
         "name": "Disable Node-RED",
         "group": "f9087e66bb4cd9b2",
-        "order": 24,
+        "order": 57,
         "width": 2,
         "height": 1,
         "passthru": false,
@@ -1601,11 +2173,11 @@
         "payloadType": "str",
         "topic": "disable",
         "topicType": "str",
-        "x": 230,
-        "y": 1200,
+        "x": 170,
+        "y": 1240,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "d3af8906b419a10d"
             ]
         ]
     },
@@ -1613,9 +2185,10 @@
         "id": "4c6c8944f810f549",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "5819e967ea8c9b0f",
         "name": "Enable Node-RED",
         "group": "f9087e66bb4cd9b2",
-        "order": 26,
+        "order": 59,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1629,11 +2202,11 @@
         "payloadType": "str",
         "topic": "enable",
         "topicType": "str",
-        "x": 230,
-        "y": 1160,
+        "x": 170,
+        "y": 1200,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "d3af8906b419a10d"
             ]
         ]
     },
@@ -1641,9 +2214,10 @@
         "id": "49dd21993eb40575",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "138154d4cd79321b",
         "name": "Restart lincot",
         "group": "f9087e66bb4cd9b2",
-        "order": 29,
+        "order": 46,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1657,11 +2231,11 @@
         "payloadType": "str",
         "topic": "restart",
         "topicType": "str",
-        "x": 260,
-        "y": 1280,
+        "x": 170,
+        "y": 1340,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "e8bd7dae231080c6"
             ]
         ]
     },
@@ -1669,9 +2243,10 @@
         "id": "1705375d70d3114e",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "138154d4cd79321b",
         "name": "Disable lincot",
         "group": "f9087e66bb4cd9b2",
-        "order": 28,
+        "order": 45,
         "width": 2,
         "height": 1,
         "passthru": false,
@@ -1685,11 +2260,11 @@
         "payloadType": "str",
         "topic": "disable",
         "topicType": "str",
-        "x": 260,
-        "y": 1360,
+        "x": 170,
+        "y": 1420,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "e8bd7dae231080c6"
             ]
         ]
     },
@@ -1697,9 +2272,10 @@
         "id": "d7a8d6efef1f9e28",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "138154d4cd79321b",
         "name": "Enable lincot",
         "group": "f9087e66bb4cd9b2",
-        "order": 30,
+        "order": 47,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1713,11 +2289,11 @@
         "payloadType": "str",
         "topic": "enable",
         "topicType": "str",
-        "x": 260,
-        "y": 1320,
+        "x": 170,
+        "y": 1380,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "e8bd7dae231080c6"
             ]
         ]
     },
@@ -1725,9 +2301,10 @@
         "id": "b9352e86c36440c2",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "df4230958ad39177",
         "name": "Restart gpsd",
         "group": "f9087e66bb4cd9b2",
-        "order": 33,
+        "order": 54,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1741,11 +2318,11 @@
         "payloadType": "str",
         "topic": "restart",
         "topicType": "str",
-        "x": 330,
-        "y": 1420,
+        "x": 150,
+        "y": 1520,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "567267aa7e191c59"
             ]
         ]
     },
@@ -1753,9 +2330,10 @@
         "id": "5924d9e81efa421c",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "df4230958ad39177",
         "name": "Disable gpsd",
         "group": "f9087e66bb4cd9b2",
-        "order": 32,
+        "order": 53,
         "width": 2,
         "height": 1,
         "passthru": false,
@@ -1769,11 +2347,11 @@
         "payloadType": "str",
         "topic": "disable",
         "topicType": "str",
-        "x": 330,
-        "y": 1500,
+        "x": 150,
+        "y": 1600,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "567267aa7e191c59"
             ]
         ]
     },
@@ -1781,9 +2359,10 @@
         "id": "0b1ad5c1909d96d3",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "df4230958ad39177",
         "name": "Enable gpsd",
         "group": "f9087e66bb4cd9b2",
-        "order": 34,
+        "order": 55,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1797,11 +2376,11 @@
         "payloadType": "str",
         "topic": "enable",
         "topicType": "str",
-        "x": 330,
-        "y": 1460,
+        "x": 150,
+        "y": 1560,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "567267aa7e191c59"
             ]
         ]
     },
@@ -1809,9 +2388,10 @@
         "id": "e8d964e7b344a009",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "215c65a24a048d3d",
         "name": "Restart aiscot",
         "group": "f9087e66bb4cd9b2",
-        "order": 41,
+        "order": 34,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1825,11 +2405,11 @@
         "payloadType": "str",
         "topic": "restart",
         "topicType": "str",
-        "x": 380,
-        "y": 1600,
+        "x": 160,
+        "y": 1700,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "a0fafbc376c73af7"
             ]
         ]
     },
@@ -1837,9 +2417,10 @@
         "id": "cdf495d24dca37ad",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "215c65a24a048d3d",
         "name": "Disable aiscot",
         "group": "f9087e66bb4cd9b2",
-        "order": 40,
+        "order": 33,
         "width": 2,
         "height": 1,
         "passthru": false,
@@ -1853,11 +2434,11 @@
         "payloadType": "str",
         "topic": "disable",
         "topicType": "str",
-        "x": 380,
-        "y": 1680,
+        "x": 160,
+        "y": 1780,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "a0fafbc376c73af7"
             ]
         ]
     },
@@ -1865,9 +2446,10 @@
         "id": "b616c13f08bb9dc2",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
+        "g": "215c65a24a048d3d",
         "name": "Enable aiscot",
         "group": "f9087e66bb4cd9b2",
-        "order": 42,
+        "order": 35,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1881,11 +2463,11 @@
         "payloadType": "str",
         "topic": "enable",
         "topicType": "str",
-        "x": 380,
-        "y": 1640,
+        "x": 160,
+        "y": 1740,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "a0fafbc376c73af7"
             ]
         ]
     },
@@ -1893,9 +2475,10 @@
         "id": "d3d073a637fa7533",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
-        "name": "Restart dronecot",
+        "g": "4c9fe40da0bdac25",
+        "name": "Restart DroneCOT",
         "group": "f9087e66bb4cd9b2",
-        "order": 45,
+        "order": 40,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1905,15 +2488,15 @@
         "bgcolor": "white",
         "className": "",
         "icon": "",
-        "payload": "dronecot",
+        "payload": "DroneCOT",
         "payloadType": "str",
         "topic": "restart",
         "topicType": "str",
-        "x": 610,
-        "y": 1400,
+        "x": 150,
+        "y": 1880,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "de14f2b55b25a970"
             ]
         ]
     },
@@ -1921,9 +2504,10 @@
         "id": "aec366735b90c72c",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
-        "name": "Disable dronecot",
+        "g": "4c9fe40da0bdac25",
+        "name": "Disable DroneCOT",
         "group": "f9087e66bb4cd9b2",
-        "order": 44,
+        "order": 39,
         "width": 2,
         "height": 1,
         "passthru": false,
@@ -1933,15 +2517,15 @@
         "bgcolor": "white",
         "className": "",
         "icon": "",
-        "payload": "dronecot",
+        "payload": "DroneCOT",
         "payloadType": "str",
         "topic": "disable",
         "topicType": "str",
-        "x": 610,
-        "y": 1480,
+        "x": 150,
+        "y": 1960,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "de14f2b55b25a970"
             ]
         ]
     },
@@ -1949,9 +2533,10 @@
         "id": "a8563af155324cda",
         "type": "ui_button",
         "z": "1d5c7046712ea9d2",
-        "name": "Enable dronecot",
+        "g": "4c9fe40da0bdac25",
+        "name": "Enable DroneCOT",
         "group": "f9087e66bb4cd9b2",
-        "order": 46,
+        "order": 41,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1961,15 +2546,15 @@
         "bgcolor": "white",
         "className": "",
         "icon": "",
-        "payload": "dronecot",
+        "payload": "DroneCOT",
         "payloadType": "str",
         "topic": "enable",
         "topicType": "str",
-        "x": 610,
-        "y": 1440,
+        "x": 150,
+        "y": 1920,
         "wires": [
             [
-                "ec8563d3c093ce78"
+                "de14f2b55b25a970"
             ]
         ]
     },
@@ -1979,7 +2564,7 @@
         "z": "1d5c7046712ea9d2",
         "name": "WiFi Enable",
         "group": "f9087e66bb4cd9b2",
-        "order": 8,
+        "order": 51,
         "width": 4,
         "height": 1,
         "passthru": false,
@@ -1993,8 +2578,305 @@
         "payloadType": "str",
         "topic": "enable",
         "topicType": "str",
-        "x": 590,
-        "y": 1540,
+        "x": 270,
+        "y": 540,
+        "wires": [
+            [
+                "ec8563d3c093ce78"
+            ]
+        ]
+    },
+    {
+        "id": "0a23b4e8bf31de44",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "g": "e06b4c7b65609aad",
+        "name": "MUX",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 660,
+        "wires": [
+            [
+                "ec8563d3c093ce78"
+            ]
+        ]
+    },
+    {
+        "id": "8ea2f2bb4b6daa34",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "g": "4e9781912059b8a1",
+        "name": "MUX",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 840,
+        "wires": [
+            [
+                "ec8563d3c093ce78"
+            ]
+        ]
+    },
+    {
+        "id": "a0fafbc376c73af7",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "g": "215c65a24a048d3d",
+        "name": "MUX",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 1740,
+        "wires": [
+            [
+                "ec8563d3c093ce78"
+            ]
+        ]
+    },
+    {
+        "id": "567267aa7e191c59",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "g": "df4230958ad39177",
+        "name": "MUX",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 1560,
+        "wires": [
+            [
+                "ec8563d3c093ce78"
+            ]
+        ]
+    },
+    {
+        "id": "e8bd7dae231080c6",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "g": "138154d4cd79321b",
+        "name": "MUX",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 1380,
+        "wires": [
+            [
+                "ec8563d3c093ce78"
+            ]
+        ]
+    },
+    {
+        "id": "d3af8906b419a10d",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "g": "5819e967ea8c9b0f",
+        "name": "MUX",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 1200,
+        "wires": [
+            [
+                "ec8563d3c093ce78"
+            ]
+        ]
+    },
+    {
+        "id": "d43d0588bc6618ec",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "g": "cfb8a93dac2f0ef2",
+        "name": "MUX",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 2100,
+        "wires": [
+            [
+                "ec8563d3c093ce78"
+            ]
+        ]
+    },
+    {
+        "id": "de14f2b55b25a970",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "g": "4c9fe40da0bdac25",
+        "name": "MUX",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 1920,
+        "wires": [
+            [
+                "ec8563d3c093ce78"
+            ]
+        ]
+    },
+    {
+        "id": "bafc60ea5328cece",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "g": "dee807671e82a919",
+        "name": "MUX",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 1020,
+        "wires": [
+            [
+                "ec8563d3c093ce78"
+            ]
+        ]
+    },
+    {
+        "id": "845b9d1177e3b3cb",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "g": "370ef393a7a6d6b9",
+        "name": "Restart ais-catcher",
+        "group": "f9087e66bb4cd9b2",
+        "order": 30,
+        "width": 4,
+        "height": 1,
+        "passthru": false,
+        "label": "Restart",
+        "tooltip": "",
+        "color": "black",
+        "bgcolor": "white",
+        "className": "",
+        "icon": "",
+        "payload": "AIS-catcher",
+        "payloadType": "str",
+        "topic": "restart",
+        "topicType": "str",
+        "x": 150,
+        "y": 2240,
+        "wires": [
+            [
+                "3db46a136fb7a24b"
+            ]
+        ]
+    },
+    {
+        "id": "b93477f99610cb33",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "g": "370ef393a7a6d6b9",
+        "name": "Disable ais-catcher",
+        "group": "f9087e66bb4cd9b2",
+        "order": 29,
+        "width": 2,
+        "height": 1,
+        "passthru": false,
+        "label": "Disable",
+        "tooltip": "",
+        "color": "black",
+        "bgcolor": "white",
+        "className": "",
+        "icon": "",
+        "payload": "AIS-catcher",
+        "payloadType": "str",
+        "topic": "disable",
+        "topicType": "str",
+        "x": 150,
+        "y": 2320,
+        "wires": [
+            [
+                "3db46a136fb7a24b"
+            ]
+        ]
+    },
+    {
+        "id": "c5ece3c8f3979de8",
+        "type": "ui_button",
+        "z": "1d5c7046712ea9d2",
+        "g": "370ef393a7a6d6b9",
+        "name": "Enable ais-catcher",
+        "group": "f9087e66bb4cd9b2",
+        "order": 31,
+        "width": 4,
+        "height": 1,
+        "passthru": false,
+        "label": "Enable",
+        "tooltip": "",
+        "color": "black",
+        "bgcolor": "white",
+        "className": "",
+        "icon": "",
+        "payload": "AIS-catcher",
+        "payloadType": "str",
+        "topic": "enable",
+        "topicType": "str",
+        "x": 150,
+        "y": 2280,
+        "wires": [
+            [
+                "3db46a136fb7a24b"
+            ]
+        ]
+    },
+    {
+        "id": "3db46a136fb7a24b",
+        "type": "function",
+        "z": "1d5c7046712ea9d2",
+        "g": "370ef393a7a6d6b9",
+        "name": "MUX",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 2280,
         "wires": [
             [
                 "ec8563d3c093ce78"
@@ -2007,8 +2889,8 @@
         "z": "94cf869050128770",
         "g": "45da34b7e4bdb957",
         "name": "Current Aircraft",
-        "group": "fa4e075e1fa30638",
-        "order": 14,
+        "group": "cd633a77f0c6d2b5",
+        "order": 4,
         "width": 10,
         "height": 5,
         "label": "Current ADS-B Aircraft",
@@ -2040,7 +2922,7 @@
         "outputs": 1,
         "useDifferentColor": false,
         "className": "",
-        "x": 460,
+        "x": 500,
         "y": 100,
         "wires": [
             []
@@ -2059,7 +2941,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 240,
+        "x": 280,
         "y": 120,
         "wires": [
             [
@@ -2079,8 +2961,8 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "g": "45da34b7e4bdb957",
-        "group": "fa4e075e1fa30638",
-        "order": 12,
+        "group": "cd633a77f0c6d2b5",
+        "order": 2,
         "width": 5,
         "height": 1,
         "name": "",
@@ -2092,7 +2974,7 @@
         "font": "",
         "fontSize": 16,
         "color": "#000000",
-        "x": 490,
+        "x": 530,
         "y": 140,
         "wires": []
     },
@@ -2100,6 +2982,7 @@
         "id": "2653a0b0.26d638",
         "type": "ui_gauge",
         "z": "94cf869050128770",
+        "g": "42d1bc7ae7b142a6",
         "name": "",
         "group": "1890881e.83819",
         "order": 2,
@@ -2116,22 +2999,23 @@
             "#e6e600",
             "#ca3838"
         ],
-        "x": 695.5,
-        "y": 851.75,
+        "x": 590,
+        "y": 960,
         "wires": []
     },
     {
         "id": "fba68adf.14e13",
         "type": "exec",
         "z": "94cf869050128770",
+        "g": "42d1bc7ae7b142a6",
         "command": "vcgencmd measure_temp",
         "addpay": false,
         "append": "",
         "useSpawn": "",
         "timer": "",
         "name": "RPi Temp.",
-        "x": 315.5,
-        "y": 871.75,
+        "x": 270,
+        "y": 980,
         "wires": [
             [
                 "fa5b499.e176cb8"
@@ -2144,27 +3028,26 @@
         "id": "7c8379de.068868",
         "type": "inject",
         "z": "94cf869050128770",
-        "name": "",
+        "g": "42d1bc7ae7b142a6",
+        "name": "10s",
         "props": [
             {
-                "p": "payload",
-                "v": "",
-                "vt": "date"
+                "p": "payload"
             },
             {
                 "p": "topic",
-                "v": "",
                 "vt": "str"
             }
         ],
         "repeat": "10",
         "crontab": "",
-        "once": false,
+        "once": true,
+        "onceDelay": "",
         "topic": "",
         "payload": "",
         "payloadType": "date",
         "x": 110,
-        "y": 900,
+        "y": 1040,
         "wires": [
             [
                 "fba68adf.14e13",
@@ -2177,12 +3060,13 @@
         "id": "fa5b499.e176cb8",
         "type": "function",
         "z": "94cf869050128770",
+        "g": "42d1bc7ae7b142a6",
         "name": "",
         "func": "str = msg.payload\nmsg.payload = str.substring(5,9);\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
-        "x": 485.5,
-        "y": 851.75,
+        "x": 420,
+        "y": 980,
         "wires": [
             [
                 "2653a0b0.26d638",
@@ -2194,6 +3078,7 @@
         "id": "28b64a2c.b32116",
         "type": "ui_chart",
         "z": "94cf869050128770",
+        "g": "42d1bc7ae7b142a6",
         "name": "CPU Temperature",
         "group": "1890881e.83819",
         "order": 3,
@@ -2228,8 +3113,8 @@
         "outputs": 1,
         "useDifferentColor": false,
         "className": "",
-        "x": 695.5,
-        "y": 891.75,
+        "x": 590,
+        "y": 1000,
         "wires": [
             []
         ]
@@ -2238,6 +3123,7 @@
         "id": "972ece2a.3dbe8",
         "type": "exec",
         "z": "94cf869050128770",
+        "g": "42d1bc7ae7b142a6",
         "command": "top -d 0.5 -b -n2 | grep \"Cpu(s)\"| awk '{print $2 + $4}'",
         "addpay": false,
         "append": "",
@@ -2245,8 +3131,8 @@
         "timer": "",
         "winHide": false,
         "name": "CPU Load",
-        "x": 315.5,
-        "y": 931.75,
+        "x": 270,
+        "y": 1040,
         "wires": [
             [
                 "a5da1eb0f58fe89a"
@@ -2259,6 +3145,7 @@
         "id": "6242be99.26ac88",
         "type": "exec",
         "z": "94cf869050128770",
+        "g": "42d1bc7ae7b142a6",
         "command": "free | grep Mem | awk '{print 100*($3+$5+$6)/$2}'",
         "addpay": false,
         "append": "",
@@ -2266,8 +3153,8 @@
         "timer": "",
         "winHide": false,
         "name": "Free Memory",
-        "x": 315.5,
-        "y": 991.75,
+        "x": 270,
+        "y": 1100,
         "wires": [
             [
                 "77573ff2f632057f"
@@ -2280,6 +3167,7 @@
         "id": "b9372186.ed1a5",
         "type": "ui_gauge",
         "z": "94cf869050128770",
+        "g": "42d1bc7ae7b142a6",
         "name": "",
         "group": "1890881e.83819",
         "order": 1,
@@ -2296,14 +3184,15 @@
             "#e6e600",
             "#ca3838"
         ],
-        "x": 665.5,
-        "y": 931.75,
+        "x": 600,
+        "y": 1040,
         "wires": []
     },
     {
         "id": "9b301b09.8c0468",
         "type": "ui_gauge",
         "z": "94cf869050128770",
+        "g": "42d1bc7ae7b142a6",
         "name": "Memory",
         "group": "9a96a8b1.92db78",
         "order": 1,
@@ -2324,22 +3213,23 @@
         "seg2": "",
         "diff": false,
         "className": "",
-        "x": 625.5,
-        "y": 991.75,
+        "x": 560,
+        "y": 1100,
         "wires": []
     },
     {
         "id": "270f61f0.9af05e",
         "type": "exec",
         "z": "94cf869050128770",
+        "g": "ef944c45efbb9c65",
         "command": "df -h",
         "addpay": false,
         "append": "",
         "useSpawn": "",
         "timer": "",
         "name": "Disk Usage",
-        "x": 315.5,
-        "y": 1131.75,
+        "x": 750,
+        "y": 860,
         "wires": [
             [
                 "d70b7556.a0a9e"
@@ -2352,6 +3242,7 @@
         "id": "7ca6ecb.7512014",
         "type": "ui_gauge",
         "z": "94cf869050128770",
+        "g": "ef944c45efbb9c65",
         "name": "",
         "group": "72fc319.cc425d",
         "order": 1,
@@ -2368,20 +3259,21 @@
             "#e6e600",
             "#ca3838"
         ],
-        "x": 635.5,
-        "y": 1131.75,
+        "x": 1030,
+        "y": 860,
         "wires": []
     },
     {
         "id": "d70b7556.a0a9e",
         "type": "function",
         "z": "94cf869050128770",
+        "g": "ef944c45efbb9c65",
         "name": "",
         "func": "var re = /([0-9]{2})%/\nvar idx = msg.payload.search(re);\nvar str = msg.payload;\nif (idx >=0) {\n    str = msg.payload.substring(idx, idx + 2);\n}\nmsg.payload = str;\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
-        "x": 495.5,
-        "y": 1131.75,
+        "x": 900,
+        "y": 860,
         "wires": [
             [
                 "7ca6ecb.7512014"
@@ -2392,6 +3284,7 @@
         "id": "59103f97.07fed",
         "type": "inject",
         "z": "94cf869050128770",
+        "g": "ef944c45efbb9c65",
         "name": "",
         "repeat": "60",
         "crontab": "",
@@ -2399,8 +3292,8 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 115.5,
-        "y": 1131.75,
+        "x": 590,
+        "y": 860,
         "wires": [
             [
                 "270f61f0.9af05e"
@@ -2411,6 +3304,7 @@
         "id": "77573ff2f632057f",
         "type": "function",
         "z": "94cf869050128770",
+        "g": "42d1bc7ae7b142a6",
         "name": "function 1",
         "func": "msg.payload = parseFloat(msg.payload).toFixed(1)\nreturn msg;",
         "outputs": 1,
@@ -2418,8 +3312,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 485.5,
-        "y": 991.75,
+        "x": 420,
+        "y": 1100,
         "wires": [
             [
                 "9b301b09.8c0468"
@@ -2430,6 +3324,7 @@
         "id": "a5da1eb0f58fe89a",
         "type": "function",
         "z": "94cf869050128770",
+        "g": "42d1bc7ae7b142a6",
         "name": "Average CPUs",
         "func": "const pl = msg.payload;\n\nconst loads = pl.split(\"\\n\").filter(n => n)\n\nvar total = 0;\nfor (var i = 0; i < loads.length; i++) {\n    total += loads[i];\n}\nvar avg = total / loads.length;\n\n\nmsg.payload = loads;\n\nreturn msg;",
         "outputs": 1,
@@ -2437,8 +3332,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 505.5,
-        "y": 931.75,
+        "x": 440,
+        "y": 1040,
         "wires": [
             [
                 "b9372186.ed1a5"
@@ -2454,7 +3349,7 @@
         "links": [
             "64fa2c00f63bdd53"
         ],
-        "x": 105,
+        "x": 145,
         "y": 120,
         "wires": [
             [
@@ -2469,7 +3364,7 @@
         "g": "45da34b7e4bdb957",
         "name": "ADS-B Dashboard",
         "info": "",
-        "x": 150,
+        "x": 190,
         "y": 60,
         "wires": []
     },
@@ -2478,8 +3373,8 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "g": "45da34b7e4bdb957",
-        "group": "fa4e075e1fa30638",
-        "order": 11,
+        "group": "cd633a77f0c6d2b5",
+        "order": 1,
         "width": 5,
         "height": 1,
         "name": "Current Tracks",
@@ -2491,74 +3386,8 @@
         "font": "",
         "fontSize": 16,
         "color": "#000000",
-        "x": 460,
+        "x": 500,
         "y": 60,
-        "wires": []
-    },
-    {
-        "id": "43b182ea252f059a",
-        "type": "inject",
-        "z": "94cf869050128770",
-        "name": "",
-        "props": [],
-        "repeat": "300",
-        "crontab": "",
-        "once": true,
-        "onceDelay": "30",
-        "topic": "",
-        "x": 110,
-        "y": 1380,
-        "wires": [
-            [
-                "a8c763426a388421"
-            ]
-        ]
-    },
-    {
-        "id": "a8c763426a388421",
-        "type": "exec",
-        "z": "94cf869050128770",
-        "command": "gpsctl",
-        "addpay": false,
-        "append": "",
-        "useSpawn": "",
-        "timer": "5",
-        "winHide": false,
-        "name": "gpsctl",
-        "x": 290,
-        "y": 1380,
-        "wires": [
-            [
-                "6ffc305ab7e20ec7",
-                "5fad15ef4b61bca7"
-            ],
-            [
-                "5fad15ef4b61bca7"
-            ],
-            [
-                "5fad15ef4b61bca7"
-            ]
-        ]
-    },
-    {
-        "id": "6ffc305ab7e20ec7",
-        "type": "ui_text",
-        "z": "94cf869050128770",
-        "group": "fa4e075e1fa30638",
-        "order": 8,
-        "width": 10,
-        "height": 1,
-        "name": "GPSCTL",
-        "label": "GPS Device:",
-        "format": "{{msg.payload}}",
-        "layout": "row-left",
-        "className": "",
-        "style": false,
-        "font": "",
-        "fontSize": 16,
-        "color": "#000000",
-        "x": 460,
-        "y": 1360,
         "wires": []
     },
     {
@@ -2573,8 +3402,8 @@
         "timer": "30",
         "winHide": false,
         "name": "gpspipe",
-        "x": 160,
-        "y": 480,
+        "x": 240,
+        "y": 540,
         "wires": [
             [
                 "7c69f96954e99a9b"
@@ -2588,15 +3417,15 @@
         "type": "inject",
         "z": "94cf869050128770",
         "g": "fb90e60944764ed9",
-        "name": "",
+        "name": "30s",
         "props": [],
         "repeat": "30",
         "crontab": "",
         "once": true,
         "onceDelay": "",
         "topic": "",
-        "x": 130,
-        "y": 420,
+        "x": 110,
+        "y": 540,
         "wires": [
             [
                 "73eb77cde2c7a709"
@@ -2612,8 +3441,8 @@
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 310,
-        "y": 500,
+        "x": 490,
+        "y": 540,
         "wires": [
             [
                 "f20627a1cbc79171"
@@ -2632,8 +3461,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 510,
-        "y": 500,
+        "x": 330,
+        "y": 600,
         "wires": [
             [
                 "43958e20b7e848a3"
@@ -2648,11 +3477,11 @@
         "command": "rtl_test",
         "addpay": false,
         "append": "",
-        "useSpawn": "",
+        "useSpawn": "false",
         "timer": "5",
         "winHide": false,
         "name": "rtl_test",
-        "x": 250,
+        "x": 230,
         "y": 300,
         "wires": [
             [
@@ -2676,7 +3505,7 @@
         "once": true,
         "onceDelay": "",
         "topic": "",
-        "x": 130,
+        "x": 110,
         "y": 300,
         "wires": [
             [
@@ -2690,14 +3519,14 @@
         "z": "94cf869050128770",
         "g": "75d810e2c34e3c4f",
         "name": "SDR List",
-        "func": "//  2>&1|grep -A2 Found|tail -n 2\n\n/*\n * This function takes in an input string and a search term. \n * \n * It then splits the input string into an array of lines, \n * finds the index of the line that contains the search term, \n * and returns the next two lines after the matched line, \n * separated by newlines. \n * \n * If the search term is not found or if there are not enough \n * lines after the match, it returns null.\n*/\nfunction grepA2(inputString, searchTerm) {\n    // Split the input string by newlines\n    const lines = inputString.split('\\n');\n    // Find the index of the matched line\n    const index = lines.findIndex(line => line.includes(searchTerm));\n\n    if (index !== -1 && index < lines.length - 2) {\n        // Return the next two lines after the matched line\n        return lines.slice(index + 1, index + 3).join('\\n');\n    } else {\n        // Return null if the searchTerm is not found or if there are not enough lines after the match\n        return null;\n    }\n}\n\nlet pl = grepA2(msg.payload, \"Found\");\n\nif (typeof pl !== undefined && pl !== null) {\n    msg.payload = pl.split(\"\\n\");\n    return msg;\n}\n",
+        "func": "//  2>&1|grep -A2 Found|tail -n 2\n\n/*\n * This function takes in an input string and a search term. \n * \n * It then splits the input string into an array of lines, \n * finds the index of the line that contains the search term, \n * and returns the next two lines after the matched line, \n * separated by newlines. \n * \n * If the search term is not found or if there are not enough \n * lines after the match, it returns null.\n*/\nfunction grepA2(inputString, searchTerm) {\n    // Split the input string by newlines\n    const lines = inputString.split('\\n');\n\n    // Find the index of the matched line\n    const index = lines.findIndex(line => line.includes(searchTerm));\n    if (index !== -1 && index < lines.length - 2) {\n        // Return the next two lines after the matched line\n        return lines.slice(index + 1, index + 3).join('\\n');\n    } else {\n        // Return null if the searchTerm is not found or if there are not enough lines after the match\n        return \"ERR\\nERR\";\n    }\n}\n\nlet pl = grepA2(msg.payload, \"Found\");\n\nif (typeof pl !== undefined && pl !== null) {\n    msg.payload = pl.split(\"\\n\");\n    return msg;\n}\nreturn {payload: [\"ERROR\", \"ERROR\"]}",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 400,
+        "x": 380,
         "y": 300,
         "wires": [
             [
@@ -2712,7 +3541,7 @@
         "z": "94cf869050128770",
         "g": "75d810e2c34e3c4f",
         "group": "fa4e075e1fa30638",
-        "order": 6,
+        "order": 8,
         "width": 10,
         "height": 1,
         "name": "SDR 1",
@@ -2724,7 +3553,7 @@
         "font": "Arial Black,Arial Black,Gadget,sans-serif",
         "fontSize": 16,
         "color": "#000000",
-        "x": 550,
+        "x": 530,
         "y": 280,
         "wires": []
     },
@@ -2734,7 +3563,7 @@
         "z": "94cf869050128770",
         "g": "75d810e2c34e3c4f",
         "group": "fa4e075e1fa30638",
-        "order": 7,
+        "order": 9,
         "width": 10,
         "height": 1,
         "name": "SDR 2",
@@ -2746,7 +3575,7 @@
         "font": "",
         "fontSize": 16,
         "color": "#000000",
-        "x": 550,
+        "x": 530,
         "y": 320,
         "wires": []
     },
@@ -2754,6 +3583,7 @@
         "id": "5dd1990becedf2b0",
         "type": "inject",
         "z": "94cf869050128770",
+        "g": "c1ac067b71b7f0d1",
         "name": "",
         "props": [],
         "repeat": "300",
@@ -2761,8 +3591,8 @@
         "once": true,
         "onceDelay": "",
         "topic": "",
-        "x": 110,
-        "y": 1220,
+        "x": 810,
+        "y": 980,
         "wires": [
             [
                 "b1397733b1721b33"
@@ -2773,6 +3603,7 @@
         "id": "b1397733b1721b33",
         "type": "exec",
         "z": "94cf869050128770",
+        "g": "c1ac067b71b7f0d1",
         "command": "lsusb|sort",
         "addpay": false,
         "append": "",
@@ -2780,8 +3611,8 @@
         "timer": "",
         "winHide": false,
         "name": "",
-        "x": 300,
-        "y": 1220,
+        "x": 940,
+        "y": 980,
         "wires": [
             [
                 "3261a8dfedfae96d"
@@ -2794,6 +3625,7 @@
         "id": "3261a8dfedfae96d",
         "type": "ui_template",
         "z": "94cf869050128770",
+        "g": "c1ac067b71b7f0d1",
         "group": "985cb816630d7e12",
         "name": "USB Devices",
         "order": 1,
@@ -2805,8 +3637,8 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 470,
-        "y": 1200,
+        "x": 1090,
+        "y": 980,
         "wires": [
             []
         ]
@@ -2815,6 +3647,7 @@
         "id": "ca3080fa414c682a",
         "type": "inject",
         "z": "94cf869050128770",
+        "g": "191c390f76d0d2ec",
         "name": "",
         "props": [],
         "repeat": "300",
@@ -2822,8 +3655,8 @@
         "once": true,
         "onceDelay": "",
         "topic": "",
-        "x": 110,
-        "y": 1280,
+        "x": 810,
+        "y": 1100,
         "wires": [
             [
                 "b8c830dc7384cd97"
@@ -2834,6 +3667,7 @@
         "id": "b8c830dc7384cd97",
         "type": "exec",
         "z": "94cf869050128770",
+        "g": "191c390f76d0d2ec",
         "command": "dmesg|egrep -vi '(^$)'|tail -10",
         "addpay": false,
         "append": "",
@@ -2841,8 +3675,8 @@
         "timer": "",
         "winHide": false,
         "name": "",
-        "x": 360,
-        "y": 1280,
+        "x": 1000,
+        "y": 1100,
         "wires": [
             [
                 "a37cfd5ee5320ebf"
@@ -2855,6 +3689,7 @@
         "id": "a37cfd5ee5320ebf",
         "type": "ui_template",
         "z": "94cf869050128770",
+        "g": "191c390f76d0d2ec",
         "group": "985cb816630d7e12",
         "name": "dmesg Tail",
         "order": 3,
@@ -2866,8 +3701,8 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 610,
-        "y": 1260,
+        "x": 1210,
+        "y": 1100,
         "wires": [
             []
         ]
@@ -2878,7 +3713,7 @@
         "z": "94cf869050128770",
         "g": "fb90e60944764ed9",
         "group": "fa4e075e1fa30638",
-        "order": 9,
+        "order": 11,
         "width": 10,
         "height": 1,
         "name": "GPS Fix?",
@@ -2890,8 +3725,8 @@
         "font": "",
         "fontSize": 16,
         "color": "#000000",
-        "x": 640,
-        "y": 460,
+        "x": 500,
+        "y": 600,
         "wires": []
     },
     {
@@ -2906,8 +3741,8 @@
         "timer": "",
         "winHide": false,
         "name": "",
-        "x": 790,
-        "y": 620,
+        "x": 910,
+        "y": 500,
         "wires": [
             [
                 "4f64ec7db13ee424"
@@ -2923,7 +3758,7 @@
         "g": "a1d4fe25968a5368",
         "group": "fa4e075e1fa30638",
         "name": "Throttle Status",
-        "order": 10,
+        "order": 12,
         "width": 10,
         "height": 3,
         "format": "<strong>Throttle Status</strong>\n<pre><div ng-bind-html=\"msg.payload\"></div></pre>\n",
@@ -2932,8 +3767,8 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 1020,
-        "y": 600,
+        "x": 1140,
+        "y": 480,
         "wires": [
             []
         ]
@@ -2950,8 +3785,8 @@
         "once": true,
         "onceDelay": "",
         "topic": "",
-        "x": 590,
-        "y": 620,
+        "x": 710,
+        "y": 500,
         "wires": [
             [
                 "67c1aa629a2e95af"
@@ -2970,8 +3805,8 @@
         "once": true,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 130,
-        "y": 620,
+        "x": 110,
+        "y": 860,
         "wires": [
             [
                 "b1d1259dd556c68a"
@@ -2990,13 +3825,15 @@
         "timer": "",
         "winHide": false,
         "name": "",
-        "x": 250,
-        "y": 620,
+        "x": 230,
+        "y": 860,
         "wires": [
             [
                 "267687b40c52261e"
             ],
-            [],
+            [
+                "267687b40c52261e"
+            ],
             []
         ]
     },
@@ -3010,7 +3847,7 @@
         "width": 10,
         "height": 1,
         "name": "",
-        "label": "Uptime: ",
+        "label": "",
         "format": "{{msg.payload}}",
         "layout": "row-left",
         "className": "",
@@ -3018,23 +3855,24 @@
         "font": "",
         "fontSize": 16,
         "color": "#000000",
-        "x": 400,
-        "y": 620,
+        "x": 350,
+        "y": 860,
         "wires": []
     },
     {
         "id": "4dfeafb5656bdb04",
         "type": "template",
         "z": "94cf869050128770",
+        "g": "4b39414d47d8990e",
         "name": "Services",
         "field": "payload",
         "fieldType": "msg",
         "format": "handlebars",
         "syntax": "mustache",
-        "template": "[\n    \"adsbcot\",\n    \"dump1090-fa\",\n    \"dump978-fa\",\n    \"comitup\",\n    \"lincot\",\n    \"nodered\",\n    \"gpsd\",\n    \"readsb\",\n    \"aiscot\",\n    \"dronecot\",\n    \"skyaware\",\n    \"tar1090\"\n]",
+        "template": "[\n    \"adsbcot\",\n    \"dump1090-fa\",\n    \"dump978-fa\",\n    \"comitup\",\n    \"lincot\",\n    \"nodered\",\n    \"gpsd\",\n    \"readsb\",\n    \"aiscot\",\n    \"dronecot\",\n    \"skyaware\",\n    \"tar1090\",\n    \"ais-catcher\"\n]",
         "output": "str",
-        "x": 240,
-        "y": 1960,
+        "x": 260,
+        "y": 2080,
         "wires": [
             [
                 "b4b0c83c63e4b4ff"
@@ -3045,15 +3883,16 @@
         "id": "285ece519bd3976f",
         "type": "inject",
         "z": "94cf869050128770",
-        "name": "30s",
+        "g": "4b39414d47d8990e",
+        "name": "10s",
         "props": [],
-        "repeat": "30",
+        "repeat": "10",
         "crontab": "",
         "once": true,
         "onceDelay": "",
         "topic": "",
-        "x": 90,
-        "y": 2000,
+        "x": 130,
+        "y": 2100,
         "wires": [
             [
                 "4dfeafb5656bdb04"
@@ -3064,6 +3903,7 @@
         "id": "e93dc524c636e92d",
         "type": "split",
         "z": "94cf869050128770",
+        "g": "4b39414d47d8990e",
         "name": "",
         "splt": "\\n",
         "spltType": "str",
@@ -3071,8 +3911,8 @@
         "arraySpltType": "len",
         "stream": false,
         "addname": "",
-        "x": 410,
-        "y": 1960,
+        "x": 510,
+        "y": 2080,
         "wires": [
             [
                 "88070f84d9e74504"
@@ -3083,12 +3923,13 @@
         "id": "b4b0c83c63e4b4ff",
         "type": "json",
         "z": "94cf869050128770",
+        "g": "4b39414d47d8990e",
         "name": "",
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 250,
-        "y": 2000,
+        "x": 390,
+        "y": 2080,
         "wires": [
             [
                 "e93dc524c636e92d"
@@ -3099,6 +3940,7 @@
         "id": "88070f84d9e74504",
         "type": "change",
         "z": "94cf869050128770",
+        "g": "4b39414d47d8990e",
         "name": "Set service",
         "rules": [
             {
@@ -3114,8 +3956,8 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 430,
-        "y": 2000,
+        "x": 270,
+        "y": 2140,
         "wires": [
             [
                 "668b9fe6695a20aa"
@@ -3126,6 +3968,7 @@
         "id": "668b9fe6695a20aa",
         "type": "exec",
         "z": "94cf869050128770",
+        "g": "4b39414d47d8990e",
         "command": "systemctl status",
         "addpay": "payload",
         "append": "",
@@ -3133,8 +3976,8 @@
         "timer": "",
         "winHide": false,
         "name": "",
-        "x": 420,
-        "y": 2200,
+        "x": 500,
+        "y": 2140,
         "wires": [
             [
                 "4f78a58561400bb1"
@@ -3171,7 +4014,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 5,
+        "order": 48,
         "width": 10,
         "height": 1,
         "name": "WiFi Status",
@@ -3191,6 +4034,7 @@
         "id": "37f21d650f5fda44",
         "type": "function",
         "z": "94cf869050128770",
+        "g": "4b39414d47d8990e",
         "name": "Set HTML Payload",
         "func": "const pl = msg.payload;\nconst code = pl.code;\n\nswitch (code) {\n    case 0:\n        msg.payload = `OK (${code})`;\n        msg.icon = \"fa-check\"\n        msg.color = \"green\"\n        break;\n    case 3:\n        msg.payload = `Disabled (${code})`;\n        msg.icon = \"fa-exclamation\"\n        msg.color = \"orange\"\n        break;\n    default:\n        msg.payload = `NOT OK (${code})`\n        msg.icon = \"fa-times-circle\"\n        msg.color = \"red\"\n        break;\n}\n\nmsg.payload = `<font color=\"${msg.color}\"><i class=\"fa ${msg.icon}\"></i> ${msg.payload}</font>`\n\nreturn msg;\n",
         "outputs": 1,
@@ -3199,8 +4043,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 630,
-        "y": 2440,
+        "x": 490,
+        "y": 2200,
         "wires": [
             [
                 "07a741936395d2ef"
@@ -3264,11 +4108,16 @@
                 "t": "eq",
                 "v": "dronecot",
                 "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "AIS-catcher",
+                "vt": "str"
             }
         ],
         "checkall": "true",
         "repair": false,
-        "outputs": 10,
+        "outputs": 11,
         "x": 870,
         "y": 2000,
         "wires": [
@@ -3301,6 +4150,9 @@
             ],
             [
                 "6747ef8e64eadae2"
+            ],
+            [
+                "9c2dffddf4d17c2b"
             ]
         ]
     },
@@ -3366,11 +4218,16 @@
                 "t": "eq",
                 "v": "skyaware",
                 "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "ais-catcher",
+                "vt": "str"
             }
         ],
         "checkall": "true",
         "repair": false,
-        "outputs": 11,
+        "outputs": 12,
         "x": 810,
         "y": 2440,
         "wires": [
@@ -3404,7 +4261,10 @@
             [
                 "777555c9c8d0b55f"
             ],
-            []
+            [],
+            [
+                "caf8b47f8d1195cc"
+            ]
         ]
     },
     {
@@ -3433,7 +4293,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 9,
+        "order": 22,
         "width": 10,
         "height": 1,
         "name": "Aircraft to TAK Gateway (adsbcot)",
@@ -3454,7 +4314,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 19,
+        "order": 14,
         "width": 8,
         "height": 1,
         "name": "F/A ADS-B Decoder (dump1090-fa)",
@@ -3475,7 +4335,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 35,
+        "order": 18,
         "width": 0,
         "height": 0,
         "name": "F/A UAT Decoder (dump978-fa)",
@@ -3496,7 +4356,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 23,
+        "order": 56,
         "width": 0,
         "height": 0,
         "name": "Dashboard (Node-RED)",
@@ -3601,11 +4461,11 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 27,
+        "order": 44,
         "width": 0,
         "height": 0,
         "name": "Device TAK Beacon",
-        "label": "Device TAK Beacon",
+        "label": "Device TAK Beacon (lincot)",
         "format": "{{msg.payload}}",
         "layout": "row-spread",
         "className": "",
@@ -3643,7 +4503,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 31,
+        "order": 52,
         "width": 0,
         "height": 0,
         "name": "GPS",
@@ -3663,12 +4523,13 @@
         "id": "4317408c7b784c0b",
         "type": "link in",
         "z": "94cf869050128770",
+        "g": "4b39414d47d8990e",
         "name": "Dashboard Status In",
         "links": [
             "05b15b7858e7cbca"
         ],
-        "x": 125,
-        "y": 1960,
+        "x": 145,
+        "y": 2060,
         "wires": [
             [
                 "4dfeafb5656bdb04"
@@ -3679,18 +4540,20 @@
         "id": "eba6db50839b1dd3",
         "type": "inject",
         "z": "94cf869050128770",
-        "name": "",
+        "g": "17bfcdcfdf2a4d27",
+        "name": "30s",
         "props": [],
         "repeat": "30",
         "crontab": "",
         "once": true,
         "onceDelay": "0.5",
         "topic": "",
-        "x": 130,
-        "y": 1560,
+        "x": 850,
+        "y": 120,
         "wires": [
             [
-                "fe13b1777995e549"
+                "fe13b1777995e549",
+                "0461c96c7176906e"
             ]
         ]
     },
@@ -3698,6 +4561,7 @@
         "id": "fe13b1777995e549",
         "type": "exec",
         "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
         "command": "ip -json addr",
         "addpay": false,
         "append": "",
@@ -3705,8 +4569,8 @@
         "timer": "",
         "winHide": false,
         "name": "",
-        "x": 310,
-        "y": 1560,
+        "x": 990,
+        "y": 80,
         "wires": [
             [
                 "a8c5db14c632752a"
@@ -3719,12 +4583,13 @@
         "id": "a8c5db14c632752a",
         "type": "json",
         "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
         "name": "",
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 450,
-        "y": 1560,
+        "x": 1130,
+        "y": 80,
         "wires": [
             [
                 "96eaefd7b076e52f"
@@ -3735,6 +4600,7 @@
         "id": "2273e07e235feb5f",
         "type": "ui_template",
         "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
         "group": "985cb816630d7e12",
         "name": "IP Interfaces",
         "order": 2,
@@ -3746,8 +4612,8 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 730,
-        "y": 1560,
+        "x": 1410,
+        "y": 80,
         "wires": [
             []
         ]
@@ -3756,6 +4622,7 @@
         "id": "96eaefd7b076e52f",
         "type": "function",
         "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
         "name": "Format",
         "func": "const pl = msg.payload\n\nconst lo0 = pl[0]\nconst eth0 = pl[1]\nconst wlan0 = pl[2]\n\nif (eth0.addr_info.length > 0) {\n    eth0.ip = eth0.addr_info[0].local || \"[NO IP]\"\n}\n\nif (wlan0.addr_info.length > 0) {\n    wlan0.ip = wlan0.addr_info[0].local || \"[NO IP]\"\n}\n\nmsg.payload =  `${eth0.ifname}: ${eth0.ip}\\n\n${wlan0.ifname}: ${wlan0.ip}`;\n\nreturn msg;\n\n",
         "outputs": 1,
@@ -3764,8 +4631,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 580,
-        "y": 1560,
+        "x": 1260,
+        "y": 80,
         "wires": [
             [
                 "2273e07e235feb5f",
@@ -3777,6 +4644,7 @@
         "id": "08b0c289b467c651",
         "type": "ui_template",
         "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
         "group": "fa4e075e1fa30638",
         "name": "IP Interfaces",
         "order": 4,
@@ -3788,8 +4656,8 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 730,
-        "y": 1600,
+        "x": 1410,
+        "y": 120,
         "wires": [
             []
         ]
@@ -3816,8 +4684,8 @@
         "colorlight": "#ffffff",
         "colordark": "#000000",
         "printstatus": true,
-        "x": 1070,
-        "y": 480,
+        "x": 1010,
+        "y": 380,
         "wires": [
             [
                 "cbbe264f84b53680"
@@ -3833,8 +4701,8 @@
         "links": [
             "b104d679e8967f58"
         ],
-        "x": 785,
-        "y": 480,
+        "x": 725,
+        "y": 380,
         "wires": [
             [
                 "8a9319936729c649"
@@ -3854,8 +4722,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 900,
-        "y": 480,
+        "x": 840,
+        "y": 380,
         "wires": [
             [
                 "9f8119755cf73778"
@@ -3878,8 +4746,8 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 1240,
-        "y": 480,
+        "x": 1180,
+        "y": 380,
         "wires": [
             []
         ]
@@ -3910,7 +4778,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 15,
+        "order": 10,
         "width": 8,
         "height": 1,
         "name": "ADSB/X ADS-B Decoder (readsb)",
@@ -3962,7 +4830,7 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 1110,
+        "x": 1100,
         "y": 2220,
         "wires": [
             []
@@ -3973,11 +4841,11 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 39,
+        "order": 32,
         "width": 0,
         "height": 0,
-        "name": "AIS to CoT (aiscot)",
-        "label": "AIS to CoT (aiscot)",
+        "name": "aiscot",
+        "label": "Marine to TAK Gateway (aiscot)",
         "format": "{{msg.payload}}",
         "layout": "row-spread",
         "className": "",
@@ -3985,7 +4853,7 @@
         "font": "Arial Black,Arial Black,Gadget,sans-serif",
         "fontSize": 16,
         "color": "#000000",
-        "x": 1060,
+        "x": 1020,
         "y": 2640,
         "wires": []
     },
@@ -3994,11 +4862,11 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 43,
+        "order": 38,
         "width": 0,
         "height": 0,
-        "name": "Remote ID to CoT (dronecot)",
-        "label": "Remote ID to CoT (dronecot)",
+        "name": "dronecot",
+        "label": "Drone to TAK Gateway (dronecot)",
         "format": "{{msg.payload}}",
         "layout": "row-spread",
         "className": "",
@@ -4006,7 +4874,7 @@
         "font": "Arial Black,Arial Black,Gadget,sans-serif",
         "fontSize": 16,
         "color": "#000000",
-        "x": 1090,
+        "x": 1020,
         "y": 2680,
         "wires": []
     },
@@ -4022,7 +4890,7 @@
         "once": true,
         "onceDelay": "",
         "topic": "",
-        "x": 130,
+        "x": 110,
         "y": 740,
         "wires": [
             [
@@ -4042,13 +4910,15 @@
         "timer": "",
         "winHide": false,
         "name": "",
-        "x": 260,
+        "x": 240,
         "y": 740,
         "wires": [
             [
                 "d033dfa14fa3a005"
             ],
-            [],
+            [
+                "d033dfa14fa3a005"
+            ],
             []
         ]
     },
@@ -4068,7 +4938,7 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 410,
+        "x": 390,
         "y": 740,
         "wires": [
             []
@@ -4079,11 +4949,11 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 13,
+        "order": 8,
         "width": 10,
         "height": 1,
         "name": "",
-        "label": "Aircraft Decoder",
+        "label": "Aircraft (ADS-B) Decoder",
         "format": "{{msg.payload}}",
         "layout": "row-spread",
         "className": "",
@@ -4091,8 +4961,8 @@
         "font": "Arial Black,Arial Black,Gadget,sans-serif",
         "fontSize": 16,
         "color": "#000000",
-        "x": 620,
-        "y": 2660,
+        "x": 290,
+        "y": 2360,
         "wires": []
     },
     {
@@ -4100,7 +4970,7 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "group": "f9087e66bb4cd9b2",
-        "order": 14,
+        "order": 9,
         "width": 2,
         "height": 4,
         "name": "",
@@ -4112,8 +4982,8 @@
         "font": "Arial Narrow,Nimbus Sans L,sans-serif",
         "fontSize": 16,
         "color": "#000000",
-        "x": 680,
-        "y": 2700,
+        "x": 320,
+        "y": 2400,
         "wires": []
     },
     {
@@ -4121,8 +4991,8 @@
         "type": "ui_text",
         "z": "94cf869050128770",
         "g": "45da34b7e4bdb957",
-        "group": "fa4e075e1fa30638",
-        "order": 13,
+        "group": "cd633a77f0c6d2b5",
+        "order": 3,
         "width": 10,
         "height": 1,
         "name": "Last Update",
@@ -4134,7 +5004,7 @@
         "font": "",
         "fontSize": 16,
         "color": "#000000",
-        "x": 590,
+        "x": 630,
         "y": 180,
         "wires": []
     },
@@ -4151,7 +5021,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 440,
+        "x": 480,
         "y": 180,
         "wires": [
             [
@@ -4171,7 +5041,7 @@
         "once": true,
         "onceDelay": "5",
         "topic": "",
-        "x": 130,
+        "x": 170,
         "y": 180,
         "wires": [
             [
@@ -4199,29 +5069,13 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 270,
+        "x": 310,
         "y": 180,
         "wires": [
             [
                 "8db81499fdb5170a"
             ]
         ]
-    },
-    {
-        "id": "5fad15ef4b61bca7",
-        "type": "debug",
-        "z": "94cf869050128770",
-        "name": "debug 30",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 460,
-        "y": 1400,
-        "wires": []
     },
     {
         "id": "7c69f96954e99a9b",
@@ -4235,8 +5089,8 @@
         "arraySpltType": "len",
         "stream": false,
         "addname": "",
-        "x": 290,
-        "y": 460,
+        "x": 370,
+        "y": 540,
         "wires": [
             [
                 "de2c209dbe934060"
@@ -4256,17 +5110,25 @@
                 "t": "eq",
                 "v": "TPV",
                 "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "DEVICES",
+                "vt": "str"
             }
         ],
         "checkall": "true",
         "repair": false,
-        "outputs": 1,
-        "x": 450,
-        "y": 460,
+        "outputs": 2,
+        "x": 170,
+        "y": 620,
         "wires": [
             [
-                "1190f05a50aad89c"
-            ]
+                "1190f05a50aad89c",
+                "7d93763937acd108",
+                "a8a4b7b404c85a1c"
+            ],
+            []
         ]
     },
     {
@@ -4281,8 +5143,8 @@
         "timer": "",
         "winHide": false,
         "name": "",
-        "x": 860,
-        "y": 740,
+        "x": 920,
+        "y": 620,
         "wires": [
             [
                 "5d6ab3c272199b94",
@@ -4297,15 +5159,15 @@
         "type": "inject",
         "z": "94cf869050128770",
         "g": "1d17f399c2310113",
-        "name": "1m",
+        "name": "10s",
         "props": [],
-        "repeat": "60",
+        "repeat": "10",
         "crontab": "",
         "once": true,
         "onceDelay": "0.5",
         "topic": "",
-        "x": 650,
-        "y": 740,
+        "x": 710,
+        "y": 620,
         "wires": [
             [
                 "4a87ab6388bffac2"
@@ -4328,8 +5190,8 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 1090,
-        "y": 760,
+        "x": 1150,
+        "y": 640,
         "wires": [
             []
         ]
@@ -4338,6 +5200,7 @@
         "id": "dc3fd8b497972cae",
         "type": "ui_text",
         "z": "94cf869050128770",
+        "d": true,
         "g": "1d17f399c2310113",
         "group": "fa4e075e1fa30638",
         "order": 3,
@@ -4352,8 +5215,8 @@
         "font": "",
         "fontSize": 16,
         "color": "#000000",
-        "x": 1370,
-        "y": 720,
+        "x": 1430,
+        "y": 600,
         "wires": []
     },
     {
@@ -4376,8 +5239,8 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 1210,
-        "y": 720,
+        "x": 1270,
+        "y": 600,
         "wires": [
             [
                 "dc3fd8b497972cae"
@@ -4393,13 +5256,799 @@
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 1070,
-        "y": 720,
+        "x": 1130,
+        "y": 600,
         "wires": [
             [
                 "2d5d9381afea8c59"
             ]
         ]
+    },
+    {
+        "id": "95606cfcb2fc5c04",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "g": "ed89357254442b04",
+        "name": "10s",
+        "props": [],
+        "repeat": "10",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.5",
+        "topic": "",
+        "x": 110,
+        "y": 420,
+        "wires": [
+            [
+                "617789ed06e6dcdd"
+            ]
+        ]
+    },
+    {
+        "id": "617789ed06e6dcdd",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "g": "ed89357254442b04",
+        "command": "realpath -e /dev/serial/by-id/usb-Silicon*",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "Get dAISy Port",
+        "x": 260,
+        "y": 420,
+        "wires": [
+            [
+                "26de6169ed90e52e"
+            ],
+            [
+                "26de6169ed90e52e"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "26de6169ed90e52e",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "g": "ed89357254442b04",
+        "group": "fa4e075e1fa30638",
+        "order": 7,
+        "width": 10,
+        "height": 1,
+        "name": "AIS Radio: ",
+        "label": "AIS Radio:",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 430,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "6a76f861923d5e5b",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "g": "96ffdbd12837f1c9",
+        "name": "1m",
+        "props": [],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 610,
+        "y": 740,
+        "wires": [
+            [
+                "49ef8ba8db452f65"
+            ]
+        ]
+    },
+    {
+        "id": "49ef8ba8db452f65",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "g": "96ffdbd12837f1c9",
+        "command": "uname -a",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 740,
+        "y": 740,
+        "wires": [
+            [
+                "a7d3342e1a0fbcd2"
+            ],
+            [
+                "a7d3342e1a0fbcd2"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "a7d3342e1a0fbcd2",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "g": "96ffdbd12837f1c9",
+        "group": "fa4e075e1fa30638",
+        "order": 6,
+        "width": 10,
+        "height": 1,
+        "name": "Uname",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 880,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "6ffc305ab7e20ec7",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "g": "fb90e60944764ed9",
+        "group": "fa4e075e1fa30638",
+        "order": 10,
+        "width": 10,
+        "height": 1,
+        "name": "GPSCTL",
+        "label": "GPS Device:",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 500,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "7d93763937acd108",
+        "type": "change",
+        "z": "94cf869050128770",
+        "g": "fb90e60944764ed9",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.device",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 320,
+        "y": 640,
+        "wires": [
+            [
+                "6ffc305ab7e20ec7"
+            ]
+        ]
+    },
+    {
+        "id": "73778daefd7add45",
+        "type": "ui_button",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "f9087e66bb4cd9b2",
+        "order": 7,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Air",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 190,
+        "y": 2500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "04defc3260fd486e",
+        "type": "ui_button",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "f9087e66bb4cd9b2",
+        "order": 27,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Sea",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 190,
+        "y": 2540,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9c0c80f060455e13",
+        "type": "ui_button",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "f9087e66bb4cd9b2",
+        "order": 37,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "UAV",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 190,
+        "y": 2580,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "420df86e9c831d10",
+        "type": "ui_button",
+        "z": "94cf869050128770",
+        "name": "",
+        "group": "f9087e66bb4cd9b2",
+        "order": 43,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Other",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 190,
+        "y": 2620,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9c2dffddf4d17c2b",
+        "type": "ui_template",
+        "z": "94cf869050128770",
+        "group": "985cb816630d7e12",
+        "name": "ais-catcher Status",
+        "order": 9,
+        "width": 20,
+        "height": 5,
+        "format": "<div><strong><div ng-bind-html=\"msg.service\"></div> Status</strong></div>\n<div><pre ng-bind-html=\"msg.payload\"></pre></div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 1110,
+        "y": 2260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "caf8b47f8d1195cc",
+        "type": "ui_text",
+        "z": "94cf869050128770",
+        "group": "f9087e66bb4cd9b2",
+        "order": 28,
+        "width": 0,
+        "height": 0,
+        "name": "ais-catcher",
+        "label": "AIS decoder (ais-catcher)",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": true,
+        "font": "Arial Black,Arial Black,Gadget,sans-serif",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1030,
+        "y": 2720,
+        "wires": []
+    },
+    {
+        "id": "a28b315020b7d27a",
+        "type": "http in",
+        "z": "94cf869050128770",
+        "g": "81280d45cc541850",
+        "name": "",
+        "url": "/recorder",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 1620,
+        "wires": [
+            [
+                "542f98595d544bf1"
+            ]
+        ]
+    },
+    {
+        "id": "c60c4db3ba0e4894",
+        "type": "http response",
+        "z": "94cf869050128770",
+        "g": "81280d45cc541850",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 430,
+        "y": 1620,
+        "wires": []
+    },
+    {
+        "id": "542f98595d544bf1",
+        "type": "function",
+        "z": "94cf869050128770",
+        "g": "81280d45cc541850",
+        "name": "Rewrite",
+        "func": "msg.statusCode = 303;\n\nlet ip = flow.get(\"IP_ADDR\") || \"10.41.0.1\"\n\nmsg.headers = {\n    Location: `http://${ip}/recorder`\n}\n\ndelete msg.payload;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 1620,
+        "wires": [
+            [
+                "c60c4db3ba0e4894"
+            ]
+        ]
+    },
+    {
+        "id": "0461c96c7176906e",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
+        "command": "ip -json route",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 990,
+        "y": 140,
+        "wires": [
+            [
+                "3ffebbc8f353e474"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "3ffebbc8f353e474",
+        "type": "json",
+        "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 1130,
+        "y": 140,
+        "wires": [
+            [
+                "95371d51b8c1615b"
+            ]
+        ]
+    },
+    {
+        "id": "95371d51b8c1615b",
+        "type": "split",
+        "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "payload",
+        "x": 1250,
+        "y": 140,
+        "wires": [
+            [
+                "61d60cef9a4e57a1"
+            ]
+        ]
+    },
+    {
+        "id": "61d60cef9a4e57a1",
+        "type": "switch",
+        "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
+        "name": "",
+        "property": "payload.dst",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "default",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 870,
+        "y": 200,
+        "wires": [
+            [
+                "51bd1b0de1b34ae1"
+            ]
+        ]
+    },
+    {
+        "id": "51bd1b0de1b34ae1",
+        "type": "change",
+        "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.dev",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1020,
+        "y": 200,
+        "wires": [
+            [
+                "45262697685cd99a"
+            ]
+        ]
+    },
+    {
+        "id": "45262697685cd99a",
+        "type": "exec",
+        "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
+        "command": "ip -json addr show dev",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "",
+        "timer": "",
+        "winHide": false,
+        "name": "",
+        "x": 1220,
+        "y": 200,
+        "wires": [
+            [
+                "02fe893dadaa3353"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "02fe893dadaa3353",
+        "type": "json",
+        "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 1390,
+        "y": 200,
+        "wires": [
+            [
+                "ca9f0660df3a7823"
+            ]
+        ]
+    },
+    {
+        "id": "ca9f0660df3a7823",
+        "type": "split",
+        "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "payload",
+        "x": 870,
+        "y": 240,
+        "wires": [
+            [
+                "773d1f54a175ce44"
+            ]
+        ]
+    },
+    {
+        "id": "773d1f54a175ce44",
+        "type": "change",
+        "z": "94cf869050128770",
+        "g": "17bfcdcfdf2a4d27",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "IP_ADDR",
+                "pt": "flow",
+                "to": "payload.addr_info[0].local",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1030,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "011958f14ff20b6e",
+        "type": "http in",
+        "z": "94cf869050128770",
+        "g": "81280d45cc541850",
+        "name": "",
+        "url": "/home",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 1660,
+        "wires": [
+            [
+                "631e1d7b744b697f"
+            ]
+        ]
+    },
+    {
+        "id": "27f01ee6e020e629",
+        "type": "http response",
+        "z": "94cf869050128770",
+        "g": "81280d45cc541850",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 450,
+        "y": 1660,
+        "wires": []
+    },
+    {
+        "id": "631e1d7b744b697f",
+        "type": "function",
+        "z": "94cf869050128770",
+        "g": "81280d45cc541850",
+        "name": "Rewrite",
+        "func": "msg.statusCode = 303;\n\nlet ip = flow.get(\"IP_ADDR\") || \"10.41.0.1\"\n\nmsg.headers = {\n    Location: `http://${ip}/`\n}\n\ndelete msg.payload;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 1660,
+        "wires": [
+            [
+                "27f01ee6e020e629"
+            ]
+        ]
+    },
+    {
+        "id": "50cbef09a1cb2f53",
+        "type": "template",
+        "z": "94cf869050128770",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "",
+        "output": "str",
+        "x": 300,
+        "y": 1300,
+        "wires": [
+            [
+                "096442cc867acdf6"
+            ]
+        ]
+    },
+    {
+        "id": "97cc64f53a3290fa",
+        "type": "file in",
+        "z": "94cf869050128770",
+        "name": "",
+        "filename": "/var/www/html/index.template.html",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 360,
+        "y": 1260,
+        "wires": [
+            [
+                "ea7d50140bceb285"
+            ]
+        ]
+    },
+    {
+        "id": "ea7d50140bceb285",
+        "type": "change",
+        "z": "94cf869050128770",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "template",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 610,
+        "y": 1260,
+        "wires": [
+            [
+                "2673750a64c66a71"
+            ]
+        ]
+    },
+    {
+        "id": "606714461060c13f",
+        "type": "debug",
+        "z": "94cf869050128770",
+        "name": "debug 28",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 680,
+        "y": 1300,
+        "wires": []
+    },
+    {
+        "id": "44b991458afff25d",
+        "type": "inject",
+        "z": "94cf869050128770",
+        "name": "30s",
+        "props": [],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 130,
+        "y": 1260,
+        "wires": [
+            [
+                "97cc64f53a3290fa"
+            ]
+        ]
+    },
+    {
+        "id": "2673750a64c66a71",
+        "type": "function",
+        "z": "94cf869050128770",
+        "name": "Set Payload",
+        "func": "let IP_ADDR = flow.get(\"IP_ADDR\") || \"10.41.0.1\"\n\nmsg.payload = {\n    IP_ADDR: IP_ADDR\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 150,
+        "y": 1300,
+        "wires": [
+            [
+                "50cbef09a1cb2f53"
+            ]
+        ]
+    },
+    {
+        "id": "096442cc867acdf6",
+        "type": "file",
+        "z": "94cf869050128770",
+        "name": "",
+        "filename": "/var/www/html/index.html",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 490,
+        "y": 1300,
+        "wires": [
+            [
+                "606714461060c13f"
+            ]
+        ]
+    },
+    {
+        "id": "a8a4b7b404c85a1c",
+        "type": "debug",
+        "z": "94cf869050128770",
+        "name": "debug 29",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1120,
+        "y": 740,
+        "wires": []
     },
     {
         "id": "605314ea7983779d",
@@ -4498,8 +6147,8 @@
         "id": "37a3c25966f0b291",
         "type": "ui_worldmap",
         "z": "9c4ba3cbc4bd87fa",
-        "group": "fa4e075e1fa30638",
-        "order": 15,
+        "group": "cd633a77f0c6d2b5",
+        "order": 5,
         "width": 0,
         "height": 0,
         "name": "",
@@ -4805,9 +6454,9 @@
         "type": "watch",
         "z": "76732e91104cd622",
         "name": "",
-        "files": "/etc/default/aryaos",
+        "files": "/etc/aryaos/aryaos-config.txt",
         "recursive": "",
-        "x": 140,
+        "x": 150,
         "y": 260,
         "wires": [
             [
@@ -4840,7 +6489,7 @@
         "id": "b104d679e8967f58",
         "type": "link out",
         "z": "76732e91104cd622",
-        "name": "aryaos-config.txt Out",
+        "name": "AryaOS-config.txt Out",
         "mode": "link",
         "links": [
             "a1642742e713d559",
@@ -4865,9 +6514,9 @@
         "once": true,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "/etc/default/aryaos",
+        "payload": "/etc/aryaos/aryaos-config.txt",
         "payloadType": "str",
-        "x": 140,
+        "x": 150,
         "y": 220,
         "wires": [
             [
@@ -5226,8 +6875,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 610,
-        "y": 400,
+        "x": 870,
+        "y": 500,
         "wires": [
             [
                 "9b8548552e7fbfa4"
@@ -5238,6 +6887,7 @@
         "id": "20bb4cfcf85404b9",
         "type": "function",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "Read Conf K/V",
         "func": "const EOL = \"\\n\";  // FIXME: Should be os.EOL.\nconst pl = msg.payload;\nconst readEnvVars = () => pl.split(EOL);\n\nlet configs = flow.get(\"configs\") || {};\nlet config = configs[msg.filename]\n\n/**\n * Finds the key in conf files and returns the corresponding value\n *\n * @param {string} key Key to find\n * @returns {string|null} Value of the key\n */\nconst getConfValue = (key) => {\n    // find the line that contains the key (exact match)\n    const matchedLine = readEnvVars().find((/** @type {string} */ line) => line.split(\"=\")[0] === key);\n\n    // split the line (delimiter is '=') and return the item at index 2\n    return matchedLine !== undefined ? matchedLine.split(\"=\")[1] : null;\n};\n\n\nlet k;\n\nfor (k of Object.keys(config)) {\n    let confVal = getConfValue(k)\n    if (confVal) {\n        config[k] = confVal\n    }\n}\n\nconfigs[msg.filename] = config\nflow.set(\"configs\", configs)\n\nmsg.payload = config;\n\nreturn msg;",
         "outputs": 1,
@@ -5246,8 +6896,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 260,
-        "y": 360,
+        "x": 400,
+        "y": 160,
         "wires": [
             [
                 "7790857cd1c02015"
@@ -5258,6 +6908,7 @@
         "id": "7790857cd1c02015",
         "type": "split",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "",
         "splt": "\\n",
         "spltType": "str",
@@ -5265,8 +6916,8 @@
         "arraySpltType": "len",
         "stream": false,
         "addname": "",
-        "x": 230,
-        "y": 400,
+        "x": 550,
+        "y": 160,
         "wires": [
             [
                 "b87a918bdc4910dc"
@@ -5394,7 +7045,7 @@
         "repair": false,
         "outputs": 22,
         "x": 370,
-        "y": 680,
+        "y": 800,
         "wires": [
             [
                 "2f521601ceea7ce4"
@@ -5452,9 +7103,7 @@
             [
                 "2eebb8889f9ea032"
             ],
-            [
-                "83d408b06d1af375"
-            ]
+            []
         ]
     },
     {
@@ -5475,8 +7124,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 600,
-        "y": 540,
+        "x": 860,
+        "y": 640,
         "wires": [
             [
                 "52d59a8a443b3363"
@@ -5487,6 +7136,7 @@
         "id": "b87a918bdc4910dc",
         "type": "switch",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -5498,8 +7148,8 @@
         "checkall": "true",
         "repair": false,
         "outputs": 1,
-        "x": 230,
-        "y": 440,
+        "x": 110,
+        "y": 220,
         "wires": [
             [
                 "bcd4f9fe3ff42a97"
@@ -5524,8 +7174,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 690,
-        "y": 580,
+        "x": 950,
+        "y": 680,
         "wires": [
             [
                 "52d59a8a443b3363"
@@ -5549,8 +7199,8 @@
         "font": "",
         "fontSize": 16,
         "color": "#000000",
-        "x": 600,
-        "y": 360,
+        "x": 860,
+        "y": 460,
         "wires": []
     },
     {
@@ -5571,8 +7221,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 610,
-        "y": 440,
+        "x": 870,
+        "y": 540,
         "wires": [
             [
                 "9b8548552e7fbfa4"
@@ -5597,8 +7247,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 610,
-        "y": 480,
+        "x": 870,
+        "y": 580,
         "wires": [
             [
                 "9b8548552e7fbfa4"
@@ -5626,12 +7276,11 @@
         "payloadType": "flow",
         "topic": "topic",
         "topicType": "msg",
-        "x": 590,
-        "y": 200,
+        "x": 850,
+        "y": 300,
         "wires": [
             [
-                "a693d594320c6842",
-                "631f87c4233853a4"
+                "a693d594320c6842"
             ]
         ]
     },
@@ -5639,6 +7288,7 @@
         "id": "bcd4f9fe3ff42a97",
         "type": "change",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "",
         "rules": [
             {
@@ -5654,8 +7304,8 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 180,
-        "y": 680,
+        "x": 260,
+        "y": 220,
         "wires": [
             [
                 "b29ad47e816eeb8a"
@@ -5675,8 +7325,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 560,
-        "y": 240,
+        "x": 1180,
+        "y": 300,
         "wires": [
             [
                 "8f90b1c209f39ff8"
@@ -5695,12 +7345,10 @@
         "createDir": false,
         "overwriteFile": "true",
         "encoding": "none",
-        "x": 700,
-        "y": 280,
+        "x": 1200,
+        "y": 360,
         "wires": [
-            [
-                "83463f13b20d8ef3"
-            ]
+            []
         ]
     },
     {
@@ -5716,8 +7364,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 740,
-        "y": 240,
+        "x": 880,
+        "y": 360,
         "wires": [
             [
                 "e435961c35c6c50f"
@@ -5730,15 +7378,15 @@
         "z": "4fa67ac9ec0c7369",
         "g": "a247d145bc97ec4e",
         "name": "Use tmp file",
-        "func": "msg.tmpConfPath = msg.topic.replace(\"/etc/\", \"tmpConf/\")\n\nreturn msg;",
+        "func": "msg.tmpConfPath = msg.topic.replace(\"/boot/\", \"tmpConf/\")\n\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 550,
-        "y": 280,
+        "x": 1050,
+        "y": 360,
         "wires": [
             [
                 "70a02ab5c732adf0"
@@ -5754,12 +7402,11 @@
         "links": [
             "8ef58d62e7fd687c"
         ],
-        "x": 505,
-        "y": 100,
+        "x": 765,
+        "y": 200,
         "wires": [
             [
-                "2d8066d127cb6c44",
-                "59b872f3a0bdee19"
+                "2d8066d127cb6c44"
             ]
         ]
     },
@@ -5769,19 +7416,18 @@
         "z": "4fa67ac9ec0c7369",
         "g": "c5409a5d2b5e28d5",
         "name": "Set Cmd",
-        "func": "let realName = msg.filename.replace(\"tmpConf/\", \"/etc/\").replace(\"/home/node-red/\", \"\")\nmsg.payload = `sudo cp ${msg.filename} ${realName}`\n\nreturn msg;",
+        "func": "let realName = msg.filename.replace(\"tmpConf/\", \"/boot/\").replace(\"/home/node-red/\", \"\")\nmsg.payload = `sudo cp ${msg.filename} ${realName}`\n\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 620,
-        "y": 100,
+        "x": 880,
+        "y": 200,
         "wires": [
             [
-                "bb55ecc1c7a7da19",
-                "59b872f3a0bdee19"
+                "bb55ecc1c7a7da19"
             ]
         ]
     },
@@ -5803,8 +7449,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 620,
-        "y": 940,
+        "x": 880,
+        "y": 1040,
         "wires": [
             [
                 "52d59a8a443b3363"
@@ -5815,6 +7461,7 @@
         "id": "9ebdda528d43e0ed",
         "type": "ui_button",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "",
         "group": "1027f32817e150a0",
         "order": 2,
@@ -5831,8 +7478,8 @@
         "payloadType": "flow",
         "topic": "topic",
         "topicType": "msg",
-        "x": 260,
-        "y": 200,
+        "x": 420,
+        "y": 100,
         "wires": [
             [
                 "9c77b6745bbb256f"
@@ -5843,6 +7490,7 @@
         "id": "f03da47ad91841c2",
         "type": "split",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "",
         "splt": "\\n",
         "spltType": "str",
@@ -5850,8 +7498,8 @@
         "arraySpltType": "len",
         "stream": false,
         "addname": "topic",
-        "x": 230,
-        "y": 280,
+        "x": 110,
+        "y": 160,
         "wires": [
             [
                 "1c2d5f5bc8a23c60"
@@ -5862,6 +7510,7 @@
         "id": "1c2d5f5bc8a23c60",
         "type": "file in",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "",
         "filename": "payload",
         "filenameType": "msg",
@@ -5871,7 +7520,7 @@
         "encoding": "none",
         "allProps": false,
         "x": 240,
-        "y": 320,
+        "y": 160,
         "wires": [
             [
                 "20bb4cfcf85404b9"
@@ -5888,14 +7537,15 @@
         "links": [
             "191a64ffb1ef6aac"
         ],
-        "x": 725,
-        "y": 100,
+        "x": 985,
+        "y": 200,
         "wires": []
     },
     {
         "id": "21b1f508196e9b5a",
         "type": "inject",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "",
         "props": [],
         "repeat": "",
@@ -5903,8 +7553,8 @@
         "once": true,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 150,
-        "y": 120,
+        "x": 110,
+        "y": 100,
         "wires": [
             [
                 "38dd95c8bf4641c3"
@@ -5915,8 +7565,9 @@
         "id": "38dd95c8bf4641c3",
         "type": "function",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "Set Configs",
-        "func": "let configs = {\n    \"/etc/default/adsbcot\": {\n        FEED_URL: \"file:///run/adsb/aircraft.json\", \n        POLL_INTERVAL: null, \n        ALT_UPPER: null, \n        ALT_LOWER: null\n    },\n    \"/etc/default/aryaos\": {\n        NODE_ID: null,\n        COT_URL: \"udp+wo://239.2.3.1:6969\",\n        PYTAK_MULTICAST_LOCAL_ADDR: \"0.0.0.0\",\n        PYTAK_TLS_CLIENT_CERT: null,\n        WIFI_AP_IP: \"10.41.0.1\",\n        COT_ACCESS: \"UNCLASSIFIED\",\n        STATIC_LAT: null,\n        STATIC_LON: null,\n        STATIC_ALT: null,\n        TFR_STATE: \"CA\",\n        PYTAK_TLS_CLIENT_KEY: null,\n        PYTAK_TLS_DONT_VERIFY: null,\n        PYTAK_TLS_DONT_CHECK_HOSTNAME: null,\n        PYTAK_TLS_CLIENT_CAFILE: null,\n        PYTAK_TLS_CLIENT_PASSWORD: null,\n\n    },\n    \"/etc/default/lincot\": {\n        GPS_INFO_CMD: null,\n        CALLSIGN: null\n    }\n}\n\nflow.set(\"configs\", configs)\n\nreturn msg;",
+        "func": "let configs = {\n    \"/etc/default/adsbcot\": {\n        FEED_URL: \"file:///run/adsb/aircraft.json\", \n        POLL_INTERVAL: null, \n        ALT_UPPER: null, \n        ALT_LOWER: null\n    },\n    \"/etc/aryaos/aryaos-config.txt\": {\n        NODE_ID: null,\n        COT_URL: \"udp+wo://239.2.3.1:6969\",\n        PYTAK_MULTICAST_LOCAL_ADDR: \"0.0.0.0\",\n        PYTAK_TLS_CLIENT_CERT: null,\n        WIFI_AP_IP: \"10.41.0.1\",\n        COT_ACCESS: \"UNCLASSIFIED\",\n        STATIC_LAT: null,\n        STATIC_LON: null,\n        STATIC_ALT: null,\n        TFR_STATE: \"CA\",\n        PYTAK_TLS_CLIENT_KEY: null,\n        PYTAK_TLS_DONT_VERIFY: null,\n        PYTAK_TLS_DONT_CHECK_HOSTNAME: null,\n        PYTAK_TLS_CLIENT_CAFILE: null,\n        PYTAK_TLS_CLIENT_PASSWORD: null,\n\n    },\n    \"/etc/default/lincot\": {\n        GPS_INFO_CMD: null,\n        CALLSIGN: null\n    },\n    \"/etc/default/aiscot\": {\n        AIS_PORT: \"505\",\n        COT_STALE: \"3600\",\n        COT_TYPE: \"a-u-S-X-M\",\n        COT_ICON: null,\n        KNOWN_CRAFT: null,\n        INCLUDE_ALL_CRAFT: false,\n        IGNORE_ATON: false,\n    },\n    \"/etc/default/dronecot\": {}\n}\n\nflow.set(\"configs\", configs)\n\nreturn {payload: configs}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -5924,7 +7575,7 @@
         "finalize": "",
         "libs": [],
         "x": 250,
-        "y": 160,
+        "y": 100,
         "wires": [
             [
                 "9ebdda528d43e0ed"
@@ -5935,6 +7586,7 @@
         "id": "9c77b6745bbb256f",
         "type": "function",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "Set Files",
         "func": "const configs = flow.get(\"configs\") || {}\nmsg.payload = Object.keys(configs)\nreturn msg;",
         "outputs": 1,
@@ -5943,8 +7595,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 240,
-        "y": 240,
+        "x": 580,
+        "y": 100,
         "wires": [
             [
                 "f03da47ad91841c2"
@@ -5970,8 +7622,8 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 850,
-        "y": 440,
+        "x": 1110,
+        "y": 540,
         "wires": [
             [
                 "e0a10c197bb93cee"
@@ -5982,13 +7634,13 @@
         "id": "52d59a8a443b3363",
         "type": "change",
         "z": "4fa67ac9ec0c7369",
-        "name": "/etc/default/aryaos",
+        "name": "/etc/aryaos/aryaos-config.txt",
         "rules": [
             {
                 "t": "set",
                 "p": "filename",
                 "pt": "msg",
-                "to": "/etc/default/aryaos",
+                "to": "/etc/aryaos/aryaos-config.txt",
                 "tot": "str"
             }
         ],
@@ -5997,12 +7649,11 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 1090,
-        "y": 660,
+        "x": 1350,
+        "y": 760,
         "wires": [
             [
-                "e0a10c197bb93cee",
-                "86b92497c8d0f36c"
+                "e0a10c197bb93cee"
             ]
         ]
     },
@@ -6018,8 +7669,8 @@
         "arraySpltType": "len",
         "stream": false,
         "addname": "topic",
-        "x": 770,
-        "y": 200,
+        "x": 1030,
+        "y": 300,
         "wires": [
             [
                 "90bbf3ddaabf55d6"
@@ -6030,13 +7681,14 @@
         "id": "09f4ad56eb3fd133",
         "type": "link in",
         "z": "4fa67ac9ec0c7369",
+        "g": "6314f8898c679cd3",
         "name": "Config in",
         "links": [
             "99875f9d26d1f50e",
             "b104d679e8967f58"
         ],
-        "x": 105,
-        "y": 240,
+        "x": 485,
+        "y": 60,
         "wires": [
             [
                 "9c77b6745bbb256f"
@@ -6055,12 +7707,10 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1390,
-        "y": 640,
+        "x": 1870,
+        "y": 760,
         "wires": [
-            [
-                "8e27fbfb0a2496bb"
-            ]
+            []
         ]
     },
     {
@@ -6081,8 +7731,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 610,
-        "y": 640,
+        "x": 870,
+        "y": 740,
         "wires": [
             [
                 "52d59a8a443b3363"
@@ -6107,8 +7757,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 610,
-        "y": 680,
+        "x": 870,
+        "y": 780,
         "wires": [
             [
                 "52d59a8a443b3363"
@@ -6133,62 +7783,13 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 610,
-        "y": 720,
+        "x": 870,
+        "y": 820,
         "wires": [
             [
                 "52d59a8a443b3363"
             ]
         ]
-    },
-    {
-        "id": "631f87c4233853a4",
-        "type": "debug",
-        "z": "4fa67ac9ec0c7369",
-        "name": "debug 13",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 900,
-        "y": 140,
-        "wires": []
-    },
-    {
-        "id": "59b872f3a0bdee19",
-        "type": "debug",
-        "z": "4fa67ac9ec0c7369",
-        "name": "debug 14",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 860,
-        "y": 60,
-        "wires": []
-    },
-    {
-        "id": "83463f13b20d8ef3",
-        "type": "debug",
-        "z": "4fa67ac9ec0c7369",
-        "name": "debug 16",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 900,
-        "y": 320,
-        "wires": []
     },
     {
         "id": "ff7a0b0653db330b",
@@ -6216,8 +7817,8 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 1120,
-        "y": 860,
+        "x": 1400,
+        "y": 880,
         "wires": [
             [
                 "68268787596399d6"
@@ -6243,30 +7844,13 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 1350,
-        "y": 860,
+        "x": 1610,
+        "y": 880,
         "wires": [
             [
                 "e0a10c197bb93cee"
             ]
         ]
-    },
-    {
-        "id": "8e27fbfb0a2496bb",
-        "type": "debug",
-        "z": "4fa67ac9ec0c7369",
-        "name": "debug 18",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1480,
-        "y": 480,
-        "wires": []
     },
     {
         "id": "7e3b2c1fde544a53",
@@ -6286,8 +7870,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 620,
-        "y": 760,
+        "x": 880,
+        "y": 860,
         "wires": [
             [
                 "52d59a8a443b3363"
@@ -6312,8 +7896,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 610,
-        "y": 800,
+        "x": 870,
+        "y": 900,
         "wires": [
             [
                 "52d59a8a443b3363"
@@ -6339,8 +7923,8 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 610,
-        "y": 840,
+        "x": 870,
+        "y": 940,
         "wires": [
             []
         ]
@@ -6363,8 +7947,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 620,
-        "y": 980,
+        "x": 880,
+        "y": 1080,
         "wires": [
             [
                 "52d59a8a443b3363"
@@ -6389,8 +7973,8 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 640,
-        "y": 1020,
+        "x": 900,
+        "y": 1120,
         "wires": [
             [
                 "52d59a8a443b3363"
@@ -6423,8 +8007,8 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 600,
-        "y": 1100,
+        "x": 860,
+        "y": 1200,
         "wires": [
             [
                 "52d59a8a443b3363"
@@ -6457,29 +8041,13 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 620,
-        "y": 1140,
+        "x": 880,
+        "y": 1240,
         "wires": [
             [
                 "52d59a8a443b3363"
             ]
         ]
-    },
-    {
-        "id": "86b92497c8d0f36c",
-        "type": "debug",
-        "z": "4fa67ac9ec0c7369",
-        "name": "debug 28",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1160,
-        "y": 740,
-        "wires": []
     },
     {
         "id": "2eebb8889f9ea032",
@@ -6499,27 +8067,11 @@
         "sendOnBlur": true,
         "className": "",
         "topicType": "str",
-        "x": 630,
-        "y": 1060,
+        "x": 890,
+        "y": 1160,
         "wires": [
             []
         ]
-    },
-    {
-        "id": "83d408b06d1af375",
-        "type": "debug",
-        "z": "4fa67ac9ec0c7369",
-        "name": "debug 29",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 240,
-        "y": 900,
-        "wires": []
     },
     {
         "id": "eeab9ac6513e2cdf",
@@ -7324,8 +8876,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 490,
-        "y": 580,
+        "x": 470,
+        "y": 540,
         "wires": [
             [
                 "40e21166afb5b8b6",

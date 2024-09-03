@@ -20,3 +20,41 @@ sync:
 mkdocs:
 	pip install -r docs/requirements.txt
 	mkdocs serve
+
+aryaaio:
+	ansible-playbook -i inventory.yml -e '@secret' site.yml -l aryaaio
+
+check:
+	ansible-playbook -i inventory.yml -e '@secret' site.yml -l aryaaio --check
+
+
+build: pi-gen
+	sudo ./build.sh
+
+pi-gen:
+	git clone --branch arm64 https://github.com/RPI-Distro/pi-gen.git
+	touch ./pi-gen/stage2/SKIP_IMAGES ./pi-gen/stage2/SKIP_NOOBS
+
+skip:
+	touch pi-gen/stage0/SKIP
+	touch pi-gen/stage1/SKIP
+	touch pi-gen/stage2/SKIP
+
+unskip:
+	rm -f */SKIP
+	rm -f pi-gen/*/SKIP
+
+copyback:
+	scp pi-gen/deploy/image*.zip gba@rorqual.local:~
+
+skip3:
+	touch stage3*/SKIP
+
+skip4:
+	touch stage4*/SKIP
+
+skip5:
+	touch stage5*/SKIP
+
+debauto:
+	ansible-playbook -i inventory.yml -e '@secret' site.yml -l debauto
