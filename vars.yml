@@ -22,6 +22,12 @@ uat_sdr_sn: stx:978:0
 
 readsb_deb_url: https://github.com/snstac/readsb/releases/download/v3.14.1621-2/readsb_3.14.1621_amd64.deb
 
+takserver_rpm: takserver-5.2-RELEASE43.noarch.rpm
+takserver_gpg_key: takserver-public-gpg.key
+pgsql_repo_rpm: pgdg-redhat-repo-latest.noarch.rpm
+
+takserver_users: ["admin", "enroll"]
+
 # FIXME Deprecated old vars for pytak, takproto, aircot, adsbcot, aiscot, dronecot, lincot
 
 # adsbcot_deb: adsbcot_latest_all.deb

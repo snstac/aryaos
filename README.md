@@ -1,6 +1,6 @@
 ![AryaOS Shield](https://aryaos.readthedocs.io/en/latest/media/aryaos_logo-25p.png)
 
-# AryaOS - An Operating Systems for Modern Situational Awareness
+# AryaOS - The Operating Systems for Modern Situational Awareness
 
 AryaOS is a Linux-based operating system with a suite of situational awareness tools pre-installed. 
 
@@ -10,13 +10,8 @@ Features of AryaOS:
 * Browser based low-code development tool for visual programming & open API.
 * Works with all TAK Products, including ATAK, WinTAK, iTAK, TAKX & TAK Server.
 * Runs on inexpensive COTS & low SWaP-C small board computers, including the Raspberry Pi.
-* Includes decoders and gateways for AIS, ADS-B, Remote ID & APRS.
-
-## Products using AryaOS today
-
-* [AirTAK](https://www.snstac.com/airtak): A low SWaP-C device for monitoring and analyzing aviation surveillance data via the Team Awareness Kit (TAK).
-* SeaTAK
-* AirTAK C-UAS
+* Includes decoders and gateways for AIS, ADS-B & Drone Remote ID.
+* Compatible with Intel & Arm (amd64 & arm64) architectures.
 
 # License & Copyright
 

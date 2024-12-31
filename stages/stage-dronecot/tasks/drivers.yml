@@ -16,35 +16,44 @@
 # limitations under the License.
 #
 
+- name: Download realtek-8821cu-dkms package
+  ansible.builtin.get_url:
+    url: "https://github.com/snstac/realtek-8821cu-dkms/releases/download/v1.0.0-beta1/realtek-8821cu-dkms_5.12.0.4-1_amd64.deb"
+    dest: "/usr/src/realtek-8821cu-dkms_5.12.0.4-1_amd64.deb"
+
+# - name: Install realtek-8821cu-dkms package
+#   ansible.builtin.apt:
+#     deb: "/usr/src/realtek-8821cu-dkms_5.12.0.4-1_amd64.deb"
+
 
 # Build and install the RTL8811CU driver
-- name: Clone RTL8811CU
-  ansible.builtin.git:
-    repo: "https://github.com/fastoe/RTL8811CU.git"
-    dest: "/usr/src/RTL8811CU"
-    update: true
-    force: true
+# - name: Clone RTL8811CU
+#   ansible.builtin.git:
+#     repo: "https://github.com/fastoe/RTL8811CU.git"
+#     dest: "/usr/src/RTL8811CU"
+#     update: true
+#     force: true
 
-- name: Set Permissions
-  ansible.builtin.file:
-    path: "/usr/src/RTL8811CU"
-    recurse: yes
-    owner: ansible
-    group: ansible
+# - name: Set Permissions
+#   ansible.builtin.file:
+#     path: "/usr/src/RTL8811CU"
+#     recurse: yes
+#     owner: ansible
+#     group: ansible
 
-- name: Build RTL8811CU
-  ansible.builtin.command:
-    cmd: "make"
-    chdir: "/usr/src/RTL8811CU"
-    creates: "/usr/src/RTL8811CU/8821cu.ko"
-  become: false
+# - name: Build RTL8811CU
+#   ansible.builtin.command:
+#     cmd: "make"
+#     chdir: "/usr/src/RTL8811CU"
+#     creates: "/usr/src/RTL8811CU/8821cu.ko"
+#   become: false
 
-- name: Build & Install RTL8811CU
-  ansible.builtin.command:
-    cmd: "make install"
-    chdir: "/usr/src/RTL8811CU"
-    creates: "/lib/modules/$(uname -r)/kernel/drivers/net/wireless/realtek/rtl8821cu/8812cu.ko"
+# - name: Build & Install RTL8811CU
+#   ansible.builtin.command:
+#     cmd: "make install"
+#     chdir: "/usr/src/RTL8811CU"
+#     creates: "/lib/modules/$(uname -r)/kernel/drivers/net/wireless/realtek/rtl8821cu/8812cu.ko"
 
-- name: Enable RTL8811CU
-  ansible.builtin.command:
-    cmd: "modprobe 8821cu"
+# - name: Enable RTL8811CU
+#   ansible.builtin.command:
+#     cmd: "modprobe 8821cu"

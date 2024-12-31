@@ -15,7 +15,7 @@
 
 
 sync:
-	rsync -va ../aryaos kelp.local:~/src/SNS/
+	rsync -va ../aryaos beast.local:~/work/SNS/
 
 mkdocs:
 	pip install -r docs/requirements.txt
@@ -58,3 +58,6 @@ skip5:
 
 debauto:
 	ansible-playbook -i inventory.yml -e '@secret' site.yml -l debauto
+
+imxtak:
+	ansible-playbook -i inventory.yml -e '@secret' site.yml -l imxtak
