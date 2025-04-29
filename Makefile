@@ -45,7 +45,7 @@ unskip:
 	rm -f pi-gen/*/SKIP
 
 copyback:
-	scp pi-gen/deploy/image*.zip gba@rorqual.local:~
+	scp gba@beast.local:~/work/SNS/aryaos/pi-gen/deploy/image*.zip .
 
 skip3:
 	touch stage3*/SKIP

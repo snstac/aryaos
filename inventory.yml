@@ -17,15 +17,14 @@
 all:
   hosts:
     aryaaio:
-      ansible_host: 172.17.2.204
+      ansible_host: 172.17.2.70
     debauto:
-      ansible_host: 192.168.0.248
+      ansible_host: 192.168.0.202
     rocky-dev:
       ansible_host: 172.17.2.195
     fieldserver:
       ansible_host: 192.168.0.245
     imxtak:
       ansible_host: 192.168.0.45
-
-      
-      
+    wave:
+      ansible_host: 172.17.2.182

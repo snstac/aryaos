@@ -20,10 +20,11 @@
   ansible.builtin.get_url:
     url: "https://github.com/snstac/realtek-8821cu-dkms/releases/download/v1.0.0-beta1/realtek-8821cu-dkms_5.12.0.4-1_amd64.deb"
     dest: "/usr/src/realtek-8821cu-dkms_5.12.0.4-1_amd64.deb"
+    mode: "0644"
 
-# - name: Install realtek-8821cu-dkms package
-#   ansible.builtin.apt:
-#     deb: "/usr/src/realtek-8821cu-dkms_5.12.0.4-1_amd64.deb"
+- name: Install realtek-8821cu-dkms package
+  ansible.builtin.apt:
+    deb: "/usr/src/realtek-8821cu-dkms_5.12.0.4-1_amd64.deb"
 
 
 # Build and install the RTL8811CU driver
