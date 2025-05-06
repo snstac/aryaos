@@ -22,16 +22,16 @@ jobs:
         uses: actions/checkout@v2
       
       # add a step to copy the pi-gen/config file to pi-gen/.env:
-      - name: Copy .env file
-        run: cp pi-gen/config pi-gen/.env
+      # - name: Copy .env file
+      #   run: cp pi-gen/config pi-gen/.env
       
-      - name: Load .env file
-        uses: xom9ikk/dotenv@v2.3.0
-        with:
-          path: pi-gen/
+      # - name: Load .env file
+      #   uses: xom9ikk/dotenv@v2.3.0
+      #   with:
+      #     path: pi-gen/
 
-      - name: Create shared_files directory
-        run: cp -pr shared_files pi-gen/
+      # - name: Create shared_files directory
+      #   run: cp -pr shared_files pi-gen/
 
       - name: Build AryaOS image
         uses: usimd/pi-gen-action@v1
