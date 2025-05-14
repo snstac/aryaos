@@ -36,6 +36,9 @@ jobs:
       - name: Set current working directory
         run: echo "GITHUB_CWD=$(pwd)" >> $GITHUB_ENV
 
+      - name: Set SHARED_FILES dir
+        run: echo "SHARED_FILES=$(pwd)/shared_files" >> $GITHUB_ENV
+
       - name: Build AryaOS image
         uses: usimd/pi-gen-action@v1
         id: build
