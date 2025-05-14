@@ -33,18 +33,6 @@ jobs:
       # - name: Create shared_files directory
       #   run: cp -pr shared_files pi-gen/
 
-      - name: list dir
-        run: |
-          pwd
-          echo "Listing files in the home directory:"
-          ls -al ~
-          echo "Listing files up one directory:"
-          ls -al ..
-          echo "Listing files in the current directory:"
-          ls -la
-          echo "Listing files in the pi-gen directory:"
-          ls -la pi-gen
-          
       - name: Build AryaOS image
         uses: usimd/pi-gen-action@v1
         id: build
@@ -77,6 +65,13 @@ jobs:
           pi-gen-version: arm64
           verbose-output: true
       
+
+      - name: list dir
+        run: |
+          ls -al
+          ls -al pi-gen
+          ls -al pi-gen/build
+    
       - name: Upload Pi-Gen artifact.
         uses: actions/upload-artifact@v4
         with:
