@@ -33,6 +33,9 @@ jobs:
       # - name: Create shared_files directory
       #   run: cp -pr shared_files pi-gen/
 
+      - name: Set current working directory
+        run: echo "GITHUB_CWD=$(pwd)" >> $GITHUB_ENV
+
       - name: Build AryaOS image
         uses: usimd/pi-gen-action@v1
         id: build
@@ -56,7 +59,7 @@ jobs:
           password: ${{ env.FIRST_USER_PASS || 'aryaos415' }}
           pi-gen-release: ${{ env.PI_GEN_RELEASE || 'AryaOS' }}
           release: ${{ env.RELEASE || 'bookworm' }}
-          stage-list: "stage0 stage1 stage2 ../../stages/stage-base"
+          stage-list: "stage0 stage1 stage2 ${{ GITHUB_CWD }}/stages/stage-base"
           wpa-country: ${{ env.WPA_COUNTRY || 'US' }}
           wpa-essid: ${{ env.WPA_ESSID || 'AryaOS-WiFi' }}
           wpa-password: ${{ env.WPA_PASSWORD || 'aryaos415' }}
