@@ -1,4 +1,4 @@
-name: Build pi-gen image
+ame: Build pi-gen image
 
 # on:
 #   push:
@@ -19,7 +19,7 @@ jobs:
       DISABLE_FIRST_BOOT_USER_RENAME: 1
       ENABLE_SSH: 1
     
-      steps:
+    steps:
       - name: Checkout code
         uses: actions/checkout@v2
       
