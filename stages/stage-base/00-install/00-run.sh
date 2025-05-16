@@ -21,6 +21,7 @@
 
 # ZeroTier
 echo "SHARED_FILES=${SHARED_FILES}"
-echo "env.SHARED_FILES=${env.SHARED_FILES}"
-
+echo $(pwd)
+ls -al
+ls -al ..
 install -v -m 755 "${SHARED_FILES:-shared_files}/base/install_zt.sh" "${ROOTFS_DIR}/usr/src/"
