@@ -1,4 +1,4 @@
-ame: Build pi-gen image
+name: Build pi-gen image
 
 # on:
 #   push:
