@@ -18,7 +18,7 @@
 
 - name: Upload ZeroTier install script
   ansible.builtin.copy:
-    src: "shared_files/base/install_zt.sh"
+    src: "${SHARED_FILES}/base/install_zt.sh"
     dest: /usr/src
     mode: "0755"
 

@@ -20,4 +20,7 @@
 # SHARED_FILES=${SHARED_FILES:-../../shared_files}
 
 # ZeroTier
-install -v -m 755 "shared_files/base/install_zt.sh" "${ROOTFS_DIR}/usr/src/"
+echo "SHARED_FILES=${SHARED_FILES}"
+echo "env.SHARED_FILES=${env.SHARED_FILES}"
+
+install -v -m 755 "${SHARED_FILES:-shared_files}/base/install_zt.sh" "${ROOTFS_DIR}/usr/src/"

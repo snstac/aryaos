@@ -14,10 +14,12 @@ on:
 jobs:
   pi-gen-aryaos:
     runs-on: ubuntu-latest
+    
     env:
       DISABLE_FIRST_BOOT_USER_RENAME: 1
       ENABLE_SSH: 1
-    steps:
+    
+      steps:
       - name: Checkout code
         uses: actions/checkout@v2
       
@@ -38,6 +40,9 @@ jobs:
 
       - name: Set SHARED_FILES dir
         run: echo "SHARED_FILES=$(pwd)/shared_files" >> $GITHUB_ENV
+
+      - name: Show env
+        run: env
 
       - name: Build AryaOS image
         uses: usimd/pi-gen-action@v1
