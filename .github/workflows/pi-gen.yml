@@ -47,6 +47,9 @@ jobs:
       - name: Build AryaOS image
         uses: usimd/pi-gen-action@v1
         id: build
+        env:
+          SHARED_FILES: ${{ env.SHARED_FILES }}
+          GITHUB_CWD: ${{ env.GITHUB_CWD }}
         with:
           increase-runner-disk-size: true
 
@@ -75,7 +78,6 @@ jobs:
           keyboard-keymap: ${{ env.KEYBOARD_KEYMAP || 'us' }}
           pi-gen-version: arm64
           verbose-output: true
-      
 
       - name: list dir
         run: |
