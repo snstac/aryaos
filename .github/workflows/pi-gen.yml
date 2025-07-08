@@ -70,7 +70,8 @@ jobs:
           password: ${{ env.FIRST_USER_PASS || 'aryaos415' }}
           pi-gen-release: ${{ env.PI_GEN_RELEASE || 'AryaOS' }}
           release: ${{ env.RELEASE || 'bookworm' }}
-          stage-list: "stage0 stage1 stage2 ${{ env.GITHUB_CWD }}/stages/stage-base"
+          # stage-list: "stage0 stage1 stage2 ${{ env.GITHUB_CWD }}/stages/stage-base"
+          stage-list: "stage0 stage1 stage2"
           wpa-country: ${{ env.WPA_COUNTRY || 'US' }}
           wpa-essid: ${{ env.WPA_ESSID || 'AryaOS-WiFi' }}
           wpa-password: ${{ env.WPA_PASSWORD || 'aryaos415' }}
