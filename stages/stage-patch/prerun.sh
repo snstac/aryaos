@@ -1,7 +1,5 @@
 #!/bin/bash -e
-# 00-run.sh
-#
-# Establishes base configuration for AryaOS.
+# AryaOS prerun.sh
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -16,14 +14,8 @@
 # limitations under the License.
 #
 
-# SHARED_FILES should be set, if not, set it to ../shared_files
-# SHARED_FILES=${SHARED_FILES:-../../shared_files}
+if [ ! -d "${ROOTFS_DIR}" ]; then
+	copy_previous
+fi
 
-# ZeroTier
-echo "SHARED_FILES=${SHARED_FILES}"
-echo $(pwd)
-ls -al
-ls -al ..
-ls -al shared_files
-ls -al ${SHARED_FILES}
-install -v -m 755 "${SHARED_FILES:-../../../shared_files}/base/install_zt.sh" "${ROOTFS_DIR}/usr/src/"
+export SHARED_FILES=../shared_files

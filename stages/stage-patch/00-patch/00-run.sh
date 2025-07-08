@@ -16,14 +16,5 @@
 # limitations under the License.
 #
 
-# SHARED_FILES should be set, if not, set it to ../shared_files
-# SHARED_FILES=${SHARED_FILES:-../../shared_files}
-
-# ZeroTier
-echo "SHARED_FILES=${SHARED_FILES}"
-echo $(pwd)
-ls -al
-ls -al ..
-ls -al shared_files
-ls -al ${SHARED_FILES}
-install -v -m 755 "${SHARED_FILES:-../../../shared_files}/base/install_zt.sh" "${ROOTFS_DIR}/usr/src/"
+echo "Removing pi-gen-src/stage2/EXPORT_IMAGE"
+rm -f pi-gen-src/stage2/EXPORT_IMAGE
