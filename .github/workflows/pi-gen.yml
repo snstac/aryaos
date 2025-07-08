@@ -90,7 +90,7 @@ jobs:
       - name: list dir
         run: |
           ls -al
-          ls -al pi-gen-src/work/aryaos
+          ls -alR pi-gen-src
           
       - name: Archive stage2 directory
         run: |
