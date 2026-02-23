@@ -11,6 +11,10 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pi-gen-aryaos:
     runs-on: ubuntu-latest
@@ -21,7 +25,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       
       # add a step to copy the pi-gen/config file to pi-gen/.env:
       # - name: Copy .env file
@@ -43,6 +47,21 @@ jobs:
 
       - name: Show env
         run: env
+
+      - name: Cache apt-cacher-ng downloads
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt-cacher-ng
+          key: apt-cacher-ng-${{ runner.os }}-${{ hashFiles('stages/**/packages', 'stages/**/*-packages') || 'default' }}
+          restore-keys: |
+            apt-cacher-ng-${{ runner.os }}-
+
+      - name: Set up apt-cacher-ng proxy
+        run: |
+          sudo apt-get install -y apt-cacher-ng
+          # Allow HTTPS repos to pass through the proxy so all apt traffic is cached
+          sudo sed -i 's/^# PassThroughPattern.*/PassThroughPattern: .*/' /etc/apt-cacher-ng/acng.conf
+          sudo service apt-cacher-ng start
 
       # - name: Build RPi base OS image
       #   uses: usimd/pi-gen-action@v1
@@ -103,6 +122,7 @@ jobs:
           GITHUB_CWD: ${{ env.GITHUB_CWD }}
         with:
           increase-runner-disk-size: true
+          apt-proxy: http://172.17.0.1:3142
 
           pi-gen-dir: pi-gen-src
           # Disable the renaming of the first user during the first boot. This make it so 
@@ -129,14 +149,10 @@ jobs:
           keyboard-keymap: ${{ env.KEYBOARD_KEYMAP || 'us' }}
           pi-gen-version: arm64
           verbose-output: true
+          export-last-stage-only: true
 
-      - name: list dir
-        run: |
-          ls -alR
-  
       - name: Upload Pi-Gen artifact.
         uses: actions/upload-artifact@v4
         with:
           name: pi-gen-stage2
-          path: stage2.tar.gz
-          # ${{ steps.build_aryaos.outputs.image-path }}
+          path: ${{ steps.build_aryaos.outputs.image-path }}
