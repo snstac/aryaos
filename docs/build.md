@@ -44,6 +44,7 @@ The workflow `.github/workflows/pi-gen.yml`:
 **Hosted arm64 notes**
 
 - **Public repos** can use **`ubuntu-24.04-arm`** at no extra charge for standard Actions minutes (subject to GitHub policies/limits).
+- **`usimd/pi-gen-action`** mounts **stage directories** into the pi-gen Docker container, but not the whole repo. This workflow passes **`docker-opts`** so **`shared_files/`**, **`manifests/`**, and the checkout **`pi-gen-src/`** appear at the same **`${{ github.workspace }}` paths** inside the container (needed for `../../../shared_files`, **`REPO_ROOT`/manifests**, and **`stage-patch`** edits under **`pi-gen-src`**).
 - If disk pressure persists on hosted runners, consider enabling **`increase-runner-disk-size`** on **`pi-gen-action`** or trimming stages; pi-gen **work/** trees are large.
 
 ### Manual `v*` tags (optional)

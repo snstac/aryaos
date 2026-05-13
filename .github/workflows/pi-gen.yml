@@ -120,6 +120,12 @@ jobs:
           keyboard-keymap: ${{ env.KEYBOARD_KEYMAP }}
           pi-gen-version: arm64
           verbose-output: true
+          # pi-gen-action bind-mounts stage dirs only; custom scripts resolve repo paths like
+          # ${GITHUB_WORKSPACE}/shared_files — bind those trees into the pi-gen Docker container too.
+          docker-opts: >-
+            -v ${{ github.workspace }}/shared_files:${{ github.workspace }}/shared_files:ro
+            -v ${{ github.workspace }}/manifests:${{ github.workspace }}/manifests:ro
+            -v ${{ github.workspace }}/pi-gen-src:${{ github.workspace }}/pi-gen-src
 
       - name: Show deploy output
         if: success()
