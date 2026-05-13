@@ -150,3 +150,41 @@ PyTAK and related `.deb` URLs are defined once in `manifests/aryaos-sensor-packa
 ```bash
 make ansible-syntax
 ```
+
+## Developer loops (faster iteration without an SD card)
+
+When you need something close to AryaOS (e.g. **Cockpit + cockpit-adsbcot + adsbcot**) but do not want to wait for a full pi-gen image, flash, and reboot cycle:
+
+### Incremental image builds (reminder)
+
+Reuse **`.aryaos-pigen-work`** / **`.aryaos-pigen-deploy`**, **`make skip`** after the base exists, **`ARYAOS_APT_CACHE=1`**, and **`NUM_CORES`** — see [AGENTS.md](https://github.com/snstac/aryaos/blob/main/AGENTS.md) and the **Manual build checklist** above. Avoid **`make build-docker-clean`** unless you need a cold rebuild.
+
+### Ansible against a running Debian/arm64 host
+
+[`site.yml`](https://github.com/snstac/aryaos/blob/main/site.yml) drives the same **`stages/stage-*`** trees as roles. Point Ansible at a cloud **arm64** VM, QEMU/UTM guest, or spare Pi already running Debian-tier OS, then install only what you need via tags:
+
+```bash
+ansible-galaxy collection install -r requirements.yml
+ansible-playbook -i inventory.yml site.yml \
+  --limit dev_arm64_example \
+  -e 'aryaos_profile=generic' \
+  --tags base,pytak,adsbcot \
+  --skip-tags hardware
+```
+
+- Add **`aryaos`** (or other tags from [`site.yml`](https://github.com/snstac/aryaos/blob/main/site.yml)) when you need portal/lighttpd/Cockpit proxy behaviour (e.g. **`UrlRoot=/admin`**).
+- **`stage-adsbcot`** may assume **Pi-oriented `.deb` artifacts** (e.g. vendored **arm64** readsb) or hardware; an **amd64** laptop often needs different packages or vars — prefer **arm64** for parity with shipped images.
+
+See commented **`dev_arm64`** stubs in [`inventory.yml`](https://github.com/snstac/aryaos/blob/main/inventory.yml).
+
+### Loop-mount / `nspawn` / `chroot` (advanced)
+
+You can **loop-mount** a built **`.img`**, then **`systemd-nspawn`** or **`chroot`** into the rootfs for package inspection or quick commands. This is **not** a full firmware/kernel/network test and may behave differently than hardware.
+
+### QEMU system arm64
+
+Boot a generic **Debian arm64** cloud image or your produced image under **QEMU** / **UTM** for a closer integration test **without** writing an SD card. Expect lower performance than bare metal.
+
+### cockpit-adsbcot UI-only iteration
+
+Upstream [**cockpit-adsbcot**](https://github.com/snstac/cockpit-adsbcot) documents **`make devel-install`**, which symlinks the built bundle into **`~/.local/share/cockpit/`** on a machine that already runs Cockpit — fastest for **frontend** changes. It does **not** reproduce AryaOS **lighttpd** termination or **`UrlRoot=/admin`** by itself; validate that stack via Ansible or a real image.

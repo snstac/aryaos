@@ -24,3 +24,9 @@
   ansible.builtin.service:
     name: readsb
     state: restarted
+
+- name: Restart Cockpit
+  ansible.builtin.service:
+    name: cockpit
+    state: restarted
+  failed_when: false

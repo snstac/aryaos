@@ -1,0 +1,35 @@
+# code: language=ansible
+# cockpit-adsbcot — Cockpit application for adsbcot (pinned release URL in vars.yml).
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Install cockpit-adsbcot Debian package
+  ansible.builtin.apt:
+    deb: "{{ cockpit_adsbcot_deb_url }}"
+  notify: Restart Cockpit
+
+- name: Verify cockpit-adsbcot Cockpit manifest exists
+  ansible.builtin.stat:
+    path: /usr/share/cockpit/adsbcot/manifest.json
+  register: cockpit_adsbcot_manifest
+
+- name: Assert cockpit-adsbcot UI files installed
+  ansible.builtin.assert:
+    that:
+      - cockpit_adsbcot_manifest.stat.exists
+    fail_msg: >-
+      cockpit-adsbcot manifest missing under /usr/share/cockpit/adsbcot/;
+      check apt/deb install and cockpit_adsbcot_deb_url / cockpit_adsbcot_version in vars.yml.

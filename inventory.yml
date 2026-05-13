@@ -28,3 +28,12 @@ all:
       ansible_host: 192.168.0.45
     wave:
       ansible_host: 172.17.2.182
+
+  # ARM64 dev targets for Ansible iteration without rebuilding/flashing an SD image.
+  # See docs/build.md → "Developer loops".
+  children:
+    dev_arm64:
+      hosts:
+        dev_arm64_example:
+          # RFC 5737 TEST-NET placeholder — replace with your QEMU/cloud/Pi arm64 host IP.
+          ansible_host: 192.0.2.50

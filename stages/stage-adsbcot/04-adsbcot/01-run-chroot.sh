@@ -38,3 +38,6 @@ sed --follow-symlinks -i -E -e "s/^# (FEED_URL.*)/\1/" /etc/default/adsbcot
 
 # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/adsbcot.service if the line does not already exist
 grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/adsbcot.service || sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/adsbcot.service
+
+# Cockpit module for adsbcot (Polkit rules + /usr/share/cockpit/adsbcot). Deb version must match vars.yml.
+dpkg -i /usr/src/cockpit-adsbcot_1.0.8_all.deb

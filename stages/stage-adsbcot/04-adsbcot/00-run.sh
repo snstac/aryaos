@@ -42,3 +42,6 @@ install -v -m 755 "${SHARED_FILES}/adsbcot/run_readsb.sh" "${ROOTFS_DIR}/usr/loc
 install -v -m 644 "${SHARED_FILES}/adsbcot/readsb.service" "${ROOTFS_DIR}/lib/systemd/system/"
 install -v -m 755 "${SHARED_FILES}/adsbcot/readsb-set-location.sh" "${ROOTFS_DIR}/usr/local/bin/"
 install -v -m 755 "${SHARED_FILES}/adsbcot/readsb-gain.sh" "${ROOTFS_DIR}/usr/local/bin/"
+
+# cockpit-adsbcot (Cockpit UI for adsbcot). Filename must match cockpit_adsbcot_version in vars.yml.
+install -v -m 644 "${SHARED_FILES}/adsbcot/cockpit-adsbcot_1.0.8_all.deb" "${ROOTFS_DIR}/usr/src/"

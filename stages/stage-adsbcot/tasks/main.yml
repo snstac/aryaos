@@ -30,6 +30,9 @@
 - name: Include adsbcot
   ansible.builtin.include_tasks: adsbcot.yml
 
+- name: Include cockpit-adsbcot
+  ansible.builtin.include_tasks: cockpit-adsbcot.yml
+
 # Create a task that installs the osmocom-rtl-sdr udev rules
 - name: Install osmocom-rtl-sdr udev rules
   ansible.builtin.copy:

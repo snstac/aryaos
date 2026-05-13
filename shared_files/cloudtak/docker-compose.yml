@@ -1,0 +1,15 @@
+# CloudTAK-SA shim only — full upstream compose omitted on purpose.
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  shim:
+    build:
+      context: ./shim
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8080:8080"
+      - "0.0.0.0:8089:8089"
+      - "0.0.0.0:8443:8443"
+    volumes:
+      - ./shim/certs:/app/certs

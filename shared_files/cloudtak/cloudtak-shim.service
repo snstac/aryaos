@@ -1,0 +1,23 @@
+# systemd unit: CloudTAK standalone shim via Docker Compose
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com
+
+[Unit]
+Description=CloudTAK standalone shim (Docker Compose)
+Documentation=https://github.com/snstac/CloudTAK-SA
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/cloudtak
+# First boot may download npm deps inside the image build; allow ample time on slow links.
+TimeoutStartSec=0
+ExecStart=/usr/bin/docker compose up -d --build
+ExecStop=/usr/bin/docker compose down
+
+[Install]
+WantedBy=multi-user.target

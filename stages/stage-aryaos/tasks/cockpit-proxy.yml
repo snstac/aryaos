@@ -171,14 +171,26 @@
   until: http_to_https.status | int in [301, 302, 307, 308]
   when: ansible_virtualization_type != 'docker'
 
-- name: HTTPS root serves Cockpit (via lighttpd proxy)
+- name: HTTPS root serves portal (not Cockpit)
   ansible.builtin.uri:
     url: https://localhost/
     validate_certs: false
     return_content: true
     status_code: [200]
-  register: cockpit_landing
+  register: portal_landing
   retries: 8
   delay: 4
-  until: cockpit_landing.status | int == 200 and (('cockpit' in cockpit_landing.content | lower) or ('login' in cockpit_landing.content | lower))
+  until: portal_landing.status | int == 200 and ('Welcome to AryaOS' in portal_landing.content)
+  when: ansible_virtualization_type != 'docker'
+
+- name: HTTPS /admin reaches Cockpit (via lighttpd proxy)
+  ansible.builtin.uri:
+    url: https://localhost/admin/
+    validate_certs: false
+    return_content: true
+    status_code: [200]
+  register: cockpit_admin
+  retries: 8
+  delay: 4
+  until: cockpit_admin.status | int == 200 and (('cockpit' in cockpit_admin.content | lower) or ('login' in cockpit_admin.content | lower))
   when: ansible_virtualization_type != 'docker'
