@@ -44,7 +44,7 @@ The workflow `.github/workflows/pi-gen.yml`:
 **Self-hosted prerequisites**
 
 - **Docker** with permission for the runner user to build/run images (often `docker` group).
-- **Privileged-ish binfmt setup:** On **x86_64** builders the workflow runs `docker run --rm --privileged tonistiigi/binfmt:latest --install arm64` so `arch-test`/debootstrap can execute **arm64** binaries. Requires **`/proc/sys/fs/binfmt_misc/register`** to exist after **`sudo modprobe binfmt_misc`** (root mounts the fs; the runner user does not need to write that node directly). The runner user typically needs **passwordless `sudo`** for `modprobe`, and a kernel with **`CONFIG_BINFMT_MISC`**. Docker must allow **`--privileged`**.
+- **Privileged-ish binfmt setup:** On **x86_64** builders the workflow runs **`tonistiigi/binfmt`** and verifies emulation with **`docker run --platform linux/arm64 … uname -m`**. If that fails it retries with **`multiarch/qemu-user-static --reset -p yes`**. It also asks **`pi-gen-action`** to install **`qemu-user-static`** / **`binfmt-support`** on the runner host and **`modprobe binfmt_misc`** (`extra-host-dependencies` / `extra-host-modules`). Requires **`/proc/sys/fs/binfmt_misc/register`** to exist after **`sudo modprobe binfmt_misc`**. Docker must allow **`docker run --privileged`** for those helpers.
 - **Native arm64 runners** (`aarch64`) skip the binfmt image step.
 - Large **disk** / **RAM** consistent with local pi-gen Docker builds.
 
