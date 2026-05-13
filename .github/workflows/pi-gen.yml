@@ -99,9 +99,11 @@ jobs:
               ;;
           esac
           sudo modprobe binfmt_misc 2>/dev/null || true
-          if [[ ! -w /proc/sys/fs/binfmt_misc/register ]]; then
-            echo "ERROR: binfmt_misc is not available or not writable." >&2
-            echo "Fix: sudo modprobe binfmt_misc; ensure /proc/sys/fs/binfmt_misc is mounted." >&2
+          # `register` is root-writable only; the privileged tonistiigi/binfmt container performs the
+          # actual registration. Do not test `-w` as the runner user — it would false-fail.
+          if [[ ! -e /proc/sys/fs/binfmt_misc/register ]]; then
+            echo "ERROR: binfmt_misc is not mounted (missing /proc/sys/fs/binfmt_misc/register)." >&2
+            echo "Fix: sudo modprobe binfmt_misc; ensure the kernel provides CONFIG_BINFMT_MISC." >&2
             exit 1
           fi
           docker run --rm --privileged tonistiigi/binfmt:latest --install arm64
