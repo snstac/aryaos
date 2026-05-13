@@ -16,6 +16,17 @@
 # limitations under the License.
 #
 
+# pi-gen often does not export SHARED_FILES into NN-run.sh; without it,
+# "${SHARED_FILES}/aiscot/..." becomes "/aiscot/...".
+if [[ -z "${SHARED_FILES:-}" || ! -d "${SHARED_FILES}" ]]; then
+	if [[ -d "/aryaos/shared_files" ]]; then
+		SHARED_FILES="/aryaos/shared_files"
+	else
+		SHARED_FILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/shared_files"
+	fi
+fi
+export SHARED_FILES
+
 install -v -m 644 "${SHARED_FILES}/aiscot/AIS-catcher_0.58.1_arm64.deb" "${ROOTFS_DIR}/usr/src/"
 install -v -m 644 "${SHARED_FILES}/aiscot/ais-catcher.default.conf" "${ROOTFS_DIR}/etc/default/ais-catcher"
 install -v -m 644 "${SHARED_FILES}/aiscot/ais-catcher.service"	"${ROOTFS_DIR}/lib/systemd/system/"
