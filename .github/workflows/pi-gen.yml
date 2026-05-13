@@ -94,19 +94,49 @@ jobs:
           set -euo pipefail
           case "$(uname -m)" in
             aarch64|arm64)
-              echo "Runner CPU is arm64/aarch64; skipping tonistiigi/binfmt setup."
+              echo "Runner CPU is arm64/aarch64; skipping QEMU/binfmt setup."
               exit 0
               ;;
           esac
           sudo modprobe binfmt_misc 2>/dev/null || true
-          # `register` is root-writable only; the privileged tonistiigi/binfmt container performs the
-          # actual registration. Do not test `-w` as the runner user — it would false-fail.
+          # `register` is root-writable only; privileged helper images perform registration.
           if [[ ! -e /proc/sys/fs/binfmt_misc/register ]]; then
             echo "ERROR: binfmt_misc is not mounted (missing /proc/sys/fs/binfmt_misc/register)." >&2
             echo "Fix: sudo modprobe binfmt_misc; ensure the kernel provides CONFIG_BINFMT_MISC." >&2
             exit 1
           fi
+
+          arm64_smoke() {
+            docker run --rm --platform linux/arm64 alpine:3.19 uname -m 2>/dev/null || true
+          }
+
+          echo "Installing aarch64 binfmt handlers (tonistiigi/binfmt)..."
           docker run --rm --privileged tonistiigi/binfmt:latest --install arm64
+
+          out="$(arm64_smoke)"
+          if [[ "$out" == aarch64 ]]; then
+            echo "Verified: docker --platform linux/arm64 runs as aarch64."
+            exit 0
+          fi
+
+          echo "WARN: arm64 smoke-test failed after tonistiigi/binfmt (got '${out:-empty}'); trying multiarch/qemu-user-static..."
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+          out="$(arm64_smoke)"
+          if [[ "$out" == aarch64 ]]; then
+            echo "Verified: arm64 emulation OK after multiarch/qemu-user-static."
+            exit 0
+          fi
+
+          echo "ERROR: Could not execute aarch64 userspace via Docker on this host." >&2
+          echo "Diagnostics (binfmt_misc entries):" >&2
+          ls -1 /proc/sys/fs/binfmt_misc 2>/dev/null | head -50 >&2 || true
+          echo >&2
+          echo "Fix hints:" >&2
+          echo "  - Ensure Docker Engine is rootful (not rootless) or otherwise allows privileged binfmt setup." >&2
+          echo "  - On Debian/Ubuntu hosts: sudo apt-get install -y qemu-user-static binfmt-support" >&2
+          echo "  - Re-run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes" >&2
+          exit 1
 
       - name: Build RPi AryaOS image
         uses: usimd/pi-gen-action@v1
@@ -139,6 +169,9 @@ jobs:
           keyboard-keymap: ${{ env.KEYBOARD_KEYMAP }}
           pi-gen-version: arm64
           verbose-output: true
+          # Ensure host has qemu/binfmt packages + kernel module before pi-gen's Docker entrypoint runs.
+          extra-host-dependencies: qemu-user-static binfmt-support
+          extra-host-modules: binfmt_misc
 
       - name: Show deploy output
         if: success()
