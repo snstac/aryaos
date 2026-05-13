@@ -39,14 +39,12 @@ To refresh the embedded pi-gen clone after `make pi-gen`, run `cd pi-gen && git 
 The workflow `.github/workflows/pi-gen.yml`:
 
 1. **Pull requests** — Runs Ansible collection install, `ansible-playbook --syntax-check`, and checks that key paths (`config`, `manifests/aryaos-sensor-packages.yml`, custom stages) exist. No image is built (GitHub-hosted `ubuntu-latest`).
-2. **Push to `main` or `workflow_dispatch`** — Builds the full pi-gen image on a **[self-hosted, Linux]** runner via [usimd/pi-gen-action](https://github.com/usimd/pi-gen-action) (`compression: xz`, `increase-runner-disk-size` disabled for self-hosted). Register the runner under **Repo → Settings → Actions → Runners**; it must provide Docker/privileged tooling compatible with pi-gen (mirror your local `make build-docker` host). After a successful build, the workflow creates an annotated tag `v<UTC-datetime>-<12-char-sha>`, pushes it, uploads the image as a **workflow artifact** (30-day retention), and publishes a **GitHub Release** with the image attached (`generate_release_notes`). Builds for the same repo are serialized (`concurrency`, no cancel-in-progress).
+2. **Push to `main` or `workflow_dispatch`** — Builds the full pi-gen image on GitHub’s hosted **`ubuntu-24.04-arm`** runner (native **aarch64**) via [usimd/pi-gen-action](https://github.com/usimd/pi-gen-action) (`compression: xz`). No QEMU/`binfmt_misc` emulation step — debootstrap/chroot run natively. Before **`pi-gen-action`**, the workflow frees disk (`dotnet`, Android NDK, hosted toolcache, etc.) because default runner images are tight on space. After a successful build, the workflow creates an annotated tag `v<UTC-datetime>-<12-char-sha>`, pushes it, uploads the image as a **workflow artifact** (30-day retention), and publishes a **GitHub Release** with the image attached (`generate_release_notes`). Builds for the same repo are serialized (`concurrency`, no cancel-in-progress).
 
-**Self-hosted prerequisites**
+**Hosted arm64 notes**
 
-- **Docker** with permission for the runner user to build/run images (often `docker` group).
-- **Privileged-ish binfmt setup:** On **x86_64** builders the workflow runs **`tonistiigi/binfmt`** and verifies emulation with **`docker run --platform linux/arm64 … uname -m`**. If that fails it retries with **`multiarch/qemu-user-static --reset -p yes`**. **`pi-gen-action`** also installs **`qemu-user-binfmt`** and **`binfmt-support`** on the runner host and loads **`binfmt_misc`** (`extra-host-dependencies` / `extra-host-modules`). **Do not** install **`qemu-user-static`** on the same host as **`qemu-user-binfmt`** — Debian treats them as conflicting packages. Requires **`/proc/sys/fs/binfmt_misc/register`** after **`sudo modprobe binfmt_misc`**. Docker must allow **`docker run --privileged`** for those helpers.
-- **Native arm64 runners** (`aarch64`) skip the binfmt image step.
-- Large **disk** / **RAM** consistent with local pi-gen Docker builds.
+- **Public repos** can use **`ubuntu-24.04-arm`** at no extra charge for standard Actions minutes (subject to GitHub policies/limits).
+- If disk pressure persists on hosted runners, consider enabling **`increase-runner-disk-size`** on **`pi-gen-action`** or trimming stages; pi-gen **work/** trees are large.
 
 ### Manual `v*` tags (optional)
 
