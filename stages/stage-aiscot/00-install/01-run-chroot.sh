@@ -24,8 +24,9 @@ usermod -aG plugdev,dialout ais-catcher
 
 dpkg -i /usr/src/AIS-catcher_0.58.1_arm64.deb
 
-curl -fsSL -o /usr/src/cockpit-aiscot.deb https://github.com/snstac/cockpit-aiscot/releases/latest/download/cockpit-aiscot.deb
-dpkg -i /usr/src/cockpit-aiscot.deb
+COCKPIT_AISCOT_DEB_URL='https://github.com/snstac/cockpit-aiscot/releases/download/v1.1.0/cockpit-aiscot_1.1.0_all.deb'
+curl -fsSL -o /usr/src/cockpit-aiscot_1.1.0_all.deb "${COCKPIT_AISCOT_DEB_URL}"
+dpkg -i /usr/src/cockpit-aiscot_1.1.0_all.deb
 
 # Ensure apt-listchanges stays off before export-image finalise (see stage-base note).
 if dpkg -s apt-listchanges >/dev/null 2>&1; then
