@@ -1,5 +1,5 @@
 site_name: AryaOS
-site_url: https://aryaos.rtfd.io/
+site_url: https://aryaos.readthedocs.io/
 repo_url: https://github.com/snstac/aryaos
 site_description: AryaOS Documentation
 site_author: Greg Albrecht <gba@snstac.com>
@@ -8,6 +8,19 @@ copyright: Copyright Sensors & Signals LLC https://www.snstac.com/
 theme:
   name: material
   highlightjs: true
+
+nav:
+  - Home: index.md
+  - Introduction: intro.md
+  - Installing AryaOS: install.md
+  - Download or build: build.md
+  - Configuration: config.md
+  - Definitions: definitions.md
+  - Troubleshooting: troubleshooting.md
+  - AirTAK CUAS getting started: airtak_cuas_getting_started.md
+  - Specifications: specs.md
+  - Purchase: purchase.md
+  - Changelog: changelog.md
 
 plugins:
   - include-markdown:
@@ -22,6 +35,7 @@ plugins:
             docstring_style: sphinx
 
 markdown_extensions:
+  - attr_list
   - markdown_include.include:
       base_path: .
   - admonition

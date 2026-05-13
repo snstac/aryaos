@@ -2,7 +2,49 @@
 
 ## Download AryaOS
 
-* FIXME TK
+Official release images are published as **GitHub Releases** on [snstac/aryaos](https://github.com/snstac/aryaos/releases). Each successful automated image build on `main` creates an annotated tag (`v<UTC-datetime>-<short-sha>`) and attaches the compressed image (`.img.xz`) to that release.
+
+You can also fetch recent images from **GitHub Actions**:
+
+1. Open the repository **Actions** tab and select **Pi-gen image**.
+2. Open a completed run (push to `main` or **workflow_dispatch**).
+3. Download the workflow **artifact** (this workflow uses **30-day** artifact retention; artifacts accrue toward Actions storage quotas).
+
+For flash instructions, see [Installing AryaOS](install.md).
+
+## Manual build checklist (local Raspberry Pi image)
+
+Use this checklist when building an **arm64** Raspberry Pi OS–based image on your own machine. Automation-focused notes live in [AGENTS.md](https://github.com/snstac/aryaos/blob/main/AGENTS.md) at the repo root.
+
+### Prerequisites
+
+- **Git** and plenty of **disk** (pi-gen `work/` + deploy output can reach hundreds of gigabytes).
+- **Docker** if you use `make build-docker` (recommended for unattended builds).
+- **Passwordless or ready sudo** if you use `make build` / `./build.sh`.
+- Repo layout: **`Makefile`**, **`config`** (native pi-gen), **`config.docker`** (Docker pi-gen bind-mount at `/aryaos`), **`shared_files/`**, **`stages/`**.
+
+### Steps
+
+1. Clone this repository.
+2. **`make pi-gen`** — clones upstream [pi-gen](https://github.com/RPi-Distro/pi-gen) **`arm64`** into `./pi-gen/` (gitignored).
+3. Choose one build path:
+   - **Docker (preferred):** `make build-docker` — runs `./pi-gen/build-docker.sh -c <repo>/config.docker`, repo mounted read-only at `/aryaos`. Outputs land under **`.aryaos-pigen-deploy/`** at the repo root (and may also appear under `pi-gen/deploy/`).
+   - **Native:** `make build` — runs `sudo ./build.sh`, which invokes pi-gen with **`config`** (expects `./pi-gen`).
+4. After a successful base exists, use **`make skip`** / **`make unskip`** to skip or restore pi-gen **`stage0`–`stage2`** while iterating on AryaOS-only stages (see Makefile).
+5. Optional **apt cache for Docker builds:** `make apt-cacher-up`, then `ARYAOS_APT_CACHE=1 make build-docker` (see Makefile targets **`apt-cacher-*`**; compose file **`docker-compose.apt-cacher.yml`** at repo root).
+6. Optional **logged Docker build:** `./scripts/agent-build-docker.sh` mirrors output to `build-YYYYMMDD-HHMMSS.log`.
+7. Lightweight validation without an image: **`make ansible-syntax`** (requires Ansible / `ansible-galaxy` per Makefile).
+
+### Cleanup / retry
+
+- **`make build-docker-clean`** removes `.aryaos-pigen-work/`, `.aryaos-pigen-deploy/`, and stray pi-gen Docker containers.
+- **`make clean`** / **`make distclean`** widen the wipe (see Makefile).
+
+### CI vs local
+
+Pull requests run Ansible syntax checks and path sanity checks only; **full images** build on **`ubuntu-24.04-arm`** when merging to `main` or via **workflow_dispatch**. See [`.github/workflows/pi-gen.yml`](https://github.com/snstac/aryaos/blob/main/.github/workflows/pi-gen.yml).
+
+---
 
 ## Build AryaOS (Raspberry Pi image)
 
@@ -14,7 +56,7 @@ The AryaOS build procedure is inspired by @deltazero's [kiosk.pi](https://medium
 
 Configuration lives in `config` at the repo root (not inside the `pi-gen/` clone). Key settings include `STAGE_LIST`, `RELEASE`, and `SHARED_FILES`.
 
-### Image build steps
+### Image build steps (detail)
 
 To build initially:
 
@@ -59,7 +101,7 @@ The workflow no longer triggers on `push` of version tags (that avoided rebuildi
 ### Faster local builds (beefy machine)
 
 - Prefer upstream **`pi-gen/build-docker.sh`** with **bind mounts or named volumes** for `work/` and `deploy/` so repeated runs reuse downloads where pi-gen allows.
-- **Apt cache (Docker builds):** run `make apt-cacher-up` once (starts **`apt-cacher-ng`** via [`docker-compose.apt-cacher.yml`](../docker-compose.apt-cacher.yml); cache lives in the Docker volume `aryaos_apt_cacher_cache`). Then build with **`ARYAOS_APT_CACHE=1 make build-docker`**. The Makefile passes **`APT_PROXY`** into the pi-gen container (`Acquire::http::Proxy`, same as upstream pi-gen) using **`host.docker.internal`** + Docker’s **`host-gateway`**. Check the cache with **`make apt-cacher-ping`**; tail logs with **`make apt-cacher-logs`**. Stop with **`make apt-cacher-down`** (volume is kept until you remove it with `docker volume rm`).
+- **Apt cache (Docker builds):** run `make apt-cacher-up` once (starts **`apt-cacher-ng`** via `docker-compose.apt-cacher.yml` at the repo root; cache lives in the Docker volume `aryaos_apt_cacher_cache`). Then build with **`ARYAOS_APT_CACHE=1 make build-docker`**. The Makefile passes **`APT_PROXY`** into the pi-gen container (`Acquire::http::Proxy`, same as upstream pi-gen) using **`host.docker.internal`** + Docker’s **`host-gateway`**. Check the cache with **`make apt-cacher-ping`**; tail logs with **`make apt-cacher-logs`**. Stop with **`make apt-cacher-down`** (volume is kept until you remove it with `docker volume rm`).
 - **Native `make build`:** set **`APT_PROXY`** in [`config`](config) (commented example) to your proxy URL, e.g. `http://127.0.0.1:3142` when `apt-cacher-ng` publishes that port on the host.
 - Export **`NUM_CORES`** to match your CPU so pi-gen can parallelize package operations.
 - Use **`make skip`** / **`make unskip`** when iterating only on AryaOS stages after a full base image exists.

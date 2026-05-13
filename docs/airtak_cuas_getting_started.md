@@ -98,4 +98,4 @@ AirTAK C-UAS has been tested with all TAK Products, including iTAK, WinTAK & ATA
 
 # Updating AirTAK / AryaOS
 
-TK
+Watch [GitHub Releases](https://github.com/snstac/aryaos/releases) for new AryaOS images. To build from source or understand CI artifacts, see [Download or build](build.md).

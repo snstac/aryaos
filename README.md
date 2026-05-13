@@ -1,8 +1,8 @@
-![AryaOS Shield](https://aryaos.readthedocs.io/en/latest/media/aryaos_logo-25p.png)
+<img src="https://aryaos.readthedocs.io/en/latest/media/aryaos_logo-25p.png" width="160" height="160" alt="AryaOS logo">
 
-# AryaOS - The Operating Systems for Modern Situational Awareness
+# AryaOS - The Operating System for Modern Situational Awareness
 
-AryaOS is a Linux-based operating system with a suite of situational awareness tools pre-installed. 
+AryaOS is a Linux-based operating system with a suite of situational awareness tools pre-installed.
 
 Features of AryaOS:
 
@@ -17,9 +17,13 @@ Features of AryaOS:
 
 This work is funded by the [Colorado Center of Excellence for Advanced Technology Aerial Firefighting](https://www.cofiretech.org/feature-projects/team-awareness-kit-tak) and the [USDA Forest Service (USFS)](https://www.fs.usda.gov/managing-land/fire).
 
-![Colorado COE](https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/3eaaf2d1-60d4-4883-b944-8a02f1836664/coe+logo.png?format=105)
-![USDA](https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/f72561b6-0cf4-4b7f-ac41-75d4bbc076d8/Logo_of_the_United_States_Department_of_Agriculture.svg.png?format=100)
-![USFS](https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/61bde71a-14a1-455c-a8ef-90ba685f27c7/Logo_of_the_United_States_Forest_Service.svg+%281%29.png?format=100)
+<p>
+<a href="https://www.cofiretech.org/feature-projects/team-awareness-kit-tak"><img src="https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/3eaaf2d1-60d4-4883-b944-8a02f1836664/coe+logo.png?format=105" width="140" height="auto" alt="Colorado Center of Excellence logo"></a>
+&nbsp;
+<img src="https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/f72561b6-0cf4-4b7f-ac41-75d4bbc076d8/Logo_of_the_United_States_Department_of_Agriculture.svg.png?format=100" width="120" height="auto" alt="USDA logo">
+&nbsp;
+<img src="https://images.squarespace-cdn.com/content/v1/6477cab5986c146297acea21/61bde71a-14a1-455c-a8ef-90ba685f27c7/Logo_of_the_United_States_Forest_Service.svg+%281%29.png?format=100" width="120" height="auto" alt="US Forest Service logo">
+</p>
 
 # License & Copyright
 

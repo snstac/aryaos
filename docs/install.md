@@ -1,50 +1,55 @@
 # Installing AryaOS
 
-AryaOS should run on any ARM64-based computer, and is tested on the Raspberry Pi 3 & 4 models. To run AryaOS on a Raspberry Pi, a SD card image will need to be downloaded and written to an SD card. Any SD card larger than 16 GB should suffice to get started, 32 GB recommended.
+AryaOS should run on any ARM64-based computer, and is tested on the Raspberry Pi 3 & 4 models. To run AryaOS on a Raspberry Pi, download an SD card image and write it to a card. Any SD card larger than 16 GB should suffice to get started; 32 GB is recommended.
+
+Image sources are described in [Download or build](build.md#download-aryaos).
 
 ## Raspberry Pi Imager
 
-[Raspberry Pi Imager](raspberrypi.com/software/) is the preferred utility for creating an AryaOS SD card and runs any Windows, Mac or Linux workstation.
+[Raspberry Pi Imager](https://www.raspberrypi.com/software/) is the preferred utility for creating an AryaOS SD card and runs on Windows, macOS, or Linux.
 
-1. Download AryaOS release image to the workstation.
-2. Insert an SD card into the workstation.
-3. Open Raspberry Pi Imager on the workstation.
-4. TK TK
+On your workstation:
 
-Raspberry Pi Imager Screenshot TK
+1. Download an AryaOS `.img.xz` from [GitHub Releases](https://github.com/snstac/aryaos/releases) (or a CI artifact / other distribution channel your team uses).
+2. Install Raspberry Pi Imager if you do not already have it.
+3. Insert the microSD card you plan to use with the Raspberry Pi.
+4. Open Raspberry Pi Imager.
+5. Choose **Choose OS** → scroll to **Use custom** (bottom of the list) and select the downloaded AryaOS image file.
+6. Choose **Choose Storage** and pick the microSD card (double-check the drive letter / device — **this erases the card**).
+7. Click **Next**, then **Yes** to confirm, and wait for the verify step to finish.
 
-## balenaEtcher (Balena Ether)
+*(Optional screenshot: use Raspberry Pi Imager’s built-in help or your own capture for local docs.)*
 
-[balenaEther](https://etcher.balena.io/) can be used to create an AryaOS microSD card and runs on any Windows, Mac or Linux workstation.
+## balenaEtcher
+
+[balenaEtcher](https://etcher.balena.io/) can be used to write an AryaOS microSD card on Windows, macOS, or Linux.
 
 On the workstation:
 
-1. Download and install [balenaEther](https://etcher.balena.io/).
-2. Download the AryaOS microSD card image to your Downloads folder.. TK TK TK
+1. Download and install [balenaEtcher](https://etcher.balena.io/).
+2. Download the AryaOS microSD card image (`.img` or `.img.xz` as provided).
 3. Insert the target microSD card.
-4. Open blaneEtcher.
-5. Select **Flash from file** and locate the AryaOS microSD card image in your Downloads folder.
+4. Open balenaEtcher.
+5. Select **Flash from file** and choose the AryaOS image.
 6. Select the target microSD card.
-7. Click **Flash** 
+7. Click **Flash**.
 
-![balenaEther screenshot](install/balenaEther_screenshot.png)
+![balenaEtcher screenshot](install/balenaEther_screenshot.png){ width="720" }
 
 Once balenaEtcher has written the AryaOS microSD card image to the target microSD card, it will verify the image and eject the microSD card from the workstation.
 
 On the target device:
 
 1. Insert the target microSD card into the target device.
-2. Power-on (or connect the power to) the target device.
+2. Power on (or connect power to) the target device.
 
 ## Next Steps
 
 Within a few seconds of power-up, an AryaOS device will flash green and red lights.
 
-1. Initial startup of a new AryaOS device (either pre-assembled or self-assembled) will take a 120 seconds. During this time the AryaOS device will resize its file system & generate a unique AryaOS Node ID ([NODE_ID](definitions/#NODE_ID)).
-2. After initial startup, all AryaOS devices will startup within 90 seconds.
+1. Initial startup of a new AryaOS device (either pre-assembled or self-assembled) will take about 120 seconds. During this time the AryaOS device will resize its file system and generate a unique AryaOS Node ID ([NODE_ID](definitions.md#node_id)).
+2. After initial startup, all AryaOS devices should boot within about 90 seconds.
 
-Once an AryaOS device boots, it will establish a WiFi Hotspot with an SSID resembling *AryaOS-XXXX*, where *XXXX* is the last four characters of the NODE_ID.
+Once an AryaOS device boots, it will establish a WiFi hotspot with an SSID resembling *AryaOS-XXXX*, where *XXXX* is the last four characters of the NODE_ID.
 
-If you've self-assembled an AryaOS device, you will need to manually set the SDR serial numbers for each SDR installed on the device. See [config](config) page. 
-
-
+If you have self-assembled an AryaOS device, you will need to manually set the SDR serial numbers for each SDR installed on the device. See the [Configuration](config.md) page.

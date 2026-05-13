@@ -14,15 +14,15 @@ Many functions of the AryaOS can be controlled, configured and monitored via the
 
 ## Reset WiFi
 
-TK
+Use the AryaOS web portal (when connected to the device) or re-flash / follow network recovery steps in [Troubleshooting](troubleshooting.md). Advanced deployments may use Cockpit or SSH with tools shipped on the image.
 
 ## Disable WiFi
 
-TK
+Disable or reconfigure wireless interfaces from **Cockpit** (Networking), **NetworkManager**, or SSH using the same tooling as upstream Raspberry Pi OS. Exact steps depend on whether you use hotspot mode or client WiFi.
 
-## Change TAK / CoT destination
+## Change TAK / CoT destination (summary)
 
-TK
+System-wide PyTAK clients typically read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`**. For command-line edits and service restarts, see **Command-line Configuration → Change TAK / CoT Destination** below.
 
 ## Command-line Configuration
 
@@ -44,14 +44,13 @@ See also: [Raspberry Pi Insecure first user](https://www.raspberrypi.com/news/ra
 
 ### Change TAK / CoT Destination
 
-By default, AryaOS sends Cursor on Target messages to the AryaOS Mesh SA multicast group & port: ``udp://239.2.3.1:6969`` (expressed as a read-only port via ``udp+wo://...``). 
+By default, AryaOS routes Cursor on Target traffic based on **`COT_URL`** in **`/etc/aryaos/aryaos-config.txt`** (see that file on a running system for the active scheme — multicast, TLS, TCP, etc.). 
 
-To send CoT to a different destination, you'll need to SSH into AryaOS and change the 
-configuration for ``adsbcot``.
+To send CoT to a different destination, SSH into AryaOS and edit the global environment file, then restart affected gateways:
 
 1. SSH into AryaOS: ``ssh pi@AryaOS.local``
-2. Edit adsbcot's configuration: ``sudo nano /etc/adsbcot-config.txt`` (N.B. This is *not* an INI-style file.)
-3. Save & reboot.
+2. Edit ``sudo nano /etc/aryaos/aryaos-config.txt`` and adjust ``COT_URL`` (and related PyTAK TLS variables if you use TLS).
+3. Restart dependent services (for example ``sudo systemctl restart adsbcot``) or reboot.
 
 ### Change dump1090-fa & dump978-fa SDR serial numbers
 
@@ -87,4 +86,9 @@ An AryaOS Web Dashboard method of doing this is under development. See Issue [#2
 2. List the serial numbers of the installed SDRs by typing the command: ``rtl_test``
 3. Using the Nano text editor, open the dump978-fa configuration file: 
 ``sudo nano /etc/default/dump978-fa``
-4. Find the line beginning with TK TK
+4. Find the line containing ``driver=rtlsdr`` and set the ``serial=`` field to match your 978 SDR’s serial from ``rtl_test`` (see comments in the file for examples).
+5. Reload and restart dump978-fa:
+
+``sudo systemctl daemon-reload``
+
+``sudo systemctl restart dump978-fa``
