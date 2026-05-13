@@ -57,7 +57,7 @@ After a full base image exists, **`make skip`** adds `SKIP` markers for pi-gen `
 
 ## CI (optional)
 
-GitHub Actions: [`.github/workflows/pi-gen.yml`](.github/workflows/pi-gen.yml). PRs run Ansible syntax checks on GitHub-hosted runners. **Full image builds run only on self-hosted Linux runners** (`runs-on: [self-hosted, Linux]`): register one under **Repo → Settings → Actions → Runners**. On each successful **`main`** build (or **`workflow_dispatch`**), the workflow pushes an auto-generated **`v<UTC-datetime>-<sha>`** tag and publishes a **Release** with the image plus an Actions artifact. Monitor with **`gh run list`**, **`gh run watch <run-id>`**, or the Actions UI — separate from local Docker builds.
+GitHub Actions: [`.github/workflows/pi-gen.yml`](.github/workflows/pi-gen.yml). PRs run Ansible syntax checks on GitHub-hosted runners. **Full image builds run only on self-hosted Linux runners** (`runs-on: [self-hosted, Linux]`): register one under **Repo → Settings → Actions → Runners**. **x86_64 runners** must allow **`sudo modprobe binfmt_misc`** (often NOPASSWD) and **`docker run --privileged`** so the workflow can install **`tonistiigi/binfmt`** arm64 handlers before **`pi-gen-action`**; **aarch64** hosts skip that step. On each successful **`main`** build (or **`workflow_dispatch`**), the workflow pushes an auto-generated **`v<UTC-datetime>-<sha>`** tag and publishes a **Release** with the image plus an Actions artifact. Monitor with **`gh run list`**, **`gh run watch <run-id>`**, or the Actions UI — separate from local Docker builds.
 
 ## Lightweight validation (no full image)
 

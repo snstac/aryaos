@@ -86,6 +86,26 @@ jobs:
       - name: Set SHARED_FILES dir
         run: echo "SHARED_FILES=$(pwd)/shared_files" >> "$GITHUB_ENV"
 
+      # x86_64 (and most non-arm64) hosts need kernel binfmt_misc + QEMU user emulation so pi-gen
+      # can run arm64 debootstrap/chroot inside Docker. Without this, build.sh fails fast at
+      # arch-test ("No fallback mechanism found").
+      - name: Enable QEMU binfmt for arm64 (non-native runners)
+        run: |
+          set -euo pipefail
+          case "$(uname -m)" in
+            aarch64|arm64)
+              echo "Runner CPU is arm64/aarch64; skipping tonistiigi/binfmt setup."
+              exit 0
+              ;;
+          esac
+          sudo modprobe binfmt_misc 2>/dev/null || true
+          if [[ ! -w /proc/sys/fs/binfmt_misc/register ]]; then
+            echo "ERROR: binfmt_misc is not available or not writable." >&2
+            echo "Fix: sudo modprobe binfmt_misc; ensure /proc/sys/fs/binfmt_misc is mounted." >&2
+            exit 1
+          fi
+          docker run --rm --privileged tonistiigi/binfmt:latest --install arm64
+
       - name: Build RPi AryaOS image
         uses: usimd/pi-gen-action@v1
         id: build_aryaos

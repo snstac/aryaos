@@ -41,6 +41,13 @@ The workflow `.github/workflows/pi-gen.yml`:
 1. **Pull requests** — Runs Ansible collection install, `ansible-playbook --syntax-check`, and checks that key paths (`config`, `manifests/aryaos-sensor-packages.yml`, custom stages) exist. No image is built (GitHub-hosted `ubuntu-latest`).
 2. **Push to `main` or `workflow_dispatch`** — Builds the full pi-gen image on a **[self-hosted, Linux]** runner via [usimd/pi-gen-action](https://github.com/usimd/pi-gen-action) (`compression: xz`, `increase-runner-disk-size` disabled for self-hosted). Register the runner under **Repo → Settings → Actions → Runners**; it must provide Docker/privileged tooling compatible with pi-gen (mirror your local `make build-docker` host). After a successful build, the workflow creates an annotated tag `v<UTC-datetime>-<12-char-sha>`, pushes it, uploads the image as a **workflow artifact** (30-day retention), and publishes a **GitHub Release** with the image attached (`generate_release_notes`). Builds for the same repo are serialized (`concurrency`, no cancel-in-progress).
 
+**Self-hosted prerequisites**
+
+- **Docker** with permission for the runner user to build/run images (often `docker` group).
+- **Privileged-ish binfmt setup:** On **x86_64** builders the workflow runs `docker run --rm --privileged tonistiigi/binfmt:latest --install arm64` so `arch-test`/debootstrap can execute **arm64** binaries. The runner user typically needs **passwordless `sudo`** for `modprobe binfmt_misc` when the module is not already loaded, and a kernel with **`binfmt_misc`** available (`/proc/sys/fs/binfmt_misc/register`).
+- **Native arm64 runners** (`aarch64`) skip the binfmt image step.
+- Large **disk** / **RAM** consistent with local pi-gen Docker builds.
+
 ### Manual `v*` tags (optional)
 
 The workflow no longer triggers on `push` of version tags (that avoided rebuilding when the workflow itself pushes a release tag). Use **`workflow_dispatch`** in the Actions UI to rebuild from `main`, or adjust the workflow `on:` section if you want tag-triggered builds again.
