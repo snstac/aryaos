@@ -14,6 +14,16 @@
 # limitations under the License.
 #
 
+# pi-gen often does not export SHARED_FILES into NN-run.sh (see stage-aryaos / stage-node-red).
+if [[ -z "${SHARED_FILES:-}" || ! -d "${SHARED_FILES}" ]]; then
+	if [[ -d "/aryaos/shared_files" ]]; then
+		SHARED_FILES="/aryaos/shared_files"
+	else
+		SHARED_FILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/shared_files"
+	fi
+fi
+export SHARED_FILES
+
 # common
 install -v -m 755 "${SHARED_FILES}/adsbcot/89-skyaware.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/"
 install -v -m 644 "${SHARED_FILES}/adsbcot/osmocom-rtl-sdr.rules" "${ROOTFS_DIR}/etc/udev/rules.d/"

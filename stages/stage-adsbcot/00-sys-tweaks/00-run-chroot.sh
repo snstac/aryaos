@@ -21,11 +21,15 @@ systemctl disable apt-daily.timer
 systemctl disable apt-daily-upgrade.timer
 systemctl disable man-db.timer
 
-mv /etc/cron.hourly/fake-hwclock /etc/cron.daily || true
+if [[ -f /etc/cron.hourly/fake-hwclock ]]; then
+	mv /etc/cron.hourly/fake-hwclock /etc/cron.daily/
+fi
 
-pushd /etc/cron.daily
-rm -f apt-compat bsdmainutils dpkg man-db
-popd
+if [[ -d /etc/cron.daily ]]; then
+	pushd /etc/cron.daily > /dev/null
+	rm -f apt-compat bsdmainutils dpkg man-db
+	popd > /dev/null
+fi
 
 if ! grep -qs -e '/tmp' /etc/fstab; then
      sed -i -E -e 's/(vfat *defaults) /\1,noatime/g' /etc/fstab
