@@ -24,8 +24,8 @@
 - name: Include packages
   ansible.builtin.include_tasks: packages.yml
 
-- name: Include ZeroTier
-  ansible.builtin.include_tasks: zerotier.yml
+- name: Include Tailscale
+  ansible.builtin.include_tasks: tailscale.yml
 
 - name: Install tshark
   ansible.builtin.include_tasks: tshark.yml

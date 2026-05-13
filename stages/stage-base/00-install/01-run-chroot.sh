@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 
-# Zerotier
-/usr/src/install_zt.sh
+# Tailscale
+/usr/src/install_tailscale.sh
 
 
 # Wireshark

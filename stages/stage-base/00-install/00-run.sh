@@ -17,4 +17,4 @@
 #
 
 # SHARED_FILES is exported from repo config when building with pi-gen.
-install -v -m 755 "${SHARED_FILES:-../../../shared_files}/base/install_zt.sh" "${ROOTFS_DIR}/usr/src/"
+install -v -m 755 "${SHARED_FILES:-../../../shared_files}/base/install_tailscale.sh" "${ROOTFS_DIR}/usr/src/"
