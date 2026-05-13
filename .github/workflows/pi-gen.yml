@@ -169,8 +169,8 @@ jobs:
           keyboard-keymap: ${{ env.KEYBOARD_KEYMAP }}
           pi-gen-version: arm64
           verbose-output: true
-          # Ensure host has qemu/binfmt packages + kernel module before pi-gen's Docker entrypoint runs.
-          extra-host-dependencies: qemu-user-static binfmt-support
+          # Debian hosts: use qemu-user-binfmt (not qemu-user-static) — they conflict on apt.
+          extra-host-dependencies: qemu-user-binfmt binfmt-support
           extra-host-modules: binfmt_misc
 
       - name: Show deploy output

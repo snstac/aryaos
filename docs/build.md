@@ -44,7 +44,7 @@ The workflow `.github/workflows/pi-gen.yml`:
 **Self-hosted prerequisites**
 
 - **Docker** with permission for the runner user to build/run images (often `docker` group).
-- **Privileged-ish binfmt setup:** On **x86_64** builders the workflow runs **`tonistiigi/binfmt`** and verifies emulation with **`docker run --platform linux/arm64 … uname -m`**. If that fails it retries with **`multiarch/qemu-user-static --reset -p yes`**. It also asks **`pi-gen-action`** to install **`qemu-user-static`** / **`binfmt-support`** on the runner host and **`modprobe binfmt_misc`** (`extra-host-dependencies` / `extra-host-modules`). Requires **`/proc/sys/fs/binfmt_misc/register`** to exist after **`sudo modprobe binfmt_misc`**. Docker must allow **`docker run --privileged`** for those helpers.
+- **Privileged-ish binfmt setup:** On **x86_64** builders the workflow runs **`tonistiigi/binfmt`** and verifies emulation with **`docker run --platform linux/arm64 … uname -m`**. If that fails it retries with **`multiarch/qemu-user-static --reset -p yes`**. **`pi-gen-action`** also installs **`qemu-user-binfmt`** and **`binfmt-support`** on the runner host and loads **`binfmt_misc`** (`extra-host-dependencies` / `extra-host-modules`). **Do not** install **`qemu-user-static`** on the same host as **`qemu-user-binfmt`** — Debian treats them as conflicting packages. Requires **`/proc/sys/fs/binfmt_misc/register`** after **`sudo modprobe binfmt_misc`**. Docker must allow **`docker run --privileged`** for those helpers.
 - **Native arm64 runners** (`aarch64`) skip the binfmt image step.
 - Large **disk** / **RAM** consistent with local pi-gen Docker builds.
 
