@@ -24,3 +24,6 @@ systemctl set-default multi-user
 systemctl enable NetworkManager
 systemctl enable NetworkManager-dispatcher
 
+systemctl enable cockpit.socket
+systemctl enable lighttpd
+

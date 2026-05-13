@@ -36,6 +36,7 @@ rtl-sdr
 soapysdr-module-rtlsdr
 socat
 sudo
+ssl-cert
 tcpdump
 tmux
 vim

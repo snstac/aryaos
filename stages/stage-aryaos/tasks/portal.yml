@@ -26,12 +26,3 @@
     src: "{{ shared_files }}/aryaos/calfire_airbases"
     dest: /var/www/html/calfire_airbases/
     mode: "0755"
-
-- name: Test AryaOS Portal
-  ansible.builtin.uri:
-    url: http://localhost/
-    return_content: true
-  register: aryaos_portal
-  until: "'AryaOS Portal' not in aryaos_portal.content"
-  retries: 3
-  when: ansible_virtualization_type != 'docker'

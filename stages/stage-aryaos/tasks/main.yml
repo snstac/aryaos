@@ -19,6 +19,9 @@
 - name: Include portal
   ansible.builtin.include_tasks: portal.yml
 
+- name: Include Cockpit HTTPS proxy (lighttpd)
+  ansible.builtin.include_tasks: cockpit-proxy.yml
+
 - name: Include recorder
   ansible.builtin.include_tasks: recorder.yml
 

@@ -16,8 +16,17 @@
 # limitations under the License.
 #
 
-# SHARED_FILES should be set, if not, set it to ../shared_files
-# SHARED_FILES=${SHARED_FILES:-../../shared_files}
+# pi-gen config exports SHARED_FILES (see repo config / config.docker), but some
+# invocations do not propagate it into stage scripts. Without it,
+# "${SHARED_FILES}/aryaos/..." becomes "/aryaos/..." and installs fail.
+if [[ -z "${SHARED_FILES:-}" || ! -d "${SHARED_FILES}" ]]; then
+	if [[ -d "/aryaos/shared_files" ]]; then
+		SHARED_FILES="/aryaos/shared_files"
+	else
+		SHARED_FILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/shared_files"
+	fi
+fi
+export SHARED_FILES
 
 
 # Common
@@ -71,6 +80,47 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/99-aryaos-recorder.conf" "${ROOTFS_DI
 ln -sf /etc/lighttpd/conf-available/99-aryaos-recorder.conf "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/99-aryaos-recorder.conf"
 ## FIXME Deprecated hard-copy of 99-aryaos-recorder.conf
 ## install -v -m 755 "${SHARED_FILES}/aryaos/99-aryaos-recorder.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/"
+
+
+# Cockpit behind HTTPS (lighttpd terminates TLS; cockpit-ws loopback HTTP only)
+
+mkdir -p "${ROOTFS_DIR}/etc/cockpit"
+install -v -m 0644 "${SHARED_FILES}/aryaos/cockpit.conf" "${ROOTFS_DIR}/etc/cockpit/cockpit.conf"
+
+mkdir -p "${ROOTFS_DIR}/etc/systemd/system/cockpit.socket.d"
+install -v -m 0644 "${SHARED_FILES}/aryaos/cockpit.socket-listen.conf" "${ROOTFS_DIR}/etc/systemd/system/cockpit.socket.d/listen.conf"
+
+install -v -m 0644 "${SHARED_FILES}/aryaos/95-aryaos-cockpit-https.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-available/"
+ln -sf /etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf"
+
+for m in openssl proxy redirect; do
+	if [[ -f "${ROOTFS_DIR}/etc/lighttpd/conf-available/10-${m}.conf" ]]; then
+		ln -sf "/etc/lighttpd/conf-available/10-${m}.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/10-${m}.conf"
+	fi
+done
+
+shopt -s nullglob
+setenv_found=0
+for f in "${ROOTFS_DIR}/etc/lighttpd/conf-available/"*-setenv.conf; do
+	setenv_found=1
+	bn="$(basename "${f}")"
+	ln -sf "/etc/lighttpd/conf-available/${bn}" "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/${bn}"
+done
+shopt -u nullglob
+if [[ "${setenv_found}" -eq 0 ]]; then
+	install -v -m 0644 "${SHARED_FILES}/aryaos/94-aryaos-setenv-module.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-available/"
+	ln -sf /etc/lighttpd/conf-available/94-aryaos-setenv-module.conf "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/94-aryaos-setenv-module.conf"
+fi
+
+install -d -m 0755 "${ROOTFS_DIR}/etc/lighttpd/ssl"
+if [[ -r "${ROOTFS_DIR}/etc/ssl/certs/ssl-cert-snakeoil.pem" && -r "${ROOTFS_DIR}/etc/ssl/private/ssl-cert-snakeoil.key" ]]; then
+	umask 077
+	cat "${ROOTFS_DIR}/etc/ssl/certs/ssl-cert-snakeoil.pem" "${ROOTFS_DIR}/etc/ssl/private/ssl-cert-snakeoil.key" \
+		> "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem.tmp"
+	mv -f "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem.tmp" "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem"
+	chmod 0640 "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem"
+	chgrp ssl-cert "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem" 2>/dev/null || true
+fi
 
 
 # WiFi

@@ -1,0 +1,184 @@
+# code: language=ansible
+#
+# HTTPS landing → Cockpit via lighttpd; cockpit-ws on loopback :9090 HTTP only.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Stat lighttpd openssl snippet
+  ansible.builtin.stat:
+    path: /etc/lighttpd/conf-available/10-openssl.conf
+  register: lt_openssl_snippet
+
+- name: Stat lighttpd proxy snippet
+  ansible.builtin.stat:
+    path: /etc/lighttpd/conf-available/10-proxy.conf
+  register: lt_proxy_snippet
+
+- name: Stat lighttpd redirect snippet
+  ansible.builtin.stat:
+    path: /etc/lighttpd/conf-available/10-redirect.conf
+  register: lt_redirect_snippet
+
+- name: Stat lighttpd setenv snippet (X-Forwarded-Proto)
+  ansible.builtin.stat:
+    path: /etc/lighttpd/conf-available/10-setenv.conf
+  register: lt_setenv_snippet
+
+- name: Enable lighttpd openssl snippet
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/10-openssl.conf
+    dest: /etc/lighttpd/conf-enabled/10-openssl.conf
+    state: link
+  when: lt_openssl_snippet.stat.exists
+  notify: Restart lighttpd
+
+- name: Enable lighttpd proxy snippet
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/10-proxy.conf
+    dest: /etc/lighttpd/conf-enabled/10-proxy.conf
+    state: link
+  when: lt_proxy_snippet.stat.exists
+  notify: Restart lighttpd
+
+- name: Enable lighttpd redirect snippet
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/10-redirect.conf
+    dest: /etc/lighttpd/conf-enabled/10-redirect.conf
+    state: link
+  when: lt_redirect_snippet.stat.exists
+  notify: Restart lighttpd
+
+- name: Enable lighttpd setenv snippet from distro
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/10-setenv.conf
+    dest: /etc/lighttpd/conf-enabled/10-setenv.conf
+    state: link
+  when: lt_setenv_snippet.stat.exists
+  notify: Restart lighttpd
+
+- name: Install fallback mod_setenv snippet
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/94-aryaos-setenv-module.conf"
+    dest: /etc/lighttpd/conf-available/94-aryaos-setenv-module.conf
+    mode: "0644"
+  when: not lt_setenv_snippet.stat.exists
+  notify: Restart lighttpd
+
+- name: Enable fallback mod_setenv snippet
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/94-aryaos-setenv-module.conf
+    dest: /etc/lighttpd/conf-enabled/94-aryaos-setenv-module.conf
+    state: link
+  when: not lt_setenv_snippet.stat.exists
+  notify: Restart lighttpd
+
+- name: Combine snakeoil cert+key for lighttpd TLS
+  ansible.builtin.shell: |
+    set -euo pipefail
+    install -d -m 0755 /etc/lighttpd/ssl
+    umask 077
+    cat /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/private/ssl-cert-snakeoil.key \
+      > /etc/lighttpd/ssl/snakeoil-combined.pem.tmp
+    mv -f /etc/lighttpd/ssl/snakeoil-combined.pem.tmp /etc/lighttpd/ssl/snakeoil-combined.pem
+    chmod 0640 /etc/lighttpd/ssl/snakeoil-combined.pem
+    chgrp ssl-cert /etc/lighttpd/ssl/snakeoil-combined.pem || true
+  args:
+    creates: /etc/lighttpd/ssl/snakeoil-combined.pem
+
+- name: Upload cockpit.conf
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/cockpit.conf"
+    dest: /etc/cockpit/cockpit.conf
+    mode: "0644"
+
+- name: Cockpit socket drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/cockpit.socket.d
+    state: directory
+    mode: "0755"
+
+- name: Cockpit socket binds to loopback only
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/cockpit.socket-listen.conf"
+    dest: /etc/systemd/system/cockpit.socket.d/listen.conf
+    mode: "0644"
+
+- name: Upload lighttpd Cockpit HTTPS / proxy config
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/95-aryaos-cockpit-https.conf"
+    dest: /etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf
+    mode: "0644"
+  notify: Restart lighttpd
+
+- name: Enable lighttpd Cockpit HTTPS / proxy config
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf
+    dest: /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
+    state: link
+  notify: Restart lighttpd
+
+- name: Validate lighttpd configuration
+  ansible.builtin.command: lighttpd -tt -f /etc/lighttpd/lighttpd.conf
+  changed_when: false
+
+- name: Reload systemd (cockpit.socket drop-in)
+  ansible.builtin.systemd:
+    daemon_reload: true
+  failed_when: false
+
+- name: Restart cockpit.socket for ListenStream drop-in
+  ansible.builtin.service:
+    name: cockpit.socket
+    state: restarted
+  failed_when: false
+
+- name: Flush handlers (e.g. lighttpd restart)
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure cockpit.socket is active
+  ansible.builtin.service:
+    name: cockpit.socket
+    state: started
+  failed_when: false
+
+- name: Ensure lighttpd is active
+  ansible.builtin.service:
+    name: lighttpd
+    state: started
+  failed_when: false
+
+- name: HTTP redirects to HTTPS
+  ansible.builtin.uri:
+    url: http://localhost/
+    follow_redirects: none
+    status_code: [301, 302, 307, 308]
+  register: http_to_https
+  retries: 6
+  delay: 3
+  until: http_to_https.status | int in [301, 302, 307, 308]
+  when: ansible_virtualization_type != 'docker'
+
+- name: HTTPS root serves Cockpit (via lighttpd proxy)
+  ansible.builtin.uri:
+    url: https://localhost/
+    validate_certs: false
+    return_content: true
+    status_code: [200]
+  register: cockpit_landing
+  retries: 8
+  delay: 4
+  until: cockpit_landing.status | int == 200 and (('cockpit' in cockpit_landing.content | lower) or ('login' in cockpit_landing.content | lower))
+  when: ansible_virtualization_type != 'docker'
