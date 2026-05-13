@@ -1,5 +1,5 @@
 #!/bin/bash -e
-# AryaOS run.sh
+# AryaOS Node-RED stage — fetch upstream linux installer + copy AryaOS config.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -14,12 +14,25 @@
 # limitations under the License.
 #
 
+NODE_RED_LINUX_INSTALLER_URL='https://github.com/node-red/linux-installers/releases/latest/download/update-nodejs-and-nodered-deb'
 
-# Node-RED
-install -v -m 755 "${SHARED_FILES}/node-red/update-nodejs-and-nodered" "${ROOTFS_DIR}/usr/src"
+# Same pattern as stage-aryaos: pi-gen does not always export SHARED_FILES into NN-run.sh.
+if [[ -z "${SHARED_FILES:-}" || ! -d "${SHARED_FILES}" ]]; then
+	if [[ -d "/aryaos/shared_files" ]]; then
+		SHARED_FILES="/aryaos/shared_files"
+	else
+		SHARED_FILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/shared_files"
+	fi
+fi
+export SHARED_FILES
+
+mkdir -p "${ROOTFS_DIR}/usr/src"
+curl -fsSL "${NODE_RED_LINUX_INSTALLER_URL}" -o "${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb"
+chmod +x "${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb"
+
 # install -v -m 440 "${SHARED_FILES}/node-red/node-red.sudoers" "${ROOTFS_DIR}/etc/sudoers.d/node-red"
 mkdir -p "${ROOTFS_DIR}/home/node-red/.node-red"
 install -v -m 644 "${SHARED_FILES}/node-red/settings.js" "${ROOTFS_DIR}/home/node-red/.node-red/settings.js"
-install -v -m 644 "${SHARED_FILES}/node-red/package.json"	"${ROOTFS_DIR}/home/node-red/.node-red/package.json"
+install -v -m 644 "${SHARED_FILES}/node-red/package.json" "${ROOTFS_DIR}/home/node-red/.node-red/package.json"
 install -v -m 644 "${SHARED_FILES}/node-red/aryaos_flows.json" "${ROOTFS_DIR}/home/node-red/.node-red/"
 cat "${ROOTFS_DIR}/home/node-red/.node-red/aryaos_flows.json" > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"

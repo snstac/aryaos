@@ -23,8 +23,8 @@ usermod -aG sudo,adm,video,plugdev node-red
 
 chown -R node-red:node-red /home/node-red
 
-# Install Node-RED using the node-red installer:
-bash /usr/src/update-nodejs-and-nodered --confirm-install --nodered-user=node-red --confirm-root --no-init
+# Install Node-RED using upstream linux-installers deb script (see 00-run.sh download).
+bash /usr/src/update-nodejs-and-nodered-deb --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
 
 # Install Node-RED pallet modules:
 cd /home/node-red/.node-red

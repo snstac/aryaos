@@ -15,11 +15,12 @@
 # limitations under the License.
 #
 
-- name: Upload Node-RED installer script
-  ansible.builtin.copy:
-    src: "{{ shared_files }}/node-red/update-nodejs-and-nodered"
-    dest: /usr/src
+- name: Download Node-RED linux installer (upstream release)
+  ansible.builtin.get_url:
+    url: https://github.com/node-red/linux-installers/releases/latest/download/update-nodejs-and-nodered-deb
+    dest: /usr/src/update-nodejs-and-nodered-deb
     mode: "0755"
+    force: true
 
 - name: Create node-red user
   ansible.builtin.user:
@@ -35,9 +36,9 @@
     dest: /etc/sudoers.d/node-red
     mode: "0440"
 
-- name: Run update-nodejs-and-nodered installer
+- name: Run Node-RED linux installer
   ansible.builtin.command:
-    cmd: /bin/bash /usr/src/update-nodejs-and-nodered --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
+    cmd: /bin/bash /usr/src/update-nodejs-and-nodered-deb --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
     creates: /home/node-red/.node-red
   become: true
   become_user: node-red

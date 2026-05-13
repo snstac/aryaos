@@ -13,9 +13,9 @@
 # limitations under the License.
 #
 
-node-red ALL=(root) NOPASSWD: /bin/bash /tmp/update-nodejs-and-nodered --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
+node-red ALL=(root) NOPASSWD: /bin/bash /tmp/update-nodejs-and-nodered-deb --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
 
-node-red ALL=(root) NOPASSWD: /bin/bash /usr/src/update-nodejs-and-nodered --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
+node-red ALL=(root) NOPASSWD: /bin/bash /usr/src/update-nodejs-and-nodered-deb --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
 
 node-red ALL=(root) NOPASSWD: /sbin/reboot
 node-red ALL=(root) NOPASSWD: /usr/bin/apt update -qq
