@@ -14,6 +14,17 @@
 # limitations under the License.
 #
 
+# pi-gen often does not export SHARED_FILES into NN-run.sh; without it,
+# "${SHARED_FILES}/dronecot/..." becomes "/dronecot/...".
+if [[ -z "${SHARED_FILES:-}" || ! -d "${SHARED_FILES}" ]]; then
+	if [[ -d "/aryaos/shared_files" ]]; then
+		SHARED_FILES="/aryaos/shared_files"
+	else
+		SHARED_FILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/shared_files"
+	fi
+fi
+export SHARED_FILES
+
 rsync -va "${SHARED_FILES}/dronecot/docker-uas-broker" "${ROOTFS_DIR}/usr/src/"
 rsync -va "${SHARED_FILES}/dronecot/docker-uas-sensor" "${ROOTFS_DIR}/usr/src/"
 
