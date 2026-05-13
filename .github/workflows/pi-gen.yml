@@ -1,142 +1,166 @@
-name: Build pi-gen image
+# Pi-gen image build (self-hosted runner required for full image job).
+#
+# Register a Linux self-hosted runner on this repo (Settings → Actions → Runners).
+# Default labels from the registration script include "self-hosted" and "Linux".
+#
+# Flow: push to main or workflow_dispatch → build → upload Actions artifact →
+# create annotated tag v<UTC-datetime>-<12-char-sha> → GitHub Release with image file.
 
-# on:
-#   push:
-#     tags:
-#       - 'v*.*.*'
+name: Pi-gen image
 
 on:
+  pull_request:
   push:
     branches:
       - main
-  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: aryaos-pi-gen-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
-  pi-gen-aryaos:
+  validate:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install "ansible-core>=2.14" ansible
+
+      - name: Install collections and syntax-check playbook
+        run: |
+          ansible-galaxy collection install -r requirements.yml
+          ansible-playbook -i localhost, -c local site.yml --syntax-check
+
+      - name: Verify image build inputs exist
+        run: |
+          test -f manifests/aryaos-sensor-packages.yml
+          test -d stages/stage-patch
+          test -f stages/stage-pytak/00-install/01-run-chroot.sh
+          test -f config
+
+  build:
+    if: github.event_name != 'pull_request'
+    runs-on: [self-hosted, Linux]
+    timeout-minutes: 360
+    permissions:
+      contents: write
     env:
       DISABLE_FIRST_BOOT_USER_RENAME: 1
       ENABLE_SSH: 1
-    
+      IMG_NAME: aryaos
+      RELEASE: trixie
+      PI_GEN_ROOT: ${{ github.workspace }}/pi-gen-src
+      TARGET_HOSTNAME: aryaos
+      FIRST_USER_PASS: aryaos415
+      PI_GEN_RELEASE: "AryaOS: The Operating System for Modern Situational Awareness."
+      LOCALE_DEFAULT: en_US.UTF-8
+      WPA_COUNTRY: US
+      WPA_ESSID: AryaOS-WiFi
+      WPA_PASSWORD: aryaos415
+      KEYBOARD_LAYOUT: English (US)
+      KEYBOARD_KEYMAP: us
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-      
-      # add a step to copy the pi-gen/config file to pi-gen/.env:
-      # - name: Copy .env file
-      #   run: cp pi-gen/config pi-gen/.env
-      
-      # - name: Load .env file
-      #   uses: xom9ikk/dotenv@v2.3.0
-      #   with:
-      #     path: pi-gen/
-
-      # - name: Create shared_files directory
-      #   run: cp -pr shared_files pi-gen/
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set current working directory
-        run: echo "GITHUB_CWD=$(pwd)" >> $GITHUB_ENV
+        run: echo "GITHUB_CWD=$(pwd)" >> "$GITHUB_ENV"
 
       - name: Set SHARED_FILES dir
-        run: echo "SHARED_FILES=$(pwd)/shared_files" >> $GITHUB_ENV
+        run: echo "SHARED_FILES=$(pwd)/shared_files" >> "$GITHUB_ENV"
 
-      - name: Show env
-        run: env
-
-      # - name: Build RPi base OS image
-      #   uses: usimd/pi-gen-action@v1
-      #   id: build_base
-      #   # This is the first build step, it will create the base image.
-      #   # The base image is the first stage of the pi-gen build process.
-      #   # It will create a base image with the necessary files and directories.
-      #   # The base image will be used as the starting point for the next stages.
-      #   env:
-      #     SHARED_FILES: ${{ env.SHARED_FILES }}
-      #     GITHUB_CWD: ${{ env.GITHUB_CWD }}
-      #   with:
-      #     increase-runner-disk-size: true
-      #     export-last-stage-only: false
-      #     extra-host-dependencies: 'git'
-
-      #     pi-gen-dir: pi-gen-src
-      #     # Disable the renaming of the first user during the first boot. This make it so 
-      #     # 'username' stays activated. 'username' must be set for this to work. Please be 
-      #     # aware of the implied security risk of defining a default username and password 
-      #     # for your devices.
-      #     disable-first-boot-user-rename: ${{ env.DISABLE_FIRST_BOOT_USER_RENAME || 1 }}
-
-      #     # Enable SSH access to Pi.
-      #     enable-ssh: ${{ env.ENABLE_SSH || 1 }}
-
-      #     image-name: ${{ env.IMG_NAME || 'aryaos' }}-${{ github.GITHUB_REF_NAME || 'undef' }}
-
-      #     hostname: ${{ env.TARGET_HOSTNAME || 'aryaos' }}
-      #     locale: ${{ env.LOCALE_DEFAULT || 'en_US.UTF-8' }}
-      #     password: ${{ env.FIRST_USER_PASS || 'aryaos415' }}
-      #     pi-gen-release: ${{ env.PI_GEN_RELEASE || 'AryaOS' }}
-      #     release: ${{ env.RELEASE || 'bookworm' }}
-      #     # stage-list: "stage0 stage1 stage2 ${{ env.GITHUB_CWD }}/stages/stage-base"
-      #     stage-list: "${{ env.GITHUB_CWD }}/stages/stage-patch stage0 stage1 stage2"
-      #     wpa-country: ${{ env.WPA_COUNTRY || 'US' }}
-      #     wpa-essid: ${{ env.WPA_ESSID || 'AryaOS-WiFi' }}
-      #     wpa-password: ${{ env.WPA_PASSWORD || 'aryaos415' }}
-      #     keyboard-layout: ${{ env.KEYBOARD_LAYOUT || 'English (US)' }}
-      #     keyboard-keymap: ${{ env.KEYBOARD_KEYMAP || 'us' }}
-      #     pi-gen-version: arm64
-      #     verbose-output: true
-
-      
       - name: Build RPi AryaOS image
         uses: usimd/pi-gen-action@v1
         id: build_aryaos
-        # This is the second build step, it will create the AryaOS image.
-        # The AryaOS image is the second stage of the pi-gen build process.
-        # It will create an image with the necessary files and directories for AryaOS.
-        # The AryaOS image will be used as the final image for the Pi.
-        # It will use the base image created in the previous step.
-        # The base image will be used as the starting point for the next stages.
-        # This step will also copy the shared_files directory to the pi-gen directory.
-        
         env:
           SHARED_FILES: ${{ env.SHARED_FILES }}
           GITHUB_CWD: ${{ env.GITHUB_CWD }}
+          PI_GEN_ROOT: ${{ env.PI_GEN_ROOT }}
+          RELEASE: ${{ env.RELEASE }}
         with:
-          increase-runner-disk-size: true
-
+          increase-runner-disk-size: false
+          export-last-stage-only: true
+          compression: xz
+          compression-level: 4
           pi-gen-dir: pi-gen-src
-          # Disable the renaming of the first user during the first boot. This make it so 
-          # 'username' stays activated. 'username' must be set for this to work. Please be 
-          # aware of the implied security risk of defining a default username and password 
-          # for your devices.
-          disable-first-boot-user-rename: ${{ env.DISABLE_FIRST_BOOT_USER_RENAME || 1 }}
-
-          # Enable SSH access to Pi.
-          enable-ssh: ${{ env.ENABLE_SSH || 1 }}
-
-          image-name: ${{ env.IMG_NAME || 'aryaos' }}-${{ github.GITHUB_REF_NAME || 'undef' }}
-
-          hostname: ${{ env.TARGET_HOSTNAME || 'aryaos' }}
-          locale: ${{ env.LOCALE_DEFAULT || 'en_US.UTF-8' }}
-          password: ${{ env.FIRST_USER_PASS || 'aryaos415' }}
-          pi-gen-release: ${{ env.PI_GEN_RELEASE || 'AryaOS' }}
-          release: ${{ env.RELEASE || 'bookworm' }}
-          stage-list: "${{ env.GITHUB_CWD }}/stages/stage-patch stage0 stage1 stage2 ${{ env.GITHUB_CWD }}/stages/stage-base"
-          wpa-country: ${{ env.WPA_COUNTRY || 'US' }}
-          wpa-essid: ${{ env.WPA_ESSID || 'AryaOS-WiFi' }}
-          wpa-password: ${{ env.WPA_PASSWORD || 'aryaos415' }}
-          keyboard-layout: ${{ env.KEYBOARD_LAYOUT || 'English (US)' }}
-          keyboard-keymap: ${{ env.KEYBOARD_KEYMAP || 'us' }}
+          disable-first-boot-user-rename: ${{ env.DISABLE_FIRST_BOOT_USER_RENAME }}
+          enable-ssh: ${{ env.ENABLE_SSH }}
+          username: pi
+          image-name: ${{ env.IMG_NAME }}-${{ github.ref_name }}
+          hostname: ${{ env.TARGET_HOSTNAME }}
+          locale: ${{ env.LOCALE_DEFAULT }}
+          password: ${{ env.FIRST_USER_PASS }}
+          pi-gen-release: ${{ env.PI_GEN_RELEASE }}
+          release: ${{ env.RELEASE }}
+          stage-list: "${{ env.GITHUB_CWD }}/stages/stage-patch stage0 stage1 stage2 ${{ env.GITHUB_CWD }}/stages/stage-base ${{ env.GITHUB_CWD }}/stages/stage-aryaos ${{ env.GITHUB_CWD }}/stages/stage-pytak ${{ env.GITHUB_CWD }}/stages/stage-node-red ${{ env.GITHUB_CWD }}/stages/stage-docker ${{ env.GITHUB_CWD }}/stages/stage-adsbcot ${{ env.GITHUB_CWD }}/stages/stage-aiscot ${{ env.GITHUB_CWD }}/stages/stage-dronecot"
+          wpa-country: ${{ env.WPA_COUNTRY }}
+          wpa-essid: ${{ env.WPA_ESSID }}
+          wpa-password: ${{ env.WPA_PASSWORD }}
+          keyboard-layout: ${{ env.KEYBOARD_LAYOUT }}
+          keyboard-keymap: ${{ env.KEYBOARD_KEYMAP }}
           pi-gen-version: arm64
           verbose-output: true
 
-      - name: list dir
+      - name: Show deploy output
+        if: success()
         run: |
-          ls -alR
-  
-      - name: Upload Pi-Gen artifact.
+          echo "image-path=${{ steps.build_aryaos.outputs.image-path }}"
+          ls -la pi-gen-src/deploy 2>/dev/null || ls -la "${{ github.workspace }}/pi-gen-src/deploy" || true
+
+      - name: Upload image artifact
+        if: success() && steps.build_aryaos.outputs.image-path != ''
         uses: actions/upload-artifact@v4
         with:
-          name: pi-gen-stage2
-          path: stage2.tar.gz
-          # ${{ steps.build_aryaos.outputs.image-path }}
+          name: aryaos-image-${{ github.sha }}
+          path: ${{ steps.build_aryaos.outputs.image-path }}
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Compute release tag
+        id: reltag
+        if: success() && steps.build_aryaos.outputs.image-path != ''
+        run: |
+          set -euo pipefail
+          SHORT="$(git rev-parse --short=12 HEAD)"
+          TS="$(date -u +%Y.%m.%d.%H%M%S)"
+          TAG="v${TS}-${SHORT}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Computed release tag ${TAG}"
+
+      - name: Create and push release tag
+        if: success() && steps.build_aryaos.outputs.image-path != ''
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.reltag.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Automated image build ${{ github.sha }}"
+          git push origin "refs/tags/${TAG}"
+
+      - name: Publish GitHub Release
+        if: success() && steps.build_aryaos.outputs.image-path != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.reltag.outputs.tag }}
+          name: ${{ steps.reltag.outputs.tag }}
+          files: ${{ steps.build_aryaos.outputs.image-path }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

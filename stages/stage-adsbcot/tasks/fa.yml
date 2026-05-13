@@ -26,6 +26,52 @@
   ansible.builtin.apt:
     deb: /usr/src/flightaware-apt-repository_1.2_all.deb
 
+- name: Use bookworm FlightAware apt suite on trixie (no trixie Release upstream)
+  ansible.builtin.replace:
+    path: /etc/apt/sources.list.d/flightaware-apt-repository.list
+    regexp: trixie
+    replace: bookworm
+  when: ansible_distribution_release == "trixie"
+
+- name: FlightAware Release signing rejected by apt/sqv SHA1 policy on trixie (trust source)
+  ansible.builtin.shell: |
+    set -e
+    f=/etc/apt/sources.list.d/flightaware-apt-repository.list
+    if [[ ! -f "$f" ]] || grep -q trusted=yes "$f"; then
+      exit 0
+    fi
+    if grep -qE '^deb[[:space:]]+\[' "$f"; then
+      sed -i -E 's/^deb([[:space:]]+)\[([^]]*)\]/deb\1[\2 trusted=yes]/' "$f"
+    else
+      sed -i -E 's/^deb([[:space:]]+)/deb [trusted=yes]\1/' "$f"
+    fi
+  when: ansible_distribution_release == "trixie"
+  changed_when: true
+
+# FlightAware bookworm packages need libraries not named/present on trixie (Boost 1.74, liblimesuite, …).
+- name: Add Debian bookworm suite for FA runtime dependencies on trixie
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/debian-bookworm-deps.list
+    content: |
+      deb http://deb.debian.org/debian bookworm main
+    mode: "0644"
+  when: ansible_distribution_release == "trixie"
+
+- name: Prefer trixie over bookworm when both suites provide a package
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/01-aryaos-prefer-trixie-over-bookworm.pref
+    content: |
+      # Prefer trixie when the same package exists in bookworm; still allow bookworm-only libs.
+      Package: *
+      Pin: release n=bookworm
+      Pin-Priority: 500
+
+      Package: *
+      Pin: release n=trixie
+      Pin-Priority: 990
+    mode: "0644"
+  when: ansible_distribution_release == "trixie"
+
 - name: Run the equivalent of "apt-get update" as a separate step
   ansible.builtin.apt:
     update_cache: true

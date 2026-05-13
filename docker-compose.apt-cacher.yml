@@ -1,0 +1,27 @@
+# Local apt HTTP cache for pi-gen / AryaOS Docker builds.
+#
+# Usage:
+#   docker compose -f docker-compose.apt-cacher.yml up -d
+#   ARYAOS_APT_CACHE=1 make build-docker
+#
+# Cache data persists in the named volume below. Pi-gen mirrors use HTTP, which
+# apt-cacher-ng handles without extra HTTPS passthrough configuration.
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com
+
+name: aryaos-apt-cacher
+
+services:
+  apt-cacher-ng:
+    image: docker.io/mbentley/apt-cacher-ng:latest
+    container_name: aryaos-apt-cacher-ng
+    restart: unless-stopped
+    ports:
+      - "${ARYAOS_APT_CACHER_PORT:-3142}:3142"
+    volumes:
+      - aryaos_apt_cacher_cache:/var/cache/apt-cacher-ng
+
+volumes:
+  aryaos_apt_cacher_cache:
+    name: aryaos_apt_cacher_cache

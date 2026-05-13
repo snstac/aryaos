@@ -1,5 +1,5 @@
 # code: language=ansible
-# Install PyTAK tools.
+# Install PyTAK tools from manifests/aryaos-sensor-packages.yml
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com
 #
@@ -8,30 +8,27 @@
 # You may obtain a copy of the License at
 #
 # http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
 
-- name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
+- name: Load sensor stack package manifest
+  ansible.builtin.include_vars:
+    file: "{{ playbook_dir }}/manifests/aryaos-sensor-packages.yml"
+
+- name: Ensure cache for apt on Debian family
   ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
 
-- name: Download PyTAK.
+- name: Download sensor stack .debs
   ansible.builtin.get_url:
     url: "{{ item }}"
     dest: "/usr/src/{{ item | basename }}"
     mode: "0644"
-  loop: "{{ lookup('file', '../00-install/00-packages').split('\n') }}"
-  when: ansible_os_family == 'Debian'
+  loop: "{{ sensor_deb_urls }}"
+  when: ansible_os_family == "Debian"
 
-# Loop the 00-packages file, download the packages
-- name: Install PyTAK packages.
+- name: Install sensor stack .debs
   ansible.builtin.apt:
     deb: "/usr/src/{{ item | basename }}"
-  loop: "{{ lookup('file', '../00-install/00-packages').split('\n') }}"
-  when: ansible_os_family == 'Debian'
+  loop: "{{ sensor_deb_urls }}"
+  when: ansible_os_family == "Debian"

@@ -15,7 +15,7 @@
 #
 
 # shellcheck disable=SC2034
-STAGE_LIST="stage0 stage1 stage2 ../stages/stage-base ../stages/stage-aryaos ../stages/stage-pytak ../stages/stage-node-red ../stages/stage-docker ../stages/stage-adsbcot ../stages/stage-aiscot ../stages/stage-dronecot"
+STAGE_LIST="../stages/stage-patch stage0 stage1 stage2 ../stages/stage-base ../stages/stage-aryaos ../stages/stage-pytak ../stages/stage-node-red ../stages/stage-docker ../stages/stage-adsbcot ../stages/stage-aiscot ../stages/stage-dronecot"
 
 IMG_NAME="aryaos"
 PI_GEN_RELEASE="AryaOS: The Operating System for Modern Situational Awareness."
@@ -23,7 +23,7 @@ TARGET_HOSTNAME="aryaos"
 FIRST_USER_NAME="pi"
 FIRST_USER_PASS="aryaos415"
 DISABLE_FIRST_BOOT_USER_RENAME=1
-RELEASE="bookworm"
+RELEASE="trixie"
 WPA_ESSID="AryaOS-WiFi"
 WPA_PASSWORD="aryaos415"
 WPA_COUNTRY="US"
@@ -34,3 +34,4 @@ ENABLE_SSH=1
 # APT_PROXY="http://172.17.2.88:3142"
 SHARED_FILES="$(pwd)/../shared_files"
 export SHARED_FILES
+# Optional: export PI_GEN_ROOT for stage-patch if pi-gen dir is not ../pi-gen or ../pi-gen-src relative to repo root.

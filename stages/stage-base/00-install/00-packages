@@ -31,10 +31,10 @@ pkg-config
 python3-cryptography
 python3-pip
 python3-setuptools
+python3-yaml
 rtl-sdr
 soapysdr-module-rtlsdr
 socat
-software-properties-common
 sudo
 tcpdump
 tmux
@@ -56,3 +56,11 @@ python3-bitstruct
 python3-protobuf
 python3-aiohttp
 python3-asyncio-mqtt
+python3-websockets
+cockpit
+cockpit-bridge
+cockpit-ws
+cockpit-networkmanager
+cockpit-packagekit
+python3-tz
+python3-pytz

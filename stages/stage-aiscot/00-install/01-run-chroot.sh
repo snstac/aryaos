@@ -15,15 +15,23 @@
 #
 
 
-# AIS-catcher
-id ais-catcher || adduser --system --gecos 'AIS-catcher Service User' ais-catcher
+# Ensure AIS-catcher service user exists and is in required groups
+if ! id -u ais-catcher >/dev/null 2>&1; then
+    adduser --system --gecos 'AIS-catcher Service User' ais-catcher
+fi
 
-usermod -a -G plugdev ais-catcher
-usermod -a -G dialout ais-catcher
-
-chown node-red /etc/default/ais-catcher
+usermod -aG plugdev,dialout ais-catcher
 
 dpkg -i /usr/src/AIS-catcher_0.58.1_arm64.deb
 
+curl -fsSL -o /usr/src/cockpit-aiscot.deb https://github.com/snstac/cockpit-aiscot/releases/latest/download/cockpit-aiscot.deb
+dpkg -i /usr/src/cockpit-aiscot.deb
+
+# Ensure apt-listchanges stays off before export-image finalise (see stage-base note).
+if dpkg -s apt-listchanges >/dev/null 2>&1; then
+	echo 'apt-listchanges apt-listchanges/frontend select none' | debconf-set-selections
+	DEBIAN_FRONTEND=noninteractive dpkg-reconfigure -plow apt-listchanges || true
+fi
+
 # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/aiscot.service if the line does not already exist
-grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service || sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service
+# grep -qxF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service || sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service

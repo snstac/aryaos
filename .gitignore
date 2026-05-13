@@ -1,7 +1,8 @@
 /deploy/
 /config.local
 .DS_Store
-/deploy/
 /pi-gen/
-/config.local
-.DS_Store
+.venv/
+# pi-gen Docker bind mounts (large; persist between retries)
+.aryaos-pigen-work/
+.aryaos-pigen-deploy/

@@ -1,0 +1,31 @@
+#!/bin/bash
+# AryaOS pi-gen config for ./pi-gen/build-docker.sh only.
+# The repo root must be bind-mounted read-only at /aryaos (see Makefile: build-docker).
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com
+
+# shellcheck disable=SC2034
+STAGE_LIST="/aryaos/stages/stage-patch stage0 stage1 stage2 /aryaos/stages/stage-base /aryaos/stages/stage-aryaos /aryaos/stages/stage-pytak /aryaos/stages/stage-node-red /aryaos/stages/stage-docker /aryaos/stages/stage-adsbcot /aryaos/stages/stage-aiscot /aryaos/stages/stage-dronecot"
+
+IMG_NAME="aryaos"
+PI_GEN_RELEASE="AryaOS: The Operating System for Modern Situational Awareness."
+TARGET_HOSTNAME="aryaos"
+FIRST_USER_NAME="pi"
+FIRST_USER_PASS="aryaos415"
+DISABLE_FIRST_BOOT_USER_RENAME=1
+RELEASE="trixie"
+WPA_ESSID="AryaOS-WiFi"
+WPA_PASSWORD="aryaos415"
+WPA_COUNTRY="US"
+LOCALE_DEFAULT="en_US.UTF-8"
+KEYBOARD_LAYOUT="English (US)"
+KEYBOARD_KEYMAP="us"
+ENABLE_SSH=1
+# Native builds: optional apt HTTP proxy for pi-gen (see docs/build.md). Docker builds inject
+# APT_PROXY via Makefile when ARYAOS_APT_CACHE=1 (host-gateway → apt-cacher-ng on the host).
+#APT_PROXY="http://127.0.0.1:3142"
+SHARED_FILES=/aryaos/shared_files
+export SHARED_FILES
+PI_GEN_ROOT=/pi-gen
+export PI_GEN_ROOT

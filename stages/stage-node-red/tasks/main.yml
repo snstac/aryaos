@@ -111,22 +111,6 @@
     group: node-red
     mode: "0755"
 
-# Set ownership of /etc/default/*cot to node-red
-- name: Set ownership of /etc/default/*cot to node-red
-  ansible.builtin.find:
-    paths: /etc/default
-    patterns: "*cot"
-  register: cot_files
-
-- name: Set ownership of /etc/default/*cot to node-red
-  ansible.builtin.file:
-    path: "{{ item.path }}"
-    owner: node-red
-    group: node-red
-    mode: "0644"
-  with_items: "{{ cot_files.files }}"
-  when: cot_files.matched > 0
-
 - name: Enable node-red service
   ansible.builtin.systemd_service:
     name: nodered.service

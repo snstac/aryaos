@@ -19,10 +19,10 @@
 - name: Include AIS-Catcher
   ansible.builtin.include_tasks: ais-catcher.yml
 
-# Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/aiscot.service if the line does not already exist
-- name: Add EnvironmentFile to aiscot.service
-  ansible.builtin.lineinfile:
-    path: /lib/systemd/system/aiscot.service
-    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
-    insertbefore: '^EnvironmentFile=/etc/default/aiscot'
-  notify: Restart aiscot
+# # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/aiscot.service if the line does not already exist
+# - name: Add EnvironmentFile to aiscot.service
+#   ansible.builtin.lineinfile:
+#     path: /lib/systemd/system/aiscot.service
+#     line: 'EnvironmentFile=-/etc/aryaos/aryaos-config.txt'
+#     insertbefore: '^EnvironmentFile=/etc/default/aiscot'
+#   notify: Restart aiscot

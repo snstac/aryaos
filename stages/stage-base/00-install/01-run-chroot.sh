@@ -25,3 +25,10 @@ echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-s
 echo "tshark-common tshark-common/install-setuid boolean true" | debconf-set-selections
 
 DEBIAN_FRONTEND=noninteractive apt install tshark -y
+
+# Unattended builds: apt-listchanges otherwise shells out to `apt-get changelog` for many packages
+# during export-image finalise (120s timeouts per package are common on slow mirrors).
+if dpkg -s apt-listchanges >/dev/null 2>&1; then
+	echo 'apt-listchanges apt-listchanges/frontend select none' | debconf-set-selections
+	DEBIAN_FRONTEND=noninteractive dpkg-reconfigure -plow apt-listchanges || true
+fi

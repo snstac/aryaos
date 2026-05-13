@@ -17,6 +17,12 @@
 ---
 shared_files: "{{ inventory_dir }}/shared_files"
 
+# rpi: full AryaOS appliance (portal, comitup, etc.). generic: sensor stack on existing hosts (e.g. DragonOS).
+aryaos_profile: rpi
+
+# Optional. When set, installs this key for user "ansible" (stage-base).
+# aryaos_ansible_authorized_key: "ssh-ed25519 AAAA..."
+
 adsb_sdr_sn: stx:1090:0
 uat_sdr_sn: stx:978:0
 

@@ -99,7 +99,9 @@ EOL
 
 function run_ansible_playbook() {
     ANSIBLE_CONFIG="${base_dir}/ansible.cfg"
-    ansible-playbook -e "ansible_port=2200" -i "${TEMP_INVENTORY_FILE}" -vvv "${base_dir}/site.yml"
+    ansible-galaxy collection install -r "${base_dir}/requirements.yml"
+    ansible-playbook -e "ansible_port=2200 aryaos_profile=generic" -i "${TEMP_INVENTORY_FILE}" \
+        --tags base,pytak -vvv "${base_dir}/site.yml"
 }
 
 function copy_shared_files() {

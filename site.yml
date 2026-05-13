@@ -24,33 +24,34 @@
     - vars.yml
   pre_tasks:
     - name: Update repository index (Debian)
-      tags: always
+      tags: [always]
       ansible.builtin.apt:
         cache_valid_time: 86400
       changed_when: false
       when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
     - name: Update repository index (RedHat)
-      tags: always
+      tags: [always]
       ansible.builtin.dnf:
         update_cache: true
       changed_when: false
       when: ansible_os_family == "RedHat"
   roles:
-    # - role: stage-base
-    #   tags: ['aryaaio']
-    # - role: stage-aryaos
-    #   tags: ['aryaaio']
-    # - role: stage-pytak
-    #   tags: ['aryaaio']
-    # - role: stage-node-red
-    #   tags: ['aryaaio']
-    # - role: stage-docker
-    #   tags: ['aryaaio']
-    # - role: stage-adsbcot
-    #   tags: ['aryaaio']
-    # - role: stage-aiscot
-    #   tags: ['aryaaio']
+    - role: stage-base
+      tags: [aryaos, base]
+    - role: stage-aryaos
+      tags: [aryaos, rpi]
+      when: aryaos_profile | default("rpi") == "rpi"
+    - role: stage-pytak
+      tags: [aryaos, pytak]
+    - role: stage-node-red
+      tags: [aryaos, nodered]
+    - role: stage-docker
+      tags: [aryaos, docker]
+    - role: stage-adsbcot
+      tags: [aryaos, adsbcot, hardware]
+    - role: stage-aiscot
+      tags: [aryaos, aiscot, hardware]
     - role: stage-dronecot
-      tags: ['aryaaio']
+      tags: [aryaos, dronecot]
     # - { role: geerlingguy.repo-epel, tags: ['epel', 'takserver'] }
     # - { role: stage-takserver, tags: ['takserver'] }

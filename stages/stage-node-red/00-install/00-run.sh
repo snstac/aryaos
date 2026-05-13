@@ -17,7 +17,7 @@
 
 # Node-RED
 install -v -m 755 "${SHARED_FILES}/node-red/update-nodejs-and-nodered" "${ROOTFS_DIR}/usr/src"
-install -v -m 440 "${SHARED_FILES}/node-red/node-red.sudoers" "${ROOTFS_DIR}/etc/sudoers.d/node-red"
+# install -v -m 440 "${SHARED_FILES}/node-red/node-red.sudoers" "${ROOTFS_DIR}/etc/sudoers.d/node-red"
 mkdir -p "${ROOTFS_DIR}/home/node-red/.node-red"
 install -v -m 644 "${SHARED_FILES}/node-red/settings.js" "${ROOTFS_DIR}/home/node-red/.node-red/settings.js"
 install -v -m 644 "${SHARED_FILES}/node-red/package.json"	"${ROOTFS_DIR}/home/node-red/.node-red/package.json"

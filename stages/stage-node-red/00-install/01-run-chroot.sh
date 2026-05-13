@@ -15,17 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+# Ensure node-red user exists
 id node-red || adduser --disabled-password --gecos 'Node-RED Service User' node-red
 
-# FIXME: I don't think this is required?
-usermod -aG sudo node-red
-# Let node-red see systemd logs:
-usermod -aG adm node-red
-# Let node-red get GPU stats:
-usermod -aG video node-red
-# Let node-red get SDR info:
-usermod -aG plugdev node-red
+# Add node-red user to necessary groups
+usermod -aG sudo,adm,video,plugdev node-red
 
 chown -R node-red:node-red /home/node-red
 
@@ -40,11 +34,8 @@ mkdir -p /home/node-red/tmpConf
 
 chown -R node-red:node-red /home/node-red
 chown -R node-red:node-red /var/www/html/recorder
-chown -R node-red:node-red /etc/aryaos
-chown -R node-red:node-red /var/www/html
+
 chmod 0755 /var/www/html
 chmod 0755 /var/www/html/recorder
-
-chown node-red:node-red /etc/default/*cot
 
 systemctl enable nodered
