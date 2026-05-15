@@ -137,6 +137,20 @@
     state: link
   notify: Restart lighttpd
 
+- name: Upload lighttpd CloudTAK HTTPS / proxy config
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/96-aryaos-cloudtak-proxy.conf"
+    dest: /etc/lighttpd/conf-available/96-aryaos-cloudtak-proxy.conf
+    mode: "0644"
+  notify: Restart lighttpd
+
+- name: Enable lighttpd CloudTAK HTTPS / proxy config
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/96-aryaos-cloudtak-proxy.conf
+    dest: /etc/lighttpd/conf-enabled/96-aryaos-cloudtak-proxy.conf
+    state: link
+  notify: Restart lighttpd
+
 - name: Validate lighttpd configuration
   ansible.builtin.command: lighttpd -tt -f /etc/lighttpd/lighttpd.conf
   changed_when: false

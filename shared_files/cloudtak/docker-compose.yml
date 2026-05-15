@@ -1,4 +1,4 @@
-# CloudTAK-SA shim only — full upstream compose omitted on purpose.
+# CloudTAK-SA shim + web UI for AryaOS (/cloudtak/ via lighttpd).
 # SPDX-License-Identifier: Apache-2.0
 
 services:
@@ -11,5 +11,16 @@ services:
       - "0.0.0.0:8080:8080"
       - "0.0.0.0:8089:8089"
       - "0.0.0.0:8443:8443"
+      - "127.0.0.1:18443:18443"
     volumes:
       - ./shim/certs:/app/certs
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:80"
+    depends_on:
+      - shim

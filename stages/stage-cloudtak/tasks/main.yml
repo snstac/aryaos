@@ -30,6 +30,8 @@
   loop:
     - "{{ shared_files }}/cloudtak/docker-compose.yml"
     - "{{ shared_files }}/cloudtak/README.md"
+    - "{{ shared_files }}/cloudtak/Dockerfile.web"
+    - "{{ shared_files }}/cloudtak/nginx-cloudtak-web.conf"
 
 - name: Install CloudTAK shim image build context
   ansible.builtin.copy:

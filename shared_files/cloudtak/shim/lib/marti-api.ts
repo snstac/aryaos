@@ -1,3 +1,4 @@
+import http from 'node:http';
 import https from 'node:https';
 import express from 'express';
 import type { Request } from 'express';
@@ -30,11 +31,10 @@ function parseBasicAuth(req: Request): { username: string; password: string } | 
     };
 }
 
-export default function startMartiAPI(args: {
+export function createMartiApp(args: {
     ca: CertificateAuthority;
     router: CoTRouter;
-    port: number;
-}): https.Server {
+}): express.Application {
     const app = express();
     app.use(express.json({ limit: '5mb' }));
     app.use(express.text({ type: ['application/pkcs10', 'application/octet-stream', 'text/plain'], limit: '2mb' }));
@@ -129,6 +129,15 @@ export default function startMartiAPI(args: {
         res.json(signed);
     });
 
+    return app;
+}
+
+export default function startMartiAPI(args: {
+    ca: CertificateAuthority;
+    router: CoTRouter;
+    port: number;
+}): https.Server {
+    const app = createMartiApp(args);
     const creds = args.ca.getServerCredentials();
     const server = https.createServer({
         cert: creds.cert,
@@ -138,6 +147,23 @@ export default function startMartiAPI(args: {
 
     server.listen(args.port, '0.0.0.0', () => {
         console.log(`ok - Marti API listening on ${args.port}`);
+    });
+
+    return server;
+}
+
+export function startMartiHTTP(args: {
+    ca: CertificateAuthority;
+    router: CoTRouter;
+    port: number;
+    host?: string;
+}): http.Server {
+    const app = createMartiApp(args);
+    const host = args.host ?? '127.0.0.1';
+    const server = http.createServer(app);
+
+    server.listen(args.port, host, () => {
+        console.log(`ok - Marti API (HTTP, reverse-proxy) listening on ${host}:${args.port}`);
     });
 
     return server;

@@ -28,6 +28,8 @@ export SHARED_FILES
 install -d "${ROOTFS_DIR}/opt/cloudtak"
 install -v -m 0644 "${SHARED_FILES}/cloudtak/docker-compose.yml" "${ROOTFS_DIR}/opt/cloudtak/"
 install -v -m 0644 "${SHARED_FILES}/cloudtak/README.md" "${ROOTFS_DIR}/opt/cloudtak/"
+install -v -m 0644 "${SHARED_FILES}/cloudtak/Dockerfile.web" "${ROOTFS_DIR}/opt/cloudtak/"
+install -v -m 0644 "${SHARED_FILES}/cloudtak/nginx-cloudtak-web.conf" "${ROOTFS_DIR}/opt/cloudtak/"
 rsync -va "${SHARED_FILES}/cloudtak/shim/" "${ROOTFS_DIR}/opt/cloudtak/shim/"
 
 install -v -m 0644 "${SHARED_FILES}/cloudtak/cloudtak-shim.service" \

@@ -93,6 +93,9 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/cockpit.socket-listen.conf" "${ROOTFS
 install -v -m 0644 "${SHARED_FILES}/aryaos/95-aryaos-cockpit-https.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-available/"
 ln -sf /etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf"
 
+install -v -m 0644 "${SHARED_FILES}/aryaos/96-aryaos-cloudtak-proxy.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-available/"
+ln -sf /etc/lighttpd/conf-available/96-aryaos-cloudtak-proxy.conf "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/96-aryaos-cloudtak-proxy.conf"
+
 for m in openssl proxy redirect; do
 	if [[ -f "${ROOTFS_DIR}/etc/lighttpd/conf-available/10-${m}.conf" ]]; then
 		ln -sf "/etc/lighttpd/conf-available/10-${m}.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/10-${m}.conf"
