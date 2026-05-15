@@ -5,6 +5,24 @@
     name: lighttpd
     state: restarted
 
+- name: Restart gpsd
+  block:
+    - name: Reload systemd (gpsd.socket drop-in, etc.)
+      ansible.builtin.systemd:
+        daemon_reload: true
+    - name: Stop gpsd before recreating control socket
+      ansible.builtin.service:
+        name: gpsd
+        state: stopped
+    - name: Recreate /run/gpsd.sock with SocketMode/SocketGroup from drop-in
+      ansible.builtin.service:
+        name: gpsd.socket
+        state: restarted
+    - name: Start gpsd again
+      ansible.builtin.service:
+        name: gpsd
+        state: started
+
 - name: Reload systemd and restart lighttpd
   ansible.builtin.systemd:
     name: lighttpd

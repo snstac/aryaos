@@ -32,7 +32,17 @@ install -v -m 755 "${SHARED_FILES}/adsbcot/tar1090-install.sh" "${ROOTFS_DIR}/us
 
 # dump1090-fa
 install -v -m 644 "${SHARED_FILES}/adsbcot/dump1090-fa.service" "${ROOTFS_DIR}/lib/systemd/system/"
+install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system/dump1090-fa.service.d"
+install -v -m 0644 "${SHARED_FILES}/adsbcot/systemd/dump1090-fa.service.d/aryaos-conflicts.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/dump1090-fa.service.d/aryaos-conflicts.conf"
 install -v -m 644 "${SHARED_FILES}/adsbcot/dump978-fa.service" "${ROOTFS_DIR}/lib/systemd/system/"
+
+install -d -m 0755 "${ROOTFS_DIR}/usr/local/libexec/aryaos"
+install -v -m 0755 "${SHARED_FILES}/adsbcot/apply-dump978-serial.sh" "${ROOTFS_DIR}/usr/local/libexec/aryaos/apply-dump978-serial.sh"
+install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system/dump978-fa.service.d"
+install -v -m 0644 "${SHARED_FILES}/adsbcot/systemd/dump978-fa.service.d/aryaos-uat-serial.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/dump978-fa.service.d/aryaos-uat-serial.conf"
+install -v -m 0644 "${SHARED_FILES}/adsbcot/99-aryaos-dump978-uat-rtlsdr.rules" "${ROOTFS_DIR}/etc/udev/rules.d/"
 
 
 # readsb
@@ -40,6 +50,9 @@ install -v -m 644 "${SHARED_FILES}/adsbcot/readsb_3.14.1621_arm64.deb" "${ROOTFS
 install -v -m 755 "${SHARED_FILES}/adsbcot/readsb-install.sh" "${ROOTFS_DIR}/usr/src/"
 install -v -m 755 "${SHARED_FILES}/adsbcot/run_readsb.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 644 "${SHARED_FILES}/adsbcot/readsb.service" "${ROOTFS_DIR}/lib/systemd/system/"
+install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system/readsb.service.d"
+install -v -m 0644 "${SHARED_FILES}/adsbcot/systemd/readsb.service.d/aryaos-conflicts.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/readsb.service.d/aryaos-conflicts.conf"
 install -v -m 755 "${SHARED_FILES}/adsbcot/readsb-set-location.sh" "${ROOTFS_DIR}/usr/local/bin/"
 install -v -m 755 "${SHARED_FILES}/adsbcot/readsb-gain.sh" "${ROOTFS_DIR}/usr/local/bin/"
 

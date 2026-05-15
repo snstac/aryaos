@@ -30,3 +30,16 @@
     name: cockpit
     state: restarted
   failed_when: false
+
+- name: Reload systemd and udev for dump978
+  ansible.builtin.shell: systemctl daemon-reload && udevadm control --reload-rules
+  changed_when: true
+
+- name: Reload systemd for adsb decoder
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart dump978-fa
+  ansible.builtin.service:
+    name: dump978-fa
+    state: restarted

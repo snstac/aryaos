@@ -1,8 +1,8 @@
 #!/usr/bin/python3
-# CGI: JSON host/network status for the HTTPS landing page (lighttpd + mod_cgi).
+# CGI: JSON host/network + GNSS (gpsd) + radio/RF inventory for the HTTPS landing page.
 #
-# Uses absolute paths (lighttpd often sets a minimal PATH) and /usr/bin/python3
-# (not env) so the interpreter resolves without PATH.
+# Uses absolute paths (lighttpd often sets a minimal PATH) and /usr/bin/python3.
+# www-data must be in the "gpsd" group to run gpspipe against /run/gpsd.sock.
 #
 # systemd's lighttpd unit sets RestrictAddressFamilies without AF_NETLINK by default;
 # iproute2 "ip" needs AF_NETLINK — see systemd drop-in aryaos-netlink.conf.
@@ -11,13 +11,55 @@
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 
 import json
+import math
 import os
+import re
 import socket
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 
 IP = "/usr/sbin/ip"
 UPTIME = "/usr/bin/uptime"
+GPSPIPE = "/usr/bin/gpspipe"
+SYSTEMCTL = "/usr/bin/systemctl"
+LSUSB = "/usr/bin/lsusb"
+RFKILL_CANDIDATES = ("/usr/sbin/rfkill", "/usr/bin/rfkill")
+
+SYS_IEEE80211 = "/sys/class/ieee80211"
+SYS_NET = "/sys/class/net"
+SYS_BT = "/sys/class/bluetooth"
+SYS_USB = "/sys/bus/usb/devices"
+
+# USB VID:PID seen on common SDR / RF front-ends (read-only sysfs; no device open).
+USB_RADIO_IDS = frozenset(
+    {
+        "0bda:2832",
+        "0bda:2838",
+        "0bda:2839",
+        "0bda:2878",
+        "0bda:f001",
+        "1d50:6089",  # HackRF
+        "1d50:60a1",  # Airspy R2 / Mini
+        "0456:b673",
+        "0456:b674",  # PlutoSDR
+        "2cf0:5246",  # bladeRF
+        "2500:0020",
+        "2500:0021",  # USRP B200/B210 family
+    }
+)
+# Extra Realtek DVB-T dongles often used as RTL-SDR.
+RTL_USB_VID = "0bda"
+RTL_USB_PIDS = frozenset(
+    {
+        "2832",
+        "2838",
+        "2839",
+        "2878",
+        "f001",
+        "a001",
+    }
+)
 
 
 def cgi_fail(status_line, body):
@@ -30,28 +72,50 @@ def cgi_fail(status_line, body):
         sys.stdout.write("\n")
 
 
-def run(argv):
+def run(argv, timeout=8):
     try:
         r = subprocess.run(
             argv,
             check=False,
             capture_output=True,
             text=True,
-            timeout=8,
+            timeout=timeout,
         )
-        return (r.stdout or "").strip()
-    except (OSError, subprocess.TimeoutExpired):
-        return ""
+        return (r.stdout or "").strip(), r.returncode, (r.stderr or "").strip()
+    except OSError as e:
+        return "", -1, str(e)
+    except subprocess.TimeoutExpired:
+        return "", -1, "command timed out"
+
+
+def run_gpspipe(argv, timeout=8):
+    """Like run(), but keep partial stdout on TimeoutExpired so we can still parse."""
+    try:
+        r = subprocess.run(
+            argv,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        return (r.stdout or "").strip(), r.returncode, (r.stderr or "").strip()
+    except OSError as e:
+        return "", -1, str(e)
+    except subprocess.TimeoutExpired as e:
+        partial = (e.stdout or "").strip() if e.stdout else ""
+        hint = "gpspipe timed out (no JSON yet)" if not partial else "gpspipe timed out (using partial capture)"
+        return partial, -1, hint
 
 
 def primary_ip():
-    out = run([IP, "-4", "route", "get", "8.8.8.8"])
+    out, _, _ = run([IP, "-4", "route", "get", "8.8.8.8"])
     parts = out.split()
     if "src" in parts:
         i = parts.index("src")
         if i + 1 < len(parts):
             return parts[i + 1].strip()
-    for line in run([IP, "-4", "-br", "addr", "show", "scope", "global"]).splitlines():
+    out, _, _ = run([IP, "-4", "-br", "addr", "show", "scope", "global"])
+    for line in out.splitlines():
         line = line.strip()
         if not line or line.startswith("lo"):
             continue
@@ -63,6 +127,486 @@ def primary_ip():
                 if tok and tok[0].isdigit():
                     return tok.split("/")[0]
     return ""
+
+
+def _probe_uptime():
+    out, _, _ = run([UPTIME, "-p"])
+    return (out or "").strip() or "—"
+
+
+def _probe_ipv4_block():
+    out, _, _ = run([IP, "-4", "-br", "addr", "show", "scope", "global"])
+    return (out or "").strip() if out else "(unavailable)"
+
+
+def _failed_gps(msg):
+    return {
+        "ok": False,
+        "error": msg,
+        "fix_type": None,
+        "mode": None,
+        "lat": None,
+        "lon": None,
+        "alt_m": None,
+        "epx_m": None,
+        "epy_m": None,
+        "epv_m": None,
+        "track_deg": None,
+        "speed_mps": None,
+        "climb_mps": None,
+        "time": None,
+        "grid": None,
+        "satellites_visible": None,
+        "satellites_used": None,
+    }
+
+
+def maidenhead(lat, lon):
+    """6-character Maidenhead locator (field + square + subsquare)."""
+    try:
+        lat = float(lat)
+        lon = float(lon)
+    except (TypeError, ValueError):
+        return ""
+    if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0):
+        return ""
+    lon += 180.0
+    lat += 90.0
+    o = []
+    o.append(chr(ord("A") + int(lon // 20)))
+    o.append(chr(ord("A") + int(lat // 10)))
+    lon %= 20.0
+    lat %= 10.0
+    o.append(str(int(lon // 2)))
+    o.append(str(int(lat // 1)))
+    lon -= 2.0 * int(lon // 2)
+    lat -= 1.0 * int(lat // 1)
+    o.append(chr(ord("a") + int(lon * 12)))
+    o.append(chr(ord("a") + int(lat * 24)))
+    return "".join(o)
+
+
+def fix_type_from_mode(mode):
+    try:
+        m = int(mode)
+    except (TypeError, ValueError):
+        return "UNKNOWN", 0
+    if m == 0:
+        return "UNKNOWN", m
+    if m == 1:
+        return "NO_FIX", m
+    if m == 2:
+        return "2D", m
+    if m == 3:
+        return "3D", m
+    return "UNKNOWN", m
+
+
+def _read_txt(path, limit=512):
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
+            return f.read(limit).strip()
+    except OSError:
+        return ""
+
+
+def _phy_to_ifname():
+    """Map ieee80211 phy name (phy0) -> netdev (wlan0)."""
+    out = {}
+    if not os.path.isdir(SYS_NET):
+        return out
+    try:
+        names = os.listdir(SYS_NET)
+    except OSError:
+        return out
+    for name in names:
+        if name == "lo":
+            continue
+        phy_link = os.path.join(SYS_NET, name, "phy80211")
+        if os.path.islink(phy_link):
+            try:
+                phy_path = os.path.realpath(phy_link)
+                phy_name = os.path.basename(phy_path)
+                if phy_name.startswith("phy"):
+                    out[phy_name] = name
+            except OSError:
+                continue
+    return out
+
+
+def _parse_ip_link_states():
+    """ifname -> up|down|unknown"""
+    states = {}
+    out, _, _ = run([IP, "-br", "link", "show"], timeout=3)
+    for line in out.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) < 2:
+            continue
+        ifname, st = parts[0], parts[1].upper()
+        if "UP" in st:
+            states[ifname] = "up"
+        elif "DOWN" in st:
+            states[ifname] = "down"
+        else:
+            states[ifname] = "unknown"
+    return states
+
+
+def _rfkill_bin():
+    for p in RFKILL_CANDIDATES:
+        if os.path.isfile(p) and os.access(p, os.X_OK):
+            return p
+    return ""
+
+
+def _parse_rfkill():
+    """rfkill id name -> {soft: bool, hard: bool} for names like phy0, hci0."""
+    states = {}
+    rk = _rfkill_bin()
+    if not rk:
+        return states
+    out, code, _ = run([rk, "list"], timeout=2)
+    if code != 0 or not out:
+        return states
+    cur = None
+    soft = hard = False
+    for raw in out.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        m = re.match(r"^\d+:\s+(\S+):\s+", line)
+        if m:
+            if cur is not None:
+                states[cur] = {"soft": soft, "hard": hard}
+            cur = m.group(1)
+            soft = hard = False
+            continue
+        if cur is None:
+            continue
+        low = line.lower()
+        if "soft blocked" in low:
+            soft = "yes" in low
+        if "hard blocked" in low:
+            hard = "yes" in low
+    if cur is not None:
+        states[cur] = {"soft": soft, "hard": hard}
+    return states
+
+
+def _wifi_phy_driver(phy_path):
+    driver_link = os.path.join(phy_path, "device", "driver")
+    if os.path.islink(driver_link):
+        try:
+            return os.path.basename(os.path.realpath(driver_link))
+        except OSError:
+            pass
+    return ""
+
+
+def _gather_wifi_radios(devices, link_states, rfkill_map):
+    phy_if = _phy_to_ifname()
+    if not os.path.isdir(SYS_IEEE80211):
+        return
+    try:
+        phys = sorted(x for x in os.listdir(SYS_IEEE80211) if x.startswith("phy"))
+    except OSError:
+        return
+    for phy in phys:
+        phy_path = os.path.join(SYS_IEEE80211, phy)
+        ifname = phy_if.get(phy, phy)
+        drv = _wifi_phy_driver(phy_path)
+        mac = _read_txt(os.path.join(phy_path, "macaddress"), 32)
+        detail_parts = []
+        if drv:
+            detail_parts.append(f"driver {drv}")
+        if mac:
+            detail_parts.append(mac)
+        detail = ", ".join(detail_parts) if detail_parts else "802.11 PHY"
+
+        state = link_states.get(ifname, "unknown")
+        rk = rfkill_map.get(phy)
+        if rk and (rk.get("soft") or rk.get("hard")):
+            state = "blocked"
+
+        devices.append(
+            {
+                "kind": "wifi",
+                "label": ifname,
+                "state": state,
+                "detail": detail,
+                "source": "sysfs+ip",
+            }
+        )
+
+
+def _gather_bluetooth(devices, rfkill_map):
+    if not os.path.isdir(SYS_BT):
+        return
+    try:
+        hci_dirs = sorted(x for x in os.listdir(SYS_BT) if x.startswith("hci"))
+    except OSError:
+        return
+    for hci in hci_dirs:
+        base = os.path.join(SYS_BT, hci)
+        name = _read_txt(os.path.join(base, "name"), 128) or hci
+        addr = _read_txt(os.path.join(base, "address"), 32)
+        detail = addr if addr else "Bluetooth controller"
+        if name and name != hci:
+            detail = f"{name} ({addr})" if addr else name
+
+        state = "present"
+        rk = rfkill_map.get(hci)
+        if rk and (rk.get("soft") or rk.get("hard")):
+            state = "blocked"
+
+        devices.append(
+            {
+                "kind": "bluetooth",
+                "label": hci,
+                "state": state,
+                "detail": detail,
+                "source": "sysfs",
+            }
+        )
+
+
+def _usb_id_matches_radio(vid, pid):
+    vid = (vid or "").lower().strip()
+    pid = (pid or "").lower().strip()
+    if len(vid) != 4 or len(pid) != 4:
+        return False
+    key = f"{vid}:{pid}"
+    if key in USB_RADIO_IDS:
+        return True
+    if vid == RTL_USB_VID and pid in RTL_USB_PIDS:
+        return True
+    return False
+
+
+def _gather_usb_sdr(devices):
+    if not os.path.isdir(SYS_USB):
+        return
+    try:
+        entries = os.listdir(SYS_USB)
+    except OSError:
+        return
+    for name in sorted(entries):
+        devpath = os.path.join(SYS_USB, name)
+        vfile = os.path.join(devpath, "idVendor")
+        pfile = os.path.join(devpath, "idProduct")
+        if not (os.path.isfile(vfile) and os.path.isfile(pfile)):
+            continue
+        vid = _read_txt(vfile, 8)
+        pid = _read_txt(pfile, 8)
+        if not _usb_id_matches_radio(vid, pid):
+            continue
+        man = _read_txt(os.path.join(devpath, "manufacturer"), 128)
+        prod = _read_txt(os.path.join(devpath, "product"), 128)
+        serial = _read_txt(os.path.join(devpath, "serial"), 128)
+        label = prod or f"USB {vid}:{pid}"
+        detail_bits = [f"{vid}:{pid}"]
+        if man:
+            detail_bits.insert(0, man)
+        if serial:
+            detail_bits.append(f"sn {serial}")
+        devices.append(
+            {
+                "kind": "usb_sdr",
+                "label": label[:80],
+                "state": "present",
+                "detail": " · ".join(detail_bits),
+                "source": "sysfs",
+            }
+        )
+
+
+def _gather_lsusb_extra(devices):
+    if not (os.path.isfile(LSUSB) and os.access(LSUSB, os.X_OK)):
+        return
+    out, code, _ = run([LSUSB], timeout=4)
+    if code != 0 or not out:
+        return
+    seen_pairs = set()
+    for d in devices:
+        if d.get("kind") != "usb_sdr":
+            continue
+        blob = f"{d.get('detail', '')} {d.get('label', '')}"
+        for mm in re.finditer(r"\b([0-9a-fA-F]{4}):([0-9a-fA-F]{4})\b", blob):
+            seen_pairs.add(f"{mm.group(1).lower()}:{mm.group(2).lower()}")
+    for line in out.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        m = re.match(
+            r"^Bus\s+\d+\s+Device\s+\d+:\s+ID\s+([0-9a-fA-F]{4}):([0-9a-fA-F]{4})\s*(.*)$",
+            line,
+        )
+        if not m:
+            continue
+        vid, pid, rest = m.group(1), m.group(2), m.group(3).strip()
+        if not _usb_id_matches_radio(vid, pid):
+            continue
+        key_hint = f"{vid.lower()}:{pid.lower()}"
+        if key_hint in seen_pairs:
+            continue
+        seen_pairs.add(key_hint)
+        devices.append(
+            {
+                "kind": "usb_sdr",
+                "label": (rest or f"USB {vid}:{pid}")[:80],
+                "state": "present",
+                "detail": f"lsusb {vid}:{pid}" + (f" — {rest}" if rest else ""),
+                "source": "lsusb",
+            }
+        )
+
+
+def _gather_sdr_services(devices):
+    if not (os.path.isfile(SYSTEMCTL) and os.access(SYSTEMCTL, os.X_OK)):
+        return
+    services = (
+        ("dump1090-fa", "ADS-B 1090 MHz (dump1090-fa)"),
+        ("dump978-fa", "UAT 978 MHz (dump978-fa)"),
+        ("readsb", "readsb ADS-B decoder"),
+    )
+    for unit, desc in services:
+        out, code, _ = run([SYSTEMCTL, "is-active", unit], timeout=2)
+        active = out.strip() == "active" and code == 0
+        devices.append(
+            {
+                "kind": "sdr_service",
+                "label": unit,
+                "state": "up" if active else "down",
+                "detail": desc,
+                "source": "systemctl",
+            }
+        )
+
+
+def gather_radios():
+    out = {"ok": True, "error": None, "devices": []}
+    devices = out["devices"]
+    errs = []
+    try:
+        link_states = _parse_ip_link_states()
+        rfkill_map = _parse_rfkill()
+        _gather_wifi_radios(devices, link_states, rfkill_map)
+        _gather_bluetooth(devices, rfkill_map)
+        _gather_usb_sdr(devices)
+        _gather_lsusb_extra(devices)
+        _gather_sdr_services(devices)
+    except OSError as e:
+        errs.append(str(e))
+    if errs:
+        out["error"] = "; ".join(errs)
+        out["ok"] = False
+    return out
+
+
+def gather_gps():
+    out = {
+        "ok": False,
+        "error": None,
+        "fix_type": None,
+        "mode": None,
+        "lat": None,
+        "lon": None,
+        "alt_m": None,
+        "epx_m": None,
+        "epy_m": None,
+        "epv_m": None,
+        "track_deg": None,
+        "speed_mps": None,
+        "climb_mps": None,
+        "time": None,
+        "grid": None,
+        "satellites_visible": None,
+        "satellites_used": None,
+    }
+    # Few lines suffice for VERSION/DEVICES/WATCH/SKY/TPV; large -n + short timeout caused false timeouts.
+    stdout, code, err = run_gpspipe([GPSPIPE, "-w", "-n", "40"], timeout=8)
+    if code != 0 and not stdout:
+        out["error"] = err or f"gpspipe exit {code}"
+        return out
+
+    last_tpv = None
+    last_sky = None
+    last_err = None
+    saw_json = False
+
+    for line in stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            doc = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        saw_json = True
+        cls = doc.get("class")
+        if cls == "TPV":
+            last_tpv = doc
+        elif cls == "SKY":
+            last_sky = doc
+        elif cls == "ERROR":
+            last_err = doc.get("message") or str(doc)
+
+    if not saw_json:
+        out["error"] = err or "no JSON from gpspipe"
+        return out
+
+    out["ok"] = True
+    if last_err:
+        out["error"] = last_err
+    elif code != 0 and err and last_tpv is None:
+        out["error"] = err
+
+    if last_sky is not None:
+        sats = last_sky.get("satellites") or []
+        out["satellites_visible"] = len(sats)
+        out["satellites_used"] = sum(1 for s in sats if s.get("used"))
+
+    if last_tpv is None:
+        if not out["error"]:
+            out["error"] = "no TPV from gpsd yet"
+        return out
+
+    mode = last_tpv.get("mode")
+    out["mode"] = mode
+    ft, _ = fix_type_from_mode(mode)
+    out["fix_type"] = ft
+
+    for key, dest in (
+        ("lat", "lat"),
+        ("lon", "lon"),
+        ("alt", "alt_m"),
+        ("epx", "epx_m"),
+        ("epy", "epy_m"),
+        ("epv", "epv_m"),
+        ("track", "track_deg"),
+        ("speed", "speed_mps"),
+        ("climb", "climb_mps"),
+        ("time", "time"),
+    ):
+        if key in last_tpv and last_tpv[key] is not None:
+            v = last_tpv[key]
+            if isinstance(v, (int, float)):
+                if math.isnan(v) or math.isinf(v):
+                    continue
+                out[dest] = v
+            elif key == "time" and isinstance(v, str):
+                out[dest] = v
+
+    lat = out.get("lat")
+    lon = out.get("lon")
+    if (
+        out.get("mode") in (2, 3)
+        and lat is not None
+        and lon is not None
+    ):
+        out["grid"] = maidenhead(lat, lon)
+
+    return out
 
 
 def main():
@@ -79,14 +623,32 @@ def main():
     except OSError:
         fqdn = hostname
 
-    uptime = run([UPTIME, "-p"])
-    if not uptime:
-        uptime = "—"
-
-    p_ip = primary_ip()
-    ipv4_text = run([IP, "-4", "-br", "addr", "show", "scope", "global"])
-    if not ipv4_text:
-        ipv4_text = "(unavailable)"
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        f_gps = pool.submit(gather_gps)
+        f_radios = pool.submit(gather_radios)
+        f_uptime = pool.submit(_probe_uptime)
+        f_pip = pool.submit(primary_ip)
+        f_ipv4 = pool.submit(_probe_ipv4_block)
+        try:
+            gps_out = f_gps.result()
+        except Exception as e:
+            gps_out = _failed_gps(str(e))
+        try:
+            radios_out = f_radios.result()
+        except Exception as e:
+            radios_out = {"ok": False, "error": str(e), "devices": []}
+        try:
+            uptime = f_uptime.result()
+        except Exception:
+            uptime = "—"
+        try:
+            p_ip = f_pip.result()
+        except Exception:
+            p_ip = ""
+        try:
+            ipv4_text = f_ipv4.result()
+        except Exception:
+            ipv4_text = "(unavailable)"
 
     data = {
         "hostname": hostname,
@@ -94,6 +656,8 @@ def main():
         "primary_ip": p_ip,
         "ipv4_text": ipv4_text,
         "uptime": uptime,
+        "gps": gps_out,
+        "radios": radios_out,
     }
 
     sys.stdout.write("Status: 200 OK\r\n")

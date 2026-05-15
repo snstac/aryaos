@@ -20,7 +20,7 @@
   ansible.builtin.replace:
     path: /etc/default/adsbcot
     regexp: '^.*FEED_URL=.*$'
-    replace: 'FEED_URL=file:///run/readsb/aircraft.json'
+    replace: 'FEED_URL={{ ''file:///run/readsb/aircraft.json'' if (aryaos_adsb_decoder | string == ''readsb'') else ''file:///run/adsb/aircraft.json'' }}'
   notify: Restart ADSBCOT
 
 # Remove # at the beginning of the line containing FEED_URL in /etc/default/adsbcot
@@ -28,7 +28,7 @@
   ansible.builtin.replace:
     path: /etc/default/adsbcot
     regexp: '^#.*FEED_URL=.*$'
-    replace: 'FEED_URL=file:///run/readsb/aircraft.json'
+    replace: 'FEED_URL={{ ''file:///run/readsb/aircraft.json'' if (aryaos_adsb_decoder | string == ''readsb'') else ''file:///run/adsb/aircraft.json'' }}'
   notify: Restart ADSBCOT
 
 # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/adsbcot.service if the line does not already exist

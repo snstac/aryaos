@@ -62,3 +62,7 @@ GitHub Actions: [`.github/workflows/pi-gen.yml`](.github/workflows/pi-gen.yml). 
 ## Lightweight validation (no full image)
 
 For playbook/config checks without pi-gen: **`make ansible-syntax`** (see [docs/build.md](docs/build.md)).
+
+## Local lab Pi (portal / quick tests)
+
+Team default dev host: **`pi@172.17.2.158`**. Push selected tree files with **`ARYAOS_SSH=pi@172.17.2.158 ./scripts/sync-portal-review.sh`**. Details: [docs/dev-pi.md](docs/dev-pi.md). Never commit workstation passwords or keys.

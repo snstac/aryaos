@@ -30,9 +30,18 @@ PYTAK_MULTICAST_LOCAL_ADDR=10.41.0.1
 # DEPRECATED: Legacy setting.
 WIFI_AP_IP=10.41.0.1
 
+# 1090 MHz ADS-B decoder: readsb or dump1090_fa (only one may be enabled). Must match image build
+# (vars.yml aryaos_adsb_decoder). Changing this alone does not reconfigure systemd — see docs/config.md.
+ARYAOS_ADSB_DECODER=readsb
 
 # List of services to restart if network state changes (wifi up, ethernet down, etc).
 AOS_SERVICES="readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-mutability gpsd aiscatcher nodered aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
+
+# RTL-SDR USB serial string for dump978-fa (UAT / 978 MHz). Factory default matches Nooelec
+# NESDR Nano 3 “978” EEPROM preset: stx:978:0 — do not use the same serial as the 1090 path
+# (readsb / dump1090-fa use adsb_sdr_sn in Ansible / image build). Override here on a running
+# system, then: sudo systemctl restart dump978-fa
+ARYAOS_UAT_RTL_SERIAL=stx:978:0
 
 
 # Our ID, used to generate WiFi AP SSID, lincot UID, etc. 

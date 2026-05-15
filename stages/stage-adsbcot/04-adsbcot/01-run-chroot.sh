@@ -30,14 +30,29 @@ sed --follow-symlinks -i -E -e "s/RECEIVER_OPTIONS.*/RECEIVER_OPTIONS=\"--device
 # tar1090
 bash /usr/src/tar1090-install.sh
 
-# Replace FEED_URL in /etc/default/adsbcot with file:///run/readsb/aircraft.json
-sed --follow-symlinks -i -E -e "s/FEED_URL.*/FEED_URL=file:\/\/\/run\/readsb\/aircraft.json/" /etc/default/adsbcot
+# adsbcot FEED_URL + mutual exclusivity for 1090 MHz decoder.
+# Default readsb; export ARYAOS_ADSB_DECODER_DEFAULT=dump1090_fa during pi-gen to match vars.yml aryaos_adsb_decoder.
+ARYAOS_ADSB_DECODER_DEFAULT="${ARYAOS_ADSB_DECODER_DEFAULT:-readsb}"
+if [[ "${ARYAOS_ADSB_DECODER_DEFAULT}" == "dump1090_fa" ]]; then
+	sed --follow-symlinks -i -E -e "s/FEED_URL.*/FEED_URL=file:\/\/\/run\/adsb\/aircraft.json/" /etc/default/adsbcot
+else
+	sed --follow-symlinks -i -E -e "s/FEED_URL.*/FEED_URL=file:\/\/\/run\/readsb\/aircraft.json/" /etc/default/adsbcot
+fi
 
 # Remove # from the line containing FEED_URL in /etc/default/adsbcot
 sed --follow-symlinks -i -E -e "s/^# (FEED_URL.*)/\1/" /etc/default/adsbcot
 
 # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/adsbcot.service if the line does not already exist
 grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/adsbcot.service || sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/adsbcot.service
+
+systemctl daemon-reload || true
+if [[ "${ARYAOS_ADSB_DECODER_DEFAULT}" == "dump1090_fa" ]]; then
+	systemctl disable --now readsb.service 2>/dev/null || true
+	systemctl enable dump1090-fa.service 2>/dev/null || true
+else
+	systemctl disable --now dump1090-fa.service 2>/dev/null || true
+	systemctl enable readsb.service 2>/dev/null || true
+fi
 
 # Cockpit module for adsbcot (Polkit rules + /usr/share/cockpit/adsbcot). Deb version must match vars.yml.
 dpkg -i /usr/src/cockpit-adsbcot_1.0.8_all.deb

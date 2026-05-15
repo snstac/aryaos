@@ -46,6 +46,42 @@
   ansible.builtin.apt:
     deb: /usr/src/dump978-fa_9.0_amd64.deb
 
+- name: Ensure AryaOS libexec directory for dump978 helpers
+  ansible.builtin.file:
+    path: /usr/local/libexec/aryaos
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install apply-dump978-serial helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/adsbcot/apply-dump978-serial.sh"
+    dest: /usr/local/libexec/aryaos/apply-dump978-serial.sh
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Reload systemd and udev for dump978
+
+- name: Install dump978-fa UAT systemd drop-in
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/adsbcot/systemd/dump978-fa.service.d/aryaos-uat-serial.conf"
+    dest: /etc/systemd/system/dump978-fa.service.d/aryaos-uat-serial.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd and udev for dump978
+
+- name: Install udev rules for dump978 UAT RTL hotplug
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/adsbcot/99-aryaos-dump978-uat-rtlsdr.rules"
+    dest: /etc/udev/rules.d/99-aryaos-dump978-uat-rtlsdr.rules
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd and udev for dump978
+  when: ansible_virtualization_type != "docker"
+
 - name: Set SDR S/N in dump978-fa config
   ansible.builtin.replace:
     path: /etc/default/dump978-fa

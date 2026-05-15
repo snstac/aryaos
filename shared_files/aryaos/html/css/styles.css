@@ -1,22 +1,279 @@
-/* AryaOS portal landing — light overrides on UIKit */
+/* AryaOS portal — SIGINT / RF terminal theme (UIKit overrides) */
 
-.aos-page {
+.aos-theme-sigint {
+  --aos-bg0: #070b0a;
+  --aos-bg1: #0c1210;
+  --aos-panel: rgba(18, 28, 24, 0.92);
+  --aos-panel-border: rgba(0, 255, 170, 0.14);
+  --aos-text: #dce8e2;
+  --aos-muted: #7a9a8c;
+  --aos-phosphor: #3dff9a;
+  --aos-phosphor-dim: #1a8f5a;
+  --aos-amber: #ffb020;
+  --aos-magenta: #ff3d9a;
+  --aos-danger: #ff4466;
+  --aos-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Monaco, Consolas, monospace;
+}
+
+.aos-page.aos-theme-sigint {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f6f8fb 0%, #fff 48%);
+  color: var(--aos-text);
+  background-color: var(--aos-bg0);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(0, 255, 140, 0.08), transparent 55%),
+    linear-gradient(180deg, var(--aos-bg1) 0%, var(--aos-bg0) 45%, #050807 100%);
+  position: relative;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .aos-page.aos-theme-sigint::after {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    opacity: 0.04;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.35) 2px,
+      rgba(0, 0, 0, 0.35) 3px
+    );
+  }
+}
+
+.aos-topstrip {
+  font-family: var(--aos-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--aos-muted);
+  background: rgba(0, 0, 0, 0.45);
+  border-bottom: 1px solid var(--aos-panel-border);
+  padding: 0.45rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.65rem;
+}
+
+.aos-topstrip-label {
+  color: var(--aos-phosphor);
+  font-weight: 700;
+}
+
+.aos-topstrip-sep {
+  color: var(--aos-phosphor-dim);
+  font-weight: 400;
+}
+
+.aos-topstrip-rx {
+  margin-left: auto;
+  color: var(--aos-bg0);
+  background: var(--aos-phosphor);
+  padding: 0.12rem 0.45rem;
+  border-radius: 2px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .aos-topstrip-rx {
+    animation: aos-rx-pulse 2.8s ease-in-out infinite;
+  }
+}
+
+@keyframes aos-rx-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(61, 255, 154, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 12px 1px rgba(61, 255, 154, 0.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aos-topstrip-rx {
+    animation: none;
+  }
 }
 
 .aos-hero {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--aos-panel-border);
+  background: linear-gradient(180deg, rgba(0, 40, 28, 0.25) 0%, transparent 100%);
+}
+
+.aos-hero-title {
+  font-family: var(--aos-mono);
+  letter-spacing: 0.06em;
+  color: var(--aos-text);
+  text-shadow: 0 0 24px rgba(61, 255, 154, 0.15);
+}
+
+.aos-hero-lead {
+  color: #b8cfc4;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.aos-hero-meta {
+  color: var(--aos-muted);
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .aos-hero-badge {
-  display: inline-block;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--aos-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--aos-phosphor);
+  font-weight: 600;
+  margin-bottom: 0.65rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--aos-panel-border);
+  border-radius: 3px;
+  background: rgba(0, 30, 20, 0.5);
+}
+
+.aos-hero-badge-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--aos-phosphor);
+  box-shadow: 0 0 8px var(--aos-phosphor);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .aos-hero-badge-dot {
+    animation: aos-dot-blink 1.4s step-end infinite;
+  }
+}
+
+@keyframes aos-dot-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.aos-theme-sigint .uk-section-muted {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.aos-theme-sigint .uk-card-default {
+  background: var(--aos-panel);
+  color: var(--aos-text);
+  border: 1px solid var(--aos-panel-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.aos-theme-sigint .uk-card-title {
+  font-family: var(--aos-mono);
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  color: var(--aos-amber);
+}
+
+.aos-theme-sigint .uk-text-meta,
+.aos-theme-sigint .uk-text-small {
+  color: var(--aos-muted) !important;
+}
+
+.aos-theme-sigint .uk-heading-small {
+  color: var(--aos-text);
+}
+
+.aos-theme-sigint .uk-description-list > dt {
+  color: var(--aos-phosphor-dim);
+  font-family: var(--aos-mono);
+  font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #1e87f0;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.aos-theme-sigint .uk-description-list > dt:first-child {
+  margin-top: 0;
+}
+
+.aos-theme-sigint .uk-description-list > dd {
+  color: var(--aos-text);
+}
+
+.aos-theme-sigint code {
+  font-family: var(--aos-mono);
+  font-size: 0.85em;
+  color: var(--aos-phosphor);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  word-break: break-all;
+}
+
+.aos-theme-sigint .uk-button-primary {
+  background: linear-gradient(180deg, #1a6b4a 0%, #0d3d2a 100%);
+  color: #e8fff4;
+  border: 1px solid rgba(61, 255, 154, 0.35);
+  font-family: var(--aos-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.aos-theme-sigint .uk-button-primary:hover,
+.aos-theme-sigint .uk-button-primary:focus {
+  background: linear-gradient(180deg, #22805a 0%, #104d36 100%);
+  color: #fff;
+}
+
+.aos-theme-sigint .uk-button-default {
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--aos-muted);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: var(--aos-mono);
+  font-size: 0.78rem;
+}
+
+.aos-theme-sigint .uk-button-default:disabled {
+  opacity: 0.45;
+}
+
+.aos-theme-sigint .uk-divider-small {
+  border-top-color: var(--aos-panel-border);
+}
+
+.aos-theme-sigint .uk-alert-danger {
+  background: rgba(80, 10, 20, 0.55);
+  color: #ffc8d0;
+  border: 1px solid rgba(255, 68, 102, 0.35);
+}
+
+.aos-theme-sigint .uk-alert-warning {
+  background: rgba(50, 38, 0, 0.55);
+  color: #ffe8b8;
+  border: 1px solid rgba(255, 176, 32, 0.35);
+}
+
+.aos-theme-sigint a:not(.uk-button) {
+  color: var(--aos-magenta);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 61, 154, 0.45);
+}
+
+.aos-theme-sigint a:not(.uk-button):hover {
+  color: #ff7ec8;
+}
+
+.aos-theme-sigint .uk-list-bullet > ::before {
+  color: var(--aos-phosphor-dim);
 }
 
 .aos-card-actions .uk-button {
@@ -30,24 +287,50 @@
   }
 }
 
+.aos-icon-cog {
+  display: inline-block;
+  vertical-align: -0.2em;
+  margin-right: 0.4rem;
+  flex-shrink: 0;
+}
+
 .aos-mono {
-  font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Monaco, Consolas, monospace;
-  font-size: 0.8rem;
+  font-family: var(--aos-mono);
+  font-size: 0.78rem;
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
-  background: #f4f6f9;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--aos-panel-border);
   border-radius: 4px;
   padding: 0.75rem 1rem;
   margin: 0;
   max-height: 12rem;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
+  color: #c5e8d8;
+}
+
+.aos-mono-tiny {
+  font-size: 0.7rem;
+  max-height: 6rem;
+  padding: 0.5rem 0.65rem;
+}
+
+.aos-mono-inline {
+  font-family: var(--aos-mono);
+  font-size: 0.78rem;
+  word-break: break-all;
+}
+
+.aos-gps-card .aos-gps-alert {
+  margin-bottom: 0.75rem;
 }
 
 .aos-license {
-  font-size: 0.7rem;
-  line-height: 1.4;
-  color: #666;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: var(--aos-muted);
   max-width: 42rem;
 }
 
@@ -55,6 +338,54 @@
   white-space: pre-wrap;
   margin: 0;
   font-size: inherit;
-  font-family: inherit;
+  font-family: var(--aos-mono);
   color: inherit;
+}
+
+.aos-theme-sigint .uk-heading-small {
+  font-family: var(--aos-mono);
+  color: var(--aos-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+/* Radios / RF panel */
+.aos-rf-card .aos-rf-alert {
+  margin-bottom: 0.75rem;
+}
+
+.aos-rf-empty {
+  margin-bottom: 0.5rem;
+}
+
+.aos-theme-sigint .aos-rf-table {
+  font-family: var(--aos-mono);
+  font-size: 0.75rem;
+  min-width: 18rem;
+}
+
+.aos-theme-sigint .aos-rf-table thead th {
+  color: var(--aos-amber);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.68rem;
+  border-bottom-color: var(--aos-panel-border);
+}
+
+.aos-theme-sigint .aos-rf-table tbody td {
+  color: var(--aos-text);
+  border-top-color: var(--aos-panel-border);
+  vertical-align: top;
+  word-break: break-word;
+}
+
+.aos-theme-sigint .aos-rf-table tbody tr:hover {
+  background: rgba(61, 255, 154, 0.04);
+}
+
+@media (max-width: 639px) {
+  .aos-theme-sigint .aos-rf-col-src {
+    display: none;
+  }
 }

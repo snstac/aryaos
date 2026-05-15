@@ -1,0 +1,12 @@
+# AryaOS: hot-plug — restart dump978-fa when a common RTL2832U dongle with the factory UAT
+# EEPROM serial appears. Linux udev often exposes the string without colons (stx9780).
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+#
+# If your stick reports ATTRS{serial} differently, adjust using:
+#   udevadm info -a -p "$(udevadm info -q path -n /dev/bus/usb/XXX/YYY)"
+
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838", ATTRS{serial}=="stx9780", RUN+="/usr/bin/systemctl try-restart dump978-fa.service"
+
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2832", ATTRS{serial}=="stx9780", RUN+="/usr/bin/systemctl try-restart dump978-fa.service"

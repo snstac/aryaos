@@ -18,31 +18,41 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>AryaOS — welcome</title>
+    <title>AryaOS — RF / NET / GNSS</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="AryaOS situational awareness appliance — quick links and system status.">
+    <meta name="description" content="AryaOS situational awareness appliance — status, RF links, and local GNSS.">
     <link rel="stylesheet" href="css/uikit.min.css"/>
     <link href="css/styles.css" rel="stylesheet">
   </head>
 
-  <body class="aos-page">
+  <body class="aos-page aos-theme-sigint">
+    <div class="aos-topstrip" aria-hidden="true">
+      <span class="aos-topstrip-label">ARYAOS</span>
+      <span class="aos-topstrip-sep">//</span>
+      <span>NET</span>
+      <span class="aos-topstrip-sep">·</span>
+      <span>RF</span>
+      <span class="aos-topstrip-sep">·</span>
+      <span>GNSS</span>
+      <span class="aos-topstrip-rx" title="Portal session">RX</span>
+    </div>
     <div class="uk-section uk-section-small aos-hero">
       <div class="uk-container uk-container-small uk-text-center">
-        <div class="aos-hero-badge">Connected</div>
-        <h1 class="uk-heading-medium uk-margin-remove-bottom">Welcome to AryaOS</h1>
-        <p class="uk-text-lead uk-margin-small-top uk-margin-remove-bottom">
-          You have reached this device on the network. The operating system for modern situational awareness.
+        <div class="aos-hero-badge"><span class="aos-hero-badge-dot" aria-hidden="true"></span> LINK ESTABLISHED</div>
+        <h1 class="uk-heading-medium uk-margin-remove-bottom aos-hero-title">AryaOS</h1>
+        <p class="uk-text-lead uk-margin-small-top uk-margin-remove-bottom aos-hero-lead">
+          Local situational awareness stack — admin, telemetry, and spectrum-adjacent tooling on the edge.
         </p>
-        <p class="uk-text-meta uk-margin-top">
-          Prefer a secure connection: this portal is served over <strong>HTTPS</strong>. HTTP requests are redirected here.
+        <p class="uk-text-meta uk-margin-top aos-hero-meta">
+          Secure channel: this portal is served over <strong>HTTPS</strong>. Cleartext HTTP is redirected here.
         </p>
       </div>
     </div>
 
     <div class="uk-section uk-section-small">
       <div class="uk-container">
-        <div class="uk-grid-large uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
+        <div class="uk-grid-large uk-child-width-1-1 uk-child-width-1-3@m" uk-grid>
           <div>
             <div class="uk-card uk-card-default uk-card-body uk-card-small">
               <h2 class="uk-card-title">Get started</h2>
@@ -51,7 +61,10 @@
               </p>
               <div class="uk-margin aos-card-actions">
                 <a class="uk-button uk-button-primary uk-button-large" href="/admin/">
-                  <span uk-icon="icon: cog; ratio: 0.9" class="uk-margin-small-right"></span>
+                  <svg class="aos-icon-cog" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                  </svg>
                   Open Cockpit (admin)
                 </a>
               </div>
@@ -96,6 +109,67 @@
                 <dt class="uk-text-bold">Your browser used</dt>
                 <dd><code id="aos-browser-host">—</code></dd>
               </dl>
+            </div>
+          </div>
+
+          <div>
+            <div class="uk-card uk-card-default uk-card-body uk-card-small aos-gps-card">
+              <h2 class="uk-card-title">GNSS <span class="uk-text-meta">(gpsd)</span></h2>
+              <p class="uk-text-meta uk-margin-remove-top">
+                Live snapshot from the local gpsd socket. USB receivers often appear as <code>/dev/ttyUSB0</code> or <code>/dev/ttyACM0</code>.
+              </p>
+              <div id="aos-gps-error" class="uk-alert-warning uk-hidden aos-gps-alert" uk-alert></div>
+              <dl class="uk-description-list uk-text-small">
+                <dt class="uk-text-bold">Status</dt>
+                <dd id="aos-gps-status">…</dd>
+                <dt class="uk-text-bold">Fix</dt>
+                <dd id="aos-gps-fix">…</dd>
+                <dt class="uk-text-bold">Position</dt>
+                <dd><code id="aos-gps-pos" class="aos-mono-inline">—</code></dd>
+                <dt class="uk-text-bold">Altitude (MSL)</dt>
+                <dd id="aos-gps-alt">…</dd>
+                <dt class="uk-text-bold">Accuracy <span class="uk-text-muted">(epx / epy / epv m)</span></dt>
+                <dd id="aos-gps-acc">…</dd>
+                <dt class="uk-text-bold">Maidenhead grid</dt>
+                <dd id="aos-gps-grid">…</dd>
+                <dt class="uk-text-bold">Satellites</dt>
+                <dd id="aos-gps-sats">…</dd>
+                <dt class="uk-text-bold">Fix time (UTC)</dt>
+                <dd id="aos-gps-time">…</dd>
+                <dt class="uk-text-bold">Track / speed / climb</dt>
+                <dd id="aos-gps-motion">…</dd>
+                <dt class="uk-text-bold">gpsd / errors</dt>
+                <dd><pre class="aos-mono aos-mono-tiny" id="aos-gps-errdetail">—</pre></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uk-section uk-section-small uk-padding-remove-top">
+      <div class="uk-container">
+        <div class="uk-width-1-1">
+          <div class="uk-card uk-card-default uk-card-body uk-card-small aos-rf-card">
+            <h2 class="uk-card-title">Radios / RF</h2>
+            <p class="uk-text-meta uk-margin-remove-top">
+              Host-detected WLAN, Bluetooth, USB SDR-class devices (sysfs / lsusb), and common decoder services. Devices without a driver or blocked USB visibility may not appear.
+            </p>
+            <div id="aos-radios-error" class="uk-alert-danger uk-hidden aos-rf-alert" uk-alert></div>
+            <p id="aos-radios-empty" class="uk-text-meta aos-rf-empty uk-hidden" role="status"></p>
+            <div class="uk-overflow-auto">
+              <table class="uk-table uk-table-small uk-table-divider uk-table-middle aos-rf-table uk-hidden" id="aos-rf-table" aria-label="Radio and RF devices">
+                <thead>
+                  <tr>
+                    <th scope="col">Type</th>
+                    <th scope="col">Device</th>
+                    <th scope="col">State</th>
+                    <th scope="col">Notes</th>
+                    <th scope="col" class="aos-rf-col-src">Src</th>
+                  </tr>
+                </thead>
+                <tbody id="aos-radios-tbody"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -151,45 +225,7 @@ and limitations under the License.
       </div>
     </div>
 
-    <script>
-      (function () {
-        var bh = document.getElementById("aos-browser-host");
-        if (bh) {
-          bh.textContent = window.location.hostname || "—";
-        }
-
-        var errEl = document.getElementById("aos-status-error");
-        function showErr(msg) {
-          if (!errEl) return;
-          errEl.classList.remove("uk-hidden");
-          errEl.textContent = msg;
-        }
-
-        var api = "/cgi-bin/aryaos-portal-status";
-        fetch(api, { credentials: "same-origin", cache: "no-store" })
-          .then(function (r) {
-            if (!r.ok) throw new Error("HTTP " + r.status);
-            return r.json();
-          })
-          .then(function (d) {
-            var set = function (id, v) {
-              var el = document.getElementById(id);
-              if (el) el.textContent = v != null && v !== "" ? v : "—";
-            };
-            set("aos-hostname", d.hostname);
-            set("aos-fqdn", d.fqdn);
-            var pip = document.getElementById("aos-primary-ip");
-            if (pip) pip.textContent = d.primary_ip || "—";
-            var ipv4 = document.getElementById("aos-ipv4-block");
-            if (ipv4) ipv4.textContent = d.ipv4_text || "—";
-            set("aos-uptime", d.uptime);
-          })
-          .catch(function (e) {
-            showErr("Could not load status from " + api + ". " + (e && e.message ? e.message : ""));
-          });
-      })();
-    </script>
-    <script src="js/uikit.min.js"></script>
-    <script src="js/uikit-icons.min.js"></script>
+    <script src="js/uikit.min.js" defer></script>
+    <script src="js/portal-landing.js" defer></script>
   </body>
 </html>

@@ -1,0 +1,78 @@
+# code: language=ansible
+# Enforce exactly one 1090 MHz decoder: readsb OR dump1090-fa (see vars.yml aryaos_adsb_decoder).
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com
+#
+# SPDX-License-Identifier: Apache-2.0
+
+- name: Assert ADSB decoder choice is valid
+  ansible.builtin.assert:
+    that:
+      - aryaos_adsb_decoder | string in ['readsb', 'dump1090_fa']
+    fail_msg: "aryaos_adsb_decoder must be 'readsb' or 'dump1090_fa' (got {{ aryaos_adsb_decoder }})."
+
+- name: Install readsb systemd drop-in (conflicts dump1090-fa)
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/adsbcot/systemd/readsb.service.d/aryaos-conflicts.conf"
+    dest: /etc/systemd/system/readsb.service.d/aryaos-conflicts.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd for adsb decoder
+
+- name: Install dump1090-fa systemd drop-in (conflicts readsb)
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/adsbcot/systemd/dump1090-fa.service.d/aryaos-conflicts.conf"
+    dest: /etc/systemd/system/dump1090-fa.service.d/aryaos-conflicts.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd for adsb decoder
+
+- name: Prefer readsb for 1090 MHz (disable dump1090-fa)
+  when:
+    - ansible_virtualization_type != "docker"
+    - aryaos_adsb_decoder | string == "readsb"
+  block:
+    - name: Enable readsb
+      ansible.builtin.systemd:
+        name: readsb
+        enabled: true
+        daemon_reload: true
+
+    - name: Start readsb if possible
+      ansible.builtin.systemd:
+        name: readsb
+        state: started
+      failed_when: false
+
+    - name: Disable and stop dump1090-fa
+      ansible.builtin.systemd:
+        name: dump1090-fa
+        enabled: false
+        state: stopped
+      failed_when: false
+
+- name: Prefer dump1090-fa for 1090 MHz (disable readsb)
+  when:
+    - ansible_virtualization_type != "docker"
+    - aryaos_adsb_decoder | string == "dump1090_fa"
+  block:
+    - name: Enable dump1090-fa
+      ansible.builtin.systemd:
+        name: dump1090-fa
+        enabled: true
+        daemon_reload: true
+
+    - name: Start dump1090-fa if possible
+      ansible.builtin.systemd:
+        name: dump1090-fa
+        state: started
+      failed_when: false
+
+    - name: Disable and stop readsb
+      ansible.builtin.systemd:
+        name: readsb
+        enabled: false
+        state: stopped
+      failed_when: false

@@ -37,6 +37,11 @@
     path: /etc/lighttpd/conf-available/10-cgi.conf
   register: lt_cgi_snippet
 
+- name: Stat lighttpd deflate snippet (gzip static text)
+  ansible.builtin.stat:
+    path: /etc/lighttpd/conf-available/10-deflate.conf
+  register: lt_deflate_snippet
+
 - name: Stat lighttpd setenv snippet (X-Forwarded-Proto)
   ansible.builtin.stat:
     path: /etc/lighttpd/conf-available/10-setenv.conf
@@ -72,6 +77,14 @@
     dest: /etc/lighttpd/conf-enabled/10-cgi.conf
     state: link
   when: lt_cgi_snippet.stat.exists
+  notify: Restart lighttpd
+
+- name: Enable lighttpd deflate snippet
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/10-deflate.conf
+    dest: /etc/lighttpd/conf-enabled/10-deflate.conf
+    state: link
+  when: lt_deflate_snippet.stat.exists
   notify: Restart lighttpd
 
 - name: Enable lighttpd setenv snippet from distro

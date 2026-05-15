@@ -24,7 +24,12 @@ aryaos_profile: rpi
 # aryaos_ansible_authorized_key: "ssh-ed25519 AAAA..."
 
 adsb_sdr_sn: stx:1090:0
+# UAT / 978 MHz RTL-SDR EEPROM serial (dump978-fa). Default matches Nooelec NESDR Nano 3 “978”.
+# Keep in sync with ARYAOS_UAT_RTL_SERIAL in shared_files/aryaos/aryaos-config.txt unless you override only at image build.
 uat_sdr_sn: stx:978:0
+
+# 1090 MHz ADS-B decoder: readsb OR dump1090_fa (mutually exclusive). Default readsb matches adsbcot FEED_URL.
+aryaos_adsb_decoder: readsb
 
 readsb_deb_url: https://github.com/snstac/readsb/releases/download/v3.14.1621-2/readsb_3.14.1621_amd64.deb
 

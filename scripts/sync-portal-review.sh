@@ -27,6 +27,23 @@ rsync -avz "${REPO_ROOT}/shared_files/aryaos/html/" "${DEST}:${REMSTAGE}/"
 echo "==> sudo install -> /var/www/html/ + ownership (may prompt for sudo password)"
 ssh "${DEST}" "set -e; sudo rsync -a '${REMSTAGE}/' /var/www/html/; sudo chown -R node-red:node-red /var/www/html; sudo rm -rf '${REMSTAGE}'"
 
+echo "==> /etc/default/gpsd + gpsd.socket drop-in + www-data in gpsd group + restart gpsd / lighttpd"
+scp "${REPO_ROOT}/shared_files/aryaos/gpsd.default" "${DEST}:/tmp/gpsd.default"
+scp "${REPO_ROOT}/shared_files/aryaos/systemd/gpsd.socket.d/socket-group.conf" "${DEST}:/tmp/gpsd-socket-group.conf"
+ssh "${DEST}" "set -e
+sudo install -m 0644 -o root -g root /tmp/gpsd.default /etc/default/gpsd
+rm -f /tmp/gpsd.default
+sudo getent group gpsd >/dev/null || sudo groupadd --system gpsd
+sudo install -d -m 0755 /etc/systemd/system/gpsd.socket.d
+sudo install -m 0644 -o root -g root /tmp/gpsd-socket-group.conf /etc/systemd/system/gpsd.socket.d/socket-group.conf
+rm -f /tmp/gpsd-socket-group.conf
+sudo usermod -aG gpsd www-data || true
+sudo systemctl daemon-reload
+sudo systemctl stop gpsd.service || true
+sudo systemctl restart gpsd.socket
+sudo systemctl start gpsd.service
+sudo systemctl restart lighttpd.service"
+
 F95="95-aryaos-cockpit-https.conf"
 TMP95="/tmp/${F95}.$$"
 echo "==> portal status CGI + lighttpd ${F95}"
@@ -40,9 +57,12 @@ rm -f '${TMP95}'
 if [[ -f /etc/lighttpd/conf-available/10-cgi.conf ]]; then
   sudo ln -sf /etc/lighttpd/conf-available/10-cgi.conf /etc/lighttpd/conf-enabled/10-cgi.conf
 fi
+if [[ -f /etc/lighttpd/conf-available/10-deflate.conf ]]; then
+  sudo ln -sf /etc/lighttpd/conf-available/10-deflate.conf /etc/lighttpd/conf-enabled/10-deflate.conf
+fi
 sudo ln -sf /etc/lighttpd/conf-available/${F95} /etc/lighttpd/conf-enabled/${F95}
 sudo lighttpd -tt -f /etc/lighttpd/lighttpd.conf
-sudo systemctl reload lighttpd.service'
+sudo systemctl reload lighttpd.service"
 
 echo "==> systemd: lighttpd.service.d (AF_NETLINK for iproute2 in CGI)"
 ssh "${DEST}" "sudo install -d -m 0755 /etc/systemd/system/lighttpd.service.d"

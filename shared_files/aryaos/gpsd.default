@@ -1,0 +1,16 @@
+# /etc/default/gpsd — AryaOS appliance (USB GNSS)
+# Installed by pi-gen stage-aryaos / Ansible. Do not edit in place on images without
+# syncing from shared_files/aryaos/gpsd.default.
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+#
+# -n : push data without waiting for the first client (faster bring-up for receivers).
+# -G gpsd : control socket /run/gpsd.sock is group-readable so www-data (portal CGI) can use gpspipe.
+# Common USB serial: ttyUSB* (FTDI/PL2303) and ttyACM* (CDC ACM). USBAUTO picks up
+# hot-plugged GNSS per Debian udev rules.
+
+START_DAEMON="true"
+GPSD_OPTIONS="-n -G gpsd"
+DEVICES="/dev/ttyUSB0 /dev/ttyACM0"
+USBAUTO="true"

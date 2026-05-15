@@ -27,3 +27,7 @@ systemctl enable NetworkManager-dispatcher
 systemctl enable cockpit.socket
 systemctl enable lighttpd
 
+getent group gpsd >/dev/null || groupadd --system gpsd
+systemctl enable gpsd
+usermod -aG gpsd www-data || true
+

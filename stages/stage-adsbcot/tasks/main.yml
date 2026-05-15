@@ -15,6 +15,12 @@
 # limitations under the License.
 #
 
+- name: Assert ADS-B and UAT RTL-SDR serials differ
+  ansible.builtin.assert:
+    that:
+      - adsb_sdr_sn | string != uat_sdr_sn | string
+    fail_msg: "adsb_sdr_sn and uat_sdr_sn must differ — the same EEPROM serial cannot bind readsb/dump1090 and dump978."
+
 - name: Include fa
   ansible.builtin.include_tasks: fa.yml
 
@@ -26,6 +32,9 @@
 
 - name: Include readsb
   ansible.builtin.include_tasks: readsb.yml
+
+- name: Enforce single 1090 MHz decoder (readsb vs dump1090-fa)
+  ansible.builtin.include_tasks: adsb-decoder.yml
 
 - name: Include adsbcot
   ansible.builtin.include_tasks: adsbcot.yml

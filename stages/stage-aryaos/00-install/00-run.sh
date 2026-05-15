@@ -48,9 +48,8 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/etc
 ## Get throttled status on Raspberry Pi
 install -v -m 0755 "${SHARED_FILES}/aryaos/get_throttled.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 
-## Set the GPS device to /dev/ttyUSB0
-## FIXME Magic number /dev/ttyUSB0
-sed --follow-symlinks -i -E -e "s/DEVICES=\".*\"/DEVICES=\"\/dev\/ttyUSB0\"/" "${ROOTFS_DIR}/etc/default/gpsd"
+## gpsd: USB GNSS defaults (see shared_files/aryaos/gpsd.default)
+install -v -m 0644 "${SHARED_FILES}/aryaos/gpsd.default" "${ROOTFS_DIR}/etc/default/gpsd"
 
 
 # UUID
@@ -97,7 +96,7 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/cockpit.socket-listen.conf" "${ROOTFS
 install -v -m 0644 "${SHARED_FILES}/aryaos/95-aryaos-cockpit-https.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-available/"
 ln -sf /etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf"
 
-for m in openssl proxy redirect cgi; do
+for m in openssl proxy redirect cgi deflate; do
 	if [[ -f "${ROOTFS_DIR}/etc/lighttpd/conf-available/10-${m}.conf" ]]; then
 		ln -sf "/etc/lighttpd/conf-available/10-${m}.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/10-${m}.conf"
 	fi
@@ -134,6 +133,11 @@ fi
 install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system/lighttpd.service.d"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf" \
 	"${ROOTFS_DIR}/etc/systemd/system/lighttpd.service.d/aryaos-netlink.conf"
+
+## systemd: gpsd control socket group-readable (portal CGI runs gpspipe as www-data)
+install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system/gpsd.socket.d"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/gpsd.socket.d/socket-group.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/gpsd.socket.d/socket-group.conf"
 
 
 # WiFi

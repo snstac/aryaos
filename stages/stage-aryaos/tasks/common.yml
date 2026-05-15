@@ -58,8 +58,40 @@
     dest: /usr/local/sbin/
     mode: "0755"
 
-- name: Fix gpsd device
-  ansible.builtin.lineinfile:
-    path: /etc/default/gpsd
-    regexp: 'DEVICES=".*"'
-    line: 'DEVICES="/dev/ttyUSB0"'
+- name: Ensure gpsd system group (socket group for gpspipe / portal CGI)
+  ansible.builtin.group:
+    name: gpsd
+    system: true
+    state: present
+
+- name: Install gpsd.socket drop-in (0660 root:gpsd; default unit is 0600 root-only)
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/systemd/gpsd.socket.d/socket-group.conf"
+    dest: /etc/systemd/system/gpsd.socket.d/socket-group.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart gpsd
+
+- name: Install AryaOS gpsd defaults (USB ttyUSB + ttyACM, USBAUTO, -n)
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/gpsd.default"
+    dest: /etc/default/gpsd
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+  notify: Restart gpsd
+
+- name: Ensure www-data can use gpspipe (gpsd socket group)
+  ansible.builtin.user:
+    name: www-data
+    groups: gpsd
+    append: true
+  notify: Restart lighttpd
+
+- name: Enable gpsd at boot
+  ansible.builtin.systemd:
+    name: gpsd.service
+    enabled: true
+    daemon_reload: true
