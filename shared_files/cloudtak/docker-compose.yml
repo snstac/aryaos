@@ -19,6 +19,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.web
+      network: host
     restart: unless-stopped
     ports:
       - "127.0.0.1:5000:80"

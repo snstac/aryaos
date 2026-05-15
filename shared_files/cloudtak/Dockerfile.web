@@ -1,14 +1,10 @@
 # CloudTAK browser client for AryaOS /cloudtak/ (built from upstream api/web).
 # SPDX-License-Identifier: Apache-2.0
 
-FROM node:24-slim AS build
+FROM node:24 AS build
 
 ARG CLOUDTAK_SA_REPO=https://github.com/snstac/CloudTAK-SA
 ARG CLOUDTAK_SA_REF=copilot/add-shim-for-cloudtak-client
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends git ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
 RUN git clone --depth 1 --branch "${CLOUDTAK_SA_REF}" "${CLOUDTAK_SA_REPO}" .
