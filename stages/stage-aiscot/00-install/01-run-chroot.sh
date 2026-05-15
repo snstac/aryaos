@@ -34,5 +34,9 @@ if dpkg -s apt-listchanges >/dev/null 2>&1; then
 	DEBIAN_FRONTEND=noninteractive dpkg-reconfigure -plow apt-listchanges || true
 fi
 
+# Last pi-gen stage with heavy dpkg activity before export; re-assert Cockpit socket
+# enablement in case a maintainer script or preset disturbed symlinks after stage-aryaos.
+systemctl enable cockpit.socket
+
 # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/aiscot.service if the line does not already exist
 # grep -qxF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service || sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service
