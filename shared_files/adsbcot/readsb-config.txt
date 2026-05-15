@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-RECEIVER_OPTIONS="--device=stx:1090:0 --device-type rtlsdr --gain -10 --ppm 0"
+RECEIVER_OPTIONS="--device-type rtlsdr --device=stx:1090:0 --gain -10 --ppm 0"
 
 DECODER_OPTIONS="--max-range 450 --write-json-every 1"
 

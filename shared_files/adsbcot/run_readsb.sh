@@ -34,6 +34,8 @@ fi
 
 set +a
 
-/usr/bin/readsb \
- "${RECEIVER_OPTIONS}" "${DECODER_OPTIONS}" "${NET_OPTIONS}" "${JSON_OPTIONS}" \
- --write-json "${ADSB_JSON}" --quiet
+# RECEIVER_OPTIONS etc. are multiple CLI flags; they must be word-split (not one argv).
+# shellcheck disable=SC2086
+exec /usr/bin/readsb \
+	${RECEIVER_OPTIONS} ${DECODER_OPTIONS} ${NET_OPTIONS} ${JSON_OPTIONS} \
+	--write-json "${ADSB_JSON}" --quiet

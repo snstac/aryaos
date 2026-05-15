@@ -24,5 +24,5 @@
   ansible.builtin.replace:
     path: /etc/default/readsb
     regexp: '^RECEIVER_OPTIONS.*$'
-    replace: 'RECEIVER_OPTIONS="--device {{ adsb_sdr_sn }} --device-type rtlsdr --gain -10 --ppm 0"'
+    replace: 'RECEIVER_OPTIONS="--device-type rtlsdr --device {{ adsb_sdr_sn }} --gain -10 --ppm 0"'
   notify: Restart READSB

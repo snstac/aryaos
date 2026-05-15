@@ -73,6 +73,26 @@ rsync -va "${SHARED_FILES}/aryaos/calfire_airbases/" "${ROOTFS_DIR}/var/www/html
 install -d -m 0755 "${ROOTFS_DIR}/usr/lib/cgi-bin"
 install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-portal-status" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-portal-status"
 
+## Lab dev SSH: trust shared_files/aryaos/ssh/aryaos-dev-lab.pub for user pi (passwordless from workstations with the matching private key)
+LAB_PUB="${SHARED_FILES}/aryaos/ssh/aryaos-dev-lab.pub"
+if [[ -f "${LAB_PUB}" ]]; then
+	install -d -m 0700 "${ROOTFS_DIR}/home/pi/.ssh"
+	AK="${ROOTFS_DIR}/home/pi/.ssh/authorized_keys"
+	touch "${AK}"
+	PUB_LINE="$(tr -d '\r' < "${LAB_PUB}" | head -n1)"
+	if ! grep -qF "${PUB_LINE}" "${AK}" 2>/dev/null; then
+		{
+			echo ""
+			echo "# aryaos-dev-lab (see shared_files/aryaos/ssh/README.md)"
+			cat "${LAB_PUB}"
+			echo ""
+		} >> "${AK}"
+	fi
+	chmod 0600 "${AK}"
+	# Raspberry Pi OS: user pi is typically UID/GID 1000
+	chown -R 1000:1000 "${ROOTFS_DIR}/home/pi/.ssh"
+fi
+
 
 # Recorder
 

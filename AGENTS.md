@@ -65,4 +65,4 @@ For playbook/config checks without pi-gen: **`make ansible-syntax`** (see [docs/
 
 ## Local lab Pi (portal / quick tests)
 
-Team default dev host: **`pi@172.17.2.158`**. Push selected tree files with **`ARYAOS_SSH=pi@172.17.2.158 ./scripts/sync-portal-review.sh`**. Details: [docs/dev-pi.md](docs/dev-pi.md). Never commit workstation passwords or keys.
+Team default dev host: **`pi@aryaos-dev-pi`** (SSH config → **`172.17.2.158`**). Prefer the **lab SSH key** ([`docs/dev-pi.md`](docs/dev-pi.md), [`shared_files/aryaos/ssh/README.md`](shared_files/aryaos/ssh/README.md)): run **`./scripts/setup-dev-ssh.sh`**, then **`./scripts/sync-to-dev-pi.sh`** and **`ARYAOS_SSH=pi@aryaos-dev-pi ./scripts/sync-portal-review.sh`**. Lab password belongs in **gitignored** `scripts/.dev-pi-creds.local` only if key auth is unavailable — never commit credentials.

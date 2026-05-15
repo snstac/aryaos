@@ -4,34 +4,85 @@ Use a dedicated Raspberry Pi on your LAN to try changes from this repository bef
 
 ## Default lab target (team convention)
 
-- **SSH:** `pi@172.17.2.158`
-- **Authentication:** Prefer **SSH public keys** (`ssh-copy-id pi@172.17.2.158`). Do **not** commit passwords, private keys, or credential files to the repo.
+- **SSH:** `pi@aryaos-dev-pi` (via `~/.ssh/config`, see **`./scripts/setup-dev-ssh.sh`**) — resolves to **`172.17.2.158`**.
+- **Password (fallback):** keep out of git. Use **gitignored** `scripts/.dev-pi-creds.local` or export `ARYAOS_DEV_PI_PASSWORD` when you cannot use the dev key below.
 
-## Push portal / CGI / lighttpd snippet from the repo
+## Lab SSH key (passwordless, preferred)
+
+The repo ships **`shared_files/aryaos/ssh/aryaos-dev-lab.pub`**; new AryaOS images append it to **`pi`**’s **`authorized_keys`**. The matching **private** key is **gitignored** at **`shared_files/aryaos/ssh/aryaos-dev-lab`** (generate once in the repo with `ssh-keygen`; see [shared_files/aryaos/ssh/README.md](../shared_files/aryaos/ssh/README.md)).
+
+**One-time on your workstation** (from repo root, after the private key exists):
+
+```bash
+chmod 600 shared_files/aryaos/ssh/aryaos-dev-lab
+./scripts/setup-dev-ssh.sh
+```
+
+That adds **`Host aryaos-dev-pi`** to `~/.ssh/config` pointing at **`172.17.2.158`** with **`IdentityFile`**.
+
+**Existing Pi (already flashed before this key existed):** install the public key once (from the repo, with your lab `pi` password):
+
+```bash
+ssh-copy-id -i shared_files/aryaos/ssh/aryaos-dev-lab.pub pi@aryaos-dev-pi
+```
+
+(`~/.ssh/config` must already contain **`Host aryaos-dev-pi`** with **`HostName 172.17.2.158`** — run **`./scripts/setup-dev-ssh.sh`** first, or add that block by hand.)
+
+(or append the `.pub` line manually to `/home/pi/.ssh/authorized_keys` on the Pi).
+
+**Override key path (force `ssh -i` for sync scripts):** set **`ARYAOS_DEV_PI_SSH_KEY`** to a private key file. [scripts/sync-to-dev-pi.sh](../scripts/sync-to-dev-pi.sh) tries normal **`ssh` first** (so **`~/.ssh/config`** + **ssh-agent** match your interactive `ssh pi@aryaos-dev-pi`), then the repo **`aryaos-dev-lab`** file, then password. [scripts/sync-portal-review.sh](../scripts/sync-portal-review.sh) uses **`ARYAOS_DEV_PI_SSH_KEY`** only when set; otherwise plain **`ssh`/`scp`** (rely on config/agent).
+
+## Mirror the whole repo tree to the Pi
 
 From the repository root:
 
 ```bash
-ARYAOS_SSH=pi@172.17.2.158 ./scripts/sync-portal-review.sh
+./scripts/sync-to-dev-pi.sh
 ```
 
-The script rsyncs `shared_files/aryaos/html/`, installs the portal status CGI, updates `95-aryaos-cockpit-https.conf`, and related pieces (see [scripts/sync-portal-review.sh](../scripts/sync-portal-review.sh)).
+Uses the dev private key when **`shared_files/aryaos/ssh/aryaos-dev-lab`** is readable; otherwise falls back to **`ARYAOS_DEV_PI_PASSWORD`** / **`scripts/.dev-pi-creds.local`**, then to your SSH agent.
+
+This mirrors the working tree to **`~/aryaos-sync/`** on the Pi (default **`pi@aryaos-dev-pi`**; set **`ARYAOS_DEV_PI_HOST=172.17.2.158`** if you have no `Host aryaos-dev-pi` entry).
+
+**Password-only auth:** install `sshpass`, then either:
+
+```bash
+cp scripts/dev-pi-creds.local.example scripts/.dev-pi-creds.local
+# edit scripts/.dev-pi-creds.local — it is gitignored
+./scripts/sync-to-dev-pi.sh
+```
+
+or one-shot:
+
+```bash
+ARYAOS_DEV_PI_PASSWORD='your_password' ./scripts/sync-to-dev-pi.sh
+```
+
+## Push portal / CGI / lighttpd to live paths on the Pi
+
+After a tree sync (or from the repo), install portal pieces into `/var/www/html` and friends:
+
+```bash
+ARYAOS_SSH=pi@aryaos-dev-pi ./scripts/sync-portal-review.sh
+```
+
+See [scripts/sync-portal-review.sh](../scripts/sync-portal-review.sh).
 
 ## Other one-off files
 
-Use `scp` / `rsync` for scripts or configs not covered by `sync-portal-review.sh`, then run them on the Pi with `sudo` as needed. Example: [scripts/readsb-use-rtl-serial.sh](../scripts/readsb-use-rtl-serial.sh) for readsb RTL serial changes.
+Use `scp` / `rsync` for scripts or configs not covered by the scripts above. Example: [scripts/readsb-use-rtl-serial.sh](../scripts/readsb-use-rtl-serial.sh) for readsb RTL serial changes.
 
-## Optional SSH config (workstation only)
+## Optional SSH config (manual)
 
-In `~/.ssh/config` (local machine, not tracked in git):
+If you prefer not to use **`setup-dev-ssh.sh`**, add to **`~/.ssh/config`**:
 
 ```sshconfig
 Host aryaos-dev-pi
   HostName 172.17.2.158
   User pi
+  IdentityFile /path/to/aryaos-dev-lab
+  IdentitiesOnly yes
 ```
-
-Then: `ARYAOS_SSH=pi@aryaos-dev-pi ./scripts/sync-portal-review.sh`.
 
 ## Full stack parity
 

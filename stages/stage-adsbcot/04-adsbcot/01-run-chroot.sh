@@ -25,7 +25,7 @@ sed --follow-symlinks -i -E -e "s/driver=rtlsdr /driver=rtlsdr,serial=$DUMP978_R
 dpkg -i /usr/src/readsb_3.14.1621_arm64.deb
 
 READSB_RECEIVER_SERIAL="stx:1090:0"
-sed --follow-symlinks -i -E -e "s/RECEIVER_OPTIONS.*/RECEIVER_OPTIONS=\"--device $READSB_RECEIVER_SERIAL  --device-type rtlsdr --gain -10 --ppm 0\"/" /etc/default/readsb
+sed --follow-symlinks -i -E -e "s/RECEIVER_OPTIONS.*/RECEIVER_OPTIONS=\"--device-type rtlsdr --device $READSB_RECEIVER_SERIAL --gain -10 --ppm 0\"/" /etc/default/readsb
 
 # tar1090
 bash /usr/src/tar1090-install.sh

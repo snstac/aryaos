@@ -1,0 +1,7 @@
+# Copy to scripts/.dev-pi-creds.local (gitignored) for password-based sync:
+#   cp scripts/dev-pi-creds.local.example scripts/.dev-pi-creds.local
+# Then edit the password if needed.
+export ARYAOS_DEV_PI_PASSWORD='your_lab_password_here'
+
+# Optional: use a different private key than shared_files/aryaos/ssh/aryaos-dev-lab
+# export ARYAOS_DEV_PI_SSH_KEY="$HOME/.ssh/my-other-key"

@@ -54,20 +54,24 @@ out = []
 changed = False
 for line in lines:
 	if line.startswith("RECEIVER_OPTIONS="):
-		new_line, n = re.subn(
-			r"(--device(?:=|\s+))\S+",
-			lambda m, s=serial: m.group(1) + s,
-			line,
-			count=1,
-		)
-		if n:
-			line = new_line
-			changed = True
+		m = re.match(r'^RECEIVER_OPTIONS="([^"]*)"\s*$', line.rstrip("\n"))
+		if not m:
+			sys.stderr.write(f"Unparseable RECEIVER_OPTIONS line in {path}\n")
+			sys.exit(1)
+		inner = m.group(1)
+
+		def pick(flag, default):
+			mo = re.search(rf"(?:^|\s){re.escape(flag)}(?:=|\s+)(\S+)", inner)
+			return mo.group(1) if mo else default
+
+		gain = pick("--gain", "-10")
+		ppm = pick("--ppm", "0")
+		# readsb requires --device-type before any SDR-specific flags (see readsb --help).
+		line = f'RECEIVER_OPTIONS="--device-type rtlsdr --device {serial} --gain {gain} --ppm {ppm}"\n'
+		changed = True
 	out.append(line)
 if not changed:
-	sys.stderr.write(
-		f"Could not find --device in RECEIVER_OPTIONS in {path}; edit the file manually.\n"
-	)
+	sys.stderr.write(f"No RECEIVER_OPTIONS= line in {path}\n")
 	sys.exit(1)
 with open(path, "w", encoding="utf-8") as f:
 	f.writelines(out)
