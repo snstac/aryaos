@@ -47,8 +47,6 @@
       tags: [aryaos, nodered]
     - role: stage-docker
       tags: [aryaos, docker]
-    - role: stage-cloudtak
-      tags: [aryaos, cloudtak]
     - role: stage-adsbcot
       tags: [aryaos, adsbcot, hardware]
     - role: stage-aiscot

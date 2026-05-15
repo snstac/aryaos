@@ -3,6 +3,11 @@
 
 services:
   shim:
+    environment:
+      SA_SHIM_LOGIN_USER: cloudtak
+      SA_SHIM_LOGIN_PASSWORD: cloudtak415
+      SA_SHIM_BASIC_USER: cloudtak
+      SA_SHIM_BASIC_PASSWORD: cloudtak415
     build:
       context: ./shim
       dockerfile: Dockerfile
@@ -22,6 +27,7 @@ services:
       network: host
     restart: unless-stopped
     ports:
-      - "127.0.0.1:5000:80"
+      # CloudTAK web UI: http://<host>:5000/cloudtak/ (LAN; lighttpd on :443 also proxies here)
+      - "0.0.0.0:5000:80"
     depends_on:
       - shim

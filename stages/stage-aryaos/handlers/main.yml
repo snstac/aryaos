@@ -5,6 +5,12 @@
     name: lighttpd
     state: restarted
 
+- name: Reload systemd and restart lighttpd
+  ansible.builtin.systemd:
+    name: lighttpd
+    daemon_reload: true
+    state: restarted
+
 - name: Restart tar1090
   ansible.builtin.service:
     name: tar1090

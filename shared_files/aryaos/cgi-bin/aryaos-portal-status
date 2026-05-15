@@ -1,0 +1,110 @@
+#!/usr/bin/python3
+# CGI: JSON host/network status for the HTTPS landing page (lighttpd + mod_cgi).
+#
+# Uses absolute paths (lighttpd often sets a minimal PATH) and /usr/bin/python3
+# (not env) so the interpreter resolves without PATH.
+#
+# systemd's lighttpd unit sets RestrictAddressFamilies without AF_NETLINK by default;
+# iproute2 "ip" needs AF_NETLINK — see systemd drop-in aryaos-netlink.conf.
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+
+import json
+import os
+import socket
+import subprocess
+import sys
+
+IP = "/usr/sbin/ip"
+UPTIME = "/usr/bin/uptime"
+
+
+def cgi_fail(status_line, body):
+    sys.stdout.write(f"Status: {status_line}\r\n")
+    sys.stdout.write("Content-Type: text/plain; charset=utf-8\r\n")
+    sys.stdout.write("Cache-Control: no-store\r\n")
+    sys.stdout.write("\r\n")
+    sys.stdout.write(body)
+    if not body.endswith("\n"):
+        sys.stdout.write("\n")
+
+
+def run(argv):
+    try:
+        r = subprocess.run(
+            argv,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=8,
+        )
+        return (r.stdout or "").strip()
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+
+
+def primary_ip():
+    out = run([IP, "-4", "route", "get", "8.8.8.8"])
+    parts = out.split()
+    if "src" in parts:
+        i = parts.index("src")
+        if i + 1 < len(parts):
+            return parts[i + 1].strip()
+    for line in run([IP, "-4", "-br", "addr", "show", "scope", "global"]).splitlines():
+        line = line.strip()
+        if not line or line.startswith("lo"):
+            continue
+        bits = line.split()
+        if len(bits) >= 3 and "/" in bits[2]:
+            return bits[2].split("/")[0]
+        if len(bits) >= 2:
+            for tok in bits[2:]:
+                if tok and tok[0].isdigit():
+                    return tok.split("/")[0]
+    return ""
+
+
+def main():
+    method = os.environ.get("REQUEST_METHOD", "GET").upper()
+    if method != "GET":
+        cgi_fail("405 Method Not Allowed", "Method Not Allowed")
+        return
+
+    hostname = socket.gethostname()
+    try:
+        fqdn = socket.getfqdn()
+        if not fqdn or fqdn == "localhost":
+            fqdn = hostname
+    except OSError:
+        fqdn = hostname
+
+    uptime = run([UPTIME, "-p"])
+    if not uptime:
+        uptime = "—"
+
+    p_ip = primary_ip()
+    ipv4_text = run([IP, "-4", "-br", "addr", "show", "scope", "global"])
+    if not ipv4_text:
+        ipv4_text = "(unavailable)"
+
+    data = {
+        "hostname": hostname,
+        "fqdn": fqdn,
+        "primary_ip": p_ip,
+        "ipv4_text": ipv4_text,
+        "uptime": uptime,
+    }
+
+    sys.stdout.write("Status: 200 OK\r\n")
+    sys.stdout.write("Content-Type: application/json; charset=utf-8\r\n")
+    sys.stdout.write("Cache-Control: no-store\r\n")
+    sys.stdout.write("X-Content-Type-Options: nosniff\r\n")
+    sys.stdout.write("Referrer-Policy: no-referrer\r\n")
+    sys.stdout.write("\r\n")
+    json.dump(data, sys.stdout, separators=(",", ":"))
+    sys.stdout.write("\n")
+
+
+if __name__ == "__main__":
+    main()

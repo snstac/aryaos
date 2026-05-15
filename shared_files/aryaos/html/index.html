@@ -1,5 +1,5 @@
 <!--
-  AryaOS index.html
+  AryaOS index.html — static landing (status via /cgi-bin/aryaos-portal-status JSON)
 
   Copyright Sensors & Signals LLC https://www.snstac.com
 
@@ -16,93 +16,179 @@
   limitations under the License.
 -->
 <!DOCTYPE html>
-
 <html lang="en">
-
   <head>
-    <title>Welcome to AryaOS</title>
+    <title>AryaOS — welcome</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="AryaOS situational awareness appliance — quick links and system status.">
     <link rel="stylesheet" href="css/uikit.min.css"/>
     <link href="css/styles.css" rel="stylesheet">
   </head>
 
-  <body>
-    <div>
-      <h1 class="uk-heading-medium uk-heading-line"><span>AryaOS</span></h1>
-      <p class="uk-margin">The Operating System for Modern Situational Awareness.</p>
-      <p class="uk-margin">IP: {{payload.IP_ADDR}}</p>
-    </div>
-
-    <div class="uk-margin-large-bottom">
-      <h2 class="uk-heading-small uk-heading-line"><span>Administration</span></h2>
-      <p class="uk-margin-small">System management and CloudTAK shim access over HTTPS.</p>
-      <p>
-        <a class="uk-button uk-button-primary uk-button-large" href="/admin/">Cockpit</a>
-        <a class="uk-button uk-button-secondary uk-button-large uk-margin-small-left" href="/cloudtak/">CloudTAK</a>
-      </p>
-    </div>
-
-    <div uk-grid class=".uk-child-width-expand">
-      <div class="uk-column-1 uk-grid">
-
-        <div>
-          <a class="uk-button uk-button-primary" href="http://IP_ADDR:1880/ui/">AryaOS Dashboard</a>
-          <div class="uk-list">
-            <ol>
-              <li><a href="http://aryaos.local:1880/ui/">http://aryaos.local:1880/ui/</a></li>
-              <li><a href="http://10.41.0.1:1880/ui/">http://10.41.0.1:1880/ui/</a></li>
-              <li><a href="http://{{payload.IP_ADDR}}:1880/ui/">http://{{payload.IP_ADDR}}:1880/ui/</a></li>
-            </ol>
-          </div>
-        </div>
-
-        <div>
-          <a class="uk-button uk-button-secondary" href="http://IP_ADDR:9080">WiFi Configuration</a>
-          <div class="uk-list">
-            <ol>
-              <li><a href="http://aryaos.local:9080">http://aryaos.local:9080</a></li>
-              <li><a href="http://10.41.0.1:9080">http://10.41.0.1:9080</a></li>
-              <li><a href="http://{{payload.IP_ADDR}}:9080">http://{{payload.IP_ADDR}}:9080</a></li>
-            </ol>
-          </div>
-
-        </div>
-
-        <div>
-          <a class="uk-button uk-button-danger" href="http://IP_ADDR:1880">Node-RED</a>
-          <div class="uk-list">
-            <ol>
-              <li><a href="http://aryaos.local:1880">http://aryaos.local:1880</a></li>
-              <li><a href="http://10.41.0.1:1880">http://10.41.0.1:1880</a></li>
-              <li><a href="http://{{payload.IP_ADDR}}:1880">http://{{payload.IP_ADDR}}:1880</a></li>
-            </ol>
-          </div>
+  <body class="aos-page">
+    <div class="uk-section uk-section-small aos-hero">
+      <div class="uk-container uk-container-small uk-text-center">
+        <div class="aos-hero-badge">Connected</div>
+        <h1 class="uk-heading-medium uk-margin-remove-bottom">Welcome to AryaOS</h1>
+        <p class="uk-text-lead uk-margin-small-top uk-margin-remove-bottom">
+          You have reached this device on the network. The operating system for modern situational awareness.
+        </p>
+        <p class="uk-text-meta uk-margin-top">
+          Prefer a secure connection: this portal is served over <strong>HTTPS</strong>. HTTP requests are redirected here.
+        </p>
       </div>
     </div>
 
-    <div>
-      <h3 class="uk-heading-small uk-heading-line">Support</h3>
-      <p class="uk-margin-auto-top">Support is available by emailing: <a href="mailto:info@snstac.com">info@snstac.com</a> or +1-415-598-8226</p>
+    <div class="uk-section uk-section-small">
+      <div class="uk-container">
+        <div class="uk-grid-large uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
+          <div>
+            <div class="uk-card uk-card-default uk-card-body uk-card-small">
+              <h2 class="uk-card-title">Get started</h2>
+              <p class="uk-text-meta uk-margin-remove-top">
+                System administration uses Cockpit over TLS on this host.
+              </p>
+              <div class="uk-margin aos-card-actions">
+                <a class="uk-button uk-button-primary uk-button-large" href="/admin/">
+                  <span uk-icon="icon: cog; ratio: 0.9" class="uk-margin-small-right"></span>
+                  Open Cockpit (admin)
+                </a>
+              </div>
+              <hr class="uk-divider-small">
+              <h3 class="uk-heading-small">CloudTAK</h3>
+              <p class="uk-text-small uk-margin-small">
+                Optional browser client stack — not installed on this image by default.
+              </p>
+              <button type="button" class="uk-button uk-button-default" disabled title="Not installed">
+                CloudTAK (placeholder)
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="uk-card uk-card-default uk-card-body uk-card-small">
+              <h2 class="uk-card-title">Connection &amp; status</h2>
+              <p class="uk-text-meta uk-margin-remove-top">
+                Machine facts from this host (served as JSON, not via Node-RED).
+              </p>
+
+              <div id="aos-status-error" class="uk-alert-danger uk-hidden" uk-alert></div>
+
+              <dl class="uk-description-list">
+                <dt class="uk-text-bold">Hostname</dt>
+                <dd id="aos-hostname">…</dd>
+
+                <dt class="uk-text-bold">FQDN</dt>
+                <dd id="aos-fqdn">…</dd>
+
+                <dt class="uk-text-bold">Primary IP <span class="uk-text-muted">(routing)</span></dt>
+                <dd><code id="aos-primary-ip">…</code></dd>
+
+                <dt class="uk-text-bold">IPv4 interfaces</dt>
+                <dd>
+                  <pre class="aos-mono" id="aos-ipv4-block">…</pre>
+                </dd>
+
+                <dt class="uk-text-bold">Uptime</dt>
+                <dd id="aos-uptime">…</dd>
+
+                <dt class="uk-text-bold">Your browser used</dt>
+                <dd><code id="aos-browser-host">—</code></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div>
-      <h3 class="uk-heading-small">License</h3>
-      <pre>
-      Copyright Sensors & Signals LLC <a href="https://www.snstac.com">www.snstac.com</a>
-
-        Licensed under the Apache License, Version 2.0 (the "License");
-        you may not use this file except in compliance with the License.
-        You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-
-        Unless required by applicable law or agreed to in writing, software
-        distributed under the License is distributed on an "AS IS" BASIS,
-        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-        See the License for the specific language governing permissions and
-        limitations under the License.  
-      </pre>
+    <div class="uk-section uk-section-small uk-section-muted">
+      <div class="uk-container">
+        <div class="uk-grid-match uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
+          <div>
+            <div class="uk-card uk-card-default uk-card-body uk-card-small">
+              <h2 class="uk-card-title">Documentation</h2>
+              <p>
+                Product guides and reference material live on Read the Docs.
+              </p>
+              <a class="uk-button uk-button-primary" href="https://aryaos.rtfd.io/en/stable/" target="_blank" rel="noopener noreferrer">
+                AryaOS documentation
+              </a>
+            </div>
+          </div>
+          <div>
+            <div class="uk-card uk-card-default uk-card-body uk-card-small">
+              <h2 class="uk-card-title">Support</h2>
+              <p>
+                Sensors &amp; Signals LLC — sales, integration, and technical support.
+              </p>
+              <ul class="uk-list uk-list-bullet">
+                <li><a href="https://www.snstac.com" target="_blank" rel="noopener noreferrer">www.snstac.com</a></li>
+                <li><a href="mailto:info@snstac.com">info@snstac.com</a></li>
+                <li>Phone: <a href="tel:+14155988226">+1-415-598-8226</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  
+
+    <div class="uk-section uk-section-xsmall">
+      <div class="uk-container uk-container-small">
+        <h3 class="uk-heading-small">License</h3>
+        <div class="aos-license">
+          <pre>
+Copyright Sensors &amp; Signals LLC <a href="https://www.snstac.com">www.snstac.com</a>
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+and limitations under the License.
+          </pre>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var bh = document.getElementById("aos-browser-host");
+        if (bh) {
+          bh.textContent = window.location.hostname || "—";
+        }
+
+        var errEl = document.getElementById("aos-status-error");
+        function showErr(msg) {
+          if (!errEl) return;
+          errEl.classList.remove("uk-hidden");
+          errEl.textContent = msg;
+        }
+
+        var api = "/cgi-bin/aryaos-portal-status";
+        fetch(api, { credentials: "same-origin", cache: "no-store" })
+          .then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+          })
+          .then(function (d) {
+            var set = function (id, v) {
+              var el = document.getElementById(id);
+              if (el) el.textContent = v != null && v !== "" ? v : "—";
+            };
+            set("aos-hostname", d.hostname);
+            set("aos-fqdn", d.fqdn);
+            var pip = document.getElementById("aos-primary-ip");
+            if (pip) pip.textContent = d.primary_ip || "—";
+            var ipv4 = document.getElementById("aos-ipv4-block");
+            if (ipv4) ipv4.textContent = d.ipv4_text || "—";
+            set("aos-uptime", d.uptime);
+          })
+          .catch(function (e) {
+            showErr("Could not load status from " + api + ". " + (e && e.message ? e.message : ""));
+          });
+      })();
+    </script>
     <script src="js/uikit.min.js"></script>
     <script src="js/uikit-icons.min.js"></script>
   </body>

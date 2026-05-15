@@ -5,6 +5,7 @@ import type { Request } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import CoTRouter from './cot-router.js';
 import CertificateAuthority from './ca.js';
+import { attachFauxCloudTakRoutes, verifyMartiBasicAuth } from './faux-cloudtak-api.js';
 
 const DEFAULT_GROUP = {
     name: '__ANON__',
@@ -36,6 +37,7 @@ export function createMartiApp(args: {
     router: CoTRouter;
 }): express.Application {
     const app = express();
+    attachFauxCloudTakRoutes(app);
     app.use(express.json({ limit: '5mb' }));
     app.use(express.text({ type: ['application/pkcs10', 'application/octet-stream', 'text/plain'], limit: '2mb' }));
     const credentialsLimiter = rateLimit({
@@ -96,9 +98,8 @@ export function createMartiApp(args: {
     });
 
     app.post('/Marti/api/tls/signClient/v2', credentialsLimiter, (req, res) => {
-        const basic = parseBasicAuth(req);
-        if (!basic?.username) {
-            res.status(401).json({ message: 'Basic auth required' });
+        if (!verifyMartiBasicAuth(req)) {
+            res.status(401).json({ message: 'Basic auth required or invalid credentials' });
             return;
         }
 
@@ -119,13 +120,13 @@ export function createMartiApp(args: {
     });
 
     app.post('/Marti/api/tls/config', credentialsLimiter, (req, res) => {
-        const basic = parseBasicAuth(req);
-        if (!basic?.username) {
-            res.status(401).json({ message: 'Basic auth required' });
+        if (!verifyMartiBasicAuth(req)) {
+            res.status(401).json({ message: 'Basic auth required or invalid credentials' });
             return;
         }
 
-        const signed = args.ca.signClient(basic.username || 'cloudtak-user');
+        const basic = parseBasicAuth(req);
+        const signed = args.ca.signClient(basic?.username || 'cloudtak-user');
         res.json(signed);
     });
 

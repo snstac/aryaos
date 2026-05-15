@@ -11,15 +11,8 @@ RUN git clone --depth 1 --branch "${CLOUDTAK_SA_REF}" "${CLOUDTAK_SA_REPO}" .
 
 WORKDIR /src/api/web
 RUN npm ci
-RUN node -e "\
-const fs = require('fs'); \
-const p = 'vite.config.ts'; \
-let s = fs.readFileSync(p, 'utf8'); \
-if (!s.includes(\"base:\")) { \
-  s = s.replace('const res = {', \"const res = {\\n    base: '/cloudtak/',\"); \
-  fs.writeFileSync(p, s); \
-} \
-"
+COPY patch-aryaos-subpath.mjs /patch-aryaos-subpath.mjs
+RUN node /patch-aryaos-subpath.mjs .
 RUN npm run build
 
 FROM nginx:alpine

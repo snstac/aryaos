@@ -41,7 +41,6 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/README-aryaos.txt" "${ROOTFS_DIR}/"
 
 ## Copy the AryaOS sudoers file to /etc/sudoers.d/aryaos
 install -v -m 0400 "${SHARED_FILES}/aryaos/aryaos.sudoers" "${ROOTFS_DIR}/etc/sudoers.d/aryaos"
-
 ## Copy the AryaOS configuration file to /etc/aryaos/
 mkdir -p "${ROOTFS_DIR}/etc/aryaos/"
 install -v -m 0644 "${SHARED_FILES}/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/etc/aryaos/"
@@ -71,6 +70,11 @@ chmod 0655 "${ROOTFS_DIR}/var/www/html"
 rsync -va "${SHARED_FILES}/aryaos/calfire_airbases/" "${ROOTFS_DIR}/var/www/html/calfire_airbases/"
 
 
+## Portal status CGI (JSON) for the landing page — no Node-RED
+install -d -m 0755 "${ROOTFS_DIR}/usr/lib/cgi-bin"
+install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-portal-status" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-portal-status"
+
+
 # Recorder
 
 ## Copy Recorder configuration files to lighttpd conf-available
@@ -93,10 +97,7 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/cockpit.socket-listen.conf" "${ROOTFS
 install -v -m 0644 "${SHARED_FILES}/aryaos/95-aryaos-cockpit-https.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-available/"
 ln -sf /etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf"
 
-install -v -m 0644 "${SHARED_FILES}/aryaos/96-aryaos-cloudtak-proxy.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-available/"
-ln -sf /etc/lighttpd/conf-available/96-aryaos-cloudtak-proxy.conf "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/96-aryaos-cloudtak-proxy.conf"
-
-for m in openssl proxy redirect; do
+for m in openssl proxy redirect cgi; do
 	if [[ -f "${ROOTFS_DIR}/etc/lighttpd/conf-available/10-${m}.conf" ]]; then
 		ln -sf "/etc/lighttpd/conf-available/10-${m}.conf" "${ROOTFS_DIR}/etc/lighttpd/conf-enabled/10-${m}.conf"
 	fi
@@ -127,6 +128,12 @@ if [[ -r "${ROOTFS_DIR}/etc/ssl/certs/ssl-cert-snakeoil.pem" && -r "${ROOTFS_DIR
 		chown "root:${ssl_cert_gid}" "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem" || true
 	fi
 fi
+
+
+## systemd: allow AF_NETLINK in lighttpd (portal CGI runs "ip" / iproute2 netlink)
+install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system/lighttpd.service.d"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/lighttpd.service.d/aryaos-netlink.conf"
 
 
 # WiFi

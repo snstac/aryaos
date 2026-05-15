@@ -19,11 +19,8 @@
 
 # Where do we send our Cursor on Target TAK messages?
 # See: https://pytak.readthedocs.io/en/stable/configuration/
-# Default: local CloudTAK standalone shim (TLS). Previous multicast default was udp+wo://239.2.3.1:6969
-COT_URL=tls://127.0.0.1:8089
-
-# Shim presents a self-signed chain on first start; skip verification for local loopback.
-PYTAK_TLS_DONT_VERIFY=1
+# Default: local mesh multicast (examples: TLS TAK server, TCP, etc.—see PyTAK docs).
+COT_URL=udp+wo://239.2.3.1:6969
 
 
 # For Mesh SA & multicast COT_URLs: Which network interface (wifi, ethernet) do we bind to?

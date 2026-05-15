@@ -32,6 +32,11 @@
     path: /etc/lighttpd/conf-available/10-redirect.conf
   register: lt_redirect_snippet
 
+- name: Stat lighttpd CGI snippet
+  ansible.builtin.stat:
+    path: /etc/lighttpd/conf-available/10-cgi.conf
+  register: lt_cgi_snippet
+
 - name: Stat lighttpd setenv snippet (X-Forwarded-Proto)
   ansible.builtin.stat:
     path: /etc/lighttpd/conf-available/10-setenv.conf
@@ -59,6 +64,14 @@
     dest: /etc/lighttpd/conf-enabled/10-redirect.conf
     state: link
   when: lt_redirect_snippet.stat.exists
+  notify: Restart lighttpd
+
+- name: Enable lighttpd CGI snippet
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/10-cgi.conf
+    dest: /etc/lighttpd/conf-enabled/10-cgi.conf
+    state: link
+  when: lt_cgi_snippet.stat.exists
   notify: Restart lighttpd
 
 - name: Enable lighttpd setenv snippet from distro
@@ -123,6 +136,15 @@
     dest: /etc/systemd/system/cockpit.socket.d/listen.conf
     mode: "0644"
 
+- name: Install portal status CGI helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/cgi-bin/aryaos-portal-status"
+    dest: /usr/lib/cgi-bin/aryaos-portal-status
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Restart lighttpd
+
 - name: Upload lighttpd Cockpit HTTPS / proxy config
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/95-aryaos-cockpit-https.conf"
@@ -137,23 +159,24 @@
     state: link
   notify: Restart lighttpd
 
-- name: Upload lighttpd CloudTAK HTTPS / proxy config
-  ansible.builtin.copy:
-    src: "{{ shared_files }}/aryaos/96-aryaos-cloudtak-proxy.conf"
-    dest: /etc/lighttpd/conf-available/96-aryaos-cloudtak-proxy.conf
-    mode: "0644"
-  notify: Restart lighttpd
-
-- name: Enable lighttpd CloudTAK HTTPS / proxy config
-  ansible.builtin.file:
-    src: /etc/lighttpd/conf-available/96-aryaos-cloudtak-proxy.conf
-    dest: /etc/lighttpd/conf-enabled/96-aryaos-cloudtak-proxy.conf
-    state: link
-  notify: Restart lighttpd
-
 - name: Validate lighttpd configuration
   ansible.builtin.command: lighttpd -tt -f /etc/lighttpd/lighttpd.conf
   changed_when: false
+
+- name: lighttpd.service.d directory (for AF_NETLINK drop-in)
+  ansible.builtin.file:
+    path: /etc/systemd/system/lighttpd.service.d
+    state: directory
+    mode: "0755"
+
+- name: Lighttpd systemd drop-in (AF_NETLINK for portal CGI / iproute2)
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf"
+    dest: /etc/systemd/system/lighttpd.service.d/aryaos-netlink.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd and restart lighttpd
 
 - name: Reload systemd (cockpit.socket drop-in)
   ansible.builtin.systemd:
@@ -202,6 +225,18 @@
   retries: 8
   delay: 4
   until: portal_landing.status | int == 200 and ('Welcome to AryaOS' in portal_landing.content)
+  when: ansible_virtualization_type != 'docker'
+
+- name: HTTPS portal status CGI returns JSON
+  ansible.builtin.uri:
+    url: https://localhost/cgi-bin/aryaos-portal-status
+    validate_certs: false
+    return_content: true
+    status_code: [200]
+  register: portal_status_api
+  retries: 8
+  delay: 4
+  until: portal_status_api.status | int == 200 and ('"hostname"' in portal_status_api.content)
   when: ansible_virtualization_type != 'docker'
 
 - name: HTTPS /admin reaches Cockpit (via lighttpd proxy)

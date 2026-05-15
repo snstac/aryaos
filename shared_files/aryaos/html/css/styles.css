@@ -1,0 +1,60 @@
+/* AryaOS portal landing — light overrides on UIKit */
+
+.aos-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f6f8fb 0%, #fff 48%);
+}
+
+.aos-hero {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.aos-hero-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1e87f0;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.aos-card-actions .uk-button {
+  width: 100%;
+}
+
+@media (min-width: 960px) {
+  .aos-card-actions .uk-button {
+    width: auto;
+    min-width: 220px;
+  }
+}
+
+.aos-mono {
+  font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f4f6f9;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  max-height: 12rem;
+  overflow: auto;
+}
+
+.aos-license {
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: #666;
+  max-width: 42rem;
+}
+
+.aos-license pre {
+  white-space: pre-wrap;
+  margin: 0;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+}
