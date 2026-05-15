@@ -119,7 +119,10 @@ if [[ -r "${ROOTFS_DIR}/etc/ssl/certs/ssl-cert-snakeoil.pem" && -r "${ROOTFS_DIR
 		> "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem.tmp"
 	mv -f "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem.tmp" "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem"
 	chmod 0640 "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem"
-	chgrp ssl-cert "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem" 2>/dev/null || true
+	# Use GID from the image's /etc/group: host-side chgrp ssl-cert often fails (host has no ssl-cert).
+	if ssl_cert_gid="$(awk -F: '$1 == "ssl-cert" {print $3; exit}' "${ROOTFS_DIR}/etc/group")" && [[ -n "${ssl_cert_gid}" ]]; then
+		chown "root:${ssl_cert_gid}" "${ROOTFS_DIR}/etc/lighttpd/ssl/snakeoil-combined.pem" || true
+	fi
 fi
 
 

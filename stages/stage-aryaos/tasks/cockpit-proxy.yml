@@ -98,6 +98,13 @@
   args:
     creates: /etc/lighttpd/ssl/snakeoil-combined.pem
 
+- name: Ensure lighttpd can read snakeoil combined PEM
+  ansible.builtin.file:
+    path: /etc/lighttpd/ssl/snakeoil-combined.pem
+    owner: root
+    group: ssl-cert
+    mode: "0640"
+
 - name: Upload cockpit.conf
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/cockpit.conf"
