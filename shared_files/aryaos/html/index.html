@@ -110,24 +110,52 @@
 
               <dl class="uk-description-list">
                 <dt class="uk-text-bold">Hostname</dt>
-                <dd id="aos-hostname">…</dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-hostname" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-hostname" aria-label="Copy hostname">Copy</button>
+                  </div>
+                </dd>
 
                 <dt class="uk-text-bold">FQDN</dt>
-                <dd id="aos-fqdn">…</dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-fqdn" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-fqdn" aria-label="Copy FQDN">Copy</button>
+                  </div>
+                </dd>
 
                 <dt class="uk-text-bold">Primary IP <span class="uk-text-muted">(routing)</span></dt>
-                <dd><code id="aos-primary-ip">…</code></dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <code id="aos-primary-ip" class="aos-mono-inline aos-copy-value">…</code>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-primary-ip" aria-label="Copy primary IP">Copy</button>
+                  </div>
+                </dd>
 
                 <dt class="uk-text-bold">IPv4 interfaces</dt>
                 <dd>
-                  <pre class="aos-mono" id="aos-ipv4-block">…</pre>
+                  <div class="aos-copy-wrap aos-copy-wrap-block">
+                    <pre class="aos-mono aos-copy-value" id="aos-ipv4-block">…</pre>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-ipv4-block" aria-label="Copy IPv4 listing">Copy</button>
+                  </div>
                 </dd>
 
                 <dt class="uk-text-bold">Uptime</dt>
-                <dd id="aos-uptime">…</dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-uptime" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-uptime" aria-label="Copy uptime">Copy</button>
+                  </div>
+                </dd>
 
                 <dt class="uk-text-bold">Your browser used</dt>
-                <dd><code id="aos-browser-host">—</code></dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <code id="aos-browser-host" class="aos-mono-inline aos-copy-value">—</code>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-browser-host" aria-label="Copy browser hostname">Copy</button>
+                  </div>
+                </dd>
               </dl>
             </div>
           </div>
@@ -141,25 +169,82 @@
               <div id="aos-gps-error" class="uk-alert-warning uk-hidden aos-gps-alert" uk-alert></div>
               <dl class="uk-description-list uk-text-small">
                 <dt class="uk-text-bold">Status</dt>
-                <dd id="aos-gps-status">…</dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-gps-status" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-status" aria-label="Copy GNSS status">Copy</button>
+                  </div>
+                </dd>
                 <dt class="uk-text-bold">Fix</dt>
-                <dd id="aos-gps-fix">…</dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-gps-fix" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-fix" aria-label="Copy fix type">Copy</button>
+                  </div>
+                </dd>
                 <dt class="uk-text-bold">Position</dt>
-                <dd><code id="aos-gps-pos" class="aos-mono-inline">—</code></dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <code id="aos-gps-pos" class="aos-mono-inline aos-copy-value">—</code>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-pos" aria-label="Copy position">Copy</button>
+                  </div>
+                </dd>
                 <dt class="uk-text-bold">Altitude (MSL)</dt>
-                <dd id="aos-gps-alt">…</dd>
-                <dt class="uk-text-bold">Accuracy <span class="uk-text-muted">(epx / epy / epv m)</span></dt>
-                <dd id="aos-gps-acc">…</dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-gps-alt-msl" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-alt-msl" aria-label="Copy altitude MSL">Copy</button>
+                  </div>
+                </dd>
+                <dt class="uk-text-bold">Altitude (HAE)</dt>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-gps-alt-hae" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-alt-hae" aria-label="Copy altitude HAE">Copy</button>
+                  </div>
+                </dd>
+                <dt class="uk-text-bold">Accuracy (CE / LE) <span class="uk-text-meta">(m — gpsd eph / epv, or CE from √(epx²+epy²) if eph absent)</span></dt>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-gps-ce-le" class="aos-copy-value aos-mono-inline">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-ce-le" aria-label="Copy CE and LE">Copy</button>
+                  </div>
+                </dd>
                 <dt class="uk-text-bold">Maidenhead grid</dt>
-                <dd id="aos-gps-grid">…</dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-gps-grid" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-grid" aria-label="Copy grid">Copy</button>
+                  </div>
+                </dd>
                 <dt class="uk-text-bold">Satellites</dt>
-                <dd id="aos-gps-sats">…</dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-gps-sats" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-sats" aria-label="Copy satellite counts">Copy</button>
+                  </div>
+                </dd>
                 <dt class="uk-text-bold">Fix time (UTC)</dt>
-                <dd id="aos-gps-time">…</dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-gps-time" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-time" aria-label="Copy fix time">Copy</button>
+                  </div>
+                </dd>
                 <dt class="uk-text-bold">Track / speed / climb</dt>
-                <dd id="aos-gps-motion">…</dd>
+                <dd>
+                  <div class="aos-copy-wrap">
+                    <span id="aos-gps-motion" class="aos-copy-value">…</span>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-motion" aria-label="Copy track speed climb">Copy</button>
+                  </div>
+                </dd>
                 <dt class="uk-text-bold">gpsd / errors</dt>
-                <dd><pre class="aos-mono aos-mono-tiny" id="aos-gps-errdetail">—</pre></dd>
+                <dd>
+                  <div class="aos-copy-wrap aos-copy-wrap-block">
+                    <pre class="aos-mono aos-mono-tiny aos-copy-value" id="aos-gps-errdetail">—</pre>
+                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-errdetail" aria-label="Copy gpsd detail">Copy</button>
+                  </div>
+                </dd>
               </dl>
             </div>
           </div>

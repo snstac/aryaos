@@ -273,6 +273,56 @@
   color: var(--aos-phosphor);
 }
 
+/* Copy control next to portal status values */
+.aos-copy-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.35rem 0.5rem;
+}
+
+.aos-copy-wrap .aos-copy-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.aos-copy-wrap-block {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.aos-copy-wrap-block .aos-copy-btn {
+  align-self: flex-end;
+  margin-top: 0.35rem;
+}
+
+.aos-copy-btn {
+  font-family: var(--aos-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+  flex: 0 0 auto;
+  border: 1px solid var(--aos-panel-border);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--aos-muted);
+  cursor: pointer;
+}
+
+.aos-copy-btn:hover,
+.aos-copy-btn:focus {
+  color: var(--aos-phosphor);
+  border-color: rgba(61, 255, 154, 0.35);
+  outline: none;
+}
+
+.aos-copy-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(61, 255, 154, 0.4);
+}
+
 .aos-theme-sigint .uk-section-muted {
   background: rgba(0, 0, 0, 0.35);
 }

@@ -10,6 +10,61 @@
     bh.textContent = window.location.hostname || "—";
   }
 
+  function fallbackCopyText(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    var ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch (e1) {
+      ok = false;
+    }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function copyTextToClipboard(text) {
+    var t = text != null ? String(text) : "";
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(t).then(
+        function () {
+          return true;
+        },
+        function () {
+          return fallbackCopyText(t);
+        }
+      );
+    }
+    return Promise.resolve(fallbackCopyText(t));
+  }
+
+  document.addEventListener("click", function (ev) {
+    var btn = ev.target.closest && ev.target.closest(".aos-copy-btn");
+    if (!btn) return;
+    ev.preventDefault();
+    var id = btn.getAttribute("data-copy-for");
+    if (!id) return;
+    var node = document.getElementById(id);
+    if (!node) return;
+    var text = node.textContent != null ? node.textContent : "";
+    if (!btn.dataset.copySaved) {
+      btn.dataset.copySaved = btn.textContent || "Copy";
+    }
+    var saved = btn.dataset.copySaved;
+    copyTextToClipboard(text).then(function (ok) {
+        btn.textContent = ok ? "Copied" : "Failed";
+        setTimeout(function () {
+          btn.textContent = saved;
+        }, 1500);
+      });
+  });
+
   var errEl = document.getElementById("aos-status-error");
   var gpsErrEl = document.getElementById("aos-gps-error");
   var takErrEl = document.getElementById("aos-tak-error");
@@ -67,6 +122,15 @@
     var ed = document.getElementById("aos-gps-errdetail");
     if (!g) {
       set("aos-gps-status", "no data");
+      set("aos-gps-fix", "—");
+      set("aos-gps-pos", "—");
+      set("aos-gps-alt-msl", "—");
+      set("aos-gps-alt-hae", "—");
+      set("aos-gps-ce-le", "—");
+      set("aos-gps-grid", "—");
+      set("aos-gps-sats", "—");
+      set("aos-gps-time", "—");
+      set("aos-gps-motion", "—");
       showGpsErr("");
       if (ed) ed.textContent = "—";
       return;
@@ -83,17 +147,22 @@
     if (posEl) {
       posEl.textContent = la != null && lo != null ? la + ", " + lo : "—";
     }
-    var alt = fmtNum(g.alt_m, 1);
-    set("aos-gps-alt", alt != null ? alt + " m" : "—");
+    var altM = fmtNum(g.alt_m, 1);
+    set("aos-gps-alt-msl", altM != null ? altM + " m" : "—");
+    var altH = fmtNum(g.alt_hae_m, 1);
+    set("aos-gps-alt-hae", altH != null ? altH + " m" : "—");
 
-    var ex = fmtNum(g.epx_m, 1);
-    var ey = fmtNum(g.epy_m, 1);
-    var ev = fmtNum(g.epv_m, 1);
-    var acc = "—";
-    if (ex != null || ey != null || ev != null) {
-      acc = (ex != null ? ex : "—") + " / " + (ey != null ? ey : "—") + " / " + (ev != null ? ev : "—") + " m";
+    var ce = fmtNum(g.ce_m, 1);
+    var le = fmtNum(g.le_m, 1);
+    var ceLe = "—";
+    if (ce != null && le != null) {
+      ceLe = ce + " m CE / " + le + " m LE";
+    } else if (ce != null) {
+      ceLe = ce + " m CE / — m LE";
+    } else if (le != null) {
+      ceLe = "— m CE / " + le + " m LE";
     }
-    set("aos-gps-acc", acc);
+    set("aos-gps-ce-le", ceLe);
 
     set("aos-gps-grid", g.grid || "—");
 
@@ -267,6 +336,7 @@
       .catch(function (e) {
         showErr("Could not load status from " + api + ". " + (e && e.message ? e.message : ""));
         fillRadios(null);
+        fillGps(null);
         fillTakGateways(null);
       });
   }

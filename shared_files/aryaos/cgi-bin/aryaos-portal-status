@@ -148,9 +148,12 @@ def _failed_gps(msg):
         "lat": None,
         "lon": None,
         "alt_m": None,
+        "alt_hae_m": None,
         "epx_m": None,
         "epy_m": None,
         "epv_m": None,
+        "ce_m": None,
+        "le_m": None,
         "track_deg": None,
         "speed_mps": None,
         "climb_mps": None,
@@ -598,9 +601,12 @@ def gather_gps():
         "lat": None,
         "lon": None,
         "alt_m": None,
+        "alt_hae_m": None,
         "epx_m": None,
         "epy_m": None,
         "epv_m": None,
+        "ce_m": None,
+        "le_m": None,
         "track_deg": None,
         "speed_mps": None,
         "climb_mps": None,
@@ -682,6 +688,30 @@ def gather_gps():
                 out[dest] = v
             elif key == "time" and isinstance(v, str):
                 out[dest] = v
+
+    def _tpv_float(tp, key):
+        v = tp.get(key)
+        if v is None:
+            return None
+        if isinstance(v, (int, float)):
+            if math.isnan(v) or math.isinf(v):
+                return None
+            return float(v)
+        return None
+
+    out["alt_hae_m"] = _tpv_float(last_tpv, "altHAE")
+
+    eph = _tpv_float(last_tpv, "eph")
+    ex = out.get("epx_m")
+    ey = out.get("epy_m")
+    ev = out.get("epv_m")
+    out["le_m"] = ev
+    if eph is not None:
+        out["ce_m"] = eph
+    elif ex is not None and ey is not None:
+        out["ce_m"] = math.sqrt(ex * ex + ey * ey)
+    else:
+        out["ce_m"] = None
 
     lat = out.get("lat")
     lon = out.get("lon")
