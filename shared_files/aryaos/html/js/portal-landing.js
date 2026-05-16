@@ -12,6 +12,17 @@
 
   var errEl = document.getElementById("aos-status-error");
   var gpsErrEl = document.getElementById("aos-gps-error");
+  var takErrEl = document.getElementById("aos-tak-error");
+
+  var TAK_STATE_CLASSES = [
+    "aos-tak--up",
+    "aos-tak--down",
+    "aos-tak--degraded",
+    "aos-tak--absent",
+    "aos-tak--disabled",
+    "aos-tak--pending",
+    "aos-tak--unavailable",
+  ];
 
   function showErr(msg) {
     if (!errEl) return;
@@ -131,6 +142,68 @@
     return KIND_LABELS[k] || (k != null && k !== "" ? String(k) : "—");
   }
 
+  function showTakErr(msg) {
+    if (!takErrEl) return;
+    if (!msg) {
+      takErrEl.classList.add("uk-hidden");
+      takErrEl.textContent = "";
+      return;
+    }
+    takErrEl.classList.remove("uk-hidden");
+    takErrEl.textContent = msg;
+  }
+
+  function setTakChipState(chipEl, state, title) {
+    if (!chipEl) return;
+    TAK_STATE_CLASSES.forEach(function (c) {
+      chipEl.classList.remove(c);
+    });
+    var cls =
+      state === "up"
+        ? "aos-tak--up"
+        : state === "down"
+          ? "aos-tak--down"
+          : state === "degraded"
+            ? "aos-tak--degraded"
+            : state === "absent"
+              ? "aos-tak--absent"
+              : state === "disabled"
+                ? "aos-tak--disabled"
+                : state === "unavailable"
+                  ? "aos-tak--unavailable"
+                  : "aos-tak--pending";
+    chipEl.classList.add(cls);
+    if (title != null && title !== "") {
+      chipEl.setAttribute("title", String(title));
+    }
+  }
+
+  function fillTakGateways(tg) {
+    var ids = ["adsbcot", "aiscot", "dronecot"];
+    if (!tg || tg.ok === false) {
+      showTakErr(tg && tg.error ? tg.error : "TAK gateway status unavailable.");
+      ids.forEach(function (id) {
+        setTakChipState(document.getElementById("aos-tak-chip-" + id), "unavailable", id);
+      });
+      return;
+    }
+    showTakErr("");
+    var items = tg.items || [];
+    var byId = {};
+    items.forEach(function (it) {
+      if (it && it.id) byId[it.id] = it;
+    });
+    ids.forEach(function (id) {
+      var it = byId[id];
+      var chip = document.getElementById("aos-tak-chip-" + id);
+      if (!it) {
+        setTakChipState(chip, "unavailable", id + " (no data)");
+        return;
+      }
+      setTakChipState(chip, it.state, it.title || id);
+    });
+  }
+
   function fillRadios(r) {
     var emptyEl = document.getElementById("aos-radios-empty");
     var tbody = document.getElementById("aos-radios-tbody");
@@ -189,10 +262,12 @@
         fillHost(d);
         fillGps(d.gps || null);
         fillRadios(d.radios != null ? d.radios : { ok: true, devices: [], error: null });
+        fillTakGateways(d.tak_gateways != null ? d.tak_gateways : null);
       })
       .catch(function (e) {
         showErr("Could not load status from " + api + ". " + (e && e.message ? e.message : ""));
         fillRadios(null);
+        fillTakGateways(null);
       });
   }
   loadStatus();

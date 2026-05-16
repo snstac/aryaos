@@ -40,6 +40,26 @@
     <div class="uk-section uk-section-small aos-hero">
       <div class="uk-container uk-container-small uk-text-center">
         <div class="aos-hero-badge"><span class="aos-hero-badge-dot" aria-hidden="true"></span> LINK ESTABLISHED</div>
+        <div id="aos-tak-gateway-strip" class="aos-tak-strip" aria-label="TAK gateway services">
+          <div id="aos-tak-error" class="uk-alert-danger aos-tak-strip-alert uk-hidden" uk-alert></div>
+          <div class="aos-tak-chips" role="list">
+            <div class="aos-tak-chip aos-tak--pending" role="listitem" id="aos-tak-chip-adsbcot" title="adsbcot">
+              <span class="aos-tak-dot" aria-hidden="true"></span>
+              <span class="aos-tak-chip-label">ADS-B</span>
+            </div>
+            <div class="aos-tak-chip aos-tak--pending" role="listitem" id="aos-tak-chip-aiscot" title="aiscot">
+              <span class="aos-tak-dot" aria-hidden="true"></span>
+              <span class="aos-tak-chip-label">AIS</span>
+            </div>
+            <div class="aos-tak-chip aos-tak--pending" role="listitem" id="aos-tak-chip-dronecot" title="dronecot">
+              <span class="aos-tak-dot" aria-hidden="true"></span>
+              <span class="aos-tak-chip-label">UAS</span>
+            </div>
+          </div>
+          <p class="uk-text-meta aos-tak-hint">
+            All green = TAK gateways running. Open <a class="uk-link-text" href="/admin/">Cockpit</a> if any indicator is not green.
+          </p>
+        </div>
         <h1 class="uk-heading-medium uk-margin-remove-bottom aos-hero-title">AryaOS</h1>
         <p class="uk-text-lead uk-margin-small-top uk-margin-remove-bottom aos-hero-lead">
           Local situational awareness stack — admin, telemetry, and spectrum-adjacent tooling on the edge.

@@ -503,6 +503,92 @@ def gather_radios():
     return out
 
 
+def _tac_gateway_state(load_state, active_state, unit_file_state):
+    """Map systemd show props to a coarse UI state (see portal mission strip)."""
+    load_state = (load_state or "").strip()
+    active_state = (active_state or "").strip()
+    unit_file_state = (unit_file_state or "").strip()
+
+    if load_state == "not-found":
+        return "absent"
+    if active_state == "active":
+        return "up"
+    if active_state in ("activating", "reloading"):
+        return "degraded"
+    if unit_file_state in ("disabled", "masked") and active_state != "active":
+        return "disabled"
+    if active_state in ("failed",):
+        return "down"
+    if active_state == "inactive":
+        if unit_file_state == "enabled":
+            return "down"
+        return "disabled"
+    if unit_file_state == "enabled":
+        return "down"
+    return "absent"
+
+
+def gather_tac_gateways():
+    """ADS-B / AIS / UAS TAK gateway units (systemd) for landing-page mission strip."""
+    out = {"ok": True, "error": None, "items": []}
+    if not (os.path.isfile(SYSTEMCTL) and os.access(SYSTEMCTL, os.X_OK)):
+        out["ok"] = False
+        out["error"] = "systemctl not available"
+        return out
+
+    specs = (
+        ("adsbcot", "ADS-B→TAK", "ADS-B"),
+        ("aiscot", "AIS→TAK", "AIS"),
+        ("dronecot", "UAS→TAK", "UAS"),
+    )
+    for unit_id, label, label_short in specs:
+        unit = f"{unit_id}.service"
+        stdout, code, stderr = run(
+            [
+                SYSTEMCTL,
+                "show",
+                unit,
+                "-p",
+                "LoadState",
+                "-p",
+                "ActiveState",
+                "-p",
+                "UnitFileState",
+                "--no-pager",
+            ],
+            timeout=2,
+        )
+        props = {}
+        for line in (stdout or "").splitlines():
+            line = line.strip()
+            if "=" in line:
+                k, v = line.split("=", 1)
+                props[k.strip()] = v.strip()
+        load_state = props.get("LoadState", "")
+        active_state = props.get("ActiveState", "")
+        unit_file_state = props.get("UnitFileState", "")
+
+        state = _tac_gateway_state(load_state, active_state, unit_file_state)
+        title_bits = [unit_id, f"active={active_state or '?'}"]
+        if load_state:
+            title_bits.append(f"load={load_state}")
+        if unit_file_state:
+            title_bits.append(f"unit_file={unit_file_state}")
+        out["items"].append(
+            {
+                "id": unit_id,
+                "label": label,
+                "label_short": label_short,
+                "state": state,
+                "active_state": active_state or None,
+                "load_state": load_state or None,
+                "unit_file_state": unit_file_state or None,
+                "title": " — ".join(title_bits),
+            }
+        )
+    return out
+
+
 def gather_gps():
     out = {
         "ok": False,
@@ -623,9 +709,10 @@ def main():
     except OSError:
         fqdn = hostname
 
-    with ThreadPoolExecutor(max_workers=5) as pool:
+    with ThreadPoolExecutor(max_workers=6) as pool:
         f_gps = pool.submit(gather_gps)
         f_radios = pool.submit(gather_radios)
+        f_tac = pool.submit(gather_tac_gateways)
         f_uptime = pool.submit(_probe_uptime)
         f_pip = pool.submit(primary_ip)
         f_ipv4 = pool.submit(_probe_ipv4_block)
@@ -637,6 +724,10 @@ def main():
             radios_out = f_radios.result()
         except Exception as e:
             radios_out = {"ok": False, "error": str(e), "devices": []}
+        try:
+            tac_out = f_tac.result()
+        except Exception as e:
+            tac_out = {"ok": False, "error": str(e), "items": []}
         try:
             uptime = f_uptime.result()
         except Exception:
@@ -658,6 +749,7 @@ def main():
         "uptime": uptime,
         "gps": gps_out,
         "radios": radios_out,
+        "tak_gateways": tac_out,
     }
 
     sys.stdout.write("Status: 200 OK\r\n")
