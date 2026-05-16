@@ -32,6 +32,10 @@ ssh-copy-id -i shared_files/aryaos/ssh/aryaos-dev-lab.pub pi@aryaos-dev-pi
 
 **Override key path (force `ssh -i` for sync scripts):** set **`ARYAOS_DEV_PI_SSH_KEY`** to a private key file. [scripts/sync-to-dev-pi.sh](../scripts/sync-to-dev-pi.sh) tries normal **`ssh` first** (so **`~/.ssh/config`** + **ssh-agent** match your interactive `ssh pi@aryaos-dev-pi`), then the repo **`aryaos-dev-lab`** file, then password. [scripts/sync-portal-review.sh](../scripts/sync-portal-review.sh) uses **`ARYAOS_DEV_PI_SSH_KEY`** only when set; otherwise plain **`ssh`/`scp`** (rely on config/agent).
 
+## USB power (multiple SDRs)
+
+If the Pi browns out USB devices under several dongles, run **`./scripts/enable-pi-usb-current.sh`** on the Pi from a synced repo (or after `scp` of that script plus `shared_files/aryaos/boot/firmware/aryaos-usb-power.fragment`). It appends **`max_usb_current=1`** (Pi 3–class) and **`usb_max_current_enable=1`** (Pi 5) to **`/boot/firmware/config.txt`**, then **reboot**. New AryaOS images apply the same fragment during **stage-aryaos** pi-gen.
+
 ## Mirror the whole repo tree to the Pi
 
 From the repository root:

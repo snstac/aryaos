@@ -45,6 +45,23 @@ install -v -m 0400 "${SHARED_FILES}/aryaos/aryaos.sudoers" "${ROOTFS_DIR}/etc/su
 mkdir -p "${ROOTFS_DIR}/etc/aryaos/"
 install -v -m 0644 "${SHARED_FILES}/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/etc/aryaos/"
 
+## Raspberry Pi: raise USB host current where firmware supports it (multi-SDR loads)
+ARYAOS_USB_FRAG="${SHARED_FILES}/aryaos/boot/firmware/aryaos-usb-power.fragment"
+if [[ -f "${ARYAOS_USB_FRAG}" ]]; then
+	ARYAOS_USB_MARKER="# --- AryaOS: USB peripheral power ---"
+	for cfg in "${ROOTFS_DIR}/boot/firmware/config.txt" "${ROOTFS_DIR}/boot/config.txt"; do
+		if [[ ! -f "${cfg}" ]]; then
+			continue
+		fi
+		if grep -qF "${ARYAOS_USB_MARKER}" "${cfg}" 2>/dev/null; then
+			break
+		fi
+		cat "${ARYAOS_USB_FRAG}" >>"${cfg}"
+		echo "Appended AryaOS USB power settings to ${cfg}"
+		break
+	done
+fi
+
 ## Get throttled status on Raspberry Pi
 install -v -m 0755 "${SHARED_FILES}/aryaos/get_throttled.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 

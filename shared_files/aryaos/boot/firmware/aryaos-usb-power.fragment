@@ -1,0 +1,6 @@
+# --- AryaOS: USB peripheral power ---
+# Requires a PSU rated for the load (official Pi PSU or equivalent).
+# max_usb_current=1: Pi 2B rev 1.2+, Pi 3, Zero 2 W (ignored on Pi 4+ host mode).
+# usb_max_current_enable=1: Pi 5 — relaxes USB current cap when the supply can deliver it.
+max_usb_current=1
+usb_max_current_enable=1
