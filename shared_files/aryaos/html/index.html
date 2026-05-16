@@ -108,54 +108,73 @@
 
               <div id="aos-status-error" class="uk-alert-danger uk-hidden" uk-alert></div>
 
-              <dl class="uk-description-list">
-                <dt class="uk-text-bold">Hostname</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-hostname" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-hostname" aria-label="Copy hostname">Copy</button>
-                  </div>
-                </dd>
-
-                <dt class="uk-text-bold">FQDN</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-fqdn" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-fqdn" aria-label="Copy FQDN">Copy</button>
-                  </div>
-                </dd>
-
-                <dt class="uk-text-bold">Primary IP <span class="uk-text-muted">(routing)</span></dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <code id="aos-primary-ip" class="aos-mono-inline aos-copy-value">…</code>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-primary-ip" aria-label="Copy primary IP">Copy</button>
-                  </div>
-                </dd>
-
-                <dt class="uk-text-bold">IPv4 interfaces</dt>
-                <dd>
-                  <div class="aos-copy-wrap aos-copy-wrap-block">
-                    <pre class="aos-mono aos-copy-value" id="aos-ipv4-block">…</pre>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-ipv4-block" aria-label="Copy IPv4 listing">Copy</button>
-                  </div>
-                </dd>
-
-                <dt class="uk-text-bold">Uptime</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-uptime" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-uptime" aria-label="Copy uptime">Copy</button>
-                  </div>
-                </dd>
-
-                <dt class="uk-text-bold">Your browser used</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <code id="aos-browser-host" class="aos-mono-inline aos-copy-value">—</code>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-browser-host" aria-label="Copy browser hostname">Copy</button>
-                  </div>
-                </dd>
+              <dl class="uk-description-list aos-status-dl">
+                <div class="aos-status-group aos-status-group--meta">
+                  <dt class="uk-text-bold">Hostname</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-hostname" class="aos-copy-value">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-hostname" aria-label="Copy hostname" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--meta">
+                  <dt class="uk-text-bold">FQDN</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-fqdn" class="aos-copy-value">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-fqdn" aria-label="Copy FQDN" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--net">
+                  <dt class="uk-text-bold">Primary IP <span class="uk-text-muted">(routing)</span></dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <code id="aos-primary-ip" class="aos-mono-inline aos-copy-value">…</code>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-primary-ip" aria-label="Copy primary IP" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--net">
+                  <dt class="uk-text-bold">IPv4 interfaces</dt>
+                  <dd>
+                    <div class="aos-copy-wrap aos-copy-wrap-block">
+                      <pre class="aos-mono aos-copy-value" id="aos-ipv4-block">…</pre>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-ipv4-block" aria-label="Copy IPv4 listing" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--meta">
+                  <dt class="uk-text-bold">Uptime</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-uptime" class="aos-copy-value">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-uptime" aria-label="Copy uptime" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--meta">
+                  <dt class="uk-text-bold">Your browser used</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <code id="aos-browser-host" class="aos-mono-inline aos-copy-value">—</code>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-browser-host" aria-label="Copy browser hostname" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
               </dl>
             </div>
           </div>
@@ -167,84 +186,131 @@
                 Live snapshot from the local gpsd socket. USB receivers often appear as <code>/dev/ttyUSB0</code> or <code>/dev/ttyACM0</code>.
               </p>
               <div id="aos-gps-error" class="uk-alert-warning uk-hidden aos-gps-alert" uk-alert></div>
-              <dl class="uk-description-list uk-text-small">
-                <dt class="uk-text-bold">Status</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-gps-status" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-status" aria-label="Copy GNSS status">Copy</button>
-                  </div>
-                </dd>
-                <dt class="uk-text-bold">Fix</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-gps-fix" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-fix" aria-label="Copy fix type">Copy</button>
-                  </div>
-                </dd>
-                <dt class="uk-text-bold">Position</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <code id="aos-gps-pos" class="aos-mono-inline aos-copy-value">—</code>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-pos" aria-label="Copy position">Copy</button>
-                  </div>
-                </dd>
-                <dt class="uk-text-bold">Altitude (MSL)</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-gps-alt-msl" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-alt-msl" aria-label="Copy altitude MSL">Copy</button>
-                  </div>
-                </dd>
-                <dt class="uk-text-bold">Altitude (HAE)</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-gps-alt-hae" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-alt-hae" aria-label="Copy altitude HAE">Copy</button>
-                  </div>
-                </dd>
-                <dt class="uk-text-bold">Accuracy (CE / LE) <span class="uk-text-meta">(m — gpsd eph / epv, or CE from √(epx²+epy²) if eph absent)</span></dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-gps-ce-le" class="aos-copy-value aos-mono-inline">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-ce-le" aria-label="Copy CE and LE">Copy</button>
-                  </div>
-                </dd>
-                <dt class="uk-text-bold">Maidenhead grid</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-gps-grid" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-grid" aria-label="Copy grid">Copy</button>
-                  </div>
-                </dd>
-                <dt class="uk-text-bold">Satellites</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-gps-sats" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-sats" aria-label="Copy satellite counts">Copy</button>
-                  </div>
-                </dd>
-                <dt class="uk-text-bold">Fix time (UTC)</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-gps-time" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-time" aria-label="Copy fix time">Copy</button>
-                  </div>
-                </dd>
-                <dt class="uk-text-bold">Track / speed / climb</dt>
-                <dd>
-                  <div class="aos-copy-wrap">
-                    <span id="aos-gps-motion" class="aos-copy-value">…</span>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-motion" aria-label="Copy track speed climb">Copy</button>
-                  </div>
-                </dd>
-                <dt class="uk-text-bold">gpsd / errors</dt>
-                <dd>
-                  <div class="aos-copy-wrap aos-copy-wrap-block">
-                    <pre class="aos-mono aos-mono-tiny aos-copy-value" id="aos-gps-errdetail">—</pre>
-                    <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-errdetail" aria-label="Copy gpsd detail">Copy</button>
-                  </div>
-                </dd>
+              <dl class="uk-description-list uk-text-small aos-status-dl">
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">Status</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <div class="aos-copy-value-row">
+                        <span id="aos-gps-status-pill" class="aos-pill aos-pill--pending" title=""></span>
+                        <span id="aos-gps-status" class="aos-copy-value">…</span>
+                      </div>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-status" aria-label="Copy GNSS status" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">Fix</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-gps-fix" class="aos-copy-value">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-fix" aria-label="Copy fix type" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">Position</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <code id="aos-gps-pos" class="aos-mono-inline aos-copy-value">—</code>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-pos" aria-label="Copy position" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">Altitude (MSL)</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-gps-alt-msl" class="aos-copy-value">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-alt-msl" aria-label="Copy altitude MSL" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">Altitude (HAE)</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-gps-alt-hae" class="aos-copy-value">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-alt-hae" aria-label="Copy altitude HAE" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">Accuracy (CE / LE) <span class="uk-text-meta">(m — gpsd eph / epv, or CE from √(epx²+epy²) if eph absent)</span></dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-gps-ce-le" class="aos-copy-value aos-mono-inline">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-ce-le" aria-label="Copy CE and LE" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">Maidenhead grid</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-gps-grid" class="aos-copy-value">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-grid" aria-label="Copy grid" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">Satellites</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-gps-sats" class="aos-copy-value">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-sats" aria-label="Copy satellite counts" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">Fix time (UTC)</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-gps-time" class="aos-copy-value">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-time" aria-label="Copy fix time" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">Track / speed / climb</dt>
+                  <dd>
+                    <div class="aos-copy-wrap">
+                      <span id="aos-gps-motion" class="aos-copy-value">…</span>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-motion" aria-label="Copy track speed climb" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
+                <div class="aos-status-group aos-status-group--gps">
+                  <dt class="uk-text-bold">gpsd / errors</dt>
+                  <dd>
+                    <div class="aos-copy-wrap aos-copy-wrap-block">
+                      <pre class="aos-mono aos-mono-tiny aos-copy-value" id="aos-gps-errdetail">—</pre>
+                      <button type="button" class="aos-copy-btn" data-copy-for="aos-gps-errdetail" aria-label="Copy gpsd detail" title="Copy">
+                        <svg class="aos-copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                  </dd>
+                </div>
               </dl>
             </div>
           </div>

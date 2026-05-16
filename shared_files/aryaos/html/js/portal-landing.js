@@ -53,16 +53,18 @@
     var node = document.getElementById(id);
     if (!node) return;
     var text = node.textContent != null ? node.textContent : "";
-    if (!btn.dataset.copySaved) {
-      btn.dataset.copySaved = btn.textContent || "Copy";
+    if (btn._aosCopyTimer) {
+      clearTimeout(btn._aosCopyTimer);
+      btn._aosCopyTimer = null;
     }
-    var saved = btn.dataset.copySaved;
+    btn.classList.remove("aos-copy-btn--ok", "aos-copy-btn--fail");
     copyTextToClipboard(text).then(function (ok) {
-        btn.textContent = ok ? "Copied" : "Failed";
-        setTimeout(function () {
-          btn.textContent = saved;
-        }, 1500);
-      });
+      btn.classList.add(ok ? "aos-copy-btn--ok" : "aos-copy-btn--fail");
+      btn._aosCopyTimer = setTimeout(function () {
+        btn.classList.remove("aos-copy-btn--ok", "aos-copy-btn--fail");
+        btn._aosCopyTimer = null;
+      }, 1500);
+    });
   });
 
   var errEl = document.getElementById("aos-status-error");
@@ -118,10 +120,50 @@
     set("aos-uptime", d.uptime);
   }
 
+  var PILL_CLASSES = ["aos-pill--pending", "aos-pill--ok", "aos-pill--warn", "aos-pill--bad"];
+
+  function setGpsStatusPill(g) {
+    var el = document.getElementById("aos-gps-status-pill");
+    if (!el) return;
+    PILL_CLASSES.forEach(function (c) {
+      el.classList.remove(c);
+    });
+    el.classList.add("aos-pill");
+    if (!g) {
+      el.classList.add("aos-pill--pending");
+      el.title = "";
+      return;
+    }
+    if (!g.ok) {
+      el.classList.add("aos-pill--bad");
+      el.title = "No GNSS data";
+      return;
+    }
+    if (g.error) {
+      el.classList.add("aos-pill--warn");
+      el.title = String(g.error);
+      return;
+    }
+    var ft = (g.fix_type != null ? String(g.fix_type) : "").toLowerCase();
+    if (ft.indexOf("3d") !== -1 || ft.indexOf("3 d") !== -1) {
+      el.classList.add("aos-pill--ok");
+      el.title = "3D fix";
+      return;
+    }
+    if (ft.indexOf("2d") !== -1 || ft.indexOf("2 d") !== -1) {
+      el.classList.add("aos-pill--warn");
+      el.title = "2D fix";
+      return;
+    }
+    el.classList.add("aos-pill--ok");
+    el.title = "gpsd reachable";
+  }
+
   function fillGps(g) {
     var ed = document.getElementById("aos-gps-errdetail");
     if (!g) {
       set("aos-gps-status", "no data");
+      setGpsStatusPill(null);
       set("aos-gps-fix", "—");
       set("aos-gps-pos", "—");
       set("aos-gps-alt-msl", "—");
@@ -138,6 +180,7 @@
     var ok = g.ok === true;
     var err = g.error || "";
     set("aos-gps-status", ok ? "gpsd reachable" : "check gpsd / USB");
+    setGpsStatusPill(g);
     showGpsErr(g.error || "");
 
     set("aos-gps-fix", g.fix_type != null ? g.fix_type : "—");
