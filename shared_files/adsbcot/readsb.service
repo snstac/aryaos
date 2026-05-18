@@ -24,8 +24,7 @@ After=network.target
 # EnvironmentFile=/etc/default/readsb
 User=readsb
 RuntimeDirectoryMode=0755
-# Allows centralized aircraft.json:
-RuntimeDirectory=adsb
+RuntimeDirectory=readsb
 ExecStart=/usr/local/sbin/run_readsb.sh
 Type=simple
 Type=simple

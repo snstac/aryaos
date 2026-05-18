@@ -77,7 +77,7 @@ After portal/CGI edits on **`main`**, CI builds a new image; local lab can use *
 
 **Lab Pi (`aryaos-dev-pi` / `172.17.2.158`) — operational notes:**
 
-- **readsb:** stock `.deb` lacked RTL-SDR; fixed on-device with [`readsb-install.sh`](../shared_files/adsbcot/readsb-install.sh) (`RTLSDR=yes`). Image still ships the deb — consider building RTL-enabled readsb in pi-gen if repeats are a problem.
+- **readsb:** pi-gen now runs [`readsb-install.sh`](../shared_files/adsbcot/readsb-install.sh) (`RTLSDR=yes`) after the stock `.deb` and restores the AryaOS `run_readsb.sh` unit.
 - **readsb RTL serial `2002`:** `RECEIVER_OPTIONS="--device-type rtlsdr --device 2002 …"`; helper [`scripts/readsb-use-rtl-serial.sh`](../scripts/readsb-use-rtl-serial.sh).
 - **adsbcot** enabled; polls `file:///run/readsb/aircraft.json`.
 - **USB power:** `enable-pi-usb-current.sh` applied; **reboot** if not done since append.
@@ -90,7 +90,7 @@ After portal/CGI edits on **`main`**, CI builds a new image; local lab can use *
 2. **Optional follow-ups (not started):**
    - RF table: per-row copy or compact state badges (v1 scope excluded icon copy on RF).
    - `adsbcot_feed_ok`: mark ADS-B chip degraded if `readsb` up but `aircraft.json` stale/empty.
-   - Pi-gen: ship **RTL-enabled readsb** so lab does not need manual `readsb-install.sh`.
+   - Confirm next CI image: `readsb` starts with RTL dongle without manual `readsb-install.sh`.
    - lighttpd: add **`mod_openssl`** to `server.modules` (sync logs a future-deprecation warning).
 3. **After meaningful portal/CGI/HTML edits:** run **`sync-portal-review.sh`** on the Pi; for image parity rely on CI **`main`** build or local **`make build-docker`**.
 

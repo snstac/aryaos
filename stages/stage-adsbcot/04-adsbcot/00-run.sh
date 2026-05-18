@@ -48,6 +48,8 @@ install -v -m 0644 "${SHARED_FILES}/adsbcot/99-aryaos-dump978-uat-rtlsdr.rules" 
 # readsb
 install -v -m 644 "${SHARED_FILES}/adsbcot/readsb_3.14.1621_arm64.deb" "${ROOTFS_DIR}/usr/src/"
 install -v -m 755 "${SHARED_FILES}/adsbcot/readsb-install.sh" "${ROOTFS_DIR}/usr/src/"
+# Kept for chroot: dpkg overwrites /lib/systemd/system/readsb.service with the stock unit.
+install -v -m 644 "${SHARED_FILES}/adsbcot/readsb.service" "${ROOTFS_DIR}/usr/src/readsb.service.aryaos"
 install -v -m 755 "${SHARED_FILES}/adsbcot/run_readsb.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 644 "${SHARED_FILES}/adsbcot/readsb.service" "${ROOTFS_DIR}/lib/systemd/system/"
 install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system/readsb.service.d"

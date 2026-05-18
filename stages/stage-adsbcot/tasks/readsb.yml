@@ -20,6 +20,38 @@
   ansible.builtin.apt:
     deb: "{{ readsb_deb_url }}"
 
+- name: Install readsb RTL build script
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/adsbcot/readsb-install.sh"
+    dest: /usr/src/readsb-install.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Build readsb with RTL-SDR support
+  ansible.builtin.shell: |
+    set -euo pipefail
+    /usr/src/readsb-install.sh no-tar1090
+    install -d /usr/local/share/adsb-wiki/readsb-install
+    touch /usr/local/share/adsb-wiki/readsb-install/aryaos-rtlsdr-built
+  args:
+    creates: /usr/local/share/adsb-wiki/readsb-install/aryaos-rtlsdr-built
+  notify: Restart READSB
+
+- name: Install AryaOS readsb systemd unit and wrapper
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - { src: "{{ shared_files }}/adsbcot/readsb.service", dest: /lib/systemd/system/readsb.service", mode: "0644" }
+    - { src: "{{ shared_files }}/adsbcot/run_readsb.sh", dest: /usr/local/sbin/run_readsb.sh", mode: "0755" }
+  notify:
+    - Reload systemd for adsb decoder
+    - Restart READSB
+
 - name: Set SDR S/N in READSB config
   ansible.builtin.replace:
     path: /etc/default/readsb
