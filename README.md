@@ -13,6 +13,22 @@ Features of AryaOS:
 * Runs on inexpensive COTS & low SWaP-C small board computers, including the Raspberry Pi.
 * Compatible with Intel & Arm (amd64 & arm64) architectures.
 
+## Development (contributors & agents)
+
+| Topic | Doc |
+|-------|-----|
+| Image build (Docker pi-gen) | [docs/build.md](docs/build.md), [AGENTS.md](AGENTS.md) |
+| Lab Pi sync & portal deploy | [docs/dev-pi.md](docs/dev-pi.md), [docs/portal.md](docs/portal.md) |
+| Runtime / SDR / readsb | [docs/config.md](docs/config.md) |
+
+**Quick lab portal update** (from repo root, SSH to `aryaos-dev-pi`):
+
+```bash
+ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh
+```
+
+Agent handoff and open tasks: [docs/portal.md](docs/portal.md#agent-handoff--state-as-of-2026-05-16).
+
 # Stakeholders
 
 This work is funded by the [Colorado Center of Excellence for Advanced Technology Aerial Firefighting](https://www.cofiretech.org/feature-projects/team-awareness-kit-tak) and the [USDA Forest Service (USFS)](https://www.fs.usda.gov/managing-land/fire).

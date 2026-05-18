@@ -67,10 +67,12 @@ ARYAOS_DEV_PI_PASSWORD='your_password' ./scripts/sync-to-dev-pi.sh
 After a tree sync (or from the repo), install portal pieces into `/var/www/html` and friends:
 
 ```bash
-ARYAOS_SSH=pi@aryaos-dev-pi ./scripts/sync-portal-review.sh
+ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh
 ```
 
-See [scripts/sync-portal-review.sh](../scripts/sync-portal-review.sh).
+(`Host aryaos-dev-pi` in `~/.ssh/config` with `User pi` is enough; `pi@aryaos-dev-pi` also works.)
+
+See [scripts/sync-portal-review.sh](../scripts/sync-portal-review.sh) and [portal.md](portal.md) (features, JSON schema, agent next steps).
 
 ## Other one-off files
 
