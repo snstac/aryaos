@@ -60,7 +60,21 @@
             All green = TAK gateways running. Open <a class="uk-link-text" href="/admin/">Cockpit</a> if any indicator is not green.
           </p>
         </div>
-        <h1 class="uk-heading-medium uk-margin-remove-bottom aos-hero-title">AryaOS</h1>
+        <div id="aos-system-strip" class="aos-system-strip" aria-label="System health">
+          <span class="aos-system-metric">
+            <span class="aos-system-label">CPU</span>
+            <span id="aos-sys-temp" class="aos-system-value">…</span>
+          </span>
+          <span class="aos-system-metric">
+            <span class="aos-system-label">Load</span>
+            <span id="aos-sys-load" class="aos-system-value">…</span>
+          </span>
+          <span class="aos-system-metric">
+            <span class="aos-system-label">Power</span>
+            <span id="aos-sys-power-pill" class="aos-pill aos-pill--pending">…</span>
+          </span>
+        </div>
+        <h1 class="uk-heading-small uk-margin-remove-bottom aos-hero-title">AryaOS</h1>
         <p class="uk-text-lead uk-margin-small-top uk-margin-remove-bottom aos-hero-lead">
           Local situational awareness stack — admin, telemetry, and spectrum-adjacent tooling on the edge.
         </p>

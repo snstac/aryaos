@@ -1,0 +1,14 @@
+# Managed by Ansible — AryaOS LINCOT defaults.
+# COT_URL from /etc/aryaos/aryaos-config.txt via systemd EnvironmentFile.
+# SPDX-License-Identifier: Apache-2.0
+
+ENABLED=1
+
+GPS_INFO_CMD={{ lincot_gps_info_cmd }}
+POLL_INTERVAL={{ lincot_poll_interval }}
+
+COT_STALE=3600
+COT_TYPE={{ lincot_cot_type }}
+
+COCKPIT_URL={{ lincot_cockpit_url }}
+SSH_USER={{ lincot_ssh_user }}

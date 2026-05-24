@@ -43,6 +43,10 @@
       when: aryaos_profile | default("rpi") == "rpi"
     - role: stage-pytak
       tags: [aryaos, pytak]
+    - role: stage-charontak
+      tags: [aryaos, charontak]
+    - role: stage-lincot
+      tags: [aryaos, lincot]
     - role: stage-node-red
       tags: [aryaos, nodered]
     - role: stage-docker

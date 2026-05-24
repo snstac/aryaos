@@ -24,13 +24,14 @@ flowchart LR
 | Landing HTML/CSS/JS | `/var/www/html/` | [`shared_files/aryaos/html/`](../shared_files/aryaos/html/) |
 | Status CGI | `/usr/lib/cgi-bin/aryaos-portal-status` | [`shared_files/aryaos/cgi-bin/aryaos-portal-status`](../shared_files/aryaos/cgi-bin/aryaos-portal-status) |
 | HTTPS + CGI enable | `95-aryaos-cockpit-https.conf`, `10-cgi.conf` | [`shared_files/aryaos/`](../shared_files/aryaos/) via [`scripts/sync-portal-review.sh`](../scripts/sync-portal-review.sh) |
-| `www-data` + gpsd | `gpsd` group, socket drop-in | same sync script |
+| `www-data` + gpsd / video | `gpsd` + `video` groups (gpspipe, vcgencmd) | pi-gen stage-aryaos + sync script |
 
 **Client:** [`portal-landing.js`](../shared_files/aryaos/html/js/portal-landing.js) polls **`GET /cgi-bin/aryaos-portal-status`** every **8s** (`cache: no-store`).
 
 ## Landing page features (current)
 
-- **Hero — TAK gateways:** `adsbcot`, `aiscot`, `dronecot` via `tak_gateways` in JSON; colored tiles (green / amber / red / gray) from `systemctl show`.
+- **Hero — TAK gateways:** `charontak`, `adsbcot`, `aiscot`, `lincot`, `dronecot` via `tak_gateways` in JSON; colored tiles (green / amber / red / gray) from `systemctl show`.
+- **Hero — system health:** CPU temp, load (1/5/15), power/throttle pill from `system` in JSON (`vcgencmd` on Pi; `/proc` + thermal sysfs fallback).
 - **Connection & status:** hostname, FQDN, primary IP, IPv4 block, uptime; grouped rows (`.aos-status-group--meta|net`) with left accent.
 - **GNSS:** gpsd snapshot — position, **MSL** (`alt_m`), **HAE** (`altHAE` → `alt_hae_m`), **CE/LE** (`eph` or √(epx²+epy²), `epv` → `le_m`), grid, sats, motion; status **pill** from fix quality.
 - **Copy:** icon-only clipboard buttons (SVG); feedback via `.aos-copy-btn--ok` / `--fail` (do not set `textContent` on the button).
@@ -42,7 +43,10 @@ flowchart LR
 |-----|---------|
 | `hostname`, `fqdn`, `primary_ip`, `ipv4_text`, `uptime` | Host |
 | `gps` | GNSS (`alt_m`, `alt_hae_m`, `ce_m`, `le_m`, `epx_m`, …) |
-| `tak_gateways` | `{ ok, items[] }` per gateway unit |
+| `tak_gateways` | `{ ok, items[] }` per gateway unit (`charontak`, feeders) |
+
+Node-RED is **not** on the configuration critical path; use Cockpit and Comitup for writes (see [node-red.md](node-red.md)).
+| `system` | `{ ok, cpu_temp_c, load{1,5,15}, mem{total_mb,available_mb,used_pct}, throttle{raw,state,current[],history[]} }` |
 | `radios` | `{ ok, devices[] }` RF inventory |
 
 ## Deploy to lab Pi (fast iteration)

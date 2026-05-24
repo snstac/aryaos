@@ -20,7 +20,18 @@
   ansible.builtin.apt:
     deb: "{{ readsb_deb_url }}"
 
-- name: Install readsb RTL build script
+- name: Install SoapySDR packages for Airspy (readsb soapysdr)
+  ansible.builtin.apt:
+    name:
+      - soapysdr-tools
+      - soapysdr-module-airspy
+      - libsoapysdr-dev
+    state: present
+  when:
+    - ansible_os_family == "Debian"
+    - readsb_device_type | string == "soapysdr"
+
+- name: Install readsb build script
   ansible.builtin.copy:
     src: "{{ shared_files }}/adsbcot/readsb-install.sh"
     dest: /usr/src/readsb-install.sh
@@ -28,14 +39,14 @@
     group: root
     mode: "0755"
 
-- name: Build readsb with RTL-SDR support
+- name: Build readsb with RTL-SDR and SoapySDR support
   ansible.builtin.shell: |
     set -euo pipefail
     /usr/src/readsb-install.sh no-tar1090
     install -d /usr/local/share/adsb-wiki/readsb-install
-    touch /usr/local/share/adsb-wiki/readsb-install/aryaos-rtlsdr-built
+    touch /usr/local/share/adsb-wiki/readsb-install/aryaos-readsb-built
   args:
-    creates: /usr/local/share/adsb-wiki/readsb-install/aryaos-rtlsdr-built
+    creates: /usr/local/share/adsb-wiki/readsb-install/aryaos-readsb-built
   notify: Restart READSB
 
 - name: Install AryaOS readsb systemd unit and wrapper
@@ -52,9 +63,13 @@
     - Reload systemd for adsb decoder
     - Restart READSB
 
-- name: Set SDR S/N in READSB config
+- name: Set readsb RECEIVER_OPTIONS fact
+  ansible.builtin.set_fact:
+    readsb_receiver_options: "{{ lookup('ansible.builtin.template', 'readsb-receiver-options.j2') | trim }}"
+
+- name: Apply RECEIVER_OPTIONS to /etc/default/readsb
   ansible.builtin.replace:
     path: /etc/default/readsb
-    regexp: '^RECEIVER_OPTIONS.*$'
-    replace: 'RECEIVER_OPTIONS="--device-type rtlsdr --device {{ adsb_sdr_sn }} --gain -10 --ppm 0"'
+    regexp: '^RECEIVER_OPTIONS=.*'
+    replace: "{{ readsb_receiver_options }}"
   notify: Restart READSB

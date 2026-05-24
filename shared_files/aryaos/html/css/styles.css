@@ -103,10 +103,13 @@
 .aos-hero {
   border-bottom: 1px solid var(--aos-panel-border);
   background: linear-gradient(180deg, rgba(0, 40, 28, 0.25) 0%, transparent 100%);
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
 }
 
 .aos-hero-title {
   font-family: var(--aos-mono);
+  font-size: 1.45rem;
   letter-spacing: 0.06em;
   color: var(--aos-text);
   text-shadow: 0 0 24px rgba(61, 255, 154, 0.15);
@@ -114,6 +117,7 @@
 
 .aos-hero-lead {
   color: #b8cfc4;
+  font-size: 0.95rem;
   max-width: 36rem;
   margin-left: auto;
   margin-right: auto;
@@ -136,8 +140,8 @@
   text-transform: uppercase;
   color: var(--aos-phosphor);
   font-weight: 600;
-  margin-bottom: 0.65rem;
-  padding: 0.25rem 0.65rem;
+  margin-bottom: 0.45rem;
+  padding: 0.2rem 0.55rem;
   border: 1px solid var(--aos-panel-border);
   border-radius: 3px;
   background: rgba(0, 30, 20, 0.5);
@@ -165,8 +169,45 @@
 
 /* TAK gateway mission strip (adsbcot / aiscot / dronecot) */
 .aos-tak-strip {
-  margin: 0 auto 1rem;
+  margin: 0 auto 0.55rem;
   max-width: 28rem;
+}
+
+/* System health strip (CPU temp / load / power) */
+.aos-system-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem 1.25rem;
+  margin: 0 auto 0.6rem;
+  max-width: 32rem;
+  font-family: var(--aos-mono);
+  font-size: 0.78rem;
+}
+
+.aos-system-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.aos-system-label {
+  color: var(--aos-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.aos-system-value {
+  color: var(--aos-text);
+  font-weight: 500;
+}
+
+.aos-system-strip .aos-pill {
+  font-size: 0.68rem;
+  padding: 0.12rem 0.45rem;
 }
 
 .aos-tak-strip-alert {

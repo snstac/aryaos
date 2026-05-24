@@ -39,4 +39,6 @@ fi
 systemctl enable cockpit.socket
 
 # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/aiscot.service if the line does not already exist
-# grep -qxF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service || sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service
+grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service || \
+grep -qxF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service || \
+sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" /lib/systemd/system/aiscot.service

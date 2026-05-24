@@ -316,6 +316,68 @@
     });
   }
 
+  function setPowerPill(throttle) {
+    var el = document.getElementById("aos-sys-power-pill");
+    if (!el) return;
+    PILL_CLASSES.forEach(function (c) {
+      el.classList.remove(c);
+    });
+    el.classList.add("aos-pill");
+    if (!throttle) {
+      el.classList.add("aos-pill--pending");
+      el.textContent = "…";
+      el.title = "";
+      return;
+    }
+    var state = throttle.state || "ok";
+    var current = throttle.current || [];
+    var history = throttle.history || [];
+    var tip = [];
+    if (current.length) tip.push("Now: " + current.join("; "));
+    if (history.length) tip.push("Since boot: " + history.join("; "));
+    el.title = tip.join(" ") || "No throttling issues";
+
+    if (state === "bad") {
+      el.classList.add("aos-pill--bad");
+      el.textContent = current.length ? current[0] : "Throttled";
+      return;
+    }
+    if (state === "warn") {
+      el.classList.add("aos-pill--warn");
+      el.textContent = current.length ? current[0] : history.length ? "Past issue" : "Caution";
+      return;
+    }
+    el.classList.add("aos-pill--ok");
+    el.textContent = "OK";
+  }
+
+  function fillSystem(s) {
+    if (!s) {
+      set("aos-sys-temp", "—");
+      set("aos-sys-load", "—");
+      setPowerPill(null);
+      return;
+    }
+    var temp = s.cpu_temp_c;
+    set(
+      "aos-sys-temp",
+      temp != null && isFinite(Number(temp)) ? fmtNum(temp, 1) + " °C" : "—"
+    );
+    var load = s.load;
+    if (load && load["1"] != null) {
+      var l1 = fmtNum(load["1"], 2);
+      var l5 = fmtNum(load["5"], 2);
+      var l15 = fmtNum(load["15"], 2);
+      set(
+        "aos-sys-load",
+        l1 + " / " + (l5 != null ? l5 : "—") + " / " + (l15 != null ? l15 : "—")
+      );
+    } else {
+      set("aos-sys-load", "—");
+    }
+    setPowerPill(s.throttle || null);
+  }
+
   function fillRadios(r) {
     var emptyEl = document.getElementById("aos-radios-empty");
     var tbody = document.getElementById("aos-radios-tbody");
@@ -375,12 +437,14 @@
         fillGps(d.gps || null);
         fillRadios(d.radios != null ? d.radios : { ok: true, devices: [], error: null });
         fillTakGateways(d.tak_gateways != null ? d.tak_gateways : null);
+        fillSystem(d.system != null ? d.system : null);
       })
       .catch(function (e) {
         showErr("Could not load status from " + api + ". " + (e && e.message ? e.message : ""));
         fillRadios(null);
         fillGps(null);
         fillTakGateways(null);
+        fillSystem(null);
       });
   }
   loadStatus();

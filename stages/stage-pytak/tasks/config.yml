@@ -43,3 +43,10 @@
     path: /lib/systemd/system/lincot.service
     line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
     insertbefore: '^EnvironmentFile=/etc/default/lincot'
+
+# Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/aircot.service if the line does not already exist
+- name: Add EnvironmentFile to aircot.service
+  ansible.builtin.lineinfile:
+    path: /lib/systemd/system/aircot.service
+    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
+    insertbefore: '^EnvironmentFile=/etc/default/aircot'

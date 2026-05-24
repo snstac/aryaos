@@ -28,6 +28,12 @@ adsb_sdr_sn: stx:1090:0
 # Keep in sync with ARYAOS_UAT_RTL_SERIAL in shared_files/aryaos/aryaos-config.txt unless you override only at image build.
 uat_sdr_sn: stx:978:0
 
+# readsb SDR: rtlsdr (RTL EEPROM serial in adsb_sdr_sn) or soapysdr (Airspy, etc. via readsb_soapy_device).
+readsb_device_type: rtlsdr
+readsb_soapy_device: driver=airspy
+readsb_gain: -10
+readsb_ppm: 0
+
 # 1090 MHz ADS-B decoder: readsb OR dump1090_fa (mutually exclusive). Default readsb matches adsbcot FEED_URL.
 aryaos_adsb_decoder: readsb
 
@@ -36,6 +42,22 @@ readsb_deb_url: https://github.com/snstac/readsb/releases/download/v3.14.1621-2/
 # cockpit-adsbcot Cockpit application — pinned release; bump version, URL, and vendored deb together (shared_files/adsbcot).
 cockpit_adsbcot_version: "1.0.8"
 cockpit_adsbcot_deb_url: "https://github.com/snstac/cockpit-adsbcot/releases/download/v1.0.8/cockpit-adsbcot_1.0.8_all.deb"
+
+# Charontak CoT bridge — pinned release; bump version and URL together (manifests/aryaos-sensor-packages.yml).
+charontak_version: "0.1.5"
+charontak_deb_url: "https://github.com/snstac/charontak/releases/download/v0.1.5-beta/charontak_0.1.5-1_all.deb"
+charontak_ingress_cot_url: udp://127.0.0.1:18087
+charontak_egress_cot_url: udp+wo://239.2.3.1:6969
+charontak_feeder_cot_url: udp://127.0.0.1:18087
+
+# LINCOT GNSS edge beacon — pinned release; bump version and URL with manifests/aryaos-sensor-packages.yml.
+lincot_version: "1.2.0"
+lincot_deb_url: "https://github.com/snstac/lincot/releases/download/v1.2.0/lincot_1.2.0-1_all.deb"
+lincot_gps_info_cmd: gpspipe --json -n 5
+lincot_poll_interval: 61
+lincot_cot_type: a-f-G-E-S
+lincot_cockpit_url: https://127.0.0.1/admin/
+lincot_ssh_user: pi
 
 takserver_rpm: takserver-5.2-RELEASE43.noarch.rpm
 takserver_gpg_key: takserver-public-gpg.key

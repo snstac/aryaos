@@ -1,0 +1,32 @@
+# AryaOS defaults for LINCOT 1.2.x (/etc/default/lincot).
+# COT_URL is supplied by EnvironmentFile=/etc/aryaos/aryaos-config.txt (Charontak ingress).
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+#
+# Upstream reference: https://github.com/snstac/lincot/blob/main/debian/lincot.conf
+
+ENABLED=1
+
+# CoT destination: set in /etc/aryaos/aryaos-config.txt (default udp://127.0.0.1:18087 → Charontak).
+# COT_URL=
+
+# Identity (defaults: hostname callsign, /etc/machine-id uid)
+# CALLSIGN=
+# COT_UID=
+
+# Position: gpsd via gpspipe (default) or STATIC_LAT/STATIC_LON in aryaos-config.txt
+# STATIC_LAT=
+# STATIC_LON=
+# STATIC_HAE=
+GPS_INFO_CMD=gpspipe --json -n 5
+POLL_INTERVAL=61
+
+COT_STALE=3600
+COT_TYPE=a-f-G-E-S
+
+# Edge node connect info (CoT remarks / link); Cockpit is behind lighttpd /admin/ on AryaOS.
+COCKPIT_URL=https://127.0.0.1/admin/
+SSH_USER=pi
+# REMARKS_EXTRA=
+
+# Static fallback (no gpsd): GPS_INFO_CMD=/usr/local/bin/get_position.sh

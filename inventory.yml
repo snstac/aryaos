@@ -28,6 +28,13 @@ all:
       ansible_host: 192.168.0.45
     wave:
       ansible_host: 172.17.2.182
+    dragonball:
+      ansible_host: dragonball
+      ansible_user: gba
+      ansible_ssh_private_key_file: ~/.ssh/id_ed25519_nopass
+    aryaos-dev-pi:
+      ansible_host: 172.17.2.158
+      ansible_user: pi
 
   # ARM64 dev targets for Ansible iteration without rebuilding/flashing an SD image.
   # See docs/build.md → "Developer loops".

@@ -2,6 +2,26 @@
 
 ## Web Configuration
 
+**Primary surfaces (write):**
+
+| Task | Where |
+|------|--------|
+| Live status (read) | HTTPS portal at **`https://<host>/`** |
+| Services, networking, packages | **Cockpit** at **`https://<host>/admin/`** |
+| Upstream CoT lanes (mesh / TAK Server) | Cockpit → **Charontak** → **`/etc/charontak.ini`** |
+| Feeder tuning (`adsbcot`, `aiscot`, `lincot`, …) | Cockpit feeder apps + **`/etc/default/*`** |
+| WiFi join / hotspot recovery | **Comitup** at **`http://<host>:9080/`** |
+
+The **Node-RED Dashboard** at **`:1880/ui`** is **deprecated for configuration**. It remains for maps, TFR injection, and optional recorder logging only. See [node-red.md](node-red.md).
+
+After changing **`COT_URL`** in **`/etc/aryaos/aryaos-config.txt`** or Charontak/feeder defaults, restart the affected units:
+
+```bash
+sudo systemctl restart charontak adsbcot aiscot lincot dronecot
+```
+
+(Add **`aircot`** if enabled on your image.)
+
 Many functions of the AryaOS can be controlled, configured and monitored via the AryaOS Web page. When connecting directly to the AryaOS in Hotspot mode (via AryaOS-XXXX WiFi Network) you can access the AryaOS Web page by visiting [http://AryaOS.local](http://AryaOS.local) from your Chrome or Safari web browser (Android & iOS) or in Edge, Chrome or Safari on you computer.
 
 ### Connect to WiFI
@@ -22,7 +42,7 @@ Disable or reconfigure wireless interfaces from **Cockpit** (Networking), **Netw
 
 ## Change TAK / CoT destination (summary)
 
-System-wide PyTAK clients typically read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`**. For command-line edits and service restarts, see **Command-line Configuration → Change TAK / CoT Destination** below.
+Local **\*cot** feeders read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`** (default **`udp://127.0.0.1:18087`** → Charontak). Upstream mesh / TAK Server lanes are **`/etc/charontak.ini`** (Cockpit → Charontak). For command-line edits and service restarts, see **Command-line Configuration → Change TAK / CoT Destination** below.
 
 ## Command-line Configuration
 
@@ -44,13 +64,18 @@ See also: [Raspberry Pi Insecure first user](https://www.raspberrypi.com/news/ra
 
 ### Change TAK / CoT Destination
 
-By default, AryaOS routes Cursor on Target traffic based on **`COT_URL`** in **`/etc/aryaos/aryaos-config.txt`** (see that file on a running system for the active scheme — multicast, TLS, TCP, etc.). 
+AryaOS uses a **two-tier** CoT routing model:
 
-To send CoT to a different destination, SSH into AryaOS and edit the global environment file, then restart affected gateways:
+1. **Local feeders** (`adsbcot`, `aiscot`, `dronecot`, `lincot`, …) read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`**. The default sends CoT to **Charontak** on **`udp://127.0.0.1:18087`**. **LINCOT** (v1.2+) reports the gateway’s GNSS/fix position via **`gpspipe`** (or static coordinates from **`aryaos-config.txt`**); configure **`/etc/default/lincot`** for callsign, poll interval, and Cockpit link text (**`COCKPIT_URL`** defaults to **`https://127.0.0.1/admin/`**).
+2. **Charontak** reads **`/etc/charontak.ini`** and forwards to mesh multicast, a TAK Server, or other lanes. Manage lanes via **Cockpit → Charontak** at **`https://<host>/admin/`** (restart **`charontak.service`** after saves).
 
-1. SSH into AryaOS: ``ssh pi@AryaOS.local``
-2. Edit ``sudo nano /etc/aryaos/aryaos-config.txt`` and adjust ``COT_URL`` (and related PyTAK TLS variables if you use TLS).
-3. Restart dependent services (for example ``sudo systemctl restart adsbcot``) or reboot.
+Default Charontak egress is **`udp+wo://239.2.3.1:6969`** (Mesh SA). Node-RED and other mesh listeners continue to use that group.
+
+**Feeders only (advanced):** edit **`COT_URL`** in **`/etc/aryaos/aryaos-config.txt`**, then restart the gateway units (for example ``sudo systemctl restart adsbcot``).
+
+**Upstream TAK Server / extra lanes:** edit **`/etc/charontak.ini`** in Cockpit Charontak or with ``sudo nano /etc/charontak.ini``, then ``sudo systemctl restart charontak``. A disabled **`mesh-to-takserver`** lane template is shipped for TLS enrollment; enable it and set **`egress_cot_url`** (and TLS paths) as needed.
+
+**Legacy direct multicast:** to bypass Charontak entirely, set feeder **`COT_URL=udp+wo://239.2.3.1:6969`** in **`aryaos-config.txt`** and disable **`charontak.service`**.
 
 ### 1090 MHz ADS-B decoder (readsb vs dump1090-fa)
 
@@ -82,7 +107,9 @@ You may still need to change dump1090 / dump978 serials manually (sections below
 1. Using a self-assmbled AryaOS device.
 2. There is need to change these values (for example, replacing an SDR).
 
-An AryaOS Web Dashboard method of doing this is under development. See Issue [#21](https://github.com/snstac/AryaOS/issues/21).
+An AryaOS Web Dashboard method of doing this is under development. See Issue [#21](https://github.com/snstac/AryaOS/issues/21). Until then use SSH, Cockpit file editor, or [`scripts/readsb-use-rtl-serial.sh`](../scripts/readsb-use-rtl-serial.sh).
+
+**cockpit-lincot:** LINCOT v1.2.0 ships the daemon and **`/etc/default/lincot`** defaults; a **`cockpit-lincot`** `.deb` was not published on the v1.2.0 GitHub release — edit **`lincot`** defaults via Cockpit generic file editor or CLI until packaging lands.
 
 #### Changing dump1090-fa SDR serial number
 

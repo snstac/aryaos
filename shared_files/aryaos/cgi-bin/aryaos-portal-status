@@ -3,6 +3,7 @@
 #
 # Uses absolute paths (lighttpd often sets a minimal PATH) and /usr/bin/python3.
 # www-data must be in the "gpsd" group to run gpspipe against /run/gpsd.sock.
+# www-data must be in the "video" group to run vcgencmd (temp / throttling) on Raspberry Pi.
 #
 # systemd's lighttpd unit sets RestrictAddressFamilies without AF_NETLINK by default;
 # iproute2 "ip" needs AF_NETLINK — see systemd drop-in aryaos-netlink.conf.
@@ -25,6 +26,20 @@ GPSPIPE = "/usr/bin/gpspipe"
 SYSTEMCTL = "/usr/bin/systemctl"
 LSUSB = "/usr/bin/lsusb"
 RFKILL_CANDIDATES = ("/usr/sbin/rfkill", "/usr/bin/rfkill")
+VCGENCMD = "/usr/bin/vcgencmd"
+THERMAL_ZONE0 = "/sys/class/thermal/thermal_zone0/temp"
+
+# Bit labels aligned with shared_files/aryaos/get_throttled.sh (Pi firmware).
+THROTTLE_ISSUES = {
+    0: "Under-voltage detected",
+    1: "Arm frequency capped",
+    2: "Currently throttled",
+    3: "Soft temperature limit active",
+    16: "Under-voltage has occurred",
+    17: "Arm frequency capping has occurred",
+    18: "Throttling has occurred",
+    19: "Soft temperature limit has occurred",
+}
 
 SYS_IEEE80211 = "/sys/class/ieee80211"
 SYS_NET = "/sys/class/net"
@@ -137,6 +152,148 @@ def _probe_uptime():
 def _probe_ipv4_block():
     out, _, _ = run([IP, "-4", "-br", "addr", "show", "scope", "global"])
     return (out or "").strip() if out else "(unavailable)"
+
+
+def _read_loadavg():
+    try:
+        with open("/proc/loadavg", encoding="utf-8") as f:
+            parts = f.read().split()
+        if len(parts) < 3:
+            return None
+        return {
+            "1": round(float(parts[0]), 2),
+            "5": round(float(parts[1]), 2),
+            "15": round(float(parts[2]), 2),
+        }
+    except (OSError, ValueError):
+        return None
+
+
+def _read_meminfo():
+    try:
+        info = {}
+        with open("/proc/meminfo", encoding="utf-8") as f:
+            for line in f:
+                if ":" not in line:
+                    continue
+                key, _, val = line.partition(":")
+                info[key.strip()] = int(val.strip().split()[0])
+        total_kb = info.get("MemTotal")
+        avail_kb = info.get("MemAvailable")
+        if total_kb is None or total_kb <= 0:
+            return None
+        total_mb = round(total_kb / 1024)
+        available_mb = round(avail_kb / 1024) if avail_kb is not None else None
+        used_pct = None
+        if available_mb is not None:
+            used_pct = round(100.0 * (total_kb - avail_kb) / total_kb)
+        return {
+            "total_mb": total_mb,
+            "available_mb": available_mb,
+            "used_pct": used_pct,
+        }
+    except (OSError, ValueError):
+        return None
+
+
+def _cpu_temp_c():
+    out, code, _ = run([VCGENCMD, "measure_temp"], timeout=3)
+    if code == 0 and out.startswith("temp="):
+        m = re.match(r"temp=([\d.]+)", out)
+        if m:
+            return float(m.group(1))
+    try:
+        with open(THERMAL_ZONE0, encoding="utf-8") as f:
+            millideg = int(f.read().strip())
+        return round(millideg / 1000.0, 1)
+    except (OSError, ValueError):
+        return None
+
+
+def _throttle_labels(mask, bit_base):
+    labels = []
+    for bit in range(4):
+        b = bit_base + bit
+        if mask & (1 << bit) and b in THROTTLE_ISSUES:
+            labels.append(THROTTLE_ISSUES[b])
+    return labels
+
+
+def _throttle_state(current, history):
+    if any(
+        x in current
+        for x in (
+            "Under-voltage detected",
+            "Currently throttled",
+        )
+    ):
+        return "bad"
+    if any(
+        x in history
+        for x in (
+            "Under-voltage has occurred",
+            "Throttling has occurred",
+        )
+    ):
+        return "warn"
+    if current or history:
+        return "warn"
+    return "ok"
+
+
+def _parse_throttled():
+    out, code, err = run([VCGENCMD, "get_throttled"], timeout=3)
+    if code != 0 or not out:
+        return None, err or f"vcgencmd exit {code}"
+    m = re.search(r"0x([0-9a-fA-F]+)", out)
+    if not m:
+        return None, "unparseable get_throttled output"
+    raw = int(m.group(1), 16)
+    current = _throttle_labels(raw & 0xF, 0)
+    history = _throttle_labels((raw >> 16) & 0xF, 16)
+    return {
+        "raw": raw,
+        "state": _throttle_state(current, history),
+        "current": current,
+        "history": history,
+    }, None
+
+
+def gather_system():
+    out = {
+        "ok": True,
+        "error": None,
+        "cpu_temp_c": None,
+        "load": None,
+        "mem": None,
+        "throttle": None,
+    }
+    errors = []
+
+    out["load"] = _read_loadavg()
+    out["mem"] = _read_meminfo()
+
+    temp = _cpu_temp_c()
+    if temp is not None:
+        out["cpu_temp_c"] = temp
+    else:
+        errors.append("cpu temperature unavailable")
+
+    throttle, terr = _parse_throttled()
+    if throttle is not None:
+        out["throttle"] = throttle
+    elif terr:
+        errors.append(terr)
+
+    if errors and out["load"] is None and out["mem"] is None:
+        out["ok"] = False
+        out["error"] = "; ".join(errors)
+    elif errors:
+        out["error"] = "; ".join(errors)
+        if out["cpu_temp_c"] is None and out["throttle"] is None:
+            out["ok"] = False
+
+    return out
 
 
 def _failed_gps(msg):
@@ -540,6 +697,8 @@ def gather_tac_gateways():
         return out
 
     specs = (
+        ("charontak", "CoT bridge", "Bridge"),
+        ("lincot", "GNSS→TAK", "GNSS"),
         ("adsbcot", "ADS-B→TAK", "ADS-B"),
         ("aiscot", "AIS→TAK", "AIS"),
         ("dronecot", "UAS→TAK", "UAS"),
@@ -739,10 +898,11 @@ def main():
     except OSError:
         fqdn = hostname
 
-    with ThreadPoolExecutor(max_workers=6) as pool:
+    with ThreadPoolExecutor(max_workers=7) as pool:
         f_gps = pool.submit(gather_gps)
         f_radios = pool.submit(gather_radios)
         f_tac = pool.submit(gather_tac_gateways)
+        f_system = pool.submit(gather_system)
         f_uptime = pool.submit(_probe_uptime)
         f_pip = pool.submit(primary_ip)
         f_ipv4 = pool.submit(_probe_ipv4_block)
@@ -758,6 +918,17 @@ def main():
             tac_out = f_tac.result()
         except Exception as e:
             tac_out = {"ok": False, "error": str(e), "items": []}
+        try:
+            system_out = f_system.result()
+        except Exception as e:
+            system_out = {
+                "ok": False,
+                "error": str(e),
+                "cpu_temp_c": None,
+                "load": None,
+                "mem": None,
+                "throttle": None,
+            }
         try:
             uptime = f_uptime.result()
         except Exception:
@@ -780,6 +951,7 @@ def main():
         "gps": gps_out,
         "radios": radios_out,
         "tak_gateways": tac_out,
+        "system": system_out,
     }
 
     sys.stdout.write("Status: 200 OK\r\n")

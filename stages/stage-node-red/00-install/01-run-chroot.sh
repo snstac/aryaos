@@ -19,7 +19,7 @@
 id node-red || adduser --disabled-password --gecos 'Node-RED Service User' node-red
 
 # Add node-red user to necessary groups
-usermod -aG sudo,adm,video,plugdev node-red
+usermod -aG adm,video,plugdev node-red
 
 chown -R node-red:node-red /home/node-red
 

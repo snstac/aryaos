@@ -24,7 +24,7 @@ sed --follow-symlinks -i -E -e "s/driver=rtlsdr /driver=rtlsdr,serial=$DUMP978_R
 # readsb: stock .deb lacks RTL-SDR; rebuild binary then restore AryaOS systemd unit.
 dpkg -i /usr/src/readsb_3.14.1621_arm64.deb
 bash /usr/src/readsb-install.sh no-tar1090
-touch /usr/local/share/adsb-wiki/readsb-install/aryaos-rtlsdr-built
+touch /usr/local/share/adsb-wiki/readsb-install/aryaos-readsb-built
 install -v -m 644 /usr/src/readsb.service.aryaos /lib/systemd/system/readsb.service
 
 READSB_RECEIVER_SERIAL="stx:1090:0"

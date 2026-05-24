@@ -1,0 +1,100 @@
+# code: language=ansible
+# Charontak CoT hub — bridge config, systemd ordering, feeder EnvironmentFile.
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+
+- name: Install Charontak bridge configuration
+  ansible.builtin.template:
+    src: charontak.ini.j2
+    dest: /etc/charontak.ini
+    mode: "0644"
+  notify: Restart Charontak
+
+- name: Ensure charontak.service.d exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/charontak.service.d
+    state: directory
+    mode: "0755"
+
+- name: Charontak reads PyTAK multicast bind from aryaos-config
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/charontak/systemd/charontak.service.d/aryaos-config.conf"
+    dest: /etc/systemd/system/charontak.service.d/aryaos-config.conf
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart Charontak
+
+- name: Add EnvironmentFile to adsbcot.service
+  ansible.builtin.lineinfile:
+    path: /lib/systemd/system/adsbcot.service
+    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
+    insertbefore: '^EnvironmentFile=/etc/default/adsbcot'
+  notify: Reload systemd
+
+- name: Add EnvironmentFile to aiscot.service
+  ansible.builtin.lineinfile:
+    path: /lib/systemd/system/aiscot.service
+    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
+    insertbefore: '^EnvironmentFile=/etc/default/aiscot'
+  notify: Reload systemd
+
+- name: Add EnvironmentFile to dronecot.service
+  ansible.builtin.lineinfile:
+    path: /lib/systemd/system/dronecot.service
+    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
+    insertbefore: '^EnvironmentFile=/etc/default/dronecot'
+  notify: Reload systemd
+
+- name: Add EnvironmentFile to lincot.service
+  ansible.builtin.lineinfile:
+    path: /lib/systemd/system/lincot.service
+    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
+    insertbefore: '^EnvironmentFile=/etc/default/lincot'
+  notify: Reload systemd
+
+- name: Add EnvironmentFile to aircot.service
+  ansible.builtin.lineinfile:
+    path: /lib/systemd/system/aircot.service
+    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
+    insertbefore: '^EnvironmentFile=/etc/default/aircot'
+  notify: Reload systemd
+
+- name: Feeder units start after Charontak
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item }}.service.d"
+    state: directory
+    mode: "0755"
+  loop:
+    - adsbcot
+    - aiscot
+    - dronecot
+    - lincot
+    - aircot
+
+- name: Install after-charontak drop-ins for feeders
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/charontak/systemd/after-charontak.conf"
+    dest: "/etc/systemd/system/{{ item }}.service.d/after-charontak.conf"
+    mode: "0644"
+  loop:
+    - adsbcot
+    - aiscot
+    - dronecot
+    - lincot
+    - aircot
+  notify: Reload systemd
+
+- name: Enable and start Charontak
+  ansible.builtin.systemd:
+    name: charontak.service
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Verify cockpit-charontak manifest exists
+  ansible.builtin.stat:
+    path: /usr/share/cockpit/charontak/manifest.json
+  register: cockpit_charontak_manifest
+  failed_when: false

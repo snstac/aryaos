@@ -30,7 +30,7 @@ mkdir -p "${ROOTFS_DIR}/usr/src"
 curl -fsSL "${NODE_RED_LINUX_INSTALLER_URL}" -o "${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb"
 chmod +x "${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb"
 
-# install -v -m 440 "${SHARED_FILES}/node-red/node-red.sudoers" "${ROOTFS_DIR}/etc/sudoers.d/node-red"
+# Node-RED sudoers: consolidated in stage-aryaos (/etc/sudoers.d/aryaos). No node-red fragment.
 mkdir -p "${ROOTFS_DIR}/home/node-red/.node-red"
 install -v -m 644 "${SHARED_FILES}/node-red/settings.js" "${ROOTFS_DIR}/home/node-red/.node-red/settings.js"
 install -v -m 644 "${SHARED_FILES}/node-red/package.json" "${ROOTFS_DIR}/home/node-red/.node-red/package.json"

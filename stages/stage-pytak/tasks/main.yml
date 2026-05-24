@@ -19,5 +19,5 @@
 - name: Install PyTAK tools
   ansible.builtin.include_tasks: install.yml
 
-# - name: Configure PyTAK tools
-#   ansible.builtin.include_tasks: config.yml
+- name: Configure PyTAK tools
+  ansible.builtin.include_tasks: config.yml

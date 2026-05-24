@@ -113,7 +113,7 @@ jobs:
           password: ${{ env.FIRST_USER_PASS }}
           pi-gen-release: ${{ env.PI_GEN_RELEASE }}
           release: ${{ env.RELEASE }}
-          stage-list: "${{ env.GITHUB_CWD }}/stages/stage-patch stage0 stage1 stage2 ${{ env.GITHUB_CWD }}/stages/stage-base ${{ env.GITHUB_CWD }}/stages/stage-aryaos ${{ env.GITHUB_CWD }}/stages/stage-pytak ${{ env.GITHUB_CWD }}/stages/stage-node-red ${{ env.GITHUB_CWD }}/stages/stage-docker ${{ env.GITHUB_CWD }}/stages/stage-adsbcot ${{ env.GITHUB_CWD }}/stages/stage-aiscot ${{ env.GITHUB_CWD }}/stages/stage-dronecot"
+          stage-list: "${{ env.GITHUB_CWD }}/stages/stage-patch stage0 stage1 stage2 ${{ env.GITHUB_CWD }}/stages/stage-base ${{ env.GITHUB_CWD }}/stages/stage-aryaos ${{ env.GITHUB_CWD }}/stages/stage-pytak ${{ env.GITHUB_CWD }}/stages/stage-charontak ${{ env.GITHUB_CWD }}/stages/stage-lincot ${{ env.GITHUB_CWD }}/stages/stage-node-red ${{ env.GITHUB_CWD }}/stages/stage-docker ${{ env.GITHUB_CWD }}/stages/stage-adsbcot ${{ env.GITHUB_CWD }}/stages/stage-aiscot ${{ env.GITHUB_CWD }}/stages/stage-dronecot"
           wpa-country: ${{ env.WPA_COUNTRY }}
           wpa-essid: ${{ env.WPA_ESSID }}
           wpa-password: ${{ env.WPA_PASSWORD }}

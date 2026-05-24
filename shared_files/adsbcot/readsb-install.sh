@@ -81,6 +81,10 @@ if command -v apt &>/dev/null; then
     packages=(librtlsdr-dev librtlsdr0)
     aptInstall "${packages[@]}" || true # hope for the best
 fi
+if command -v apt &>/dev/null; then
+    packages=(libsoapysdr-dev soapysdr-tools soapysdr-module-airspy)
+    aptInstall "${packages[@]}" || true
+fi
 
 udevadm control --reload-rules || true
 
@@ -122,18 +126,18 @@ fi
 
 if [[ $1 == "sanitize" ]]; then
     CFLAGS+="-fsanitize=address -static-libasan"
-    if ! make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes OPTIMIZE="$CFLAGS"; then
+    if ! make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes SOAPYSDR=yes OPTIMIZE="$CFLAGS"; then
         if grep -qs /etc/os-release 'bookworm'; then apt install -y libasan8;
         elif grep -qs /etc/os-release 'bullseye'; then apt install -y libasan6;
         elif grep -qs /etc/os-release 'buster'; then apt install -y libasan5;
         fi
-        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes OPTIMIZE="$CFLAGS"
+        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes SOAPYSDR=yes OPTIMIZE="$CFLAGS"
     fi
 else
     if [[ -n "$MAKE_ARGS" ]]; then
-        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes OPTIMIZE="$CFLAGS" "$@"
+        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes SOAPYSDR=yes OPTIMIZE="$CFLAGS" "$@"
     else
-        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes OPTIMIZE="$CFLAGS"
+        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes SOAPYSDR=yes OPTIMIZE="$CFLAGS"
     fi
 fi
 

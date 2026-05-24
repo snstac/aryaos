@@ -177,6 +177,30 @@ ansible-playbook -i inventory.yml site.yml \
 
 See commented **`dev_arm64`** stubs in [`inventory.yml`](https://github.com/snstac/aryaos/blob/main/inventory.yml).
 
+### AirTAK-style readsb + adsbcot on DragonOS (`dragonball`)
+
+For a **generic amd64** host (e.g. Ubuntu DragonOS) with SSH as **`gba`** and key **`~/.ssh/id_ed25519_nopass`**, use the thin playbook [`playbooks/readsb-adsbcot-generic.yml`](../playbooks/readsb-adsbcot-generic.yml) (pytak sensor `.debs`, **Charontak** CoT hub, + **`stage-adsbcot`** readsb build). Host vars: [`host_vars/dragonball.yml`](../host_vars/dragonball.yml).
+
+```bash
+ansible-galaxy collection install -r requirements.yml
+ansible -i inventory.yml dragonball -m ping -e ansible_become=false
+
+# gba must have sudo (passwordless, or use -K / playbooks/dragonball-secret.yml)
+ansible-playbook -i inventory.yml playbooks/readsb-adsbcot-generic.yml \
+  --limit dragonball \
+  -e 'adsb_sdr_sn=YOUR_RTL_SERIAL'
+```
+
+**`dragonball`** defaults in [`host_vars/dragonball.yml`](../host_vars/dragonball.yml) use an **Airspy** (`1d50:60a1`) via **`readsb_device_type: soapysdr`** and **`readsb_soapy_device: driver=airspy`**. RTL dongles: set **`readsb_device_type: rtlsdr`** and **`adsb_sdr_sn`** from `rtl_test` (must differ from **`uat_sdr_sn`**).
+
+If sudo prompts for a password, copy [`playbooks/dragonball-secret.yml.example`](../playbooks/dragonball-secret.yml.example) to gitignored **`playbooks/dragonball-secret.yml`** and pass **`-e @playbooks/dragonball-secret.yml`**, or run **`--ask-become-pass`**.
+
+Without sudo (e.g. **`gba`** in the **`docker`** group only): rsync the repo to the host, then run [`scripts/dragonball-deploy-readsb-adsbcot.sh`](../scripts/dragonball-deploy-readsb-adsbcot.sh) on the machine. It builds readsb with SoapySDR/Airspy in Docker, installs units/config on the host rootfs, and enables services via **`nsenter`** (no password).
+
+On a running host: [`scripts/readsb-use-airspy.sh`](../scripts/readsb-use-airspy.sh) or [`scripts/readsb-use-rtl-serial.sh`](../scripts/readsb-use-rtl-serial.sh). Probe Airspy with `SoapySDRUtil --probe="driver=airspy"`.
+
+After deploy: `systemctl status charontak readsb adsbcot`, confirm `/run/readsb/aircraft.json` exists.
+
 ### Loop-mount / `nspawn` / `chroot` (advanced)
 
 You can **loop-mount** a built **`.img`**, then **`systemd-nspawn`** or **`chroot`** into the rootfs for package inspection or quick commands. This is **not** a full firmware/kernel/network test and may behave differently than hardware.

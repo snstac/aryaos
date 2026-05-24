@@ -1,0 +1,21 @@
+# Charontak lane config — templated from vars.yml for Ansible deploys.
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+
+[charontak]
+DEBUG = false
+
+[lane:local-to-mesh]
+enabled = true
+mode = forward
+ingress_cot_url = {{ charontak_ingress_cot_url }}
+egress_cot_url = {{ charontak_egress_cot_url }}
+PYTAK_NO_HELLO = true
+
+[lane:mesh-to-takserver]
+enabled = false
+mode = forward
+ingress_cot_url = udp://239.2.3.1:6969
+egress_cot_url = tls://takserver.example.com:8089
+PYTAK_NO_HELLO = true

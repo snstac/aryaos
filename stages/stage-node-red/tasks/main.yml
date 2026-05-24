@@ -26,15 +26,9 @@
   ansible.builtin.user:
     name: node-red
     comment: Node-RED service user
-    groups: sudo, plugdev, video, adm, dialout
+    groups: plugdev, video, adm, dialout
     append: true
     password: "!"
-
-- name: Copy node-red.sudoers
-  ansible.builtin.copy:
-    src: "{{ shared_files }}/node-red/node-red.sudoers"
-    dest: /etc/sudoers.d/node-red
-    mode: "0440"
 
 - name: Run Node-RED linux installer
   ansible.builtin.command:

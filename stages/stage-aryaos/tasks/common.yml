@@ -90,6 +90,13 @@
     append: true
   notify: Restart lighttpd
 
+- name: Ensure www-data can run vcgencmd (Raspberry Pi video group)
+  ansible.builtin.user:
+    name: www-data
+    groups: video
+    append: true
+  notify: Restart lighttpd
+
 - name: Enable gpsd at boot
   ansible.builtin.systemd:
     name: gpsd.service

@@ -1,0 +1,6 @@
+{# readsb RECEIVER_OPTIONS line for /etc/default/readsb — device-type must come first. #}
+{% if readsb_device_type | string == 'soapysdr' %}
+RECEIVER_OPTIONS="--device-type soapysdr --soapy-device {{ readsb_soapy_device }} --gain {{ readsb_gain }}"
+{% else %}
+RECEIVER_OPTIONS="--device-type rtlsdr --device {{ adsb_sdr_sn }} --gain {{ readsb_gain }} --ppm {{ readsb_ppm }}"
+{% endif %}

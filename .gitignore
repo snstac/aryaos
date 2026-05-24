@@ -13,5 +13,8 @@ __pycache__/
 # Lab Pi SSH password / overrides (never commit)
 scripts/.dev-pi-creds.local
 
+# Ansible become password for dragonball (see playbooks/dragonball-secret.yml.example)
+playbooks/dragonball-secret.yml
+
 # Lab dev SSH private key (public key aryaos-dev-lab.pub is committed for image authorized_keys)
 shared_files/aryaos/ssh/aryaos-dev-lab

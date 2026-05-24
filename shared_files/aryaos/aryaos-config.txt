@@ -17,10 +17,11 @@
 # limitations under the License.
 #
 
-# Where do we send our Cursor on Target TAK messages?
+# Where local *cot feeders (adsbcot, aiscot, …) send Cursor on Target messages.
+# Default: Charontak ingress on localhost. Upstream mesh / TAK Server forwarding is
+# configured in /etc/charontak.ini (Cockpit → Charontak at https://<host>/admin/).
 # See: https://pytak.readthedocs.io/en/stable/configuration/
-# Default: local mesh multicast (examples: TLS TAK server, TCP, etc.—see PyTAK docs).
-COT_URL=udp+wo://239.2.3.1:6969
+COT_URL=udp://127.0.0.1:18087
 
 
 # For Mesh SA & multicast COT_URLs: Which network interface (wifi, ethernet) do we bind to?
@@ -35,7 +36,7 @@ WIFI_AP_IP=10.41.0.1
 ARYAOS_ADSB_DECODER=readsb
 
 # List of services to restart if network state changes (wifi up, ethernet down, etc).
-AOS_SERVICES="readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-mutability gpsd aiscatcher nodered aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
+AOS_SERVICES="charontak readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-mutability gpsd aiscatcher nodered aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
 
 # RTL-SDR USB serial string for dump978-fa (UAT / 978 MHz). Factory default matches Nooelec
 # NESDR Nano 3 “978” EEPROM preset: stx:978:0 — do not use the same serial as the 1090 path

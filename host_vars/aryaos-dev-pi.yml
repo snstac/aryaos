@@ -1,0 +1,8 @@
+# Lab Raspberry Pi (AryaOS image) — RTL 1090 MHz readsb + adsbcot.
+---
+aryaos_profile: rpi
+aryaos_adsb_decoder: readsb
+readsb_device_type: rtlsdr
+adsb_sdr_sn: "2002"
+readsb_gain: -10
+readsb_ppm: 0

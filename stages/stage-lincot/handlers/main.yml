@@ -1,0 +1,9 @@
+# code: language=ansible
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+
+- name: Restart Lincot
+  ansible.builtin.systemd:
+    name: lincot.service
+    state: restarted

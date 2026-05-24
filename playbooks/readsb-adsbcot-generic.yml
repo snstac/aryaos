@@ -1,0 +1,47 @@
+# AirTAK-style readsb + adsbcot on a generic Debian host (e.g. DragonOS).
+# Installs sensor .debs (pytak role) then readsb (RTL + SoapySDR/Airspy) + adsbcot (stage-adsbcot).
+#
+# Usage (from repo root):
+#   ansible-galaxy collection install -r requirements.yml
+#   ansible-playbook -i inventory.yml playbooks/readsb-adsbcot-generic.yml --limit dragonball
+#
+# RTL dongle: readsb_device_type=rtlsdr -e 'adsb_sdr_sn=2002'
+# Airspy (1d50:60a1): host_vars set readsb_device_type=soapysdr (default on dragonball).
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+
+---
+- name: readsb and adsbcot on generic host
+  hosts: dragonball,aryaos-dev-pi
+  become: true
+  vars_files:
+    - ../vars.yml
+  vars:
+    aryaos_profile: generic
+
+  pre_tasks:
+    - name: Update apt cache (Debian family)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+      changed_when: false
+
+    - name: Ensure /etc/aryaos exists
+      ansible.builtin.file:
+        path: /etc/aryaos
+        state: directory
+        mode: "0755"
+
+    - name: Install aryaos-config for adsbcot EnvironmentFile
+      ansible.builtin.copy:
+        src: "{{ shared_files }}/aryaos/aryaos-config.txt"
+        dest: /etc/aryaos/aryaos-config.txt
+        mode: "0644"
+
+  roles:
+    - role: stage-pytak
+    - role: stage-charontak
+    - role: stage-lincot
+    - role: stage-adsbcot

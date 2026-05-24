@@ -30,4 +30,5 @@ systemctl enable lighttpd
 getent group gpsd >/dev/null || groupadd --system gpsd
 systemctl enable gpsd
 usermod -aG gpsd www-data || true
+usermod -aG video www-data || true
 

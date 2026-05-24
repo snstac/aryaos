@@ -1,0 +1,11 @@
+# AirTAK-style readsb + adsbcot on generic host (DragonOS / Debian amd64).
+# 1090 MHz: Airspy R2/Mini (USB 1d50:60a1) via readsb + SoapySDR.
+---
+aryaos_profile: generic
+aryaos_adsb_decoder: readsb
+readsb_device_type: soapysdr
+readsb_soapy_device: driver=airspy,serial=258c62dc2da65a8f
+readsb_gain: 15
+# Distinct from uat_sdr_sn (role assert); not used when readsb_device_type=soapysdr.
+adsb_sdr_sn: airspy-1090
+uat_sdr_sn: stx:978:0
