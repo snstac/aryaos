@@ -60,11 +60,39 @@ mkdir -p $ipath
 #     cp /tmp/rtl-sdr.rules /etc/udev/rules.d/
 # fi
 
+# AryaOS: RTL-SDR + SoapySDR (Airspy, etc.) + native HackRF.
+READSB_MAKE_SDR_OPTS="RTLSDR=yes SOAPYSDR=yes HACKRF=yes"
+
 function aptInstall() {
     if ! apt install -y --no-install-recommends --no-install-suggests "$@" &>/dev/null; then
         apt update
         apt install -y --no-install-recommends --no-install-suggests "$@"
     fi
+}
+
+function aptInstallOptional() {
+    aptInstall "$@" || echo "[WARN] optional package install failed: $*" >&2
+}
+
+function verify_readsb_sdr_build() {
+    local help
+    help="$(readsb --help 2>&1)" || {
+        echo "[ERROR] readsb --help failed" >&2
+        return 1
+    }
+    echo "${help}" | grep -qE 'RTL-SDR|rtlsdr' || {
+        echo "[ERROR] readsb built without RTL-SDR support" >&2
+        return 1
+    }
+    echo "${help}" | grep -qiE 'SoapySDR|soapysdr' || {
+        echo "[ERROR] readsb built without SoapySDR support" >&2
+        return 1
+    }
+    echo "${help}" | grep -qiE 'HackRF|hackrf' || {
+        echo "[ERROR] readsb built without HackRF support" >&2
+        return 1
+    }
+    echo "[OK] readsb SDR backends: RTL-SDR, SoapySDR, HackRF"
 }
 
 if command -v apt &>/dev/null; then
@@ -78,12 +106,12 @@ if command -v apt &>/dev/null; then
     aptInstall "${packages[@]}"
 fi
 if command -v apt &>/dev/null; then
-    packages=(librtlsdr-dev librtlsdr0)
-    aptInstall "${packages[@]}" || true # hope for the best
+    packages=(librtlsdr-dev libsoapysdr-dev libhackrf-dev)
+    aptInstall "${packages[@]}"
 fi
 if command -v apt &>/dev/null; then
-    packages=(libsoapysdr-dev soapysdr-tools soapysdr-module-airspy)
-    aptInstall "${packages[@]}" || true
+    packages=(librtlsdr0 soapysdr-tools soapysdr-module-airspy soapysdr-module-hackrf libhackrf0)
+    aptInstallOptional "${packages[@]}"
 fi
 
 udevadm control --reload-rules || true
@@ -126,18 +154,18 @@ fi
 
 if [[ $1 == "sanitize" ]]; then
     CFLAGS+="-fsanitize=address -static-libasan"
-    if ! make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes SOAPYSDR=yes OPTIMIZE="$CFLAGS"; then
+    if ! make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 ${READSB_MAKE_SDR_OPTS} OPTIMIZE="$CFLAGS"; then
         if grep -qs /etc/os-release 'bookworm'; then apt install -y libasan8;
         elif grep -qs /etc/os-release 'bullseye'; then apt install -y libasan6;
         elif grep -qs /etc/os-release 'buster'; then apt install -y libasan5;
         fi
-        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes SOAPYSDR=yes OPTIMIZE="$CFLAGS"
+        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 ${READSB_MAKE_SDR_OPTS} OPTIMIZE="$CFLAGS"
     fi
 else
     if [[ -n "$MAKE_ARGS" ]]; then
-        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes SOAPYSDR=yes OPTIMIZE="$CFLAGS" "$@"
+        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 ${READSB_MAKE_SDR_OPTS} OPTIMIZE="$CFLAGS" "$@"
     else
-        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 RTLSDR=yes SOAPYSDR=yes OPTIMIZE="$CFLAGS"
+        make "-j${THREADS}" AIRCRAFT_HASH_BITS=16 ${READSB_MAKE_SDR_OPTS} OPTIMIZE="$CFLAGS"
     fi
 fi
 
@@ -146,6 +174,8 @@ fi
 rm -f /usr/bin/readsb /usr/bin/viewadsb
 cp -f readsb /usr/bin/readsb
 cp -f viewadsb /usr/bin/viewadsb
+
+verify_readsb_sdr_build
 
 # copyNoClobber debian/readsb.default /etc/default/readsb
 

@@ -23,4 +23,4 @@ NET_OPTIONS="--net --net-heartbeat 60 --net-ro-size 1250 --net-ro-interval 0.05 
 
 JSON_OPTIONS="--json-location-accuracy 2 --range-outline-hours 24"
 
-ADSB_JSON="/run/readsb"
+ADSB_JSON="/run/adsb"

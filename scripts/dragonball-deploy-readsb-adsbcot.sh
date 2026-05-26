@@ -56,11 +56,11 @@ fi
 # adsbcot: point at readsb JSON
 if [[ -f /host/etc/default/adsbcot ]]; then
 	if grep -q '^#.*FEED_URL' /host/etc/default/adsbcot; then
-		sed -i -E 's|^#.*FEED_URL=.*|FEED_URL=file:///run/readsb/aircraft.json|' /host/etc/default/adsbcot
+		sed -i -E 's|^#.*FEED_URL=.*|FEED_URL=file:///run/adsb/aircraft.json|' /host/etc/default/adsbcot
 	elif grep -q '^FEED_URL=' /host/etc/default/adsbcot; then
-		sed -i -E 's|^FEED_URL=.*|FEED_URL=file:///run/readsb/aircraft.json|' /host/etc/default/adsbcot
+		sed -i -E 's|^FEED_URL=.*|FEED_URL=file:///run/adsb/aircraft.json|' /host/etc/default/adsbcot
 	else
-		echo 'FEED_URL=file:///run/readsb/aircraft.json' >>/host/etc/default/adsbcot
+		echo 'FEED_URL=file:///run/adsb/aircraft.json' >>/host/etc/default/adsbcot
 	fi
 	if ! grep -q 'EnvironmentFile=/etc/aryaos/aryaos-config.txt' /host/lib/systemd/system/adsbcot.service; then
 		sed -i '/\[Service\]/a EnvironmentFile=/etc/aryaos/aryaos-config.txt' /host/lib/systemd/system/adsbcot.service
@@ -89,4 +89,4 @@ echo "==> Status"
 systemctl is-active readsb adsbcot || true
 /usr/bin/readsb --device-type soapysdr --device "driver=airspy,serial=${AIRSPY_SERIAL}" 2>&1 | head -3 || true
 sleep 3
-ls -la /run/readsb/aircraft.json 2>/dev/null || echo "waiting for aircraft.json…"
+ls -la /run/adsb/aircraft.json 2>/dev/null || echo "waiting for aircraft.json…"

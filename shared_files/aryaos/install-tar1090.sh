@@ -7,7 +7,7 @@ set -e
 trap 'echo "[ERROR] Error in line $LINENO when executing: $BASH_COMMAND"' ERR
 renice 10 $$
 
-srcdir=/run/readsb
+srcdir=/run/adsb
 repo="https://github.com/wiedehopf/tar1090"
 db_repo="https://github.com/wiedehopf/tar1090-db"
 
@@ -169,7 +169,7 @@ elif [ -f /etc/default/tar1090_instances ]; then
 elif [[ -f /run/dump1090-fa/aircraft.json ]] ; then
     srcdir=/run/dump1090-fa
 elif [[ -f /run/readsb/aircraft.json ]]; then
-    srcdir=/run/readsb
+    srcdir=/run/adsb
 elif [[ -f /run/adsbexchange-feed/aircraft.json ]]; then
     srcdir=/run/adsbexchange-feed
 elif [[ -f /run/dump1090/aircraft.json ]]; then

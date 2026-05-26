@@ -34,7 +34,7 @@ fi
 
 set +a
 
-: "${ADSB_JSON:=/run/readsb}"
+: "${ADSB_JSON:=${ARYAOS_ADSB_JSON_DIR:-/run/adsb}}"
 
 # RECEIVER_OPTIONS etc. are multiple CLI flags; they must be word-split (not one argv).
 # shellcheck disable=SC2086

@@ -35,6 +35,9 @@ WIFI_AP_IP=10.41.0.1
 # (vars.yml aryaos_adsb_decoder). Changing this alone does not reconfigure systemd — see docs/config.md.
 ARYAOS_ADSB_DECODER=readsb
 
+# 1090 MHz ADS-B JSON directory (readsb --write-json and dump1090-fa --write-json). adsbcot FEED_URL uses aircraft.json here.
+ARYAOS_ADSB_JSON_DIR=/run/adsb
+
 # List of services to restart if network state changes (wifi up, ethernet down, etc).
 AOS_SERVICES="charontak readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-mutability gpsd aiscatcher nodered aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
 

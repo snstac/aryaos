@@ -20,16 +20,19 @@
   ansible.builtin.apt:
     deb: "{{ readsb_deb_url }}"
 
-- name: Install SoapySDR packages for Airspy (readsb soapysdr)
+- name: Install readsb SDR runtime and build packages (Debian)
   ansible.builtin.apt:
     name:
+      - librtlsdr0
+      - librtlsdr-dev
+      - libsoapysdr-dev
       - soapysdr-tools
       - soapysdr-module-airspy
-      - libsoapysdr-dev
+      - soapysdr-module-hackrf
+      - libhackrf-dev
+      - libhackrf0
     state: present
-  when:
-    - ansible_os_family == "Debian"
-    - readsb_device_type | string == "soapysdr"
+  when: ansible_os_family == "Debian"
 
 - name: Install readsb build script
   ansible.builtin.copy:
@@ -39,7 +42,7 @@
     group: root
     mode: "0755"
 
-- name: Build readsb with RTL-SDR and SoapySDR support
+- name: Build readsb with RTL-SDR, SoapySDR, and HackRF support
   ansible.builtin.shell: |
     set -euo pipefail
     /usr/src/readsb-install.sh no-tar1090
@@ -48,6 +51,17 @@
   args:
     creates: /usr/local/share/adsb-wiki/readsb-install/aryaos-readsb-built
   notify: Restart READSB
+
+- name: Verify readsb SDR backends in binary
+  ansible.builtin.shell: |
+    set -euo pipefail
+    help="$(/usr/bin/readsb --help 2>&1)"
+    echo "${help}" | grep -qE 'RTL-SDR|rtlsdr'
+    echo "${help}" | grep -qiE 'SoapySDR|soapysdr'
+    echo "${help}" | grep -qiE 'HackRF|hackrf'
+  args:
+    executable: /bin/bash
+  changed_when: false
 
 - name: Install AryaOS readsb systemd unit and wrapper
   ansible.builtin.copy:
@@ -72,4 +86,11 @@
     path: /etc/default/readsb
     regexp: '^RECEIVER_OPTIONS=.*'
     replace: "{{ readsb_receiver_options }}"
+  notify: Restart READSB
+
+- name: Set ADSB_JSON directory in /etc/default/readsb
+  ansible.builtin.lineinfile:
+    path: /etc/default/readsb
+    regexp: '^ADSB_JSON='
+    line: "ADSB_JSON={{ aryaos_adsb_json_dir }}"
   notify: Restart READSB

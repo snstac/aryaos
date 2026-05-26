@@ -79,16 +79,38 @@ Default Charontak egress is **`udp+wo://239.2.3.1:6969`** (Mesh SA). Node-RED an
 
 ### 1090 MHz ADS-B decoder (readsb vs dump1090-fa)
 
-Only **one** of **readsb** and **dump1090-fa** may be enabled at a time: the image ships systemd **Conflicts=** drop-ins and enables **readsb** by default while **dump1090-fa** stays disabled. **adsbcot** must read JSON from whichever decoder is active:
+**readsb SDR backends (image default):** the pi-gen image rebuilds readsb with **RTL-SDR**, **SoapySDR** (Airspy and other Soapy devices), and **native HackRF**. Check on a running host:
 
-- **readsb:** ``file:///run/readsb/aircraft.json``
-- **dump1090-fa:** ``file:///run/adsb/aircraft.json`` (matches the shipped unit’s ``--write-json /run/adsb``)
+```bash
+readsb --help 2>&1 | grep -iE 'RTL-SDR|Soapy|HackRF'
+```
 
-**Image / Ansible:** set **`aryaos_adsb_decoder`** in **`vars.yml`** to ``readsb`` or ``dump1090_fa``. For pi-gen, the ads-b chroot script defaults to **readsb**; export **`ARYAOS_ADSB_DECODER_DEFAULT=dump1090_fa`** during the build if you need the chroot to match a non-default ``dump1090_fa`` choice.
+Runtime helpers (SSH on the gateway):
 
-**Runtime switch (example — use dump1090-fa):** ``sudo systemctl disable --now readsb`` then ``sudo systemctl enable --now dump1090-fa``, set **``FEED_URL``** in ``/etc/default/adsbcot`` to ``file:///run/adsb/aircraft.json``, then ``sudo systemctl restart adsbcot``. Reverse the steps to return to **readsb**.
+| SDR | Script |
+|-----|--------|
+| RTL-SDR (EEPROM serial) | [`scripts/readsb-use-rtl-serial.sh`](../scripts/readsb-use-rtl-serial.sh) |
+| Airspy (Soapy) | [`scripts/readsb-use-airspy.sh`](../scripts/readsb-use-airspy.sh) |
+| HackRF (native or Soapy) | [`scripts/readsb-use-hackrf.sh`](../scripts/readsb-use-hackrf.sh) |
 
-The value **``ARYAOS_ADSB_DECODER``** in ``/etc/aryaos/aryaos-config.txt`` documents the intended mode; toggling services and **``FEED_URL``** is still required when changing decoders on a live system.
+Only **one** of **readsb** and **dump1090-fa** may be enabled at a time: the image ships systemd **Conflicts=** drop-ins and enables **readsb** by default while **dump1090-fa** stays disabled.
+
+**Unified JSON feed:** both decoders write **`/run/adsb/aircraft.json`**. **adsbcot** always uses ``FEED_URL=file:///run/adsb/aircraft.json`` — you do **not** change ``FEED_URL`` when switching decoders. The directory is set in **`ARYAOS_ADSB_JSON_DIR`** in ``/etc/aryaos/aryaos-config.txt`` (default ``/run/adsb``); readsb uses it via ``ADSB_JSON`` in ``/etc/default/readsb``.
+
+**Image / Ansible:** set **`aryaos_adsb_decoder`** in **`vars.yml`** to ``readsb`` or ``dump1090_fa``. For pi-gen, export **`ARYAOS_ADSB_DECODER_DEFAULT=dump1090_fa`** during the build if you need dump1090-fa enabled instead of readsb.
+
+**Runtime switch (example — use dump1090-fa):** ``sudo systemctl disable --now readsb`` then ``sudo systemctl enable --now dump1090-fa``, then ``sudo systemctl restart adsbcot``. Reverse the steps to return to **readsb**. No ``FEED_URL`` edit is required.
+
+**Upgrading an older image** that used ``/run/readsb/aircraft.json``:
+
+```bash
+sudo sed -i 's|^ADSB_JSON=.*|ADSB_JSON=/run/adsb|' /etc/default/readsb
+sudo sed -i 's|^FEED_URL=.*|FEED_URL=file:///run/adsb/aircraft.json|' /etc/default/adsbcot
+sudo systemctl daemon-reload
+sudo systemctl restart readsb adsbcot
+```
+
+The value **``ARYAOS_ADSB_DECODER``** in ``/etc/aryaos/aryaos-config.txt`` documents which decoder should be enabled; toggling **services** is still required when changing decoders on a live system.
 
 ### Change dump1090-fa & dump978-fa SDR serial numbers
 

@@ -34,8 +34,11 @@ readsb_soapy_device: driver=airspy
 readsb_gain: -10
 readsb_ppm: 0
 
-# 1090 MHz ADS-B decoder: readsb OR dump1090_fa (mutually exclusive). Default readsb matches adsbcot FEED_URL.
+# 1090 MHz ADS-B decoder: readsb OR dump1090_fa (mutually exclusive).
 aryaos_adsb_decoder: readsb
+# Unified JSON feed for readsb, dump1090-fa, and adsbcot (see ARYAOS_ADSB_JSON_DIR in aryaos-config.txt).
+aryaos_adsb_json_dir: /run/adsb
+aryaos_adsb_feed_url: "file:///run/adsb/aircraft.json"
 
 readsb_deb_url: https://github.com/snstac/readsb/releases/download/v3.14.1621-2/readsb_3.14.1621_amd64.deb
 

@@ -83,7 +83,7 @@ After portal/CGI edits on **`main`**, CI builds a new image; local lab can use *
 
 - **readsb:** pi-gen now runs [`readsb-install.sh`](../shared_files/adsbcot/readsb-install.sh) (`RTLSDR=yes`) after the stock `.deb` and restores the AryaOS `run_readsb.sh` unit.
 - **readsb RTL serial `2002`:** `RECEIVER_OPTIONS="--device-type rtlsdr --device 2002 …"`; helper [`scripts/readsb-use-rtl-serial.sh`](../scripts/readsb-use-rtl-serial.sh).
-- **adsbcot** enabled; polls `file:///run/readsb/aircraft.json`.
+- **adsbcot** enabled; polls `file:///run/adsb/aircraft.json` (same path for readsb or dump1090-fa).
 - **USB power:** `enable-pi-usb-current.sh` applied; **reboot** if not done since append.
 - **Portal UI polish (`8d2304a`):** may **not** be on the Pi until `sync-portal-review` succeeds from a host on the lab LAN (agent environment often gets **No route to host**).
 

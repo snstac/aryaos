@@ -74,16 +74,16 @@ check systemctl is-active --quiet charontak || echo "SKIP charontak (not install
 check systemctl is-active --quiet lincot || echo "SKIP lincot (not installed yet)"
 check systemctl is-active --quiet adsbcot
 check systemctl is-active --quiet lighttpd
-check test -f /run/readsb/aircraft.json
+check test -f /run/adsb/aircraft.json
 grep -q 'COT_URL=udp://127.0.0.1:18087' /etc/aryaos/aryaos-config.txt && echo "OK  feeder COT_URL → charontak" || { echo "FAIL feeder COT_URL" >&2; fail=1; }
 test -f /etc/charontak.ini && grep -q '127.0.0.1:18087' /etc/charontak.ini && echo "OK  charontak.ini ingress" || echo "SKIP charontak.ini (image not updated)"
 grep -q '^ENABLED=1' /etc/default/lincot 2>/dev/null && grep -q 'gpspipe' /etc/default/lincot && echo "OK  lincot defaults" || echo "SKIP lincot defaults (image not updated)"
-check /usr/bin/readsb --help 2>&1 | grep -q rtlsdr
-if /usr/bin/readsb --help 2>&1 | grep -q soapysdr; then
-	echo "OK  readsb has soapysdr (optional)"
-fi
+READSB_HELP="$(/usr/bin/readsb --help 2>&1)"
+echo "${READSB_HELP}" | grep -qE 'RTL-SDR|rtlsdr' && echo "OK  readsb RTL-SDR" || { echo "FAIL readsb RTL-SDR" >&2; fail=1; }
+echo "${READSB_HELP}" | grep -qiE 'SoapySDR|soapysdr' && echo "OK  readsb SoapySDR" || { echo "FAIL readsb SoapySDR" >&2; fail=1; }
+echo "${READSB_HELP}" | grep -qiE 'HackRF|hackrf' && echo "OK  readsb HackRF" || { echo "FAIL readsb HackRF" >&2; fail=1; }
 grep -q 'device-type rtlsdr' /etc/default/readsb && echo "OK  readsb RTL config" || { echo "FAIL readsb RTL config" >&2; fail=1; }
-grep -q 'FEED_URL=file:///run/readsb/aircraft.json' /etc/default/adsbcot && echo "OK  adsbcot FEED_URL" || { echo "FAIL adsbcot FEED_URL" >&2; fail=1; }
+grep -q 'FEED_URL=file:///run/adsb/aircraft.json' /etc/default/adsbcot && echo "OK  adsbcot FEED_URL" || { echo "FAIL adsbcot FEED_URL" >&2; fail=1; }
 
 PI_IP="$(hostname -I | awk '{print $1}')"
 JSON="$(curl -gk --max-time 8 -sS "https://${PI_IP}/cgi-bin/aryaos-portal-status" 2>/dev/null || curl -g --max-time 8 -sS "http://127.0.0.1/cgi-bin/aryaos-portal-status")"
@@ -99,7 +99,7 @@ print('OK  portal JSON keys (hostname, system, tak_gateways)')
 echo "--- readsb (last 5 log lines) ---"
 journalctl -u readsb -n 5 --no-pager 2>/dev/null || true
 echo "--- aircraft.json (head) ---"
-head -c 300 /run/readsb/aircraft.json 2>/dev/null || true
+head -c 300 /run/adsb/aircraft.json 2>/dev/null || true
 echo
 exit "${fail}"
 REMOTE

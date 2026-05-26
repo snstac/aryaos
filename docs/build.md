@@ -174,6 +174,7 @@ ansible-playbook -i inventory.yml site.yml \
 
 - Add **`aryaos`** (or other tags from [`site.yml`](https://github.com/snstac/aryaos/blob/main/site.yml)) when you need portal/lighttpd/Cockpit proxy behaviour (e.g. **`UrlRoot=/admin`**).
 - **`stage-adsbcot`** may assume **Pi-oriented `.deb` artifacts** (e.g. vendored **arm64** readsb) or hardware; an **amd64** laptop often needs different packages or vars — prefer **arm64** for parity with shipped images.
+- **readsb SDR backends:** pi-gen rebuilds readsb with **RTL-SDR**, **SoapySDR** (Airspy), and **HackRF** via [`shared_files/adsbcot/readsb-install.sh`](../shared_files/adsbcot/readsb-install.sh); `04-adsbcot/01-run-chroot.sh` fails the stage if `readsb --help` lacks any of those. See [config.md](config.md#1090-mhz-ads-b-decoder-readsb-vs-dump1090-fa).
 
 See commented **`dev_arm64`** stubs in [`inventory.yml`](https://github.com/snstac/aryaos/blob/main/inventory.yml).
 
@@ -199,7 +200,7 @@ Without sudo (e.g. **`gba`** in the **`docker`** group only): rsync the repo to 
 
 On a running host: [`scripts/readsb-use-airspy.sh`](../scripts/readsb-use-airspy.sh) or [`scripts/readsb-use-rtl-serial.sh`](../scripts/readsb-use-rtl-serial.sh). Probe Airspy with `SoapySDRUtil --probe="driver=airspy"`.
 
-After deploy: `systemctl status charontak readsb adsbcot`, confirm `/run/readsb/aircraft.json` exists.
+After deploy: `systemctl status charontak readsb adsbcot`, confirm `/run/adsb/aircraft.json` existss.
 
 ### Loop-mount / `nspawn` / `chroot` (advanced)
 
