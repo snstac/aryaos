@@ -61,6 +61,14 @@
     group: node-red
     mode: "0640"
 
+- name: Copy package-lock.json
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/node-red/package-lock.json"
+    dest: /home/node-red/.node-red/package-lock.json
+    owner: node-red
+    group: node-red
+    mode: "0640"
+
 - name: Copy aryaos_flows.json to aryaos_flows.json
   ansible.builtin.copy:
     src: "{{ shared_files }}/node-red/aryaos_flows.json"
@@ -79,7 +87,7 @@
 
 - name: Install Node-RED Nodes
   ansible.builtin.command:
-    cmd: npm install 
+    cmd: npm ci --omit=dev
     chdir: /home/node-red/.node-red
     creates: /home/node-red/.node-red/node_modules/node-red-contrib-tak
   become: true

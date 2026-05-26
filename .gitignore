@@ -9,6 +9,7 @@
 .aryaos-pigen-work/
 .aryaos-pigen-deploy/
 __pycache__/
+node_modules/
 
 # Lab Pi SSH password / overrides (never commit)
 scripts/.dev-pi-creds.local

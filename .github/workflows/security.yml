@@ -1,0 +1,57 @@
+# Dependency security scans (npm + pip). Complements GitHub Dependabot alerts.
+name: Security scan
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  npm-cloudtak:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: npm audit (CloudTAK shim)
+        working-directory: shared_files/cloudtak/shim
+        run: |
+          npm ci
+          npm audit --audit-level=high
+
+  npm-node-red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: npm audit (Node-RED flows)
+        working-directory: shared_files/node-red
+        run: |
+          npm ci --omit=dev
+          # Fail on critical only; remaining high advisories are often false positives on patched overrides (see docs/security-audit-baseline.md).
+          npm audit --omit=dev --audit-level=critical
+
+  pip-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: pip-audit (MkDocs)
+        run: |
+          python -m pip install --upgrade pip pip-audit
+          pip-audit -r docs/requirements.txt

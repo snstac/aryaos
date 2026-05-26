@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions:
+  contents: write
+
 jobs:
   build-deb:
     runs-on: ubuntu-latest
@@ -15,10 +18,7 @@ jobs:
       - name: Create package structure
         run: |
           mkdir -p .debpkg/home/node-red/.node-red
-          ls -al
-          ls -alR shared_files/node-red
           cp ./shared_files/node-red/aryaos_flows.json .debpkg/home/node-red/.node-red/flows.json
-          # create DEBIAN directory if you want to add other pre/post scripts
           mkdir -p .debpkg/DEBIAN
           echo -e "chown node-red:node-red /home/node-red/.node-red/flows.json" > .debpkg/DEBIAN/postinst
           chmod +x .debpkg/DEBIAN/postinst
@@ -29,7 +29,7 @@ jobs:
           package: aryaos-flows
           package_root: .debpkg
           maintainer: gba@snstac.com
-          version: ${{ github.ref }}
+          version: ${{ github.ref_name }}
           arch: 'arm64'
           desc: 'Node-RED flows for AryaOS.'
 
@@ -39,24 +39,13 @@ jobs:
           path: |
             *.deb
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@master
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: |
+            *.deb
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: |
-            *.deb
-          tag: ${{ github.ref }}
-          overwrite: true
-          file_glob: true

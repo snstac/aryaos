@@ -1,0 +1,26 @@
+# Dependabot version updates — aligns with GitHub Security advisories.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /shared_files/cloudtak/shim
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /shared_files/node-red
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pip
+    directory: /docs
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

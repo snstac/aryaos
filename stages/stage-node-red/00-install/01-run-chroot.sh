@@ -28,7 +28,7 @@ bash /usr/src/update-nodejs-and-nodered-deb --confirm-install --nodered-user=nod
 
 # Install Node-RED pallet modules:
 cd /home/node-red/.node-red
-npm install
+npm ci --omit=dev
 
 mkdir -p /home/node-red/tmpConf
 
