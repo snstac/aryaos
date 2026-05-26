@@ -136,7 +136,7 @@ jobs:
 
       - name: Upload image artifact
         if: success() && steps.build_aryaos.outputs.image-path != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aryaos-image-${{ github.sha }}
           path: ${{ steps.build_aryaos.outputs.image-path }}
