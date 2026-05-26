@@ -15,7 +15,7 @@
   "dependencies": {
     "@tak-ps/node-cot": "^14.25.0",
     "express": "^5.0.0",
-    "express-rate-limit": "^7.5.0",
+    "express-rate-limit": "^8.5.2",
     "node-forge": "^1.4.0"
   },
   "devDependencies": {
