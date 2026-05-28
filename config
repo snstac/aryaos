@@ -15,7 +15,7 @@
 #
 
 # shellcheck disable=SC2034
-STAGE_LIST="../stages/stage-patch stage0 stage1 stage2 ../stages/stage-base ../stages/stage-aryaos ../stages/stage-pytak ../stages/stage-charontak ../stages/stage-lincot ../stages/stage-node-red ../stages/stage-docker ../stages/stage-adsbcot ../stages/stage-aiscot ../stages/stage-dronecot"
+STAGE_LIST="../stages/stage-patch stage0 stage1 stage2 ../stages/stage-base ../stages/stage-aryaos ../stages/stage-pytak ../stages/stage-charontak ../stages/stage-lincot ../stages/stage-node-red ../stages/stage-docker ../stages/stage-adsbcot ../stages/stage-aiscot ../stages/stage-dronecot ../stages/stage-dronehone-bridge"
 
 IMG_NAME="aryaos"
 PI_GEN_RELEASE="AryaOS: The Operating System for Modern Situational Awareness."

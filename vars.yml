@@ -53,6 +53,18 @@ charontak_ingress_cot_url: udp://127.0.0.1:18087
 charontak_egress_cot_url: udp+wo://239.2.3.1:6969
 charontak_feeder_cot_url: udp://127.0.0.1:18087
 
+# DroneHone Bluetooth sensor bridge — built from dronehone-bridge/ in-repo during pi-gen;
+# deb URL for standalone installs once published to GitHub Releases.
+dronehone_bridge_version: "0.1.0"
+dronehone_bridge_deb_url: "https://github.com/snstac/dronehone-bridge/releases/download/v0.1.0/dronehone-bridge_0.1.0-1_all.deb"
+dronehone_bridge_mqtt_broker: localhost
+dronehone_bridge_mqtt_port: 1883
+dronehone_bridge_mqtt_topic: "#"
+dronehone_bridge_bt_adapter: hci0
+dronehone_bridge_bt_name: "AryaOS RemoteID"
+dronehone_bridge_rfcomm_enabled: true
+dronehone_bridge_ble_enabled: false
+
 # LINCOT GNSS edge beacon — pinned release; bump version and URL with manifests/aryaos-sensor-packages.yml.
 lincot_version: "1.2.0"
 lincot_deb_url: "https://github.com/snstac/lincot/releases/download/v1.2.0/lincot_1.2.0-1_all.deb"

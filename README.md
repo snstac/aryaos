@@ -20,6 +20,7 @@ Features of AryaOS:
 | Image build (Docker pi-gen) | [docs/build.md](docs/build.md), [AGENTS.md](AGENTS.md) |
 | Lab Pi sync & portal deploy | [docs/dev-pi.md](docs/dev-pi.md), [docs/portal.md](docs/portal.md) |
 | Runtime / SDR / readsb | [docs/config.md](docs/config.md) |
+| DroneHone Bluetooth bridge | [docs/dronehone-bridge.md](docs/dronehone-bridge.md) |
 
 **Quick lab portal update** (from repo root, SSH to `aryaos-dev-pi`):
 

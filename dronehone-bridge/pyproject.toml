@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dronehone-bridge"
+version = "0.1.0"
+description = "Emulate a DroneHone Bluetooth Remote ID sensor on AryaOS"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+authors = [{ name = "Sensors & Signals LLC", email = "info@snstac.com" }]
+dependencies = [
+    "asyncio-mqtt>=0.16",
+    "dronecot",
+    "pytak>=7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+dronehone-bridge = "dronehone_bridge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dronehone_bridge*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
