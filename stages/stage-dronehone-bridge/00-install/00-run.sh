@@ -16,6 +16,21 @@ if [[ -z "${SHARED_FILES:-}" || ! -d "${SHARED_FILES}" ]]; then
 fi
 export SHARED_FILES
 
+# Resolve package source: full repo at /aryaos (local Docker) or GITHUB_WORKSPACE bind-mount (CI).
+DRONEHONE_BRIDGE_SRC=""
+for candidate in \
+	"${REPO_ROOT}/dronehone-bridge" \
+	"/aryaos/dronehone-bridge"; do
+	if [[ -d "${candidate}" ]]; then
+		DRONEHONE_BRIDGE_SRC="${candidate}"
+		break
+	fi
+done
+if [[ -z "${DRONEHONE_BRIDGE_SRC}" ]]; then
+	echo "00-run.sh: dronehone-bridge source not found under ${REPO_ROOT} or /aryaos" >&2
+	exit 1
+fi
+
 install -d "${ROOTFS_DIR}/usr/src/dronehone-bridge"
 rsync -a --delete \
 	--exclude '.git' \
@@ -26,7 +41,7 @@ rsync -a --delete \
 	--exclude 'debian/files' \
 	--exclude 'debian/*.debhelper.log' \
 	--exclude 'debian/*.substvars' \
-	"${REPO_ROOT}/dronehone-bridge/" "${ROOTFS_DIR}/usr/src/dronehone-bridge/"
+	"${DRONEHONE_BRIDGE_SRC}/" "${ROOTFS_DIR}/usr/src/dronehone-bridge/"
 
 install -d "${ROOTFS_DIR}/usr/src/dronehone-bridge-aryaos"
 install -v -m 0644 "${SHARED_FILES}/dronehone-bridge/dronehone-bridge.ini" \

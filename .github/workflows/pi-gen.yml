@@ -126,6 +126,7 @@ jobs:
           docker-opts: >-
             -v ${{ github.workspace }}/shared_files:${{ github.workspace }}/shared_files:ro
             -v ${{ github.workspace }}/manifests:${{ github.workspace }}/manifests:ro
+            -v ${{ github.workspace }}/dronehone-bridge:${{ github.workspace }}/dronehone-bridge:ro
             -v ${{ github.workspace }}/pi-gen-src:${{ github.workspace }}/pi-gen-src
 
       - name: Show deploy output
