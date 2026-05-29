@@ -1,10 +1,10 @@
 #!/bin/bash -e
 # 01-run-chroot.sh — build and install dronehone-bridge .deb, enable systemd.
+# pi-gen runs this via: on_chroot < 01-run-chroot.sh (do not wrap in on_chroot here).
 #
 # SPDX-License-Identifier: Apache-2.0
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 
-on_chroot << 'EOF'
 set -e
 export DEBIAN_FRONTEND=noninteractive
 
@@ -39,4 +39,3 @@ fi
 
 systemctl daemon-reload || true
 systemctl enable dronehone-bridge.service 2>/dev/null || true
-EOF

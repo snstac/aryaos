@@ -20,7 +20,7 @@ Wire format: [dronehone-bridge/docs/dronehone-bluetooth-protocol.md](../dronehon
 | Unit | `dronehone-bridge.service` |
 | Config | `/etc/dronehone-bridge.ini` |
 | Binary | `dronehone-bridge` |
-| Stage | `stage-dronehone-bridge` (after `stage-dronecot`) |
+| Stage | `stage-dronecot` (image build) / Ansible tag `dronehone-bridge` |
 
 Enable or restart:
 
@@ -76,4 +76,4 @@ pip install -e .
 dronehone-bridge
 ```
 
-Package builds during image creation in `stage-dronehone-bridge/00-install/01-run-chroot.sh`.
+Package builds during image creation in `stage-dronecot/00-install/01-run.sh` and `01-run-chroot.sh`.
