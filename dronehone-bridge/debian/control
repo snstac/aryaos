@@ -1,9 +1,10 @@
-Source: python3
+Source: dronehone-bridge
 Section: python
 Priority: optional
 Maintainer: Sensors & Signals LLC <info@snstac.com>
 Build-Depends: debhelper-compat (= 13),
  dh-python,
+ pybuild-plugin-pyproject,
  python3-all,
  python3-setuptools,
 Standards-Version: 4.6.0
