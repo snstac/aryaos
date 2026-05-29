@@ -20,9 +20,3 @@
     src: "{{ shared_files }}/aryaos/html"
     dest: /var/www
     mode: "0755"
-
-- name: CalFire tiles
-  ansible.builtin.copy:
-    src: "{{ shared_files }}/aryaos/calfire_airbases"
-    dest: /var/www/html/calfire_airbases/
-    mode: "0755"

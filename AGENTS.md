@@ -67,6 +67,8 @@ For playbook/config checks without pi-gen: **`make ansible-syntax`** (see [docs/
 
 Team default dev host: **`pi@aryaos-dev-pi`** (SSH config → **`172.17.2.158`**). Prefer the **lab SSH key** ([`docs/dev-pi.md`](docs/dev-pi.md), [`shared_files/aryaos/ssh/README.md`](shared_files/aryaos/ssh/README.md)): run **`./scripts/setup-dev-ssh.sh`**, then **`./scripts/sync-to-dev-pi.sh`** and **`ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh`** (or `pi@aryaos-dev-pi` if you prefer). Lab password belongs in **gitignored** `scripts/.dev-pi-creds.local` only if key auth is unavailable — never commit credentials.
 
+After portal sync or a new flash, run **`make test-dev-pi`** or **`./scripts/aryaos-test/run.sh`** — see [docs/testing-dev-pi.md](docs/testing-dev-pi.md).
+
 ## HTTPS landing portal
 
 Static UI + **`/cgi-bin/aryaos-portal-status`** JSON (TAK gateways, GNSS, host, RF). Source: [`shared_files/aryaos/html/`](../shared_files/aryaos/html/), [`shared_files/aryaos/cgi-bin/aryaos-portal-status`](../shared_files/aryaos/cgi-bin/aryaos-portal-status).

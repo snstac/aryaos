@@ -1,0 +1,28 @@
+# AryaOS lab Pi integration test expectations (scripts/aryaos-test).
+# SPDX-License-Identifier: Apache-2.0
+
+services_required:
+  - readsb
+  - adsbcot
+  - lighttpd
+  - gpsd
+
+services_optional:
+  - charontak
+  - lincot
+  - aiscot
+  - dronecot
+  - dronehone-bridge
+
+tak_gateway_ids:
+  - charontak
+  - lincot
+  - adsbcot
+  - aiscot
+  - dronecot
+
+adsb_json: /run/adsb/aircraft.json
+cot_url: udp://127.0.0.1:18087
+charontak_ingress: 127.0.0.1:18087
+adsbcot_feed_url: file:///run/adsb/aircraft.json
+calfire_tiles_path: /var/www/html/calfire_airbases

@@ -83,8 +83,6 @@ mkdir -p "${ROOTFS_DIR}/var/www/"
 rsync -va "${SHARED_FILES}/aryaos/html/" "${ROOTFS_DIR}/var/www/html/"
 chmod 0655 "${ROOTFS_DIR}/var/www/html"
 
-rsync -va "${SHARED_FILES}/aryaos/calfire_airbases/" "${ROOTFS_DIR}/var/www/html/calfire_airbases/"
-
 
 ## Portal status CGI (JSON) for the landing page — no Node-RED
 install -d -m 0755 "${ROOTFS_DIR}/usr/lib/cgi-bin"

@@ -74,6 +74,18 @@ ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh
 
 See [scripts/sync-portal-review.sh](../scripts/sync-portal-review.sh) and [portal.md](portal.md) (features, JSON schema, agent next steps).
 
+## Integration tests
+
+After flash or sync, run the reusable test suite against the lab Pi:
+
+```bash
+make test-dev-pi
+# or
+./scripts/aryaos-test/run.sh
+```
+
+See [testing-dev-pi.md](testing-dev-pi.md) for tiers, check matrix, and interpreting results.
+
 ## Other one-off files
 
 Use `scp` / `rsync` for scripts or configs not covered by the scripts above. Example: [scripts/readsb-use-rtl-serial.sh](../scripts/readsb-use-rtl-serial.sh) for readsb RTL serial changes.
