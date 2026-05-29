@@ -128,6 +128,7 @@ jobs:
             -v ${{ github.workspace }}/manifests:${{ github.workspace }}/manifests:ro
             -v ${{ github.workspace }}/dronehone-bridge:${{ github.workspace }}/dronehone-bridge:ro
             -v ${{ github.workspace }}/pi-gen-src:${{ github.workspace }}/pi-gen-src
+            -e GITHUB_WORKSPACE=${{ github.workspace }}
 
       - name: Show deploy output
         if: success()

@@ -1,10 +1,10 @@
 #!/bin/bash -e
-# stage-dronehone-bridge prerun — ensure rootfs from previous stage.
+# stage-dronehone-bridge prerun — ensure rootfs from previous stage (pi-gen skips non-+x prerun.sh).
 #
 # SPDX-License-Identifier: Apache-2.0
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 
-if [ ! -f "${ROOTFS_DIR}/etc/os-release" ]; then
+if [ ! -d "${ROOTFS_DIR}" ] || [ ! -f "${ROOTFS_DIR}/etc/os-release" ]; then
 	copy_previous
 fi
 
