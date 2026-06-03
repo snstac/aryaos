@@ -46,7 +46,7 @@ scripts/aryaos-test/
     02-config.sh      # aryaos-config, charontak, adsbcot, readsb
     03-adsb.sh        # readsb SDR flags, aircraft.json
     04-portal.sh      # HTTPS/HTTP CGI + validate_portal.py
-    05-packages.sh    # dronehone-bridge, calfire tiles
+    05-packages.sh    # dhbridge, calfire tiles
     06-optional-uas.sh # docker, MQTT, Bluetooth (warn-only)
 ```
 
@@ -65,7 +65,7 @@ Expectations live in **`expectations.yml`**; update that file when image default
 - SSH unreachable
 - Core units: `readsb`, `adsbcot`, `lighttpd`, `gpsd`
 - TAK gateway units expected by portal CGI: `charontak`, `lincot`, `adsbcot`, `aiscot`, `dronecot`
-- Config: `COT_URL=udp://127.0.0.1:18087`, adsbcot `FEED_URL`, charontak ingress (when present)
+- Config: `COT_URL=udp+wo://127.0.0.1:28087`, adsbcot `FEED_URL`, charontak ingress (when present)
 - readsb `--help` includes RTL-SDR, SoapySDR, HackRF
 - `/run/adsb/aircraft.json` exists and is valid JSON
 - Portal CGI returns HTTP 200 JSON with required keys and gateway IDs
@@ -74,7 +74,7 @@ Expectations live in **`expectations.yml`**; update that file when image default
 
 - Empty `aircraft.json` (no ADS-B traffic)
 - Inactive optional TAK gateways
-- Missing `dronehone-bridge` on older flashes
+- Missing `dhbridge` on older flashes
 - CalFire tiles still present (until removal lands on main)
 - GNSS fix quality, DroneScout/docker/MQTT, Bluetooth `hci0`
 

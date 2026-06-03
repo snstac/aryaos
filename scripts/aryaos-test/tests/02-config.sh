@@ -6,10 +6,10 @@ set -euo pipefail
 # shellcheck source=../lib.sh
 source "$(dirname "$0")/../lib.sh"
 
-if grep -q 'COT_URL=udp://127.0.0.1:18087' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+if grep -q 'COT_URL=udp+wo://127.0.0.1:28087' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
 	ok "feeder COT_URL → charontak ingress"
 else
-	fail "COT_URL not udp://127.0.0.1:18087 in aryaos-config.txt"
+	fail "COT_URL not udp+wo://127.0.0.1:28087 in aryaos-config.txt"
 fi
 
 if grep -q 'ARYAOS_ADSB_JSON_DIR=/run/adsb' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
@@ -19,10 +19,10 @@ else
 fi
 
 if [[ -f /etc/charontak.ini ]]; then
-	if grep -q '127.0.0.1:18087' /etc/charontak.ini; then
-		ok "charontak.ini ingress 127.0.0.1:18087"
+	if grep -q '127.0.0.1:28087' /etc/charontak.ini; then
+		ok "charontak.ini ingress 127.0.0.1:28087"
 	else
-		fail "charontak.ini missing ingress 127.0.0.1:18087"
+		fail "charontak.ini missing ingress 127.0.0.1:28087"
 	fi
 else
 	skip "charontak.ini not present"
@@ -46,6 +46,23 @@ if [[ -f /etc/default/readsb ]]; then
 	fi
 else
 	warn "/etc/default/readsb missing"
+fi
+
+hn="$(hostname -s 2>/dev/null || hostname)"
+if [[ "$hn" =~ ^aryaos-[0-9a-f]{4}$ ]]; then
+	ok "hostname personalized ($hn)"
+elif [[ "$hn" == aryaos ]]; then
+	warn "hostname still factory 'aryaos' (run aryaos-firstboot or reflash)"
+else
+	warn "hostname unexpected: $hn"
+fi
+
+if grep -qE '^DEVICE_SUFFIX=[0-9a-f]{4}$' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+	ok "DEVICE_SUFFIX set in aryaos-config.txt"
+elif grep -q '^DEVICE_SUFFIX=""' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+	warn "DEVICE_SUFFIX empty (aryaos-firstboot not run?)"
+else
+	warn "DEVICE_SUFFIX missing or invalid in aryaos-config.txt"
 fi
 
 if [[ -f /etc/default/lincot ]]; then

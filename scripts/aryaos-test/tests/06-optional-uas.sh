@@ -30,7 +30,7 @@ fi
 if [[ -d /sys/class/bluetooth/hci0 ]]; then
 	ok "Bluetooth hci0 present"
 else
-	warn "Bluetooth hci0 not found (dronehone-bridge needs BT adapter)"
+	warn "Bluetooth hci0 not found (dhbridge needs BT adapter)"
 fi
 
 if unit_loaded dronecot; then

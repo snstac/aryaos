@@ -3,5 +3,5 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 
-- name: Include dronehone-bridge tasks
-  ansible.builtin.include_tasks: dronehone-bridge.yml
+- name: Include dhbridge tasks
+  ansible.builtin.include_tasks: dhbridge.yml

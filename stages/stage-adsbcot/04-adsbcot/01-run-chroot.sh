@@ -21,7 +21,7 @@ sed --follow-symlinks -i -E -e "s/RECEIVER_SERIAL.*/RECEIVER_SERIAL=$DUMP1090_RE
 DUMP978_RECEIVER_SERIAL="stx:978:0"
 sed --follow-symlinks -i -E -e "s/driver=rtlsdr /driver=rtlsdr,serial=$DUMP978_RECEIVER_SERIAL /" /etc/default/dump978-fa
 
-# readsb: stock .deb lacks full SDR backends; rebuild with RTL + Soapy + HackRF, then restore AryaOS unit.
+# readsb: Debian trixie apt package lacks RTL/Soapy; rebuild with portable arm64 flags + SDR backends.
 dpkg -i /usr/src/readsb_3.14.1621_arm64.deb
 bash /usr/src/readsb-install.sh no-tar1090
 touch /usr/local/share/adsb-wiki/readsb-install/aryaos-readsb-built
@@ -29,7 +29,10 @@ READSB_HELP="$(/usr/bin/readsb --help 2>&1)"
 echo "${READSB_HELP}" | grep -qE 'RTL-SDR|rtlsdr' || { echo "readsb missing RTL-SDR support" >&2; exit 1; }
 echo "${READSB_HELP}" | grep -qiE 'SoapySDR|soapysdr' || { echo "readsb missing SoapySDR support" >&2; exit 1; }
 echo "${READSB_HELP}" | grep -qiE 'HackRF|hackrf' || { echo "readsb missing HackRF support" >&2; exit 1; }
+/usr/bin/readsb --version >/dev/null 2>&1 || { echo "readsb binary failed to execute" >&2; exit 1; }
 install -v -m 644 /usr/src/readsb.service.aryaos /lib/systemd/system/readsb.service
+# Prevent apt from replacing the SDR-enabled binary with stock trixie readsb (3.14.1630+; no RTL).
+apt-mark hold readsb || true
 
 READSB_RECEIVER_SERIAL="stx:1090:0"
 sed --follow-symlinks -i -E -e "s/RECEIVER_OPTIONS.*/RECEIVER_OPTIONS=\"--device-type rtlsdr --device $READSB_RECEIVER_SERIAL --gain -10 --ppm 0\"/" /etc/default/readsb

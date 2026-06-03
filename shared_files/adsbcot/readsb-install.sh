@@ -145,11 +145,15 @@ cd "$ipath/git"
 make clean
 THREADS=$(( $(grep -c ^processor /proc/cpuinfo) - 1 ))
 THREADS=$(( THREADS > 0 ? THREADS : 1 ))
-CFLAGS="-O2 -march=native"
+# Portable arm64 for Pi images — never -march=native (CI runner ISA can differ from flash target → ILL).
+CFLAGS="-O2"
+if uname -m | grep -qs aarch64; then
+	CFLAGS+=" -march=armv8-a+crc"
+fi
 
 # disable unaligned access for arm 32bit ...
-if uname -m | grep -qs -e arm -e aarch64 && gcc -mno-unaligned-access hello.c -o /dev/null &>/dev/null; then
-    CFLAGS+=" -mno-unaligned-access"
+if uname -m | grep -qs -e arm && ! uname -m | grep -qs aarch64 && gcc -mno-unaligned-access hello.c -o /dev/null &>/dev/null; then
+	CFLAGS+=" -mno-unaligned-access"
 fi
 
 if [[ $1 == "sanitize" ]]; then
@@ -176,6 +180,9 @@ cp -f readsb /usr/bin/readsb
 cp -f viewadsb /usr/bin/viewadsb
 
 verify_readsb_sdr_build
+
+# dpkg registers readsb; trixie apt may upgrade to a stock binary without SDR backends.
+apt-mark hold readsb 2>/dev/null || true
 
 # copyNoClobber debian/readsb.default /etc/default/readsb
 

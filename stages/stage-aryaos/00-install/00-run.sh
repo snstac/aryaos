@@ -71,9 +71,10 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/gpsd.default" "${ROOTFS_DIR}/etc/defa
 
 # UUID
 
-## Set UUID on first boot
-install -v -m 0755 "${SHARED_FILES}/aryaos/set_uuid.sh" "${ROOTFS_DIR}/usr/local/sbin/"
-install -v -m 0644 "${SHARED_FILES}/aryaos/set_uuid.service" "${ROOTFS_DIR}/etc/systemd/system/"
+## First-boot DEVICE_SUFFIX and hostname (aryaos-xxxx)
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-device-suffix.sh" "${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-firstboot.sh" "${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 0644 "${SHARED_FILES}/aryaos/aryaos-firstboot.service" "${ROOTFS_DIR}/etc/systemd/system/"
 
 
 # Portal

@@ -12,7 +12,7 @@ services_optional:
   - lincot
   - aiscot
   - dronecot
-  - dronehone-bridge
+  - dhbridge
 
 tak_gateway_ids:
   - charontak
@@ -22,7 +22,8 @@ tak_gateway_ids:
   - dronecot
 
 adsb_json: /run/adsb/aircraft.json
-cot_url: udp://127.0.0.1:18087
-charontak_ingress: 127.0.0.1:18087
+cot_url: udp+wo://127.0.0.1:28087
+charontak_ingress: 127.0.0.1:28087
 adsbcot_feed_url: file:///run/adsb/aircraft.json
 calfire_tiles_path: /var/www/html/calfire_airbases
+hostname_pattern: '^aryaos-[0-9a-f]{4}$'

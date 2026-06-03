@@ -22,7 +22,7 @@ sudo systemctl restart charontak adsbcot aiscot lincot dronecot
 
 (Add **`aircot`** if enabled on your image.)
 
-Many functions of the AryaOS can be controlled, configured and monitored via the AryaOS Web page. When connecting directly to the AryaOS in Hotspot mode (via AryaOS-XXXX WiFi Network) you can access the AryaOS Web page by visiting [http://AryaOS.local](http://AryaOS.local) from your Chrome or Safari web browser (Android & iOS) or in Edge, Chrome or Safari on you computer.
+Many functions of the AryaOS can be controlled, configured and monitored via the AryaOS Web page. When connecting directly to the AryaOS in Hotspot mode (via **AryaOS-XXXX** WiFi, same **XXXX** as hostname **`aryaos-xxxx`**) you can access the AryaOS Web page at **`http://aryaos-xxxx.local/`** or **`https://aryaos-xxxx.local/`** (portal). Before first-boot personalization the factory hostname is **`aryaos`** (**`http://aryaos.local`**).
 
 ### Connect to WiFI
 
@@ -42,7 +42,7 @@ Disable or reconfigure wireless interfaces from **Cockpit** (Networking), **Netw
 
 ## Change TAK / CoT destination (summary)
 
-Local **\*cot** feeders read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`** (default **`udp://127.0.0.1:18087`** → Charontak). Upstream mesh / TAK Server lanes are **`/etc/charontak.ini`** (Cockpit → Charontak). For command-line edits and service restarts, see **Command-line Configuration → Change TAK / CoT Destination** below.
+Local **\*cot** feeders read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`** (default **`udp+wo://127.0.0.1:28087`** → Charontak). Upstream mesh / TAK Server lanes are **`/etc/charontak.ini`** (Cockpit → Charontak). For command-line edits and service restarts, see **Command-line Configuration → Change TAK / CoT Destination** below.
 
 ## Command-line Configuration
 
@@ -66,7 +66,7 @@ See also: [Raspberry Pi Insecure first user](https://www.raspberrypi.com/news/ra
 
 AryaOS uses a **two-tier** CoT routing model:
 
-1. **Local feeders** (`adsbcot`, `aiscot`, `dronecot`, `lincot`, …) read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`**. The default sends CoT to **Charontak** on **`udp://127.0.0.1:18087`**. **LINCOT** (v1.2+) reports the gateway’s GNSS/fix position via **`gpspipe`** (or static coordinates from **`aryaos-config.txt`**); configure **`/etc/default/lincot`** for callsign, poll interval, and Cockpit link text (**`COCKPIT_URL`** defaults to **`https://127.0.0.1/admin/`**).
+1. **Local feeders** (`adsbcot`, `aiscot`, `dronecot`, `lincot`, …) read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`**. The default sends CoT to **Charontak** on **`udp+wo://127.0.0.1:28087`**. **LINCOT** (v1.2+) reports the gateway’s GNSS/fix position via **`gpspipe`** (or static coordinates from **`aryaos-config.txt`**); configure **`/etc/default/lincot`** for callsign, poll interval, and Cockpit link text (**`COCKPIT_URL`** defaults to **`https://127.0.0.1/admin/`**).
 2. **Charontak** reads **`/etc/charontak.ini`** and forwards to mesh multicast, a TAK Server, or other lanes. Manage lanes via **Cockpit → Charontak** at **`https://<host>/admin/`** (restart **`charontak.service`** after saves).
 
 Default Charontak egress is **`udp+wo://239.2.3.1:6969`** (Mesh SA). Node-RED and other mesh listeners continue to use that group.

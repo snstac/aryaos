@@ -4,13 +4,14 @@ sensor_deb_urls:
   - https://github.com/snstac/pytak/releases/latest/download/pytak_latest_all.deb
   - https://github.com/snstac/takproto/releases/latest/download/takproto_latest_all.deb
   # Charontak CoT bridge — pinned until upstream publishes a latest alias.
-  - https://github.com/snstac/charontak/releases/download/v0.1.5-beta/charontak_0.1.5-1_all.deb
+  - https://github.com/snstac/charontak/releases/download/v0.1.11/charontak_0.1.11-1_all.deb
   - https://github.com/snstac/asyncinotify/releases/download/v4.0.9-4/python3-asyncinotify_4.0.9-1_all.deb
   - https://github.com/snstac/aircot/releases/latest/download/aircot_latest_all.deb
   - https://github.com/snstac/adsbcot/releases/latest/download/adsbcot_latest_all.deb
   - https://github.com/snstac/dronecot/releases/latest/download/dronecot_latest_all.deb
-  # LINCOT edge position — pinned; bump with vars.yml lincot_* and shared_files/lincot/.
-  - https://github.com/snstac/lincot/releases/download/v1.2.0/lincot_1.2.0-1_all.deb
+  - https://github.com/snstac/dhbridge/releases/latest/download/dhbridge_latest_all.deb
+  # LINCOT edge position — latest alias; bump vars.yml lincot_* when pinning a version.
+  - https://github.com/snstac/lincot/releases/latest/download/lincot_latest_all.deb
   - https://github.com/snstac/aiscot/releases/latest/download/aiscot_latest_all.deb
   # cockpit-aiscot publishes versioned .deb names only (no cockpit-aiscot.deb on latest); bump when tagging upstream.
   - https://github.com/snstac/cockpit-aiscot/releases/download/v1.1.0/cockpit-aiscot_1.1.0_all.deb

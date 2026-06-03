@@ -1811,7 +1811,7 @@
         "z": "94cf869050128770",
         "g": "d34772b1b10233f2",
         "name": "Set URL",
-        "func": "const pl = msg.payload\nlet nodeId = pl.match(/NODE_ID=(?<nodeId>[^\\n\\r]+)/).groups.nodeId\nlet ssid = `AryaOS-${nodeId.substr(-4, 4)}`\n\nlet wifiUrl = `WIFI:S:${ssid};T:;P:;H:false;`\nmsg.qrcodeinput = wifiUrl\nmsg.ssid = ssid\nreturn msg;\n",
+        "func": "const pl = msg.payload\nlet m = pl.match(/DEVICE_SUFFIX=(?<suffix>[0-9a-f]{4})/i)\nif (!m) { return null }\nlet suffix = m.groups.suffix.toLowerCase()\nlet ssid = `AryaOS-${suffix}`\nlet wifiUrl = `WIFI:S:${ssid};T:;P:;H:false;`\nmsg.qrcodeinput = wifiUrl\nmsg.ssid = ssid\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,

@@ -21,7 +21,7 @@
 # Default: Charontak ingress on localhost. Upstream mesh / TAK Server forwarding is
 # configured in /etc/charontak.ini (Cockpit → Charontak at https://<host>/admin/).
 # See: https://pytak.readthedocs.io/en/stable/configuration/
-COT_URL=udp://127.0.0.1:18087
+COT_URL=udp+wo://127.0.0.1:28087
 
 
 # For Mesh SA & multicast COT_URLs: Which network interface (wifi, ethernet) do we bind to?
@@ -39,7 +39,7 @@ ARYAOS_ADSB_DECODER=readsb
 ARYAOS_ADSB_JSON_DIR=/run/adsb
 
 # List of services to restart if network state changes (wifi up, ethernet down, etc).
-AOS_SERVICES="charontak readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-mutability gpsd aiscatcher nodered aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
+AOS_SERVICES="charontak dhbridge readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-mutability gpsd aiscatcher nodered aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
 
 # RTL-SDR USB serial string for dump978-fa (UAT / 978 MHz). Factory default matches Nooelec
 # NESDR Nano 3 “978” EEPROM preset: stx:978:0 — do not use the same serial as the 1090 path
@@ -48,6 +48,6 @@ AOS_SERVICES="charontak readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-
 ARYAOS_UAT_RTL_SERIAL=stx:978:0
 
 
-# Our ID, used to generate WiFi AP SSID, lincot UID, etc. 
-# Automatically set on first-boot, do not modify. NO STEP. 
-NODE_ID=""
+# Device identity — set on first boot by aryaos-firstboot.sh; do not modify. NO STEP.
+# DEVICE_SUFFIX: last 4 hex of machine-id (or MAC); hostname aryaos-xxxx and WiFi AryaOS-xxxx.
+DEVICE_SUFFIX=""

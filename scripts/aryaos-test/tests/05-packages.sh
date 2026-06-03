@@ -6,10 +6,10 @@ set -euo pipefail
 # shellcheck source=../lib.sh
 source "$(dirname "$0")/../lib.sh"
 
-if command -v dronehone-bridge >/dev/null || dpkg -l dronehone-bridge >/dev/null 2>&1; then
-	ok "dronehone-bridge package/binary present"
+if command -v dhbridge >/dev/null || dpkg -l dhbridge >/dev/null 2>&1; then
+	ok "dhbridge package/binary present"
 else
-	warn "dronehone-bridge not installed (flash before dronehone-bridge merge?)"
+	warn "dhbridge not installed (flash before dhbridge merge?)"
 fi
 
 if [[ -d /var/www/html/calfire_airbases ]]; then

@@ -59,9 +59,14 @@
     echo "${help}" | grep -qE 'RTL-SDR|rtlsdr'
     echo "${help}" | grep -qiE 'SoapySDR|soapysdr'
     echo "${help}" | grep -qiE 'HackRF|hackrf'
+    /usr/bin/readsb --version >/dev/null
   args:
     executable: /bin/bash
   changed_when: false
+
+- name: Hold readsb package after SDR rebuild (block trixie apt overwrite)
+  ansible.builtin.command: apt-mark hold readsb
+  changed_when: true
 
 - name: Install AryaOS readsb systemd unit and wrapper
   ansible.builtin.copy:

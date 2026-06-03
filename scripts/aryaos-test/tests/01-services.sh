@@ -28,14 +28,14 @@ for svc in charontak lincot adsbcot aiscot dronecot; do
 	fi
 done
 
-if unit_loaded dronehone-bridge; then
-	if unit_active dronehone-bridge; then
-		ok "dronehone-bridge active"
+if unit_loaded dhbridge; then
+	if unit_active dhbridge; then
+		ok "dhbridge active"
 	else
-		warn "dronehone-bridge installed but not active"
+		warn "dhbridge installed but not active"
 	fi
 else
-	warn "dronehone-bridge unit not installed (older image?)"
+	warn "dhbridge unit not installed (older image?)"
 fi
 
 print_summary

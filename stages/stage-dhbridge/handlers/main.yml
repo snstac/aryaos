@@ -7,7 +7,7 @@
   ansible.builtin.systemd:
     daemon_reload: true
 
-- name: Restart dronehone-bridge
+- name: Restart dhbridge
   ansible.builtin.systemd:
-    name: dronehone-bridge.service
+    name: dhbridge.service
     state: restarted

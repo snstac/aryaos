@@ -18,7 +18,7 @@
 
 
 # RFC UUID
-systemctl enable set_uuid
+systemctl enable aryaos-firstboot
 systemctl set-default multi-user
 
 systemctl enable NetworkManager

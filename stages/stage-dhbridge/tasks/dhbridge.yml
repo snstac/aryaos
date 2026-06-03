@@ -1,0 +1,34 @@
+# code: language=ansible
+# dhbridge — DroneHone Bluetooth sensor emulation for AryaOS.
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+
+- name: Install dhbridge configuration
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/dhbridge/dhbridge.ini"
+    dest: /etc/dhbridge.ini
+    mode: "0644"
+  notify: Restart dhbridge
+
+- name: Ensure dhbridge.service.d exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/dhbridge.service.d
+    state: directory
+    mode: "0755"
+
+- name: dhbridge reads aryaos-config EnvironmentFile
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/dhbridge/systemd/dhbridge.service.d/aryaos-config.conf"
+    dest: /etc/systemd/system/dhbridge.service.d/aryaos-config.conf
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart dhbridge
+
+- name: Enable and start dhbridge
+  ansible.builtin.systemd:
+    name: dhbridge.service
+    enabled: true
+    state: started
+    daemon_reload: true

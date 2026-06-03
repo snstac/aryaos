@@ -31,6 +31,6 @@
 - name: Include common
   ansible.builtin.include_tasks: common.yml
 
-- name: Include UUID tasks
-  ansible.builtin.include_tasks: uuid.yml
+- name: Include first-boot identity tasks
+  ansible.builtin.include_tasks: firstboot.yml
 

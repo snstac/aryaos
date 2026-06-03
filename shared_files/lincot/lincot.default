@@ -7,7 +7,7 @@
 
 ENABLED=1
 
-# CoT destination: set in /etc/aryaos/aryaos-config.txt (default udp://127.0.0.1:18087 → Charontak).
+# CoT destination: set in /etc/aryaos/aryaos-config.txt (default udp+wo://127.0.0.1:28087 → Charontak).
 # COT_URL=
 
 # Identity (defaults: hostname callsign, /etc/machine-id uid)

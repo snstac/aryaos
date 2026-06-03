@@ -57,7 +57,7 @@
       tags: [aryaos, aiscot, hardware]
     - role: stage-dronecot
       tags: [aryaos, dronecot]
-    - role: stage-dronehone-bridge
-      tags: [aryaos, dronehone-bridge]
+    - role: stage-dhbridge
+      tags: [aryaos, dhbridge]
     # - { role: geerlingguy.repo-epel, tags: ['epel', 'takserver'] }
     # - { role: stage-takserver, tags: ['takserver'] }

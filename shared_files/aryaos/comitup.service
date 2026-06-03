@@ -17,7 +17,7 @@
 
 [Unit]
 Description=Comitup WiFi Management
-After=NetworkManager.service Avahi.service
+After=NetworkManager.service Avahi.service aryaos-firstboot.service
 Requires=avahi-daemon.service
 Documentation=man:comitup(8)
 

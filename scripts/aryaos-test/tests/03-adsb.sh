@@ -11,6 +11,18 @@ if command -v readsb >/dev/null; then
 	READSB_HELP="$(readsb --help 2>&1 || true)"
 fi
 
+BUILT_READSB="/usr/local/share/adsb-wiki/readsb-install/git/readsb"
+if [[ -x "${BUILT_READSB}" ]]; then
+	BUILT_HELP="$("${BUILT_READSB}" --help 2>&1 || true)"
+	if echo "${BUILT_HELP}" | grep -qE 'RTL-SDR|rtlsdr' && ! echo "${READSB_HELP}" | grep -qE 'RTL-SDR|rtlsdr'; then
+		fail "/usr/bin/readsb lacks SDR backends — trixie apt readsb 3.14.1630 overwrote the compile (no RTL). Fix: sudo cp ${BUILT_READSB} /usr/bin/readsb && sudo apt-mark hold readsb && sudo systemctl restart readsb"
+	fi
+fi
+
+if apt-mark showhold 2>/dev/null | grep -qx readsb; then
+	ok "readsb apt hold active"
+fi
+
 if [[ -z "${READSB_HELP}" ]]; then
 	fail "readsb binary not found"
 else

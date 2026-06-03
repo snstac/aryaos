@@ -19,7 +19,7 @@
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/aryaos.sudoers"
     dest: /etc/sudoers.d/aryaos
-    mode: "0640"
+    mode: "0440"
 
 # Create the directory /etc/aryaos/
 - name: Create AryaOS Directory

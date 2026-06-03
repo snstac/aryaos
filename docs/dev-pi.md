@@ -7,6 +7,16 @@ Use a dedicated Raspberry Pi on your LAN to try changes from this repository bef
 - **SSH:** `pi@aryaos-dev-pi` (via `~/.ssh/config`, see **`./scripts/setup-dev-ssh.sh`**) — resolves to **`172.17.2.158`**.
 - **Password (fallback):** keep out of git. Use **gitignored** `scripts/.dev-pi-creds.local` or export `ARYAOS_DEV_PI_PASSWORD` when you cannot use the dev key below.
 
+**New images:** user **`pi`** has **passwordless sudo** (see `shared_files/aryaos/aryaos.sudoers`) so agents and scripts can run remote fixes over SSH without an interactive password. This matches the lab SSH key profile — anyone with **`aryaos-dev-lab`** can become root.
+
+**Existing Pi (already flashed):** apply once on the device (needs current `pi` password):
+
+```bash
+echo 'pi ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/aryaos-pi-nopasswd
+sudo chmod 440 /etc/sudoers.d/aryaos-pi-nopasswd
+sudo visudo -c
+```
+
 ## Lab SSH key (passwordless, preferred)
 
 The repo ships **`shared_files/aryaos/ssh/aryaos-dev-lab.pub`**; new AryaOS images append it to **`pi`**’s **`authorized_keys`**. The matching **private** key is **gitignored** at **`shared_files/aryaos/ssh/aryaos-dev-lab`** (generate once in the repo with `ssh-keygen`; see [shared_files/aryaos/ssh/README.md](../shared_files/aryaos/ssh/README.md)).
@@ -85,6 +95,26 @@ make test-dev-pi
 ```
 
 See [testing-dev-pi.md](testing-dev-pi.md) for tiers, check matrix, and interpreting results.
+
+## Apply Charontak / CoT / dhbridge config on a running Pi
+
+`sync-to-dev-pi.sh` mirrors the repo to **`~/aryaos-sync/`** only. To install **`/etc`** defaults and bump pinned **charontak** / **lincot** `.debs` without reflashing:
+
+```bash
+ansible-playbook -i inventory.yml site.yml --limit aryaos-dev-pi \
+  --tags charontak,lincot,dhbridge
+```
+
+(`inventory.yml` uses **`shared_files/aryaos/ssh/aryaos-dev-lab`** when present.) If **`get_url`** fails on the Pi (old Python/urllib), copy config manually:
+
+```bash
+ssh pi@aryaos-dev-pi 'sudo install -m 0644 ~/aryaos-sync/shared_files/aryaos/aryaos-config.txt /etc/aryaos/aryaos-config.txt
+sudo install -m 0644 ~/aryaos-sync/shared_files/charontak/charontak.ini /etc/charontak.ini
+sudo install -m 0644 ~/aryaos-sync/shared_files/dhbridge/dhbridge.ini /etc/dhbridge.ini
+sudo systemctl restart charontak dhbridge lincot adsbcot'
+```
+
+Default feeder **`COT_URL`** is **`udp+wo://127.0.0.1:28087`**; Charontak listens on **`udp+ro://127.0.0.1:28087`**.
 
 ## Other one-off files
 

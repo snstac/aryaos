@@ -1,5 +1,5 @@
 # code: language=ansible
-# AryaOS UUID service.
+# AryaOS first-boot identity (DEVICE_SUFFIX, hostname).
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com
 #
@@ -16,21 +16,35 @@
 # limitations under the License.
 #
 
-- name: Upload UUID util script
+- name: Upload device suffix helper
   ansible.builtin.copy:
-    src: "{{ shared_files }}/aryaos/set_uuid.sh"
-    dest: /usr/local/sbin
+    src: "{{ shared_files }}/aryaos/aryaos-device-suffix.sh"
+    dest: /usr/local/sbin/aryaos-device-suffix.sh
     mode: "0755"
 
-- name: Set UUID util service
+- name: Upload AryaOS first-boot script
   ansible.builtin.copy:
-    src: "{{ shared_files }}/aryaos/set_uuid.service"
-    dest: /lib/systemd/system
+    src: "{{ shared_files }}/aryaos/aryaos-firstboot.sh"
+    dest: /usr/local/sbin/aryaos-firstboot.sh
+    mode: "0755"
+
+- name: Install AryaOS first-boot service unit
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-firstboot.service"
+    dest: /etc/systemd/system/aryaos-firstboot.service
     mode: "0644"
 
-- name: Enable UUID util service
+- name: Disable legacy set_uuid service if present
   ansible.builtin.systemd:
     name: set_uuid
+    enabled: false
+    state: stopped
+    daemon_reload: true
+  failed_when: false
+
+- name: Enable AryaOS first-boot service
+  ansible.builtin.systemd:
+    name: aryaos-firstboot
     enabled: true
     state: started
     daemon_reload: true

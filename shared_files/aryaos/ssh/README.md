@@ -1,6 +1,6 @@
 # Lab development SSH key (`aryaos-dev-lab`)
 
-- **`aryaos-dev-lab.pub`** — committed; installed into **`pi`**’s **`authorized_keys`** on new AryaOS images (see `stages/stage-aryaos/00-install/00-run.sh`).
+- **`aryaos-dev-lab.pub`** — committed; installed into **`pi`**’s **`authorized_keys`** on new AryaOS images (see `stages/stage-aryaos/00-install/00-run.sh`). New images also grant **`pi`** passwordless sudo via **`shared_files/aryaos/aryaos.sudoers`** for lab remote debugging.
 - **`aryaos-dev-lab`** — **private** key; **gitignored**. Generate with:
 
   ```bash

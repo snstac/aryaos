@@ -47,9 +47,9 @@ On the target device:
 
 Within a few seconds of power-up, an AryaOS device will flash green and red lights.
 
-1. Initial startup of a new AryaOS device (either pre-assembled or self-assembled) will take about 120 seconds. During this time the AryaOS device will resize its file system and generate a unique AryaOS Node ID ([NODE_ID](definitions.md#node_id)).
+1. Initial startup of a new AryaOS device (either pre-assembled or self-assembled) will take about 120 seconds. During this time the AryaOS device will resize its file system, set a unique hostname (`aryaos-xxxx`), and record [DEVICE_SUFFIX](definitions.md#device_suffix) in **`/etc/aryaos/aryaos-config.txt`**.
 2. After initial startup, all AryaOS devices should boot within about 90 seconds.
 
-Once an AryaOS device boots, it will establish a WiFi hotspot with an SSID resembling *AryaOS-XXXX*, where *XXXX* is the last four characters of the NODE_ID.
+Once an AryaOS device boots, it will establish a WiFi hotspot with an SSID resembling *AryaOS-XXXX*, where *XXXX* is the same four-character suffix as the hostname (from `/etc/machine-id`, or the primary NIC MAC if machine-id is unavailable).
 
 If you have self-assembled an AryaOS device, you will need to manually set the SDR serial numbers for each SDR installed on the device. See the [Configuration](config.md) page.
