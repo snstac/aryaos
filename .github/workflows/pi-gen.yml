@@ -48,6 +48,7 @@ jobs:
           test -d stages/stage-patch
           test -f stages/stage-pytak/00-install/01-run-chroot.sh
           test -f shared_files/adsbcot/cockpit-adsbcot_1.0.8_all.deb
+          test -f shared_files/dhbridge/dhbridge_0.2.0-3_all.deb
           test -f config
 
   build:

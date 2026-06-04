@@ -53,9 +53,9 @@ charontak_ingress_cot_url: udp+ro://127.0.0.1:28087
 charontak_egress_cot_url: udp+wo://239.2.3.1:6969
 charontak_feeder_cot_url: udp+wo://127.0.0.1:28087
 
-# DroneHone Bluetooth sensor bridge — upstream snstac/dhbridge; installed via manifests/aryaos-sensor-packages.yml.
+# DroneHone Bluetooth sensor bridge — vendored .deb (snstac/dhbridge is private; bump shared_files/dhbridge/).
 dhbridge_version: "0.2.2"
-dhbridge_deb_url: "https://github.com/snstac/dhbridge/releases/latest/download/dhbridge_latest_all.deb"
+dhbridge_deb: "dhbridge_0.2.0-3_all.deb"
 dhbridge_mqtt_broker: localhost
 dhbridge_mqtt_port: 1883
 dhbridge_mqtt_topic: "#"

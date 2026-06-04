@@ -32,3 +32,15 @@
     deb: "/usr/src/{{ item | basename }}"
   loop: "{{ sensor_deb_urls }}"
   when: ansible_os_family == "Debian"
+
+- name: Copy vendored dhbridge package (private upstream)
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/dhbridge/{{ dhbridge_deb }}"
+    dest: "/usr/src/{{ dhbridge_deb }}"
+    mode: "0644"
+  when: ansible_os_family == "Debian"
+
+- name: Install vendored dhbridge package
+  ansible.builtin.apt:
+    deb: "/usr/src/{{ dhbridge_deb }}"
+  when: ansible_os_family == "Debian"

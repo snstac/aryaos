@@ -6,7 +6,7 @@ AryaOS can emulate an **external DroneHone Bluetooth sensor** so ATAK phones run
 
 Application source and releases: **[github.com/snstac/dhbridge](https://github.com/snstac/dhbridge)**.
 
-AryaOS installs the package from [`manifests/aryaos-sensor-packages.yml`](../manifests/aryaos-sensor-packages.yml) during **stage-pytak** (same pattern as `adsbcot`, `dronecot`). AryaOS-specific config is applied in **stage-dhbridge**.
+AryaOS installs the **`dhbridge`** `.deb` from [`shared_files/dhbridge/`](../shared_files/dhbridge/) during **stage-pytak** (upstream [snstac/dhbridge](https://github.com/snstac/dhbridge) is private, so the image build cannot `curl` GitHub releases). Bump the vendored file when tagging a new upstream release. AryaOS-specific config is applied in **stage-dhbridge**.
 
 Wire format: [dronehone-bluetooth-protocol.md](https://github.com/snstac/dhbridge/blob/master/docs/dronehone-bluetooth-protocol.md).
 

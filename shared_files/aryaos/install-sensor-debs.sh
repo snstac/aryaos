@@ -32,3 +32,10 @@ for url in "${URLS[@]}"; do
 	curl -fsSL -o "/usr/src/${fn}" "${url}"
 	dpkg -i "/usr/src/${fn}" || apt-get install -fy -y
 done
+
+# Vendored debs (e.g. dhbridge from private snstac/dhbridge).
+for deb in /usr/src/dhbridge_*_all.deb; do
+	[[ -f "${deb}" ]] || continue
+	echo "install-sensor-debs.sh: installing $(basename "${deb}")"
+	dpkg -i "${deb}" || apt-get install -fy -y
+done

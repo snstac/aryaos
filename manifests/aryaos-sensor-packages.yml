@@ -9,7 +9,7 @@ sensor_deb_urls:
   - https://github.com/snstac/aircot/releases/latest/download/aircot_latest_all.deb
   - https://github.com/snstac/adsbcot/releases/latest/download/adsbcot_latest_all.deb
   - https://github.com/snstac/dronecot/releases/latest/download/dronecot_latest_all.deb
-  - https://github.com/snstac/dhbridge/releases/latest/download/dhbridge_latest_all.deb
+  # dhbridge — private upstream; vendored under shared_files/dhbridge/ (see stage-pytak 00-run.sh).
   # LINCOT edge position — latest alias; bump vars.yml lincot_* when pinning a version.
   - https://github.com/snstac/lincot/releases/latest/download/lincot_latest_all.deb
   - https://github.com/snstac/aiscot/releases/latest/download/aiscot_latest_all.deb
