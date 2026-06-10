@@ -86,11 +86,14 @@ FAIL=0
 ok()   { PASS=$((PASS + 1)); echo "ok:   $*"; }
 fail() { FAIL=$((FAIL + 1)); echo "FAIL: $*"; }
 
+# -L as well as -e: symlinks in the image often point at absolute paths
+# (e.g. /etc/lighttpd/conf-available/...), which -e would wrongly resolve
+# against the build host's root instead of the mounted image.
 require_path() {
-	if [[ -e "${MNT}$1" ]]; then ok "$1"; else fail "$1 missing"; fi
+	if [[ -e "${MNT}$1" || -L "${MNT}$1" ]]; then ok "$1"; else fail "$1 missing"; fi
 }
 forbid_path() {
-	if [[ ! -e "${MNT}$1" ]]; then ok "$1 absent"; else fail "$1 present (must not ship)"; fi
+	if [[ ! -e "${MNT}$1" && ! -L "${MNT}$1" ]]; then ok "$1 absent"; else fail "$1 present (must not ship)"; fi
 }
 require_unit() {
 	local u="$1" d
