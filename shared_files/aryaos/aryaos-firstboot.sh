@@ -68,6 +68,20 @@ if getent group node-red >/dev/null 2>&1 && [[ -d /etc/aryaos ]]; then
 	chown -R node-red /etc/aryaos
 fi
 
+# Images ship with a published default password — force a change at first login.
+# Skipped on lab builds (ARYAOS_LAB_ACCESS=1: /etc/sudoers.d/aryaos-lab) and on
+# hosts that already trust the aryaos-dev-lab key (images built before the gate).
+PASS_EXPIRED_MARKER="/etc/aryaos/.default-pass-expired"
+if [[ ! -f /etc/sudoers.d/aryaos-lab && ! -f "$PASS_EXPIRED_MARKER" ]] \
+	&& ! grep -qs 'aryaos-dev-lab' /home/pi/.ssh/authorized_keys \
+	&& getent passwd pi >/dev/null 2>&1; then
+	if chage -d 0 pi; then
+		touch "$PASS_EXPIRED_MARKER"
+		echo "Default password for user pi expired; a new password is required at next login."
+		CHANGED=1
+	fi
+fi
+
 if [[ "$CHANGED" -eq 0 ]]; then
 	exit 64
 fi

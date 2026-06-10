@@ -14,7 +14,11 @@
 # limitations under the License.
 #
 
-NODE_RED_LINUX_INSTALLER_URL='https://github.com/node-red/linux-installers/releases/latest/download/update-nodejs-and-nodered-deb'
+# Pinned release + checksum: "latest" broke when upstream v2.0.0 renamed the deb asset
+# (update-nodejs-and-nodered-deb → install-update-nodered-deb). v1.1.2 is the last release
+# with the script this stage and 01-run-chroot.sh expect. Bump tag and sha256 together.
+NODE_RED_LINUX_INSTALLER_URL='https://github.com/node-red/linux-installers/releases/download/v1.1.2/update-nodejs-and-nodered-deb'
+NODE_RED_LINUX_INSTALLER_SHA256='ccea2dc0c21046182fdac9101e1578793f83b00479e9688f283ced8ce2db5093'
 
 # Same pattern as stage-aryaos: pi-gen does not always export SHARED_FILES into NN-run.sh.
 if [[ -z "${SHARED_FILES:-}" || ! -d "${SHARED_FILES}" ]]; then
@@ -28,6 +32,7 @@ export SHARED_FILES
 
 mkdir -p "${ROOTFS_DIR}/usr/src"
 curl -fsSL "${NODE_RED_LINUX_INSTALLER_URL}" -o "${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb"
+echo "${NODE_RED_LINUX_INSTALLER_SHA256}  ${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb" | sha256sum -c -
 chmod +x "${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb"
 
 # Node-RED sudoers: consolidated in stage-aryaos (/etc/sudoers.d/aryaos). No node-red fragment.

@@ -24,6 +24,9 @@
 # Proxy URL must match where the pi-gen container reaches the cache. Default uses
 # Docker's host-gateway alias so the inner build container hits a cache published on the host.
 ARYAOS_APT_CACHE ?= 0
+# 1 = lab image: aryaos-dev-lab SSH key + passwordless sudo for pi, no first-boot
+# password expiry. Default 0 — release images carry no lab access.
+ARYAOS_LAB_ACCESS ?= 0
 ARYAOS_APT_CACHER_PORT ?= 3142
 ARYAOS_APT_PROXY_URL ?= http://host.docker.internal:$(ARYAOS_APT_CACHER_PORT)
 
@@ -39,6 +42,7 @@ help:
 	@echo "  apt-cacher-up/down      apt-cacher-ng (docker compose); cache persists in Docker volume"
 	@echo "  apt-cacher-ping         Curl cache UI on http://127.0.0.1:<ARYAOS_APT_CACHER_PORT>"
 	@echo "  ARYAOS_APT_CACHE=1      Prefix for build-docker to use APT_PROXY (after apt-cacher-up)"
+	@echo "  ARYAOS_LAB_ACCESS=1     Prefix for build/build-docker: bake lab SSH key + pi NOPASSWD sudo"
 	@echo "  build-docker-clean      Remove pigen_* containers and .aryaos-pigen-work|deploy only"
 	@echo "  clean                   build-docker-clean + pi-gen/work|deploy + deploy/ + build-*.log"
 	@echo "  clean-logs              Remove repo-root build-*.log only"
@@ -81,7 +85,7 @@ build-docker: pi-gen
 	cd pi-gen && \
 	export GIT_HASH=$$(git -C $(CURDIR) rev-parse HEAD) && \
 	export NUM_CORES=$${NUM_CORES:-$$(nproc)} && \
-	PIGEN_DOCKER_OPTS="-v $(CURDIR):/aryaos:ro -v $(CURDIR)/.aryaos-pigen-work:/pi-gen/work -v $(CURDIR)/.aryaos-pigen-deploy:/pi-gen/deploy -e NUM_CORES=$$NUM_CORES $(PIGEN_APT_CACHE_FLAGS)" \
+	PIGEN_DOCKER_OPTS="-v $(CURDIR):/aryaos:ro -v $(CURDIR)/.aryaos-pigen-work:/pi-gen/work -v $(CURDIR)/.aryaos-pigen-deploy:/pi-gen/deploy -e NUM_CORES=$$NUM_CORES -e ARYAOS_LAB_ACCESS=$(ARYAOS_LAB_ACCESS) $(PIGEN_APT_CACHE_FLAGS)" \
 	./build-docker.sh -c "$(CURDIR)/config.docker"
 
 apt-cacher-up:

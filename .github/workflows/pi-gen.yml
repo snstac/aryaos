@@ -49,7 +49,37 @@ jobs:
           test -f stages/stage-pytak/00-install/01-run-chroot.sh
           test -f shared_files/adsbcot/cockpit-adsbcot_1.0.8_all.deb
           test -f shared_files/dhbridge/dhbridge_0.2.0-3_all.deb
+          test -f shared_files/aryaos/aryaos-lab.sudoers
           test -f config
+
+      - name: Verify image export point
+        # stage-patch strips stage2's EXPORT_IMAGE, so exactly one custom stage must
+        # carry it and be last in every STAGE_LIST — otherwise no image is exported.
+        run: |
+          set -euo pipefail
+          mapfile -t exports < <(ls stages/*/EXPORT_IMAGE)
+          if [ "${#exports[@]}" -ne 1 ]; then
+            echo "Expected exactly one stages/*/EXPORT_IMAGE, found: ${exports[*]:-none}" >&2
+            exit 1
+          fi
+          export_stage="$(basename "$(dirname "${exports[0]}")")"
+          echo "Export stage: ${export_stage}"
+          for cfg in config config.docker .github/workflows/pi-gen.yml; do
+            last="$(grep -E "^[[:space:]]*(stage-list:|STAGE_LIST=)" "$cfg" | head -n1 | awk '{print $NF}' | tr -d '"')"
+            if [[ "$(basename "$last")" != "$export_stage" ]]; then
+              echo "${cfg}: STAGE_LIST does not end with ${export_stage} (ends with ${last})" >&2
+              exit 1
+            fi
+          done
+
+      - name: Verify pinned download URLs are reachable
+        # Catches upstream release renames before they break a 6-hour main build
+        # (e.g. node-red/linux-installers v2.0.0 renamed the deb installer asset).
+        run: |
+          set -euo pipefail
+          url="$(grep -Eo "https://github.com/node-red/linux-installers/[^']+" stages/stage-node-red/00-install/00-run.sh)"
+          curl -fsSIL --max-time 30 -o /dev/null "$url"
+          echo "ok: $url"
 
   build:
     if: github.event_name != 'pull_request'
@@ -144,6 +174,16 @@ jobs:
           path: ${{ steps.build_aryaos.outputs.image-path }}
           retention-days: 30
           if-no-files-found: error
+
+      - name: Verify image contents
+        # Loop-mounts the image and asserts key files, packages, and units exist —
+        # and that no lab access (dev SSH key / NOPASSWD sudo) ships in release images.
+        # Runs after artifact upload so a failure blocks the release but keeps the
+        # artifact for debugging.
+        if: success() && steps.build_aryaos.outputs.image-path != ''
+        run: |
+          set -euo pipefail
+          sudo ./scripts/verify-image.sh "${{ steps.build_aryaos.outputs.image-path }}"
 
       - name: Compute release tag
         id: reltag

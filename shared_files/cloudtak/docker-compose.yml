@@ -1,13 +1,16 @@
 # CloudTAK-SA shim + web UI for AryaOS (/cloudtak/ via lighttpd).
 # SPDX-License-Identifier: Apache-2.0
 
+# Credentials: set CLOUDTAK_USER / CLOUDTAK_PASSWORD in a .env file next to this
+# compose file (see .env.example). The defaults below are lab-only — override them
+# on any deployment reachable by untrusted networks.
 services:
   shim:
     environment:
-      SA_SHIM_LOGIN_USER: cloudtak
-      SA_SHIM_LOGIN_PASSWORD: cloudtak415
-      SA_SHIM_BASIC_USER: cloudtak
-      SA_SHIM_BASIC_PASSWORD: cloudtak415
+      SA_SHIM_LOGIN_USER: ${CLOUDTAK_USER:-cloudtak}
+      SA_SHIM_LOGIN_PASSWORD: ${CLOUDTAK_PASSWORD:-cloudtak415}
+      SA_SHIM_BASIC_USER: ${CLOUDTAK_USER:-cloudtak}
+      SA_SHIM_BASIC_PASSWORD: ${CLOUDTAK_PASSWORD:-cloudtak415}
     build:
       context: ./shim
       dockerfile: Dockerfile

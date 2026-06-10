@@ -34,4 +34,9 @@ ENABLE_SSH=1
 # APT_PROXY="http://172.17.2.88:3142"
 SHARED_FILES="$(pwd)/../shared_files"
 export SHARED_FILES
+# Lab access: 1 installs the aryaos-dev-lab SSH key + passwordless sudo for pi and
+# skips the first-boot password expiry. Default 0 — release images must not carry lab access.
+# Native builds: sudo ARYAOS_LAB_ACCESS=1 ./build.sh; Docker: ARYAOS_LAB_ACCESS=1 make build-docker.
+ARYAOS_LAB_ACCESS="${ARYAOS_LAB_ACCESS:-0}"
+export ARYAOS_LAB_ACCESS
 # Optional: export PI_GEN_ROOT for stage-patch if pi-gen dir is not ../pi-gen or ../pi-gen-src relative to repo root.

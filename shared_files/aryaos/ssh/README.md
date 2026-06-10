@@ -1,6 +1,6 @@
 # Lab development SSH key (`aryaos-dev-lab`)
 
-- **`aryaos-dev-lab.pub`** — committed; installed into **`pi`**’s **`authorized_keys`** on new AryaOS images (see `stages/stage-aryaos/00-install/00-run.sh`). New images also grant **`pi`** passwordless sudo via **`shared_files/aryaos/aryaos.sudoers`** for lab remote debugging.
+- **`aryaos-dev-lab.pub`** — committed; installed into **`pi`**'s **`authorized_keys`** **only on lab builds** (`ARYAOS_LAB_ACCESS=1`; see `stages/stage-aryaos/00-install/00-run.sh`). Lab builds also grant **`pi`** passwordless sudo via **`shared_files/aryaos/aryaos-lab.sudoers`** (installed as `/etc/sudoers.d/aryaos-lab`). Release builds (the default, including CI) ship **neither**, and expire the default password at first login (`shared_files/aryaos/aryaos-firstboot.sh`).
 - **`aryaos-dev-lab`** — **private** key; **gitignored**. Generate with:
 
   ```bash
@@ -8,6 +8,15 @@
   ```
 
   Keep the private key only on trusted workstations (or a team secrets store). Anyone with the private key can log in as **`pi`** on any host that trusts this public key.
+
+## Building a lab image
+
+```bash
+ARYAOS_LAB_ACCESS=1 make build-docker     # Docker
+sudo ARYAOS_LAB_ACCESS=1 ./build.sh       # native
+```
+
+Verify which flavor an image is with `sudo scripts/verify-image.sh [--lab] <image>`.
 
 ## Local use
 
