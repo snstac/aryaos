@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create package structure
         run: |
@@ -24,7 +24,7 @@ jobs:
           chmod +x .debpkg/DEBIAN/postinst
 
       - name: Run build-deb-action from jiro4989
-        uses: jiro4989/build-deb-action@v3
+        uses: jiro4989/build-deb-action@v4
         with:
           package: aryaos-flows
           package_root: .debpkg
@@ -33,14 +33,14 @@ jobs:
           arch: 'arm64'
           desc: 'Node-RED flows for AryaOS.'
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: artifact-deb
           path: |
             *.deb
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
