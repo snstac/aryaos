@@ -128,6 +128,7 @@ require_path /etc/default/gpsd
 
 # Sensor / CoT stack
 require_pkg dhbridge
+require_pkg cockpit-gps
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
