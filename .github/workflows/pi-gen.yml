@@ -132,7 +132,9 @@ jobs:
           PI_GEN_ROOT: ${{ env.PI_GEN_ROOT }}
           RELEASE: ${{ env.RELEASE }}
         with:
-          increase-runner-disk-size: false
+          # Hosted runners sit at the margin: build 27284908891 died ENOSPC in
+          # stage-dronecot, and the post-build verify step decompresses the image.
+          increase-runner-disk-size: true
           export-last-stage-only: true
           compression: xz
           compression-level: 4
