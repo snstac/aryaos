@@ -15,3 +15,5 @@ sensor_deb_urls:
   - https://github.com/snstac/aiscot/releases/latest/download/aiscot_latest_all.deb
   # cockpit-aiscot publishes versioned .deb names only (no cockpit-aiscot.deb on latest); bump when tagging upstream.
   - https://github.com/snstac/cockpit-aiscot/releases/download/v1.1.0/cockpit-aiscot_1.1.0_all.deb
+  # cockpit-gps — live GNSS data from gpsd with spoof/jam integrity monitoring; pinned, bump when tagging upstream.
+  - https://github.com/snstac/cockpit-gps/releases/download/v0.2.0/cockpit-gps_0.2.0-1_all.deb
