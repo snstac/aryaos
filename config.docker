@@ -27,5 +27,10 @@ ENABLE_SSH=1
 #APT_PROXY="http://127.0.0.1:3142"
 SHARED_FILES=/aryaos/shared_files
 export SHARED_FILES
+# Lab access: 1 installs the aryaos-dev-lab SSH key + passwordless sudo for pi and
+# skips the first-boot password expiry. Default 0 — release images must not carry lab access.
+# The Makefile forwards ARYAOS_LAB_ACCESS into the build container (ARYAOS_LAB_ACCESS=1 make build-docker).
+ARYAOS_LAB_ACCESS="${ARYAOS_LAB_ACCESS:-0}"
+export ARYAOS_LAB_ACCESS
 PI_GEN_ROOT=/pi-gen
 export PI_GEN_ROOT

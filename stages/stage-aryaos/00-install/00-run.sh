@@ -89,9 +89,15 @@ chmod 0655 "${ROOTFS_DIR}/var/www/html"
 install -d -m 0755 "${ROOTFS_DIR}/usr/lib/cgi-bin"
 install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-portal-status" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-portal-status"
 
-## Lab dev SSH: trust shared_files/aryaos/ssh/aryaos-dev-lab.pub for user pi (passwordless from workstations with the matching private key)
+## Lab access (ARYAOS_LAB_ACCESS=1 only): trust aryaos-dev-lab.pub for user pi and
+## grant pi passwordless sudo. Release builds (default) get neither — see
+## shared_files/aryaos/ssh/README.md and docs/build.md.
+if [[ "${ARYAOS_LAB_ACCESS:-0}" == "1" ]]; then
+	install -v -m 0400 "${SHARED_FILES}/aryaos/aryaos-lab.sudoers" "${ROOTFS_DIR}/etc/sudoers.d/aryaos-lab"
+fi
+
 LAB_PUB="${SHARED_FILES}/aryaos/ssh/aryaos-dev-lab.pub"
-if [[ -f "${LAB_PUB}" ]]; then
+if [[ "${ARYAOS_LAB_ACCESS:-0}" == "1" && -f "${LAB_PUB}" ]]; then
 	install -d -m 0700 "${ROOTFS_DIR}/home/pi/.ssh"
 	AK="${ROOTFS_DIR}/home/pi/.ssh/authorized_keys"
 	touch "${AK}"

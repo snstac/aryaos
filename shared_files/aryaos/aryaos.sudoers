@@ -36,6 +36,5 @@ Defaults!/usr/bin/sudoreplay !log_output
 # Node-RED no longer writes system config from Dashboard (portal + Cockpit + Comitup).
 # node-red runs without sudo group membership; no targeted sudoers entries here.
 
-# Lab / remote debugging: passwordless sudo for pi (same profile as aryaos-dev-lab SSH key).
-# Anyone with the lab private key can become root; restrict network access on field deployments.
-pi ALL=(ALL) NOPASSWD: ALL
+# Lab / remote debugging sudo rules live in aryaos-lab.sudoers, installed as
+# /etc/sudoers.d/aryaos-lab only on lab builds (ARYAOS_LAB_ACCESS=1).

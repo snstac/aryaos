@@ -33,7 +33,9 @@ Use this checklist when building an **arm64** Raspberry Pi OS–based image on y
 4. After a successful base exists, use **`make skip`** / **`make unskip`** to skip or restore pi-gen **`stage0`–`stage2`** while iterating on AryaOS-only stages (see Makefile).
 5. Optional **apt cache for Docker builds:** `make apt-cacher-up`, then `ARYAOS_APT_CACHE=1 make build-docker` (see Makefile targets **`apt-cacher-*`**; compose file **`docker-compose.apt-cacher.yml`** at repo root).
 6. Optional **logged Docker build:** `./scripts/agent-build-docker.sh` mirrors output to `build-YYYYMMDD-HHMMSS.log`.
-7. Lightweight validation without an image: **`make ansible-syntax`** (requires Ansible / `ansible-galaxy` per Makefile).
+7. **Lab vs release builds:** by default images carry **no lab access** and **expire the default `pi` password at first login**. For a lab image (aryaos-dev-lab SSH key + passwordless sudo for `pi`, no password expiry) build with **`ARYAOS_LAB_ACCESS=1 make build-docker`** (or `sudo ARYAOS_LAB_ACCESS=1 ./build.sh` native). See `shared_files/aryaos/ssh/README.md`.
+8. **Verify a built image:** `sudo scripts/verify-image.sh [--lab] <image>.img|.img.xz|.zip` loop-mounts the image and asserts key files, packages, units — and that release images ship no lab access. CI runs this on every `main` build before publishing a release.
+9. Lightweight validation without an image: **`make ansible-syntax`** (requires Ansible / `ansible-galaxy` per Makefile).
 
 ### Cleanup / retry
 
@@ -80,8 +82,8 @@ To refresh the embedded pi-gen clone after `make pi-gen`, run `cd pi-gen && git 
 
 The workflow `.github/workflows/pi-gen.yml`:
 
-1. **Pull requests** — Runs Ansible collection install, `ansible-playbook --syntax-check`, and checks that key paths (`config`, `manifests/aryaos-sensor-packages.yml`, custom stages) exist. No image is built (GitHub-hosted `ubuntu-latest`).
-2. **Push to `main` or `workflow_dispatch`** — Builds the full pi-gen image on GitHub’s hosted **`ubuntu-24.04-arm`** runner (native **aarch64**) via [usimd/pi-gen-action](https://github.com/usimd/pi-gen-action) (`compression: xz`). No QEMU/`binfmt_misc` emulation step — debootstrap/chroot run natively. Before **`pi-gen-action`**, the workflow frees disk (`dotnet`, Android NDK, hosted toolcache, etc.) because default runner images are tight on space. After a successful build, the workflow creates an annotated tag `v<UTC-datetime>-<12-char-sha>`, pushes it, uploads the image as a **workflow artifact** (30-day retention), and publishes a **GitHub Release** with the image attached (`generate_release_notes`). Builds for the same repo are serialized (`concurrency`, no cancel-in-progress).
+1. **Pull requests** — Runs Ansible collection install, `ansible-playbook --syntax-check`, checks that key paths (`config`, `manifests/aryaos-sensor-packages.yml`, custom stages) exist, validates that exactly **one stage carries `EXPORT_IMAGE`** and is **last in every `STAGE_LIST`**, and HEAD-checks pinned download URLs (catches upstream release renames before they break a 6-hour `main` build). No image is built (GitHub-hosted `ubuntu-latest`).
+2. **Push to `main` or `workflow_dispatch`** — Builds the full pi-gen image on GitHub’s hosted **`ubuntu-24.04-arm`** runner (native **aarch64**) via [usimd/pi-gen-action](https://github.com/usimd/pi-gen-action) (`compression: xz`). No QEMU/`binfmt_misc` emulation step — debootstrap/chroot run natively. Before **`pi-gen-action`**, the workflow frees disk (`dotnet`, Android NDK, hosted toolcache, etc.) because default runner images are tight on space. After a successful build, the workflow uploads the image as a **workflow artifact** (30-day retention), then runs **`scripts/verify-image.sh`** (loop-mounts the image; asserts key files/packages/units and that no lab access ships) — a verification failure keeps the artifact but **blocks the release**. On success it creates an annotated tag `v<UTC-datetime>-<12-char-sha>`, pushes it, and publishes a **GitHub Release** with the image attached (`generate_release_notes`). Builds for the same repo are serialized (`concurrency`, no cancel-in-progress).
 
 **Hosted arm64 notes**
 

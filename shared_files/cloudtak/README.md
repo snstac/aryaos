@@ -6,7 +6,9 @@ REST calls **`/cloudtak/api/...`** (or **`/api/...`** behind lighttpd’s prefix
 
 ## Default credentials
 
-These are intentionally simple for labs; override in Compose or environment for deployments.
+These are intentionally simple for labs. **Override them on any real deployment**: copy
+`.env.example` to `.env` next to `docker-compose.yml` and set `CLOUDTAK_USER` /
+`CLOUDTAK_PASSWORD` — Compose substitutes them into the shim environment automatically.
 
 Use the **same username and password** for:
 

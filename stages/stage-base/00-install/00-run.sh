@@ -16,5 +16,14 @@
 # limitations under the License.
 #
 
-# SHARED_FILES is exported from repo config when building with pi-gen.
-install -v -m 755 "${SHARED_FILES:-../../../shared_files}/base/install_tailscale.sh" "${ROOTFS_DIR}/usr/src/"
+# Same pattern as stage-aryaos: pi-gen does not always export SHARED_FILES into NN-run.sh.
+if [[ -z "${SHARED_FILES:-}" || ! -d "${SHARED_FILES}" ]]; then
+	if [[ -d "/aryaos/shared_files" ]]; then
+		SHARED_FILES="/aryaos/shared_files"
+	else
+		SHARED_FILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/shared_files"
+	fi
+fi
+export SHARED_FILES
+
+install -v -m 755 "${SHARED_FILES}/base/install_tailscale.sh" "${ROOTFS_DIR}/usr/src/"
