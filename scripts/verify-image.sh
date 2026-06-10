@@ -129,9 +129,14 @@ require_path /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
 # GNSS (stage-aryaos)
 require_path /etc/default/gpsd
 
+# snstac apt repository trust anchor (sensor stack installs from it)
+require_path /usr/share/keyrings/snstac.gpg
+require_path /etc/apt/sources.list.d/snstac.sources
+
 # Sensor / CoT stack
 require_pkg dhbridge
 require_pkg cockpit-gps
+require_pkg cockpit-adsbcot
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service

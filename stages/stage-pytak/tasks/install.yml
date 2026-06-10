@@ -1,5 +1,7 @@
 # code: language=ansible
-# Install PyTAK tools from manifests/aryaos-sensor-packages.yml
+# Install the snstac sensor stack from the signed snstac apt repository
+# (https://snstac.github.io/packages); package list in
+# manifests/aryaos-sensor-packages.yml. dhbridge stays vendored (private upstream).
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com
 #
@@ -13,24 +15,25 @@
   ansible.builtin.include_vars:
     file: "{{ playbook_dir }}/manifests/aryaos-sensor-packages.yml"
 
-- name: Ensure cache for apt on Debian family
-  ansible.builtin.apt:
-    update_cache: true
-    cache_valid_time: 3600
-  when: ansible_os_family == "Debian"
-
-- name: Download sensor stack .debs
-  ansible.builtin.get_url:
-    url: "{{ item }}"
-    dest: "/usr/src/{{ item | basename }}"
+- name: Install snstac apt repository keyring
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/snstac-packages/snstac.gpg"
+    dest: /usr/share/keyrings/snstac.gpg
     mode: "0644"
-  loop: "{{ sensor_deb_urls }}"
   when: ansible_os_family == "Debian"
 
-- name: Install sensor stack .debs
+- name: Install snstac apt repository sources
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/snstac-packages/snstac.sources"
+    dest: /etc/apt/sources.list.d/snstac.sources
+    mode: "0644"
+  when: ansible_os_family == "Debian"
+
+- name: Install sensor stack from snstac apt repository
   ansible.builtin.apt:
-    deb: "/usr/src/{{ item | basename }}"
-  loop: "{{ sensor_deb_urls }}"
+    name: "{{ sensor_apt_packages }}"
+    state: present
+    update_cache: true
   when: ansible_os_family == "Debian"
 
 - name: Copy vendored dhbridge package (private upstream)

@@ -1,5 +1,6 @@
 # code: language=ansible
-# cockpit-adsbcot — Cockpit application for adsbcot (pinned release URL in vars.yml).
+# cockpit-adsbcot — Cockpit application for adsbcot, from the snstac apt repo
+# (configured by stage-pytak, which site.yml runs first).
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com
 #
@@ -18,7 +19,8 @@
 
 - name: Install cockpit-adsbcot Debian package
   ansible.builtin.apt:
-    deb: "{{ cockpit_adsbcot_deb_url }}"
+    name: cockpit-adsbcot
+    state: present
   notify: Restart Cockpit
 
 - name: Verify cockpit-adsbcot Cockpit manifest exists
@@ -32,4 +34,4 @@
       - cockpit_adsbcot_manifest.stat.exists
     fail_msg: >-
       cockpit-adsbcot manifest missing under /usr/share/cockpit/adsbcot/;
-      check apt/deb install and cockpit_adsbcot_deb_url / cockpit_adsbcot_version in vars.yml.
+      check the snstac apt repo install (stage-pytak configures the repo).

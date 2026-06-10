@@ -58,5 +58,5 @@ install -v -m 0644 "${SHARED_FILES}/adsbcot/systemd/readsb.service.d/aryaos-conf
 install -v -m 755 "${SHARED_FILES}/adsbcot/readsb-set-location.sh" "${ROOTFS_DIR}/usr/local/bin/"
 install -v -m 755 "${SHARED_FILES}/adsbcot/readsb-gain.sh" "${ROOTFS_DIR}/usr/local/bin/"
 
-# cockpit-adsbcot (Cockpit UI for adsbcot). Filename must match cockpit_adsbcot_version in vars.yml.
-install -v -m 644 "${SHARED_FILES}/adsbcot/cockpit-adsbcot_1.0.8_all.deb" "${ROOTFS_DIR}/usr/src/"
+# cockpit-adsbcot installs from the snstac apt repo in 01-run-chroot.sh
+# (repo configured by stage-pytak, which runs earlier in STAGE_LIST).

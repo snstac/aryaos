@@ -64,5 +64,6 @@ else
 	systemctl enable readsb.service 2>/dev/null || true
 fi
 
-# Cockpit module for adsbcot (Polkit rules + /usr/share/cockpit/adsbcot). Deb version must match vars.yml.
-dpkg -i /usr/src/cockpit-adsbcot_1.0.8_all.deb
+# Cockpit module for adsbcot (Polkit rules + /usr/share/cockpit/adsbcot),
+# from the snstac apt repo (configured by stage-pytak).
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cockpit-adsbcot

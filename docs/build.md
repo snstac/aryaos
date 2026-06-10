@@ -145,7 +145,7 @@ Hardware-specific roles (ADS-B, AIS) are tagged `hardware`; skip them if the hos
 ansible-playbook -i inventory.yml -e 'aryaos_profile=generic' site.yml --skip-tags hardware
 ```
 
-PyTAK and related `.deb` URLs are defined once in `manifests/aryaos-sensor-packages.yml` for both image builds and Ansible.
+The PyTAK sensor stack installs from the signed [snstac apt repository](https://snstac.github.io/packages) (built by [snstac/packages](https://github.com/snstac/packages) from each product's latest GitHub Release). The package list is defined once in `manifests/aryaos-sensor-packages.yml` for both image builds and Ansible; the repo's trust anchor (`snstac.gpg` + `snstac.sources`) is vendored at `shared_files/aryaos/snstac-packages/`. The private `dhbridge` deb stays vendored under `shared_files/dhbridge/`.
 
 ### Check playbook syntax
 

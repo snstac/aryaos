@@ -1,0 +1,5 @@
+Types: deb
+URIs: https://snstac.github.io/packages/apt
+Suites: stable
+Components: main
+Signed-By: /usr/share/keyrings/snstac.gpg
