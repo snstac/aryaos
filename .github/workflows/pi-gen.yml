@@ -170,6 +170,7 @@ jobs:
             -v ${{ github.workspace }}/manifests:${{ github.workspace }}/manifests:ro
             -v ${{ github.workspace }}/pi-gen-src:${{ github.workspace }}/pi-gen-src
             -e GITHUB_WORKSPACE=${{ github.workspace }}
+            -e ARYAOS_CI_TRIM_WORK=1
 
       - name: Show deploy output
         if: success()
