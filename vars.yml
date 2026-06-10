@@ -42,13 +42,8 @@ aryaos_adsb_feed_url: "file:///run/adsb/aircraft.json"
 
 readsb_deb_url: https://github.com/snstac/readsb/releases/download/v3.14.1621-2/readsb_3.14.1621_amd64.deb
 
-# cockpit-adsbcot Cockpit application — pinned release; bump version, URL, and vendored deb together (shared_files/adsbcot).
-cockpit_adsbcot_version: "1.0.8"
-cockpit_adsbcot_deb_url: "https://github.com/snstac/cockpit-adsbcot/releases/download/v1.0.8/cockpit-adsbcot_1.0.8_all.deb"
-
-# Charontak CoT bridge — pinned release; bump version and URL together (manifests/aryaos-sensor-packages.yml).
-charontak_version: "0.1.11"
-charontak_deb_url: "https://github.com/snstac/charontak/releases/download/v0.1.11/charontak_0.1.11-1_all.deb"
+# Sensor stack (pytak, charontak, lincot, *cot, cockpit-*) installs from the signed
+# snstac apt repository — see manifests/aryaos-sensor-packages.yml.
 charontak_ingress_cot_url: udp+ro://127.0.0.1:28087
 charontak_egress_cot_url: udp+wo://239.2.3.1:6969
 charontak_feeder_cot_url: udp+wo://127.0.0.1:28087
@@ -65,9 +60,6 @@ dhbridge_bt_name: "AryaOS RemoteID"
 dhbridge_rfcomm_enabled: true
 dhbridge_ble_enabled: false
 
-# LINCOT GNSS edge beacon — pinned release; bump version and URL with manifests/aryaos-sensor-packages.yml.
-lincot_version: "1.2.3"
-lincot_deb_url: "https://github.com/snstac/lincot/releases/latest/download/lincot_latest_all.deb"
 lincot_gps_info_cmd: gpspipe --json -n 5
 lincot_poll_interval: 61
 lincot_cot_type: a-f-G-E-S

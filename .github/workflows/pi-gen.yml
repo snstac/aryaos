@@ -49,7 +49,8 @@ jobs:
           test -f manifests/aryaos-sensor-packages.yml
           test -d stages/stage-patch
           test -f stages/stage-pytak/00-install/01-run-chroot.sh
-          test -f shared_files/adsbcot/cockpit-adsbcot_1.0.8_all.deb
+          test -f shared_files/aryaos/snstac-packages/snstac.gpg
+          test -f shared_files/aryaos/snstac-packages/snstac.sources
           test -f shared_files/dhbridge/dhbridge_0.2.0-3_all.deb
           test -f shared_files/aryaos/aryaos-lab.sudoers
           test -f config
@@ -82,6 +83,9 @@ jobs:
           url="$(grep -Eo "https://github.com/node-red/linux-installers/[^']+" stages/stage-node-red/00-install/00-run.sh)"
           curl -fsSIL --max-time 30 -o /dev/null "$url"
           echo "ok: $url"
+          # snstac apt repo must be serving (sensor stack installs from it mid-build)
+          curl -fsSIL --max-time 30 -o /dev/null "https://snstac.github.io/packages/apt/dists/stable/Release"
+          echo "ok: snstac apt repo"
 
   build:
     if: github.event_name != 'pull_request'
