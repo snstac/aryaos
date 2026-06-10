@@ -112,8 +112,15 @@ jobs:
           fetch-depth: 0
 
       - name: Free disk space
+        # Aggressive: build 27284908891 hit ENOSPC in stage-dronecot. Do NOT use
+        # pi-gen-action's increase-runner-disk-size — its apt purge list is x86-only
+        # and exits 100 on ubuntu-24.04-arm (build 27286374300).
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache \
+            /usr/local/.ghcup /usr/share/swift /usr/local/share/powershell \
+            /usr/local/lib/node_modules /usr/share/miniconda /opt/az /opt/microsoft \
+            /usr/lib/google-cloud-sdk /usr/local/share/chromium /usr/local/julia* || true
+          sudo docker system prune -af 2>/dev/null || true
           sudo apt-get clean
           df -h
 
@@ -132,9 +139,9 @@ jobs:
           PI_GEN_ROOT: ${{ env.PI_GEN_ROOT }}
           RELEASE: ${{ env.RELEASE }}
         with:
-          # Hosted runners sit at the margin: build 27284908891 died ENOSPC in
-          # stage-dronecot, and the post-build verify step decompresses the image.
-          increase-runner-disk-size: true
+          # Keep false: the action's disk cleanup purges x86-only packages and
+          # fails on arm64 runners. Space is freed in "Free disk space" above.
+          increase-runner-disk-size: false
           export-last-stage-only: true
           compression: xz
           compression-level: 4
@@ -187,7 +194,7 @@ jobs:
         if: success() && steps.build_aryaos.outputs.image-path != ''
         run: |
           set -euo pipefail
-          sudo ./scripts/verify-image.sh "${{ steps.build_aryaos.outputs.image-path }}"
+          sudo bash ./scripts/verify-image.sh "${{ steps.build_aryaos.outputs.image-path }}"
 
       - name: Compute release tag
         id: reltag
