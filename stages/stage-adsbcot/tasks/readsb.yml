@@ -16,9 +16,11 @@
 # limitations under the License.
 #
 
-- name: Install READSB Debian package
+- name: Install readsb from the snstac apt repository
   ansible.builtin.apt:
-    deb: "{{ readsb_deb_url }}"
+    name: readsb
+    state: present
+  notify: Restart READSB
 
 - name: Install readsb SDR runtime and build packages (Debian)
   ansible.builtin.apt:
@@ -34,23 +36,10 @@
     state: present
   when: ansible_os_family == "Debian"
 
-- name: Install readsb build script
-  ansible.builtin.copy:
-    src: "{{ shared_files }}/adsbcot/readsb-install.sh"
-    dest: /usr/src/readsb-install.sh
-    owner: root
-    group: root
-    mode: "0755"
-
-- name: Build readsb with RTL-SDR, SoapySDR, and HackRF support
-  ansible.builtin.shell: |
-    set -euo pipefail
-    /usr/src/readsb-install.sh no-tar1090
-    install -d /usr/local/share/adsb-wiki/readsb-install
-    touch /usr/local/share/adsb-wiki/readsb-install/aryaos-readsb-built
-  args:
-    creates: /usr/local/share/adsb-wiki/readsb-install/aryaos-readsb-built
-  notify: Restart READSB
+- name: Hold readsb (Debian archive ships an SDR-less readsb that must not replace it)
+  ansible.builtin.dpkg_selections:
+    name: readsb
+    selection: hold
 
 - name: Verify readsb SDR backends in binary
   ansible.builtin.shell: |
@@ -63,10 +52,6 @@
   args:
     executable: /bin/bash
   changed_when: false
-
-- name: Hold readsb package after SDR rebuild (block trixie apt overwrite)
-  ansible.builtin.command: apt-mark hold readsb
-  changed_when: true
 
 - name: Install AryaOS readsb systemd unit and wrapper
   ansible.builtin.copy:

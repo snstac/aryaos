@@ -40,8 +40,6 @@ aryaos_adsb_decoder: readsb
 aryaos_adsb_json_dir: /run/adsb
 aryaos_adsb_feed_url: "file:///run/adsb/aircraft.json"
 
-readsb_deb_url: https://github.com/snstac/readsb/releases/download/v3.14.1621-2/readsb_3.14.1621_amd64.deb
-
 # Sensor stack (pytak, charontak, lincot, *cot, cockpit-*) installs from the signed
 # snstac apt repository — see manifests/aryaos-sensor-packages.yml.
 charontak_ingress_cot_url: udp+ro://127.0.0.1:28087

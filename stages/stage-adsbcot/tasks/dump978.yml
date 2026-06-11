@@ -28,23 +28,15 @@
 #     chdir: /usr/src/dump978-master
 #     creates: /usr/src/dump978-fa_9.0_amd64.deb
 
-- name: Copy dump978-fa Debian package
-  ansible.builtin.copy:
-    src: "{{ shared_files }}/adsbcot/dump978-fa_9.0_amd64.deb"
-    dest: /usr/src/dump978-fa_9.0_amd64.deb
 
-- name: Copy skyaware978 Debian package
-  ansible.builtin.copy:
-    src: "{{ shared_files }}/adsbcot/skyaware978_9.0_amd64.deb"
-    dest: /usr/src/skyaware978_9.0_amd64.deb
 
-- name: Install skyaware978 Debian package
+- name: Install dump978-fa and skyaware978 (FlightAware repo on arm64; snstac repo on amd64)
   ansible.builtin.apt:
-    deb: /usr/src/skyaware978_9.0_amd64.deb
+    name:
+      - dump978-fa
+      - skyaware978
+    state: present
 
-- name: Install dump978-fa Debian package
-  ansible.builtin.apt:
-    deb: /usr/src/dump978-fa_9.0_amd64.deb
 
 - name: Ensure AryaOS libexec directory for dump978 helpers
   ansible.builtin.file:
