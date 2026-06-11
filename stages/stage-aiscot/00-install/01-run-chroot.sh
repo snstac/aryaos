@@ -22,7 +22,9 @@ fi
 
 usermod -aG plugdev,dialout ais-catcher
 
-dpkg -i /usr/src/AIS-catcher_0.58.1_arm64.deb
+# ais-catcher from the snstac apt repo (snstac/AIS-catcher fork releases
+# amd64+arm64 debs via upstream's build-debian.sh). Binary: /usr/bin/AIS-catcher.
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ais-catcher
 
 COCKPIT_AISCOT_DEB_URL='https://github.com/snstac/cockpit-aiscot/releases/download/v1.1.0/cockpit-aiscot_1.1.0_all.deb'
 curl -fsSL -o /usr/src/cockpit-aiscot_1.1.0_all.deb "${COCKPIT_AISCOT_DEB_URL}"

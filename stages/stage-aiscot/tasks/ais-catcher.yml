@@ -16,26 +16,10 @@
 # limitations under the License.
 #
 
-- name: Extract AIS-catcher source
-  ansible.builtin.unarchive:
-    src: "{{ shared_files }}/aiscot/AIS-catcher-main.zip"
-    dest: /usr/src
-    creates: /usr/src/AIS-catcher-main
-
-- name: Create AIS-catcher build directory
-  ansible.builtin.file:
-    path: /usr/src/AIS-catcher-main/build
-    state: directory
-    mode: "0755"
-
-- name: Build AIS-catcher
-  ansible.builtin.shell:
-    cmd: |
-      cmake ..
-      make
-      make install
-    creates: /usr/local/bin/AIS-catcher
-    chdir: /usr/src/AIS-catcher-main/build
+- name: Install ais-catcher from the snstac apt repository
+  ansible.builtin.apt:
+    name: ais-catcher
+    state: present
 
 - name: Copy AIS-catcher systemd config
   ansible.builtin.copy:
