@@ -11,6 +11,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      release:
+        description: "Release build: disable dev mode (no lab SSH key/sudo, first-boot password expiry enforced)"
+        type: boolean
+        default: false
 
 # Per-ref group: main image builds serialize against each other, but PR validate
 # jobs don't queue behind (or get cancelled by) multi-hour main builds.
