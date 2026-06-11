@@ -1,11 +1,9 @@
-# Vendored dhbridge package
+# dhbridge config payload
 
-[snstac/dhbridge](https://github.com/snstac/dhbridge) is a **private** repository. Pi-gen and CI image builds install `dhbridge_*_all.deb` from this directory instead of downloading from GitHub.
+AryaOS-specific configuration for [snstac/dhbridge](https://github.com/snstac/dhbridge)
+(`dhbridge.ini`, systemd drop-in), applied by **stage-dhbridge**.
 
-Refresh after an upstream release (requires `gh` auth):
-
-```bash
-gh release download v0.2.2 -R snstac/dhbridge -p 'dhbridge_0.2.0-3_all.deb' -D shared_files/dhbridge/
-```
-
-Update `dhbridge_version` / `dhbridge_deb` in [`vars.yml`](../../vars.yml) and the pi-gen workflow path check in [`.github/workflows/pi-gen.yml`](../../.github/workflows/pi-gen.yml).
+The `dhbridge` package itself installs from the signed
+[snstac apt repository](https://snstac.github.io/packages) via
+`manifests/aryaos-sensor-packages.yml` (stage-pytak) — no vendored `.deb` here
+since dhbridge went public with v0.3.2.

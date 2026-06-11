@@ -51,7 +51,6 @@ jobs:
           test -f stages/stage-pytak/00-install/01-run-chroot.sh
           test -f shared_files/aryaos/snstac-packages/snstac.gpg
           test -f shared_files/aryaos/snstac-packages/snstac.sources
-          test -f shared_files/dhbridge/dhbridge_0.2.0-3_all.deb
           test -f shared_files/aryaos/aryaos-lab.sudoers
           test -f config
 

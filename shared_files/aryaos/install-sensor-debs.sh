@@ -1,7 +1,6 @@
 #!/bin/bash -e
 # Install the snstac sensor stack from the signed snstac apt repository
-# (https://snstac.github.io/packages), plus vendored .debs (private dhbridge).
-# Runs inside the pi-gen chroot or on a host. Package list comes from
+# (https://snstac.github.io/packages). Runs inside the pi-gen chroot or on a host. Package list comes from
 # manifests/aryaos-sensor-packages.yml (sensor_apt_packages).
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com
@@ -45,10 +44,3 @@ fi
 echo "install-sensor-debs.sh: installing from snstac apt repo: ${PKGS[*]}"
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${PKGS[@]}"
-
-# Vendored debs (e.g. dhbridge from private snstac/dhbridge).
-for deb in /usr/src/dhbridge_*_all.deb; do
-	[[ -f "${deb}" ]] || continue
-	echo "install-sensor-debs.sh: installing $(basename "${deb}")"
-	dpkg -i "${deb}" || apt-get install -fy -y
-done

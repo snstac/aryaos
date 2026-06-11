@@ -16,5 +16,6 @@ sensor_apt_packages:
   - lincot
   # cockpit-gps — live GNSS data from gpsd with spoof/jam integrity monitoring.
   - cockpit-gps
+  # dhbridge — DroneHone Bluetooth sensor bridge (public since v0.3.2).
+  - dhbridge
 # cockpit-adsbcot is installed by stage-adsbcot (same apt repo).
-# dhbridge — private upstream; vendored under shared_files/dhbridge/ (see stage-pytak).
