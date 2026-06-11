@@ -23,6 +23,16 @@ done
 install -m 0644 "${KEYRING}" /usr/share/keyrings/snstac.gpg
 install -m 0644 "${SOURCES}" /etc/apt/sources.list.d/snstac.sources
 
+# Outrank distro archives for packages the snstac repo carries: stage-adsbcot
+# pins trixie at 990, which otherwise beats this repo (500) — Debian trixie
+# ships an SDR-less readsb that must never win over snstac's SDR build.
+install -d /etc/apt/preferences.d
+cat > /etc/apt/preferences.d/99-snstac-repo.pref <<'PREF'
+Package: *
+Pin: release o=snstac
+Pin-Priority: 995
+PREF
+
 export _ARYAOS_SENSOR_MANIFEST="${MANIFEST}"
 mapfile -t PKGS < <(python3 - <<'PY'
 import os
