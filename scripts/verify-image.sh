@@ -137,6 +137,7 @@ require_path /etc/apt/sources.list.d/snstac.sources
 require_pkg dhbridge
 require_pkg cockpit-gps
 require_pkg cockpit-adsbcot
+require_pkg readsb
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service

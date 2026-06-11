@@ -22,9 +22,11 @@ DUMP978_RECEIVER_SERIAL="stx:978:0"
 sed --follow-symlinks -i -E -e "s/driver=rtlsdr /driver=rtlsdr,serial=$DUMP978_RECEIVER_SERIAL /" /etc/default/dump978-fa
 
 # readsb: Debian trixie apt package lacks RTL/Soapy; rebuild with portable arm64 flags + SDR backends.
-dpkg -i /usr/src/readsb_3.14.1621_arm64.deb
-bash /usr/src/readsb-install.sh no-tar1090
-touch /usr/local/share/adsb-wiki/readsb-install/aryaos-readsb-built
+# readsb from the snstac apt repo (3.16.x, built with RTL-SDR/SoapySDR/HackRF —
+# see snstac/readsb release workflow). Replaces the vendored 3.14 deb + in-chroot
+# wiedehopf source compile. apt-mark hold below keeps Debian's SDR-less readsb
+# (e.g. trixie 3.14.1630) from ever replacing it.
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends readsb
 READSB_HELP="$(/usr/bin/readsb --help 2>&1)"
 echo "${READSB_HELP}" | grep -qE 'RTL-SDR|rtlsdr' || { echo "readsb missing RTL-SDR support" >&2; exit 1; }
 echo "${READSB_HELP}" | grep -qiE 'SoapySDR|soapysdr' || { echo "readsb missing SoapySDR support" >&2; exit 1; }
