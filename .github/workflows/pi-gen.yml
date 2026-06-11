@@ -107,6 +107,10 @@ jobs:
       WPA_PASSWORD: aryaos415
       KEYBOARD_LAYOUT: English (US)
       KEYBOARD_KEYMAP: us
+      # Dev builds by default (lab SSH key + passwordless sudo, no password
+      # expiry) for easy burn-and-test. Release builds: Actions -> Pi-gen
+      # image -> Run workflow with "release" checked.
+      ARYAOS_LAB_ACCESS: ${{ github.event_name == 'workflow_dispatch' && inputs.release == true && '0' || '1' }}
 
     steps:
       - name: Checkout code
@@ -152,7 +156,7 @@ jobs:
           disable-first-boot-user-rename: ${{ env.DISABLE_FIRST_BOOT_USER_RENAME }}
           enable-ssh: ${{ env.ENABLE_SSH }}
           username: pi
-          image-name: ${{ env.IMG_NAME }}-${{ github.ref_name }}
+          image-name: ${{ env.IMG_NAME }}-${{ github.ref_name }}${{ env.ARYAOS_LAB_ACCESS == '1' && '-dev' || '' }}
           hostname: ${{ env.TARGET_HOSTNAME }}
           locale: ${{ env.LOCALE_DEFAULT }}
           password: ${{ env.FIRST_USER_PASS }}
@@ -174,6 +178,7 @@ jobs:
             -v ${{ github.workspace }}/pi-gen-src:${{ github.workspace }}/pi-gen-src
             -e GITHUB_WORKSPACE=${{ github.workspace }}
             -e ARYAOS_CI_TRIM_WORK=1
+            -e ARYAOS_LAB_ACCESS=${{ env.ARYAOS_LAB_ACCESS }}
 
       - name: Show deploy output
         if: success()
@@ -198,7 +203,11 @@ jobs:
         if: success() && steps.build_aryaos.outputs.image-path != ''
         run: |
           set -euo pipefail
-          sudo bash ./scripts/verify-image.sh "${{ steps.build_aryaos.outputs.image-path }}"
+          if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
+            sudo bash ./scripts/verify-image.sh --lab "${{ steps.build_aryaos.outputs.image-path }}"
+          else
+            sudo bash ./scripts/verify-image.sh "${{ steps.build_aryaos.outputs.image-path }}"
+          fi
 
       - name: Compute release tag
         id: reltag
@@ -208,6 +217,9 @@ jobs:
           SHORT="$(git rev-parse --short=12 HEAD)"
           TS="$(date -u +%Y.%m.%d.%H%M%S)"
           TAG="v${TS}-${SHORT}"
+          if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
+            TAG="${TAG}-dev"
+          fi
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "Computed release tag ${TAG}"
 
@@ -229,5 +241,7 @@ jobs:
           name: ${{ steps.reltag.outputs.tag }}
           files: ${{ steps.build_aryaos.outputs.image-path }}
           generate_release_notes: true
+          prerelease: ${{ env.ARYAOS_LAB_ACCESS == '1' }}
+          body: "${{ env.ARYAOS_LAB_ACCESS == '1' && '**DEV BUILD** — lab access baked in (aryaos-dev-lab SSH key + passwordless sudo for pi, no first-boot password expiry). For lab burn-and-test only; never deploy in the field. For a release image run this workflow with the release input checked.' || 'Release build — no lab access; default password expires at first login. Contents verified by scripts/verify-image.sh before publishing.' }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
