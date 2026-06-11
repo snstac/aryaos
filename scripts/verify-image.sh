@@ -103,7 +103,7 @@ require_unit() {
 	fail "unit ${u} not found in any systemd unit dir"
 }
 require_pkg() {
-	if awk -v pkg="$1" 'BEGIN{RS=""} $0 ~ "Package: "pkg"\n" && /Status: install ok installed/ {found=1} END{exit !found}' \
+	if awk -v pkg="$1" 'BEGIN{RS=""} $0 ~ "Package: "pkg"\n" && /Status: (install|hold) ok installed/ {found=1} END{exit !found}' \
 		"${MNT}/var/lib/dpkg/status" 2>/dev/null; then
 		ok "package $1 installed"
 	else
