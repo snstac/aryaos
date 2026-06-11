@@ -27,7 +27,6 @@ if [[ -z "${SHARED_FILES:-}" || ! -d "${SHARED_FILES}" ]]; then
 fi
 export SHARED_FILES
 
-install -v -m 644 "${SHARED_FILES}/aiscot/AIS-catcher_0.58.1_arm64.deb" "${ROOTFS_DIR}/usr/src/"
 install -v -m 644 "${SHARED_FILES}/aiscot/ais-catcher.default.conf" "${ROOTFS_DIR}/etc/default/ais-catcher"
 install -v -m 644 "${SHARED_FILES}/aiscot/ais-catcher.service"	"${ROOTFS_DIR}/lib/systemd/system/"
 

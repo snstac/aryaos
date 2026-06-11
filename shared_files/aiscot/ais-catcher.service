@@ -23,7 +23,7 @@ After=network.target
 [Service]
 User=ais-catcher
 # FIXME Change ExecStart to allow system overrides via /etc/default/ais-catcher
-ExecStart=/usr/local/bin/AIS-catcher -u ${UDP_DEST_ADDR} ${UDP_DEST_PORT} -e ${SERIAL_BAUDRATE} ${SERIAL_PORT} -N ${HTTP_PORT}
+ExecStart=/usr/bin/AIS-catcher -u ${UDP_DEST_ADDR} ${UDP_DEST_PORT} -e ${SERIAL_BAUDRATE} ${SERIAL_PORT} -N ${HTTP_PORT}
 RuntimeDirectory=ais-catcher
 SyslogIdentifier=ais-catcher
 EnvironmentFile=/etc/default/ais-catcher
