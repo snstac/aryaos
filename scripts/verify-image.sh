@@ -130,6 +130,15 @@ require_path /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
 require_path /usr/share/cockpit/aryaos/manifest.json
 require_path /usr/share/cockpit/aryaos/aryaos.js
 
+# GPSTAK network GPS (stage-aryaos)
+require_path /usr/local/bin/gpstak
+require_path /lib/systemd/system/gpstak.service
+require_path /etc/default/gpstak
+require_path /usr/share/cockpit/gpstak/manifest.json
+
+# charontak cockpit page (ships inside the charontak deb >= 0.1.12)
+require_path /usr/share/cockpit/charontak/manifest.json
+
 # GNSS (stage-aryaos)
 require_path /etc/default/gpsd
 
@@ -144,6 +153,9 @@ require_pkg cockpit-adsbcot
 require_pkg cockpit-lincot
 require_pkg cockpit-aiscatcher
 require_pkg cockpit-dronecot
+require_pkg cockpit-charontak
+require_pkg cockpit-gpstak
+require_pkg cockpit-aryaos
 require_pkg readsb
 require_pkg ais-catcher
 require_unit adsbcot.service

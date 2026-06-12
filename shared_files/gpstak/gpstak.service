@@ -1,0 +1,18 @@
+[Unit]
+Description=GPSTAK: Network GPS for TAK (feed onboard GNSS to ATAK/WinTAK)
+Documentation=https://ampledata.org/network_gps.html
+After=network-online.target gpsd.service
+Wants=network-online.target gpsd.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+EnvironmentFile=-/etc/default/gpstak
+ExecStart=/usr/local/bin/gpstak
+Restart=on-failure
+RestartSec=5
+DynamicUser=yes
+SyslogIdentifier=gpstak
+
+[Install]
+WantedBy=multi-user.target
