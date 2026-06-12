@@ -20,6 +20,10 @@ sensor_apt_packages:
   - cockpit-lincot
   - cockpit-aiscatcher
   - cockpit-dronecot
+  - cockpit-charontak
+  - cockpit-gpstak
+  # cockpit-aryaos — the "AryaOS Site" page: site-wide COT_URL + TAK TLS certs.
+  - cockpit-aryaos
   # dhbridge — DroneHone Bluetooth sensor bridge (public since v0.3.2).
   - dhbridge
 # cockpit-adsbcot is installed by stage-adsbcot (same apt repo).

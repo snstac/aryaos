@@ -1,0 +1,22 @@
+# GPSTAK: Network GPS for TAK — /etc/default/gpstak (systemd EnvironmentFile).
+# Feeds this device's GNSS position to ATAK ("External or Network GPS" in
+# Settings -> Device Preferences -> GPS Preferences) and WinTAK.
+# Manage in Cockpit: https://<host>/admin/ -> GPSTAK.
+
+# Where to send CoT position events (PyTAK-style URL). Default reaches every
+# ATAK device on the local subnet:
+COT_URL=udp+broadcast://255.255.255.255:4349
+# Single tablet instead: COT_URL=udp+wo://192.168.1.50:4349
+
+# Raw NMEA passthrough for WinTAK ("host:port host:port"), empty = off:
+NMEA_TARGETS=
+
+# Update rate (seconds), CoT identity, staleness:
+GPSTAK_RATE=1.0
+# GPSTAK_UID=GPSTAK-mysensor
+GPSTAK_COT_TYPE=a-f-G
+GPSTAK_STALE=10
+
+# gpsd connection:
+GPSD_HOST=127.0.0.1
+GPSD_PORT=2947

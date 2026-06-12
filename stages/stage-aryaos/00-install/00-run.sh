@@ -89,9 +89,11 @@ chmod 0655 "${ROOTFS_DIR}/var/www/html"
 install -d -m 0755 "${ROOTFS_DIR}/usr/lib/cgi-bin"
 install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-portal-status" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-portal-status"
 
-## "AryaOS Site" Cockpit plugin: site-wide TAK config + TLS certs + fleet restart
-install -d -m 0755 "${ROOTFS_DIR}/usr/share/cockpit/aryaos"
-install -v -m 0644 "${SHARED_FILES}/aryaos/cockpit-aryaos/"* "${ROOTFS_DIR}/usr/share/cockpit/aryaos/"
+## GPSTAK: Network GPS for TAK (ATAK External/Network GPS via CoT on UDP 4349,
+## NMEA passthrough for WinTAK). Ships disabled; enable in Cockpit -> GPSTAK.
+install -v -m 0755 "${SHARED_FILES}/gpstak/gpstak.py" "${ROOTFS_DIR}/usr/local/bin/gpstak"
+install -v -m 0644 "${SHARED_FILES}/gpstak/gpstak.service" "${ROOTFS_DIR}/lib/systemd/system/gpstak.service"
+install -v -m 0644 "${SHARED_FILES}/gpstak/gpstak.default" "${ROOTFS_DIR}/etc/default/gpstak"
 
 ## Lab access (ARYAOS_LAB_ACCESS=1 only): trust aryaos-dev-lab.pub for user pi and
 ## grant pi passwordless sudo. Release builds (default) get neither — see

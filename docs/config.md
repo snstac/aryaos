@@ -171,7 +171,7 @@ An AryaOS Web Dashboard method of doing this is under development. See Issue [#2
 
 All administration happens in Cockpit at `https://<host>/admin/`:
 
-- **AryaOS Site** (this repo, `shared_files/aryaos/cockpit-aryaos/`) — site-wide settings in
+- **AryaOS Site** ([cockpit-aryaos](https://github.com/snstac/cockpit-aryaos)) — site-wide settings in
   `/etc/aryaos/aryaos-config.txt`: the site `COT_URL`, ADS-B decoder selection, UAT serial,
   and **site-wide TAK TLS certificates** (PEM upload to `/etc/aryaos/tls/`, wired to
   `PYTAK_TLS_CLIENT_CERT/KEY/CAFILE`; the key is group-readable via `tak-certs`). Every
@@ -179,3 +179,13 @@ All administration happens in Cockpit at `https://<host>/admin/`:
 - **Per-tool plugins** (from the snstac apt repo) — cockpit-adsbcot, cockpit-aiscot,
   cockpit-lincot, cockpit-dronecot, cockpit-aiscatcher, cockpit-gps: service control plus
   per-service config (`/etc/default/<svc>`) and per-service TLS overrides.
+
+## GPSTAK: Network GPS for ATAK / WinTAK
+
+`gpstak` (shared_files/gpstak/) feeds the onboard GNSS to TAK devices so tablets can use
+the sensor's GPS as their own position source: CoT position events to `COT_URL`
+(default `udp+broadcast://255.255.255.255:4349` — ATAK's *External or Network GPS* port)
+plus optional raw-NMEA passthrough for WinTAK (`NMEA_TARGETS`). PyTAK-style config in
+`/etc/default/gpstak`; ships **disabled** — enable and configure in **Cockpit → GPSTAK**.
+On the ATAK device: Settings → Device Preferences → GPS Preferences →
+*External or Network GPS*. See https://ampledata.org/network_gps.html.

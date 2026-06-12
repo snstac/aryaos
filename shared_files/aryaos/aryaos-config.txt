@@ -39,7 +39,7 @@ ARYAOS_ADSB_DECODER=readsb
 ARYAOS_ADSB_JSON_DIR=/run/adsb
 
 # List of services to restart if network state changes (wifi up, ethernet down, etc).
-AOS_SERVICES="charontak dhbridge readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-mutability gpsd aiscatcher nodered aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
+AOS_SERVICES="charontak dhbridge gpstak readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-mutability gpsd aiscatcher nodered aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
 
 # RTL-SDR USB serial string for dump978-fa (UAT / 978 MHz). Factory default matches Nooelec
 # NESDR Nano 3 “978” EEPROM preset: stx:978:0 — do not use the same serial as the 1090 path
