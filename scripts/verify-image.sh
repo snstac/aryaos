@@ -126,6 +126,10 @@ require_path /var/www/html/index.html
 require_path /usr/lib/cgi-bin/aryaos-portal-status
 require_path /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
 
+# AryaOS Site cockpit plugin (site-wide TAK config + TLS)
+require_path /usr/share/cockpit/aryaos/manifest.json
+require_path /usr/share/cockpit/aryaos/aryaos.js
+
 # GNSS (stage-aryaos)
 require_path /etc/default/gpsd
 
@@ -137,6 +141,9 @@ require_path /etc/apt/sources.list.d/snstac.sources
 require_pkg dhbridge
 require_pkg cockpit-gps
 require_pkg cockpit-adsbcot
+require_pkg cockpit-lincot
+require_pkg cockpit-aiscatcher
+require_pkg cockpit-dronecot
 require_pkg readsb
 require_pkg ais-catcher
 require_unit adsbcot.service

@@ -1,0 +1,24 @@
+/* AryaOS Site cockpit plugin. SPDX-License-Identifier: Apache-2.0 */
+body { font-family: "RedHatText", "Open Sans", Helvetica, Arial, sans-serif; margin: 0; background: #f2f2f2; }
+.aos-main { max-width: 56rem; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+.aos-sub { color: #4d5258; }
+.aos-card { background: #fff; border: 1px solid #d2d2d2; border-radius: 6px; padding: 1rem 1.25rem; margin: 1rem 0; }
+.aos-card h2 { margin-top: 0; font-size: 1.1rem; }
+.aos-card label { display: block; margin: 0.6rem 0; font-weight: 600; }
+.aos-card input[type="text"], .aos-card select, .aos-card textarea {
+  display: block; width: 100%; box-sizing: border-box; margin-top: 0.25rem;
+  font-weight: 400; font-family: monospace; padding: 0.4rem; border: 1px solid #8a8d90; border-radius: 3px; }
+.aos-row { display: flex; flex-wrap: wrap; gap: 1rem; }
+.aos-row label { flex: 1 1 14rem; }
+.aos-check { font-weight: 400 !important; }
+.aos-hint { color: #4d5258; font-size: 0.85rem; }
+.aos-btn { padding: 0.45rem 1rem; border-radius: 3px; border: 1px solid #06c; background: #fff; color: #06c; cursor: pointer; }
+.aos-btn.aos-primary { background: #06c; color: #fff; }
+.aos-btn:disabled { opacity: 0.5; cursor: default; }
+.aos-actions { margin: 1.25rem 0; display: flex; gap: 0.75rem; align-items: center; }
+.aos-status { font-size: 0.9rem; }
+.aos-status.ok { color: #3e8635; } .aos-status.err { color: #c9190b; }
+.aos-table { width: 100%; border-collapse: collapse; }
+.aos-table td { padding: 0.3rem 0.5rem; border-bottom: 1px solid #ededed; font-family: monospace; }
+.aos-dot { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; margin-right: 0.4rem; }
+.aos-dot.active { background: #3e8635; } .aos-dot.inactive { background: #c9190b; } .aos-dot.unknown { background: #8a8d90; }

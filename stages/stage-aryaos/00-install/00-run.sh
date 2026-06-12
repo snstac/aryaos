@@ -89,6 +89,10 @@ chmod 0655 "${ROOTFS_DIR}/var/www/html"
 install -d -m 0755 "${ROOTFS_DIR}/usr/lib/cgi-bin"
 install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-portal-status" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-portal-status"
 
+## "AryaOS Site" Cockpit plugin: site-wide TAK config + TLS certs + fleet restart
+install -d -m 0755 "${ROOTFS_DIR}/usr/share/cockpit/aryaos"
+install -v -m 0644 "${SHARED_FILES}/aryaos/cockpit-aryaos/"* "${ROOTFS_DIR}/usr/share/cockpit/aryaos/"
+
 ## Lab access (ARYAOS_LAB_ACCESS=1 only): trust aryaos-dev-lab.pub for user pi and
 ## grant pi passwordless sudo. Release builds (default) get neither — see
 ## shared_files/aryaos/ssh/README.md and docs/build.md.

@@ -31,5 +31,12 @@ rsync -va "${SHARED_FILES}/dronecot/docker-uas-sensor" "${ROOTFS_DIR}/usr/src/"
 # Script to reset wlan interfaces when restarting dronecot
 # FIXME: Add to DroneCOT deb package installer.
 install -v -m 755 "${SHARED_FILES}/dronecot/reset_wlan.sh" "${ROOTFS_DIR}/usr/local/sbin/"
-mkdir -p "${ROOTFS_DIR}/etc/systemd/service/dronecot.service.d"
-install -v -m 0644 "${SHARED_FILES}/dronecot/execprestart.conf" "${ROOTFS_DIR}/etc/systemd/service/dronecot.service.d"
+mkdir -p "${ROOTFS_DIR}/etc/systemd/system/dronecot.service.d"
+install -v -m 0644 "${SHARED_FILES}/dronecot/execprestart.conf" "${ROOTFS_DIR}/etc/systemd/system/dronecot.service.d"
+
+# Inherit site-wide config (COT_URL, PYTAK_TLS_*) from /etc/aryaos; the unit's own
+# EnvironmentFile=/etc/default/dronecot loads later, so per-service values override.
+if [[ -f "${ROOTFS_DIR}/lib/systemd/system/dronecot.service" ]]; then
+	grep -qF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/lib/systemd/system/dronecot.service" || \
+		sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=-/etc/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/lib/systemd/system/dronecot.service"
+fi

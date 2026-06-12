@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!--
+AryaOS Site — site-wide TAK configuration for all PyTAK sensor gateways.
+Copyright Sensors & Signals LLC https://www.snstac.com/
+SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AryaOS Site</title>
+  <link rel="stylesheet" href="aryaos.css">
+  <script src="../base1/cockpit.js"></script>
+</head>
+<body class="pf-v5-m-tabular-nums">
+  <main class="aos-main">
+    <h1>AryaOS Site Configuration</h1>
+    <p class="aos-sub">Site-wide settings in <code>/etc/aryaos/aryaos-config.txt</code>,
+      inherited by every sensor gateway (per-service overrides live in each tool's own
+      Cockpit page). Changes apply on <em>Save &amp; restart sensors</em>.</p>
+
+    <section class="aos-card" id="card-config">
+      <h2>TAK destination</h2>
+      <label>Site COT_URL
+        <input type="text" id="cot-url" placeholder="udp+wo://127.0.0.1:28087">
+      </label>
+      <p class="aos-hint">Default feeds the local Charontak hub; Charontak forwards to Mesh SA
+        and/or a TAK Server (see Charontak lanes). Direct examples:
+        <code>tls://takserver.example.com:8089</code>, <code>udp+wo://239.2.3.1:6969</code>.</p>
+      <label>ADS-B decoder
+        <select id="adsb-decoder">
+          <option value="readsb">readsb (RTL-SDR / SoapySDR / HackRF)</option>
+          <option value="dump1090_fa">dump1090-fa (FlightAware)</option>
+        </select>
+      </label>
+      <label>UAT (978 MHz) RTL-SDR serial
+        <input type="text" id="uat-serial" placeholder="stx:978:0">
+      </label>
+    </section>
+
+    <section class="aos-card" id="card-tls">
+      <h2>Site-wide TAK TLS certificates</h2>
+      <p class="aos-hint">Upload once; every PyTAK gateway inherits
+        <code>PYTAK_TLS_CLIENT_CERT/KEY/CAFILE</code> from the site config. PEM format
+        (for .p12 bundles, convert first: <code>openssl pkcs12 -in bundle.p12 -out client.pem
+        -clcerts -nokeys</code> / <code>-nocerts -nodes</code>).</p>
+      <div class="aos-row">
+        <label>Client certificate (PEM) <input type="file" id="tls-cert" accept=".pem,.crt,.cert"></label>
+        <label>Client key (PEM) <input type="file" id="tls-key" accept=".pem,.key"></label>
+        <label>CA chain (PEM, optional) <input type="file" id="tls-ca" accept=".pem,.crt"></label>
+      </div>
+      <div class="aos-row">
+        <label class="aos-check"><input type="checkbox" id="tls-dont-verify"> Don't verify server certificate
+          (<code>PYTAK_TLS_DONT_VERIFY</code> — lab only)</label>
+      </div>
+      <button class="aos-btn" id="btn-tls-upload">Install certificates</button>
+      <span id="tls-status" class="aos-status"></span>
+      <div id="tls-current" class="aos-hint"></div>
+    </section>
+
+    <section class="aos-card" id="card-services">
+      <h2>Sensor services</h2>
+      <table class="aos-table" id="svc-table"><tbody></tbody></table>
+    </section>
+
+    <div class="aos-actions">
+      <button class="aos-btn aos-primary" id="btn-save">Save &amp; restart sensors</button>
+      <button class="aos-btn" id="btn-save-only">Save only</button>
+      <span id="save-status" class="aos-status"></span>
+    </div>
+
+    <details class="aos-card">
+      <summary>Raw site config (advanced)</summary>
+      <textarea id="raw-config" rows="18" spellcheck="false"></textarea>
+      <p class="aos-hint">Saving the form updates known keys in place and preserves
+        everything else, including comments.</p>
+    </details>
+  </main>
+  <script src="aryaos.js"></script>
+</body>
+</html>

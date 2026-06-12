@@ -1,0 +1,16 @@
+{
+  "version": 0,
+  "menu": {
+    "index": {
+      "label": "AryaOS Site",
+      "order": 5,
+      "docs": [
+        {
+          "label": "AryaOS documentation",
+          "url": "https://aryaos.readthedocs.io/"
+        }
+      ]
+    }
+  },
+  "content-security-policy": "default-src 'self'; style-src 'self' 'unsafe-inline'"
+}
