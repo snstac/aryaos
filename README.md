@@ -28,7 +28,7 @@ Features of AryaOS:
 ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh
 ```
 
-Agent handoff and open tasks: [docs/portal.md](docs/portal.md#agent-handoff--state-as-of-2026-05-16).
+Agent handoff and open tasks: [docs/agent-handoff.md](docs/agent-handoff.md).
 
 # Stakeholders
 
