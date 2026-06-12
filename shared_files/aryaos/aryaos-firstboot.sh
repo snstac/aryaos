@@ -68,6 +68,19 @@ if getent group node-red >/dev/null 2>&1 && [[ -d /etc/aryaos ]]; then
 	chown -R node-red /etc/aryaos
 fi
 
+# Site-wide TAK TLS: gateways read /etc/aryaos/tls/client.key via the tak-certs
+# group (installed from the "AryaOS Site" Cockpit plugin). Service users are
+# created by their debs, so membership is reconciled here on every boot.
+getent group tak-certs >/dev/null 2>&1 || groupadd --system tak-certs
+for svc_user in adsbcot aiscot dronecot lincot charontak dhbridge; do
+	if getent passwd "$svc_user" >/dev/null 2>&1; then
+		usermod -aG tak-certs "$svc_user" 2>/dev/null || true
+	fi
+done
+if [[ -d /etc/aryaos/tls ]]; then
+	chgrp -R tak-certs /etc/aryaos/tls 2>/dev/null || true
+fi
+
 # Images ship with a published default password — force a change at first login.
 # Skipped on lab builds (ARYAOS_LAB_ACCESS=1: /etc/sudoers.d/aryaos-lab) and on
 # hosts that already trust the aryaos-dev-lab key (images built before the gate).

@@ -16,6 +16,10 @@ sensor_apt_packages:
   - lincot
   # cockpit-gps — live GNSS data from gpsd with spoof/jam integrity monitoring.
   - cockpit-gps
+  # Cockpit is the AryaOS admin surface: every installed gateway ships its plugin.
+  - cockpit-lincot
+  - cockpit-aiscatcher
+  - cockpit-dronecot
   # dhbridge — DroneHone Bluetooth sensor bridge (public since v0.3.2).
   - dhbridge
 # cockpit-adsbcot is installed by stage-adsbcot (same apt repo).

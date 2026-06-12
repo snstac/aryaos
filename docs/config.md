@@ -166,3 +166,16 @@ An AryaOS Web Dashboard method of doing this is under development. See Issue [#2
 ``sudo systemctl daemon-reload``
 
 ``sudo systemctl restart dump978-fa``
+
+## Cockpit: the AryaOS admin surface
+
+All administration happens in Cockpit at `https://<host>/admin/`:
+
+- **AryaOS Site** (this repo, `shared_files/aryaos/cockpit-aryaos/`) — site-wide settings in
+  `/etc/aryaos/aryaos-config.txt`: the site `COT_URL`, ADS-B decoder selection, UAT serial,
+  and **site-wide TAK TLS certificates** (PEM upload to `/etc/aryaos/tls/`, wired to
+  `PYTAK_TLS_CLIENT_CERT/KEY/CAFILE`; the key is group-readable via `tak-certs`). Every
+  gateway unit inherits the site config via `EnvironmentFile=`; per-service values override it.
+- **Per-tool plugins** (from the snstac apt repo) — cockpit-adsbcot, cockpit-aiscot,
+  cockpit-lincot, cockpit-dronecot, cockpit-aiscatcher, cockpit-gps: service control plus
+  per-service config (`/etc/default/<svc>`) and per-service TLS overrides.
