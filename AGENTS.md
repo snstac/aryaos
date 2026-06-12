@@ -1,5 +1,8 @@
 # Agent instructions: AryaOS image build
 
+> **Current state & open tasks:** see [docs/agent-handoff.md](docs/agent-handoff.md) (2026-06-12).
+
+
 Short procedural notes for automated assistants running or watching pi-gen builds in this repo. Human-oriented detail lives in [docs/build.md](docs/build.md).
 
 ## Prerequisites

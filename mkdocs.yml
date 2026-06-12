@@ -14,6 +14,7 @@ nav:
   - Introduction: intro.md
   - Installing AryaOS: install.md
   - Download or build: build.md
+  - Agent handoff: agent-handoff.md
   - Configuration: config.md
   - Definitions: definitions.md
   - Troubleshooting: troubleshooting.md
