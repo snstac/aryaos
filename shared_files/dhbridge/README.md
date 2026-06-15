@@ -1,7 +1,8 @@
 # dhbridge config payload
 
 AryaOS-specific configuration for [snstac/dhbridge](https://github.com/snstac/dhbridge)
-(`dhbridge.ini`, systemd drop-in), applied by **stage-dhbridge**.
+(`dhbridge.ini`, Bluetooth readiness helper, systemd drop-ins), applied by
+**stage-dhbridge**.
 
 The `dhbridge` package itself installs from the signed
 [snstac apt repository](https://snstac.github.io/packages) via

@@ -29,13 +29,20 @@ DEV_KEY="${ARYAOS_DEV_PI_SSH_KEY:-${REPO_ROOT}/shared_files/aryaos/ssh/aryaos-de
 
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
 SCP=(scp -o StrictHostKeyChecking=accept-new)
+SSH_METHOD="ssh defaults"
+
 if [[ -n "${ARYAOS_DEV_PI_SSH_KEY:-}" && -r "${ARYAOS_DEV_PI_SSH_KEY}" ]]; then
-	SSH=(ssh -i "${ARYAOS_DEV_PI_SSH_KEY}" -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
-	SCP=(scp -i "${ARYAOS_DEV_PI_SSH_KEY}" -o StrictHostKeyChecking=accept-new)
-elif [[ -r "${DEV_KEY}" ]]; then
+	SSH=(ssh -i "${ARYAOS_DEV_PI_SSH_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
+	SCP=(scp -i "${ARYAOS_DEV_PI_SSH_KEY}" -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new)
+	SSH_METHOD="explicit key ${ARYAOS_DEV_PI_SSH_KEY}"
+elif [[ -r "${DEV_KEY}" && -z "${ARYAOS_DEV_PI_SKIP_KEY:-}" ]]; then
+	SSH=(ssh -i "${DEV_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
+	SCP=(scp -i "${DEV_KEY}" -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new)
+	SSH_METHOD="repo lab key ${DEV_KEY}"
 	if ! "${SSH[@]}" "${PI}" true 2>/dev/null; then
-		SSH=(ssh -i "${DEV_KEY}" -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
-		SCP=(scp -i "${DEV_KEY}" -o StrictHostKeyChecking=accept-new)
+		SSH=(ssh -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
+		SCP=(scp -o StrictHostKeyChecking=accept-new)
+		SSH_METHOD="ssh defaults"
 	fi
 fi
 
@@ -44,6 +51,7 @@ if ! "${SSH[@]}" "${PI}" true 2>/dev/null; then
 		export SSHPASS="${ARYAOS_DEV_PI_PASSWORD}"
 		SSH=(sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
 		SCP=(sshpass -e scp -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=accept-new)
+		SSH_METHOD="password"
 	elif command -v sshpass >/dev/null; then
 		# shellcheck disable=SC1091
 		[[ -f scripts/.dev-pi-creds.local ]] && . scripts/.dev-pi-creds.local
@@ -51,6 +59,7 @@ if ! "${SSH[@]}" "${PI}" true 2>/dev/null; then
 			export SSHPASS="${ARYAOS_DEV_PI_PASSWORD}"
 			SSH=(sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
 			SCP=(sshpass -e scp -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=accept-new)
+			SSH_METHOD="password"
 		fi
 	fi
 fi
@@ -61,6 +70,7 @@ if ! "${SSH[@]}" "${PI}" true; then
 fi
 
 echo "==> AryaOS integration tests on ${PI} (tier=${ARYAOS_TEST_TIER:-default})"
+echo "==> SSH: using ${SSH_METHOD}"
 
 REMOTE_STAGE="/tmp/aryaos-test.$$"
 "${SSH[@]}" "${PI}" "mkdir -p '${REMOTE_STAGE}/tests'"

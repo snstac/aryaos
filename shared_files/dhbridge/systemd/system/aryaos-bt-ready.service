@@ -1,0 +1,16 @@
+[Unit]
+Description=Prepare Bluetooth for AryaOS dhbridge
+Documentation=https://aryaos.rtfd.io/en/stable/
+After=local-fs.target bluetooth.service
+Wants=bluetooth.service
+ConditionPathExists=/sys/class/bluetooth
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+EnvironmentFile=-/etc/default/dhbridge
+ExecStart=/usr/local/sbin/aryaos-bt-ready.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

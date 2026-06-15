@@ -11,6 +11,24 @@
     mode: "0644"
   notify: Restart dhbridge
 
+- name: Install AryaOS Bluetooth readiness helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/dhbridge/aryaos-bt-ready.sh"
+    dest: /usr/local/sbin/aryaos-bt-ready.sh
+    mode: "0755"
+  notify:
+    - Reload systemd
+    - Restart dhbridge
+
+- name: Install AryaOS Bluetooth readiness service
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/dhbridge/systemd/system/aryaos-bt-ready.service"
+    dest: /etc/systemd/system/aryaos-bt-ready.service
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart dhbridge
+
 - name: Ensure dhbridge.service.d exists
   ansible.builtin.file:
     path: /etc/systemd/system/dhbridge.service.d
@@ -25,6 +43,21 @@
   notify:
     - Reload systemd
     - Restart dhbridge
+
+- name: dhbridge waits for AryaOS Bluetooth readiness
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/dhbridge/systemd/dhbridge.service.d/aryaos-bt-ready.conf"
+    dest: /etc/systemd/system/dhbridge.service.d/aryaos-bt-ready.conf
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart dhbridge
+
+- name: Enable AryaOS Bluetooth readiness service
+  ansible.builtin.systemd:
+    name: aryaos-bt-ready.service
+    enabled: true
+    daemon_reload: true
 
 - name: Enable and start dhbridge
   ansible.builtin.systemd:
