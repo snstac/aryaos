@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "axios": "1.17.0",
+    "axios": "1.18.0",
     "node-red-contrib-qrcode-generator": "^0.4.0",
     "node-red-contrib-tak": "^4.2.0",
     "node-red-contrib-tfr2cot": "^2.0.0",
