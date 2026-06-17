@@ -1,0 +1,13 @@
+# code: language=ansible
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart DroneCOT
+  ansible.builtin.systemd:
+    name: dronecot.service
+    state: restarted

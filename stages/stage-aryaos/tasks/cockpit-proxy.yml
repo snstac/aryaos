@@ -131,6 +131,13 @@
     group: ssl-cert
     mode: "0640"
 
+- name: Allow lighttpd worker user to read ssl-cert files
+  ansible.builtin.user:
+    name: www-data
+    groups: ssl-cert
+    append: true
+  notify: Restart lighttpd
+
 - name: Upload cockpit.conf
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/cockpit.conf"
@@ -153,6 +160,15 @@
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/cgi-bin/aryaos-portal-status"
     dest: /usr/lib/cgi-bin/aryaos-portal-status
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Restart lighttpd
+
+- name: Install TAK data package upload CGI helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/cgi-bin/aryaos-tak-dp-upload"
+    dest: /usr/lib/cgi-bin/aryaos-tak-dp-upload
     owner: root
     group: root
     mode: "0755"
@@ -217,15 +233,26 @@
     state: started
   failed_when: false
 
-- name: HTTP redirects to HTTPS
+- name: HTTP serves HTTPS heads-up page
   ansible.builtin.uri:
     url: http://localhost/
     follow_redirects: none
-    status_code: [301, 302, 307, 308]
-  register: http_to_https
+    status_code: 200
+  register: http_heads_up
   retries: 6
   delay: 3
-  until: http_to_https.status | int in [301, 302, 307, 308]
+  until: http_heads_up.status | int == 200
+  when: ansible_virtualization_type != 'docker'
+
+- name: HTTP /admin redirects to HTTPS Cockpit
+  ansible.builtin.uri:
+    url: http://localhost/admin
+    follow_redirects: none
+    status_code: [301, 302, 307, 308]
+  register: http_admin_to_https
+  retries: 6
+  delay: 3
+  until: http_admin_to_https.status | int in [301, 302, 307, 308]
   when: ansible_virtualization_type != 'docker'
 
 - name: HTTPS root serves portal (not Cockpit)

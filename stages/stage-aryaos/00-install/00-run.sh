@@ -44,6 +44,12 @@ install -v -m 0400 "${SHARED_FILES}/aryaos/aryaos.sudoers" "${ROOTFS_DIR}/etc/su
 ## Copy the AryaOS configuration file to /etc/aryaos/
 mkdir -p "${ROOTFS_DIR}/etc/aryaos/"
 install -v -m 0644 "${SHARED_FILES}/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/etc/aryaos/"
+install -d -m 0755 "${ROOTFS_DIR}/usr/local/sbin"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-import-tak-dp" "${ROOTFS_DIR}/usr/local/sbin/aryaos-import-tak-dp"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tak-dp-importd" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tak-dp-importd"
+install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-tak-dp-importd.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-tak-dp-importd.service"
 
 ## Raspberry Pi: raise USB host current where firmware supports it (multi-SDR loads)
 ARYAOS_USB_FRAG="${SHARED_FILES}/aryaos/boot/firmware/aryaos-usb-power.fragment"
@@ -88,6 +94,7 @@ chmod 0655 "${ROOTFS_DIR}/var/www/html"
 ## Portal status CGI (JSON) for the landing page — no Node-RED
 install -d -m 0755 "${ROOTFS_DIR}/usr/lib/cgi-bin"
 install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-portal-status" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-portal-status"
+install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-tak-dp-upload" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-tak-dp-upload"
 
 ## GPSTAK: Network GPS for TAK (ATAK External/Network GPS via CoT on UDP 4349,
 ## NMEA passthrough for WinTAK). Ships disabled; enable in Cockpit -> GPSTAK.
@@ -190,6 +197,10 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/gpsd.socket.d/socket-group.co
 
 # WiFi
 
+install -d -m 0755 "${ROOTFS_DIR}/etc/NetworkManager/system-connections"
+install -v -m 0600 \
+	"${SHARED_FILES}/aryaos/NetworkManager/system-connections/aryaos-antsdr.nmconnection" \
+	"${ROOTFS_DIR}/etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection"
 install -v -m 755 "${SHARED_FILES}/aryaos/99-aryaos-dispatcher" "${ROOTFS_DIR}/etc/NetworkManager/dispatcher.d/"
 install -v -m 644 "${SHARED_FILES}/aryaos/comitup.conf" "${ROOTFS_DIR}/etc/"
 install -v -m 755 "${SHARED_FILES}/aryaos/run_comitup.sh" "${ROOTFS_DIR}/usr/local/sbin/"

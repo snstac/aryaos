@@ -5,6 +5,10 @@
     name: lighttpd
     state: restarted
 
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: Restart gpsd
   block:
     - name: Reload systemd (gpsd.socket drop-in, etc.)

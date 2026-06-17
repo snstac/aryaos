@@ -22,6 +22,18 @@
     dest: /usr/lib/python3/dist-packages/NetworkManager.py
     mode: "0644"
 
+- name: Ensure NetworkManager system connection directory exists
+  ansible.builtin.file:
+    path: /etc/NetworkManager/system-connections
+    state: directory
+    mode: "0755"
+
+- name: Install ANTSDR static Ethernet connection
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/NetworkManager/system-connections/aryaos-antsdr.nmconnection"
+    dest: /etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection
+    mode: "0600"
+
 - name: Fix comitup port
   ansible.builtin.lineinfile:
     path: /usr/share/comitup/web/comitupweb.py

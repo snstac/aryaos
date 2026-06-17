@@ -1,0 +1,105 @@
+#!/usr/bin/python3
+"""CGI wrapper for AryaOS ATAK/iTAK connection data package upload."""
+
+from email.parser import BytesParser
+from email.policy import default
+import json
+import os
+import socket
+import sys
+
+SOCKET_PATH = "/run/aryaos/tak-dp-import.sock"
+MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+
+
+def response(status, payload):
+    sys.stdout.write(f"Status: {status}\r\n")
+    sys.stdout.write("Content-Type: application/json; charset=utf-8\r\n")
+    sys.stdout.write("Cache-Control: no-store\r\n")
+    sys.stdout.write("X-Content-Type-Options: nosniff\r\n")
+    sys.stdout.write("\r\n")
+    sys.stdout.write(json.dumps(payload, sort_keys=True))
+    sys.stdout.write("\n")
+
+
+def error(status, message):
+    response(status, {"ok": False, "error": message})
+    raise SystemExit(0)
+
+
+def parse_upload():
+    try:
+        content_length = int(os.environ.get("CONTENT_LENGTH") or "0")
+    except ValueError:
+        content_length = 0
+    if content_length <= 0:
+        error("400 Bad Request", "No upload body")
+    if content_length > MAX_UPLOAD_BYTES:
+        error("413 Payload Too Large", "Connection package is too large")
+    content_type = os.environ.get("CONTENT_TYPE", "")
+    if "multipart/form-data" not in content_type:
+        error("400 Bad Request", "Expected multipart/form-data")
+
+    body = sys.stdin.buffer.read(content_length)
+    if len(body) > MAX_UPLOAD_BYTES:
+        error("413 Payload Too Large", "Connection package is too large")
+    raw = (
+        f"Content-Type: {content_type}\r\n"
+        "MIME-Version: 1.0\r\n"
+        "\r\n"
+    ).encode("utf-8") + body
+    msg = BytesParser(policy=default).parsebytes(raw)
+    if not msg.is_multipart():
+        error("400 Bad Request", "Invalid multipart upload")
+    for part in msg.iter_parts():
+        if part.get_content_disposition() != "form-data":
+            continue
+        if part.get_param("name", header="content-disposition") != "package":
+            continue
+        filename = part.get_param("filename", header="content-disposition") or ""
+        payload = part.get_payload(decode=True) or b""
+        if not payload:
+            error("400 Bad Request", "Uploaded package is empty")
+        if len(payload) > MAX_UPLOAD_BYTES:
+            error("413 Payload Too Large", "Connection package is too large")
+        return filename, payload
+    error("400 Bad Request", "Missing package file field")
+
+
+def main():
+    method = os.environ.get("REQUEST_METHOD", "GET").upper()
+    if method == "GET":
+        response("200 OK", {"ok": True, "accept": [".zip", ".dpk"], "max_bytes": MAX_UPLOAD_BYTES})
+        return
+    if method != "POST":
+        error("405 Method Not Allowed", "Use POST")
+    filename, payload = parse_upload()
+    suffix = ".dpk" if filename.lower().endswith(".dpk") else ".zip"
+    try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+            sock.settimeout(50)
+            sock.connect(SOCKET_PATH)
+            sock.sendall(payload)
+            sock.shutdown(socket.SHUT_WR)
+            chunks = []
+            while True:
+                chunk = sock.recv(65536)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+        raw = b"".join(chunks).decode("utf-8", errors="replace")
+        try:
+            payload = json.loads(raw)
+        except json.JSONDecodeError:
+            error("500 Internal Server Error", "Importer returned invalid JSON")
+        if not payload.get("ok"):
+            error("400 Bad Request", payload.get("error") or "Import failed")
+        response("200 OK", payload)
+    except (OSError, TimeoutError) as exc:
+        if isinstance(exc, FileNotFoundError):
+            error("503 Service Unavailable", "Import service is not running")
+        error("504 Gateway Timeout", "Import timed out")
+
+
+if __name__ == "__main__":
+    main()

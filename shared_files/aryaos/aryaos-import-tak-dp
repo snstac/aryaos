@@ -1,0 +1,289 @@
+#!/usr/bin/python3
+"""Import an ATAK/iTAK connection data package into AryaOS TAK forwarding."""
+
+import configparser
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import xml.etree.ElementTree as ET
+import zipfile
+from pathlib import Path
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import pkcs12
+
+TLS_DIR = Path(os.environ.get("ARYAOS_TLS_DIR", "/etc/aryaos/tls"))
+CHARONTAK_INI = Path(os.environ.get("ARYAOS_CHARONTAK_INI", "/etc/charontak.ini"))
+ARYAOS_CONFIG = Path(os.environ.get("ARYAOS_CONFIG", "/etc/aryaos/aryaos-config.txt"))
+TAK_CERTS_GROUP = os.environ.get("ARYAOS_TAK_CERTS_GROUP", "tak-certs")
+MAX_ZIP_BYTES = 12 * 1024 * 1024
+
+
+def fail(message, code=1):
+    print(json.dumps({"ok": False, "error": message}))
+    raise SystemExit(code)
+
+
+def read_zip_member(zf, name, limit=MAX_ZIP_BYTES):
+    info = zf.getinfo(name)
+    if info.file_size > limit:
+        fail(f"{name} is too large")
+    with zf.open(info) as fp:
+        return fp.read()
+
+
+def find_config_pref(zf):
+    candidates = [n for n in zf.namelist() if n.lower().endswith(".pref") and not n.endswith("/")]
+    if not candidates:
+        fail("No ATAK config.pref file found in package")
+    candidates.sort(key=lambda n: (0 if n.lower().endswith("config.pref") else 1, len(n)))
+    return candidates[0]
+
+
+def parse_connect_string(value):
+    parts = value.rsplit(":", 2)
+    if len(parts) != 3:
+        fail(f"Unsupported TAK connectString: {value}")
+    host, port_text, proto = parts
+    host = host.strip().strip("[]")
+    proto = proto.strip().lower()
+    try:
+        port = int(port_text)
+    except ValueError:
+        fail(f"Invalid TAK connectString port: {value}")
+    if not host or not (1 <= port <= 65535):
+        fail(f"Invalid TAK connectString: {value}")
+    if proto not in ("ssl", "tls", "tcp"):
+        fail(f"Unsupported TAK connectString protocol: {proto}")
+    return host, port, proto
+
+
+def parse_preferences(pref_bytes):
+    try:
+        root = ET.fromstring(pref_bytes)
+    except ET.ParseError as exc:
+        fail(f"Invalid config.pref XML: {exc}")
+    streams = None
+    for pref in root.findall(".//preference"):
+        if pref.get("name") == "cot_streams":
+            streams = pref
+            break
+    if streams is None:
+        fail("config.pref does not contain cot_streams")
+    entries = {}
+    for entry in streams.findall("entry"):
+        key = entry.get("key")
+        if key:
+            entries[key] = entry.text or ""
+    cert_location = entries.get("certificateLocation0") or entries.get("certificateLocation")
+    ca_location = entries.get("caLocation0") or entries.get("caLocation")
+    connect_string = entries.get("connectString0") or entries.get("connectString")
+    client_password = entries.get("clientPassword0") or entries.get("clientPassword") or ""
+    ca_password = entries.get("caPassword0") or entries.get("caPassword") or client_password
+    description = entries.get("description0") or entries.get("description") or "TAK Server"
+    if not cert_location:
+        fail("config.pref is missing certificateLocation0")
+    if not ca_location:
+        fail("config.pref is missing caLocation0")
+    if not connect_string:
+        fail("config.pref is missing connectString0")
+    host, port, proto = parse_connect_string(connect_string)
+    return {
+        "cert_location": cert_location,
+        "ca_location": ca_location,
+        "client_password": client_password,
+        "ca_password": ca_password,
+        "description": description,
+        "host": host,
+        "port": port,
+        "proto": proto,
+    }
+
+
+def resolve_zip_path(zf, preferred):
+    normalized = preferred.replace("\\", "/").lstrip("/")
+    if normalized in zf.namelist():
+        return normalized
+    basename = os.path.basename(normalized).lower()
+    matches = [n for n in zf.namelist() if not n.endswith("/") and os.path.basename(n).lower() == basename]
+    if not matches:
+        fail(f"Package is missing referenced file: {preferred}")
+    matches.sort(key=len)
+    return matches[0]
+
+
+def load_client_p12(blob, password):
+    try:
+        key, cert, cas = pkcs12.load_key_and_certificates(blob, password.encode() if password else None)
+    except Exception as exc:
+        fail(f"Could not open client certificate bundle: {exc}")
+    if key is None or cert is None:
+        fail("Client PKCS#12 does not contain a certificate and private key")
+    return key, cert, list(cas or [])
+
+
+def load_ca_p12(blob, password):
+    try:
+        _, cert, cas = pkcs12.load_key_and_certificates(blob, password.encode() if password else None)
+    except Exception as exc:
+        fail(f"Could not open CA trust bundle: {exc}")
+    certs = []
+    if cert is not None:
+        certs.append(cert)
+    certs.extend(list(cas or []))
+    if not certs:
+        fail("CA PKCS#12 does not contain trust certificates")
+    return certs
+
+
+def write_atomic(path, data, mode):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=f".{path.name}.", dir=str(path.parent))
+    with os.fdopen(fd, "wb") as fp:
+        fp.write(data)
+    os.chmod(tmp, mode)
+    shutil.move(tmp, path)
+
+
+def cert_pem(cert):
+    return cert.public_bytes(serialization.Encoding.PEM)
+
+
+def key_pem(key):
+    return key.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.TraditionalOpenSSL,
+        serialization.NoEncryption(),
+    )
+
+
+def ensure_tak_certs_group():
+    if subprocess.run(["/usr/bin/getent", "group", TAK_CERTS_GROUP], stdout=subprocess.DEVNULL, check=False).returncode != 0:
+        subprocess.run(["/usr/sbin/groupadd", "--system", TAK_CERTS_GROUP], check=True)
+
+
+def install_tls_files(client_blob, client_password, ca_blob, ca_password):
+    ensure_tak_certs_group()
+    key, cert, client_chain = load_client_p12(client_blob, client_password)
+    ca_certs = load_ca_p12(ca_blob, ca_password)
+    write_atomic(TLS_DIR / "client.p12", client_blob, 0o640)
+    write_atomic(TLS_DIR / "caCert.p12", ca_blob, 0o640)
+    write_atomic(TLS_DIR / "client.pem", cert_pem(cert) + b"".join(cert_pem(c) for c in client_chain), 0o644)
+    write_atomic(TLS_DIR / "client.key", key_pem(key), 0o640)
+    write_atomic(TLS_DIR / "ca.pem", b"".join(cert_pem(c) for c in ca_certs), 0o644)
+    for path in (TLS_DIR / "client.p12", TLS_DIR / "caCert.p12", TLS_DIR / "client.key"):
+        subprocess.run(["/usr/bin/chgrp", TAK_CERTS_GROUP, str(path)], check=False)
+    if os.geteuid() == 0:
+        for user in ("adsbcot", "aiscot", "dronecot", "lincot", "charontak", "dhbridge"):
+            if subprocess.run(["/usr/bin/getent", "passwd", user], stdout=subprocess.DEVNULL, check=False).returncode == 0:
+                subprocess.run(["/usr/sbin/usermod", "-aG", TAK_CERTS_GROUP, user], check=False)
+
+
+def update_kv_file(path, values):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    out = []
+    seen = set()
+    for line in lines:
+        key = line.split("=", 1)[0].strip() if "=" in line else ""
+        if key in values:
+            out.append(f"{key}={values[key]}")
+            seen.add(key)
+        else:
+            out.append(line)
+    for key, value in values.items():
+        if key not in seen:
+            out.append(f"{key}={value}")
+    path.write_text("\n".join(out) + "\n", encoding="utf-8")
+    os.chmod(path, 0o644)
+
+
+def update_charontak(host, port, proto):
+    cfg = configparser.RawConfigParser()
+    cfg.optionxform = str
+    if CHARONTAK_INI.exists():
+        cfg.read(CHARONTAK_INI)
+    if not cfg.has_section("charontak"):
+        cfg.add_section("charontak")
+        cfg.set("charontak", "DEBUG", "false")
+    section = "lane:mesh-to-takserver"
+    if not cfg.has_section(section):
+        cfg.add_section(section)
+    scheme = "tls" if proto in ("ssl", "tls") else "tcp"
+    values = {
+        "enabled": "true",
+        "mode": "forward",
+        "ingress_cot_url": "udp://239.2.3.1:6969",
+        "egress_cot_url": f"{scheme}://{host}:{port}",
+        "PYTAK_NO_HELLO": "true",
+    }
+    if scheme == "tls":
+        values.update(
+            {
+                "PYTAK_TLS_CLIENT_CERT": str(TLS_DIR / "client.pem"),
+                "PYTAK_TLS_CLIENT_KEY": str(TLS_DIR / "client.key"),
+                "PYTAK_TLS_CLIENT_CAFILE": str(TLS_DIR / "ca.pem"),
+            }
+        )
+    for key, value in values.items():
+        cfg.set(section, key, value)
+    CHARONTAK_INI.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=str(CHARONTAK_INI.parent), delete=False) as fp:
+        cfg.write(fp)
+        tmp = fp.name
+    os.chmod(tmp, 0o644)
+    shutil.move(tmp, CHARONTAK_INI)
+
+
+def import_package(path):
+    if not os.path.isfile(path):
+        fail("Upload is not a regular file")
+    size = os.stat(path).st_size
+    if size <= 0 or size > MAX_ZIP_BYTES:
+        fail("Upload size is invalid")
+    with zipfile.ZipFile(path) as zf:
+        pref_name = find_config_pref(zf)
+        meta = parse_preferences(read_zip_member(zf, pref_name))
+        client_name = resolve_zip_path(zf, meta["cert_location"])
+        ca_name = resolve_zip_path(zf, meta["ca_location"])
+        client_blob = read_zip_member(zf, client_name)
+        ca_blob = read_zip_member(zf, ca_name)
+    install_tls_files(client_blob, meta["client_password"], ca_blob, meta["ca_password"])
+    update_charontak(meta["host"], meta["port"], meta["proto"])
+    update_kv_file(
+        ARYAOS_CONFIG,
+        {
+            "PYTAK_TLS_CLIENT_CERT": str(TLS_DIR / "client.pem"),
+            "PYTAK_TLS_CLIENT_KEY": str(TLS_DIR / "client.key"),
+            "PYTAK_TLS_CLIENT_CAFILE": str(TLS_DIR / "ca.pem"),
+        },
+    )
+    if os.environ.get("ARYAOS_IMPORT_TAK_DP_NO_RESTART") != "1":
+        subprocess.run(["/usr/bin/systemctl", "try-restart", "charontak.service"], check=False)
+    scheme = "tls" if meta["proto"] in ("ssl", "tls") else "tcp"
+    return {
+        "ok": True,
+        "description": meta["description"],
+        "host": meta["host"],
+        "port": meta["port"],
+        "cot_url": f"{scheme}://{meta['host']}:{meta['port']}",
+        "cert": str(TLS_DIR / "client.pem"),
+        "key": str(TLS_DIR / "client.key"),
+        "ca": str(TLS_DIR / "ca.pem"),
+    }
+
+
+def main(argv):
+    if len(argv) != 2:
+        fail("usage: aryaos-import-tak-dp <connection-data-package.zip>")
+    try:
+        print(json.dumps(import_package(argv[1]), sort_keys=True))
+    except zipfile.BadZipFile:
+        fail("Upload is not a valid ZIP data package")
+
+
+if __name__ == "__main__":
+    main(sys.argv)

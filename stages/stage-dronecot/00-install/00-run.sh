@@ -33,6 +33,26 @@ rsync -va "${SHARED_FILES}/dronecot/docker-uas-sensor" "${ROOTFS_DIR}/usr/src/"
 install -v -m 755 "${SHARED_FILES}/dronecot/reset_wlan.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 mkdir -p "${ROOTFS_DIR}/etc/systemd/system/dronecot.service.d"
 install -v -m 0644 "${SHARED_FILES}/dronecot/execprestart.conf" "${ROOTFS_DIR}/etc/systemd/system/dronecot.service.d"
+install -v -m 0644 \
+	"${SHARED_FILES}/dronecot/antsdr-listener.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/dronecot.service.d/zz-antsdr-listener.conf"
+
+touch "${ROOTFS_DIR}/etc/default/dronecot"
+sed --follow-symlinks -i -E \
+	-e "/^#?FEED_URL=/d" \
+	-e "/^#?DJI_TCP_PORT=/d" \
+	-e "/^#?DJI_BIND_ADDRESS=/d" \
+	-e "/^#?DJI_SENSOR_NAME=/d" \
+	-e "/^#?SENSOR_KEEPALIVE_PERIOD=/d" \
+	"${ROOTFS_DIR}/etc/default/dronecot"
+cat >> "${ROOTFS_DIR}/etc/default/dronecot" <<'EOF'
+
+# AryaOS ANTSDR E200 scanner-push listener.
+DJI_TCP_PORT=52002
+DJI_BIND_ADDRESS=172.31.100.1
+DJI_SENSOR_NAME=ANTSDR
+SENSOR_KEEPALIVE_PERIOD=30
+EOF
 
 # Inherit site-wide config (COT_URL, PYTAK_TLS_*) from /etc/aryaos; the unit's own
 # EnvironmentFile=/etc/default/dronecot loads later, so per-service values override.

@@ -67,6 +67,64 @@
     });
   });
 
+  var dpForm = document.getElementById("aos-tak-dp-form");
+  var dpFile = document.getElementById("aos-tak-dp-file");
+  var dpFileLabel = document.getElementById("aos-tak-dp-file-label");
+  var dpSubmit = document.getElementById("aos-tak-dp-submit");
+  var dpResult = document.getElementById("aos-tak-dp-result");
+
+  function setDpResult(kind, text) {
+    if (!dpResult) return;
+    dpResult.classList.remove("uk-hidden", "aos-upload-result--ok", "aos-upload-result--bad");
+    dpResult.classList.add(kind === "ok" ? "aos-upload-result--ok" : "aos-upload-result--bad");
+    dpResult.textContent = text || "";
+  }
+
+  if (dpFile && dpFileLabel) {
+    dpFile.addEventListener("change", function () {
+      var file = dpFile.files && dpFile.files[0];
+      dpFileLabel.textContent = file ? file.name : "Select package";
+    });
+  }
+
+  if (dpForm) {
+    dpForm.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      if (!dpFile || !dpFile.files || !dpFile.files.length) {
+        setDpResult("bad", "Select a TAK connection package first.");
+        return;
+      }
+      var body = new FormData();
+      body.append("package", dpFile.files[0]);
+      if (dpSubmit) dpSubmit.disabled = true;
+      setDpResult("ok", "Uploading...");
+      fetch("/cgi-bin/aryaos-tak-dp-upload", {
+        method: "POST",
+        body: body,
+        credentials: "same-origin",
+        cache: "no-store",
+      })
+        .then(function (r) {
+          return r.json().then(function (payload) {
+            if (!r.ok || !payload.ok) {
+              throw new Error(payload && payload.error ? payload.error : "HTTP " + r.status);
+            }
+            return payload;
+          });
+        })
+        .then(function (payload) {
+          setDpResult("ok", "Imported " + (payload.cot_url || "TAK Server connection") + ".");
+          loadStatus();
+        })
+        .catch(function (e) {
+          setDpResult("bad", e && e.message ? e.message : "Upload failed.");
+        })
+        .finally(function () {
+          if (dpSubmit) dpSubmit.disabled = false;
+        });
+    });
+  }
+
   var errEl = document.getElementById("aos-status-error");
   var gpsErrEl = document.getElementById("aos-gps-error");
   var takErrEl = document.getElementById("aos-tak-error");

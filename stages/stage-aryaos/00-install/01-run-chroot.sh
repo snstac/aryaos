@@ -26,9 +26,10 @@ systemctl enable NetworkManager-dispatcher
 
 systemctl enable cockpit.socket
 systemctl enable lighttpd
+systemctl enable aryaos-tak-dp-importd.service
 
 getent group gpsd >/dev/null || groupadd --system gpsd
 systemctl enable gpsd
 usermod -aG gpsd www-data || true
+usermod -aG ssl-cert www-data || true
 usermod -aG video www-data || true
-

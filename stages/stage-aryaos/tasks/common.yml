@@ -58,6 +58,32 @@
     dest: /usr/local/sbin/
     mode: "0755"
 
+- name: Upload TAK data package importer
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-import-tak-dp"
+    dest: /usr/local/sbin/aryaos-import-tak-dp
+    mode: "0755"
+
+- name: Upload TAK data package import daemon
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-tak-dp-importd"
+    dest: /usr/local/sbin/aryaos-tak-dp-importd
+    mode: "0755"
+
+- name: Install TAK data package import daemon unit
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/systemd/aryaos-tak-dp-importd.service"
+    dest: /etc/systemd/system/aryaos-tak-dp-importd.service
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Enable and start TAK data package import daemon
+  ansible.builtin.systemd:
+    name: aryaos-tak-dp-importd.service
+    enabled: true
+    state: started
+    daemon_reload: true
+
 - name: Ensure gpsd system group (socket group for gpspipe / portal CGI)
   ansible.builtin.group:
     name: gpsd

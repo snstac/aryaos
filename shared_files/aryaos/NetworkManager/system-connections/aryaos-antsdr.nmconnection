@@ -1,0 +1,16 @@
+[connection]
+id=AryaOS ANTSDR
+type=ethernet
+interface-name=eth1
+autoconnect=true
+
+[ethernet]
+
+[ipv4]
+method=manual
+address1=172.31.100.1/24
+address2=192.168.1.9/24
+never-default=true
+
+[ipv6]
+method=disabled

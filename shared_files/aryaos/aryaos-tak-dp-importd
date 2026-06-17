@@ -1,0 +1,87 @@
+#!/usr/bin/python3
+"""Root import daemon for AryaOS TAK connection data packages."""
+
+import json
+import os
+import socket
+import subprocess
+import tempfile
+
+HELPER = "/usr/local/sbin/aryaos-import-tak-dp"
+SOCKET_PATH = "/run/aryaos/tak-dp-import.sock"
+MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+
+
+def response(conn, payload):
+    conn.sendall(json.dumps(payload, sort_keys=True).encode("utf-8") + b"\n")
+
+
+def handle(conn):
+    data = bytearray()
+    while True:
+        chunk = conn.recv(1024 * 1024)
+        if not chunk:
+            break
+        data.extend(chunk)
+        if len(data) > MAX_UPLOAD_BYTES:
+            response(conn, {"ok": False, "error": "Connection package is too large"})
+            return
+    if not data:
+        response(conn, {"ok": False, "error": "Uploaded package is empty"})
+        return
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(prefix="aryaos-tak-dp-", suffix=".zip", delete=False) as tmp:
+            tmp_path = tmp.name
+            tmp.write(data)
+        run = subprocess.run([HELPER, tmp_path], capture_output=True, text=True, timeout=45, check=False)
+        if run.returncode != 0:
+            detail = (run.stderr or run.stdout or "Import failed").strip()
+            try:
+                payload = json.loads(run.stdout)
+                detail = payload.get("error") or detail
+            except json.JSONDecodeError:
+                pass
+            response(conn, {"ok": False, "error": detail})
+            return
+        try:
+            payload = json.loads(run.stdout)
+        except json.JSONDecodeError:
+            response(conn, {"ok": False, "error": "Importer returned invalid JSON"})
+            return
+        response(conn, payload)
+    except subprocess.TimeoutExpired:
+        response(conn, {"ok": False, "error": "Import timed out"})
+    finally:
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+
+def main():
+    os.makedirs(os.path.dirname(SOCKET_PATH), mode=0o755, exist_ok=True)
+    try:
+        os.unlink(SOCKET_PATH)
+    except FileNotFoundError:
+        pass
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as srv:
+        srv.bind(SOCKET_PATH)
+        os.chmod(SOCKET_PATH, 0o660)
+        try:
+            import grp
+
+            gid = grp.getgrnam("www-data").gr_gid
+            os.chown(SOCKET_PATH, 0, gid)
+        except (KeyError, PermissionError):
+            pass
+        srv.listen(8)
+        while True:
+            conn, _ = srv.accept()
+            with conn:
+                handle(conn)
+
+
+if __name__ == "__main__":
+    main()

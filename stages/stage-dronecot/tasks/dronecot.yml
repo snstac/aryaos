@@ -22,14 +22,49 @@
     dest: /usr/local/sbin/
     mode: "0755"
 
-- name: Create /etc/systemd/service/dronecot.service.d
+- name: Create /etc/systemd/system/dronecot.service.d
   ansible.builtin.file:
-    path: /etc/systemd/service/dronecot.service.d
+    path: /etc/systemd/system/dronecot.service.d
     state: directory
     mode: "0755"
 
-- name: Copy execprestart.conf to /etc/systemd/service/dronecot.service.d
+- name: Copy execprestart.conf to /etc/systemd/system/dronecot.service.d
   ansible.builtin.copy:
     src: "{{ shared_files }}/dronecot/execprestart.conf"
-    dest: /etc/systemd/service/dronecot.service.d/
+    dest: /etc/systemd/system/dronecot.service.d/
     mode: "0644"
+  notify: Reload systemd
+
+- name: Disable DroneCOT WLAN reset for ANTSDR listener
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/dronecot/antsdr-listener.conf"
+    dest: /etc/systemd/system/dronecot.service.d/zz-antsdr-listener.conf
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart DroneCOT
+
+- name: Remove DroneCOT default feed URL
+  ansible.builtin.lineinfile:
+    path: /etc/default/dronecot
+    regexp: '^#?FEED_URL='
+    state: absent
+  notify: Restart DroneCOT
+
+- name: Configure DroneCOT ANTSDR listener
+  ansible.builtin.lineinfile:
+    path: /etc/default/dronecot
+    regexp: '^#?{{ item.key }}='
+    line: '{{ item.key }}={{ item.value }}'
+    create: true
+    mode: "0644"
+  loop:
+    - key: DJI_TCP_PORT
+      value: "52002"
+    - key: DJI_BIND_ADDRESS
+      value: "172.31.100.1"
+    - key: DJI_SENSOR_NAME
+      value: "ANTSDR"
+    - key: SENSOR_KEEPALIVE_PERIOD
+      value: "30"
+  notify: Restart DroneCOT

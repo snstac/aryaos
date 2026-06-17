@@ -210,6 +210,74 @@
   padding: 0.12rem 0.45rem;
 }
 
+.aos-upload-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.aos-file-pick {
+  min-width: 0;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--aos-panel-border);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--aos-text);
+  font-family: var(--aos-mono);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0 0.65rem;
+}
+
+.aos-file-pick input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.aos-file-pick span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aos-upload-result {
+  margin-top: 0.65rem;
+  border-radius: 5px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.82rem;
+  font-family: var(--aos-mono);
+}
+
+.aos-upload-result--ok {
+  border: 1px solid rgba(61, 255, 154, 0.35);
+  background: rgba(61, 255, 154, 0.1);
+  color: var(--aos-text);
+}
+
+.aos-upload-result--bad {
+  border: 1px solid rgba(255, 68, 102, 0.4);
+  background: rgba(255, 68, 102, 0.1);
+  color: var(--aos-text);
+}
+
+@media (max-width: 420px) {
+  .aos-upload-form {
+    grid-template-columns: 1fr;
+  }
+
+  .aos-upload-form .uk-button {
+    width: 100%;
+  }
+}
+
 .aos-tak-strip-alert {
   margin-bottom: 0.65rem;
   text-align: left;
