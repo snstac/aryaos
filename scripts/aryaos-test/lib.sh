@@ -36,6 +36,10 @@ unit_active() {
 	systemctl is-active --quiet "$1"
 }
 
+test_profile() {
+	[[ "${ARYAOS_TEST_PROFILE:-default}" == "$1" ]]
+}
+
 print_summary() {
 	echo "---"
 	echo "passed=${ARYAOS_TEST_PASSED} failed=${ARYAOS_TEST_FAILED} warned=${ARYAOS_TEST_WARNED} skipped=${ARYAOS_TEST_SKIPPED}"

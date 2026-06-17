@@ -12,6 +12,7 @@ REPO_ROOT=$(cd "${SCRIPT_DIR}/../../.." && pwd)
 
 install -v -m 0644 "${REPO_ROOT}/manifests/aryaos-sensor-packages.yml" "${ROOTFS_DIR}/usr/src/aryaos-sensor-packages.yml"
 install -v -m 0755 "${REPO_ROOT}/shared_files/aryaos/install-sensor-debs.sh" "${ROOTFS_DIR}/usr/src/install-sensor-debs.sh"
+install -v -m 0755 "${REPO_ROOT}/shared_files/aryaos/patch-cockpit-aryaos-dp" "${ROOTFS_DIR}/usr/src/patch-cockpit-aryaos-dp"
 # snstac apt repository trust anchor (signed repo at https://snstac.github.io/packages).
 install -v -m 0644 "${REPO_ROOT}/shared_files/aryaos/snstac-packages/snstac.gpg" "${ROOTFS_DIR}/usr/src/snstac.gpg"
 install -v -m 0644 "${REPO_ROOT}/shared_files/aryaos/snstac-packages/snstac.sources" "${ROOTFS_DIR}/usr/src/snstac.sources"

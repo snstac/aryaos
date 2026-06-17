@@ -6,6 +6,12 @@ set -euo pipefail
 # shellcheck source=../lib.sh
 source "$(dirname "$0")/../lib.sh"
 
+if test_profile uas; then
+	skip "ADS-B decoder checks skipped on UAS profile"
+	print_summary
+	exit 0
+fi
+
 READSB_HELP=""
 if command -v readsb >/dev/null; then
 	READSB_HELP="$(readsb --help 2>&1 || true)"

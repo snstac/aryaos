@@ -5,6 +5,7 @@
 #   ./scripts/aryaos-test/run.sh
 #   ARYAOS_SSH=pi@10.0.0.5 ./scripts/aryaos-test/run.sh
 #   ARYAOS_TEST_TIER=strict ./scripts/aryaos-test/run.sh
+#   ARYAOS_TEST_PROFILE=uas ./scripts/aryaos-test/run.sh
 #
 # SPDX-License-Identifier: Apache-2.0
 # Copyright Sensors & Signals LLC https://www.snstac.com/
@@ -70,6 +71,7 @@ if ! "${SSH[@]}" "${PI}" true; then
 fi
 
 echo "==> AryaOS integration tests on ${PI} (tier=${ARYAOS_TEST_TIER:-default})"
+echo "==> Profile: ${ARYAOS_TEST_PROFILE:-default}"
 echo "==> SSH: using ${SSH_METHOD}"
 
 REMOTE_STAGE="/tmp/aryaos-test.$$"
@@ -87,7 +89,7 @@ for t in "${TEST_DIR}"/tests/*.sh; do
 	echo ""
 	echo "==> ${name}"
 	set +e
-	"${SSH[@]}" "${PI}" "export ARYAOS_TEST_TIER='${ARYAOS_TEST_TIER:-default}'; export ARYAOS_VALIDATE_PORTAL='${REMOTE_STAGE}/validate_portal.py'; bash '${REMOTE_STAGE}/tests/${name}'"
+	"${SSH[@]}" "${PI}" "export ARYAOS_TEST_TIER='${ARYAOS_TEST_TIER:-default}'; export ARYAOS_TEST_PROFILE='${ARYAOS_TEST_PROFILE:-default}'; export ARYAOS_VALIDATE_PORTAL='${REMOTE_STAGE}/validate_portal.py'; bash '${REMOTE_STAGE}/tests/${name}'"
 	rc=$?
 	set -e
 	if [[ "${rc}" -ne 0 ]]; then

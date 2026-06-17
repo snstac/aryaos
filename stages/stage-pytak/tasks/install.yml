@@ -36,3 +36,13 @@
     update_cache: true
   when: ansible_os_family == "Debian"
 
+- name: Upload cockpit-aryaos data package UI patch
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/patch-cockpit-aryaos-dp"
+    dest: /usr/local/sbin/patch-cockpit-aryaos-dp
+    mode: "0755"
+
+- name: Patch cockpit-aryaos data package UI
+  ansible.builtin.command: /usr/local/sbin/patch-cockpit-aryaos-dp
+  register: cockpit_aryaos_dp_patch
+  changed_when: "'patched cockpit-aryaos' in cockpit_aryaos_dp_patch.stdout"
