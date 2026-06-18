@@ -19,7 +19,7 @@ else
 fi
 
 GET_BODY="$(curl -gk --max-time 8 -sS https://127.0.0.1/cgi-bin/aryaos-tak-dp-upload 2>/dev/null || true)"
-if python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); assert d.get("ok") is True; assert ".zip" in d.get("accept", []); assert d.get("accept_enrollment_url") is True' <<<"${GET_BODY}" 2>/dev/null; then
+if python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); s=d.get("enrollment_status") or {}; assert d.get("ok") is True; assert ".zip" in d.get("accept", []); assert d.get("accept_enrollment_url") is True; assert isinstance(s.get("configured"), bool); assert isinstance(s.get("tls"), dict); assert "import_service_ready" in s' <<<"${GET_BODY}" 2>/dev/null; then
 	ok "TAK DP upload endpoint capability JSON"
 else
 	fail "TAK DP upload endpoint capability JSON invalid"
@@ -40,9 +40,11 @@ else
 fi
 
 if grep -q 'id="card-dp"' /usr/share/cockpit/aryaos/index.html 2>/dev/null \
+	&& grep -q 'tak-enrollment-table' /usr/share/cockpit/aryaos/index.html 2>/dev/null \
 	&& grep -q 'dp-enrollment-url' /usr/share/cockpit/aryaos/index.html 2>/dev/null \
 	&& grep -q 'btn-dp-upload' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null \
-	&& grep -q 'btn-enrollment-import' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null; then
+	&& grep -q 'btn-enrollment-import' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null \
+	&& grep -q 'refreshTakEnrollmentStatus' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null; then
 	ok "Cockpit AryaOS TAK connection UI installed"
 else
 	fail "Cockpit AryaOS TAK connection UI missing"

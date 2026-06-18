@@ -1,16 +1,23 @@
 #!/usr/bin/python3
 """CGI wrapper for AryaOS TAK connection package or enrollment URL import."""
 
+import configparser
 from email.parser import BytesParser
 from email.policy import default
 import json
 import os
 import socket
+import subprocess
 import sys
+from datetime import datetime, timezone
+from pathlib import Path
 
 SOCKET_PATH = "/run/aryaos/tak-dp-import.sock"
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 MAX_ENROLLMENT_URL_BYTES = 8192
+TLS_DIR = Path("/etc/aryaos/tls")
+ARYAOS_CONFIG = Path("/etc/aryaos/aryaos-config.txt")
+CHARONTAK_INI = Path("/etc/charontak.ini")
 
 
 def response(status, payload):
@@ -26,6 +33,105 @@ def response(status, payload):
 def error(status, message):
     response(status, {"ok": False, "error": message})
     raise SystemExit(0)
+
+
+def _read_kv(path):
+    values = {}
+    try:
+        for raw in path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            values[key.strip()] = value.strip().strip("\"'")
+    except OSError:
+        pass
+    return values
+
+
+def _charontak_lane():
+    cfg = configparser.RawConfigParser()
+    cfg.optionxform = str
+    try:
+        cfg.read(CHARONTAK_INI)
+    except configparser.Error:
+        return {}
+    section = "lane:mesh-to-takserver"
+    if not cfg.has_section(section):
+        return {}
+    return {key: value for key, value in cfg.items(section)}
+
+
+def _service_active(unit):
+    try:
+        run = subprocess.run(
+            ["/usr/bin/systemctl", "is-active", unit],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+        return (run.stdout or "").strip()
+    except (OSError, subprocess.TimeoutExpired):
+        return "unknown"
+
+
+def _mtime_iso(paths):
+    mtimes = []
+    for path in paths:
+        try:
+            mtimes.append(path.stat().st_mtime)
+        except OSError:
+            continue
+    if not mtimes:
+        return ""
+    return datetime.fromtimestamp(max(mtimes), tz=timezone.utc).isoformat(timespec="seconds")
+
+
+def enrollment_status():
+    kv = _read_kv(ARYAOS_CONFIG)
+    lane = _charontak_lane()
+    cert = TLS_DIR / "client.pem"
+    key = TLS_DIR / "client.key"
+    ca = TLS_DIR / "ca.pem"
+    socket_ready = os.path.exists(SOCKET_PATH) and stat_is_socket(SOCKET_PATH)
+    service_state = _service_active("aryaos-tak-dp-importd.service")
+    cot_url = lane.get("egress_cot_url") or kv.get("COT_URL") or ""
+    lane_enabled = lane.get("enabled", "").lower() == "true"
+    tls_ready = cert.exists() and key.exists() and ca.exists()
+    takserver_target = cot_url.startswith(("tls://", "ssl://", "tcp://"))
+    configured = bool(lane_enabled and takserver_target and (tls_ready or cot_url.startswith("tcp://")))
+    detail = ""
+    if configured:
+        detail = "Charontak mesh-to-TAK Server lane is enabled."
+    elif not lane_enabled:
+        detail = "Charontak mesh-to-TAK Server lane is not enabled."
+    elif not takserver_target:
+        detail = "No TAK Server target is configured."
+    elif not tls_ready:
+        detail = "TAK Server TLS material is incomplete."
+    return {
+        "configured": configured,
+        "import_service_ready": bool(socket_ready),
+        "import_service_state": service_state,
+        "cot_url": cot_url,
+        "detail": detail,
+        "tls": {
+            "client_cert": cert.exists(),
+            "client_key": key.exists(),
+            "ca": ca.exists(),
+        },
+        "last_updated": _mtime_iso([CHARONTAK_INI, ARYAOS_CONFIG, cert, key, ca]),
+    }
+
+
+def stat_is_socket(path):
+    try:
+        import stat
+
+        return stat.S_ISSOCK(os.stat(path).st_mode)
+    except OSError:
+        return False
 
 
 def parse_upload():
@@ -85,6 +191,7 @@ def main():
                 "accept_enrollment_url": True,
                 "max_bytes": MAX_UPLOAD_BYTES,
                 "max_enrollment_url_bytes": MAX_ENROLLMENT_URL_BYTES,
+                "enrollment_status": enrollment_status(),
             },
         )
         return

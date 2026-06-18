@@ -12,6 +12,7 @@ CSS = PLUGIN_DIR / "aryaos.css"
 DP_CARD = """    <section class="aos-card" id="card-dp">
       <h2>TAK connection</h2>
       <p class="aos-hint">Import an ATAK/iTAK connection data package or paste a one-time TAK Server enrollment URL. AryaOS installs the certs under <code>/etc/aryaos/tls</code> and enables Charontak forwarding to the TAK Server.</p>
+      <table class="aos-table aos-status-table" id="tak-enrollment-table"><tbody></tbody></table>
       <div class="aos-upload-row">
         <label class="aos-file-label">One-time enrollment URL
           <textarea id="dp-enrollment-url" rows="3" placeholder="tak://com.atakmap.app/enroll?host=...&amp;username=...&amp;token=..."></textarea>
@@ -23,6 +24,7 @@ DP_CARD = """    <section class="aos-card" id="card-dp">
           <input type="file" id="dp-file" accept=".zip,.dpk,application/zip,application/octet-stream">
         </label>
         <button class="aos-btn" id="btn-dp-upload">Import package</button>
+        <button class="aos-btn" id="btn-tak-refresh">Refresh status</button>
       </div>
       <span id="dp-status" class="aos-status"></span>
     </section>
@@ -30,7 +32,66 @@ DP_CARD = """    <section class="aos-card" id="card-dp">
 """
 
 DP_JS = """
-/* --- TAK connection import --- */
+/* --- TAK connection import and enrollment status --- */
+function renderTakEnrollmentStatus(payload) {
+    const tbody = $("tak-enrollment-table").querySelector("tbody");
+    const status = payload && payload.enrollment_status ? payload.enrollment_status : {};
+    const bool = (value) => value ? "yes" : "no";
+    const configured = Boolean(status.configured);
+    const serviceReady = Boolean(status.import_service_ready);
+    const rows = [
+        ["Enrollment", configured ? "configured" : "not configured"],
+        ["Import service", serviceReady ? "ready" : "not ready"],
+        ["TAK target", status.cot_url || "not set"],
+        ["TLS material", [
+            "cert " + bool(status.tls && status.tls.client_cert),
+            "key " + bool(status.tls && status.tls.client_key),
+            "CA " + bool(status.tls && status.tls.ca),
+        ].join(", ")],
+    ];
+    if (status.last_updated) rows.push(["Last updated", status.last_updated]);
+    if (status.detail) rows.push(["Detail", status.detail]);
+    tbody.innerHTML = "";
+    rows.forEach(([name, value], idx) => {
+        const tr = document.createElement("tr");
+        const tdName = document.createElement("td");
+        const dot = document.createElement("span");
+        if (idx === 0) dot.className = "aos-dot " + (configured ? "active" : "inactive");
+        else if (idx === 1) dot.className = "aos-dot " + (serviceReady ? "active" : "unknown");
+        else dot.className = "aos-dot unknown";
+        tdName.appendChild(dot);
+        tdName.appendChild(document.createTextNode(name));
+        const tdValue = document.createElement("td");
+        tdValue.textContent = value;
+        tr.appendChild(tdName);
+        tr.appendChild(tdValue);
+        tbody.appendChild(tr);
+    });
+}
+
+function refreshTakEnrollmentStatus() {
+    return fetch("/cgi-bin/aryaos-tak-dp-upload", {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store",
+    })
+        .then((r) => r.json().then((payload) => {
+            if (!r.ok || !payload.ok) throw new Error(payload.error || ("HTTP " + r.status));
+            return payload;
+        }))
+        .then(renderTakEnrollmentStatus)
+        .catch((ex) => {
+            renderTakEnrollmentStatus({
+                enrollment_status: {
+                    configured: false,
+                    import_service_ready: false,
+                    detail: ex.message || String(ex),
+                    tls: {},
+                },
+            });
+        });
+}
+
 function importDataPackage() {
     const el = $("dp-status");
     const fileInput = $("dp-file");
@@ -58,6 +119,7 @@ function importDataPackage() {
             setStatus(el, "Imported " + target + "; Charontak forwarding updated.", true);
             showCurrentTls();
             refreshServices();
+            refreshTakEnrollmentStatus();
         })
         .catch((ex) => setStatus(el, "Import failed: " + (ex.message || ex), false));
 }
@@ -94,6 +156,7 @@ function importEnrollmentUrl() {
             input.value = "";
             showCurrentTls();
             refreshServices();
+            refreshTakEnrollmentStatus();
         })
         .catch((ex) => setStatus(el, "Enrollment failed: " + (ex.message || ex), false));
 }
@@ -101,6 +164,8 @@ function importEnrollmentUrl() {
 """
 
 DP_CSS = """
+.aos-status-table { margin: 0.7rem 0 1rem; }
+.aos-status-table td:first-child { width: 12rem; color: var(--aos-muted); }
 .aos-upload-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; }
 .aos-file-label { flex: 1 1 18rem; }
 .aos-file-label input[type="file"] { display: block; margin-top: 0.3rem; font-weight: 400; }
@@ -111,6 +176,20 @@ DP_CSS = """
 def patch_index():
     text = INDEX.read_text(encoding="utf-8")
     if 'id="card-dp"' in text:
+        changed = False
+        if 'id="tak-enrollment-table"' not in text:
+            marker = '      <div class="aos-upload-row">\n        <label class="aos-file-label">One-time enrollment URL'
+            insert = '      <table class="aos-table aos-status-table" id="tak-enrollment-table"><tbody></tbody></table>\n'
+            if marker not in text:
+                raise RuntimeError(f"{INDEX}: TAK connection status marker not found")
+            text = text.replace(marker, insert + marker)
+            changed = True
+        if 'id="btn-tak-refresh"' not in text:
+            marker = '        <button class="aos-btn" id="btn-dp-upload">Import package</button>'
+            if marker not in text:
+                raise RuntimeError(f"{INDEX}: data package upload button marker not found")
+            text = text.replace(marker, marker + '\n        <button class="aos-btn" id="btn-tak-refresh">Refresh status</button>')
+            changed = True
         if 'id="dp-enrollment-url"' not in text:
             marker = '      <div class="aos-upload-row">\n        <label class="aos-file-label">Connection package (.zip / .dpk)'
             insert = """      <div class="aos-upload-row">
@@ -122,9 +201,11 @@ def patch_index():
 """
             if marker not in text:
                 raise RuntimeError(f"{INDEX}: data package upload row marker not found")
-            INDEX.write_text(text.replace(marker, insert + marker), encoding="utf-8")
-            return True
-        return False
+            text = text.replace(marker, insert + marker)
+            changed = True
+        if changed:
+            INDEX.write_text(text, encoding="utf-8")
+        return changed
     marker = '    <section class="aos-card" id="card-services">\n'
     if marker not in text:
         raise RuntimeError(f"{INDEX}: services card marker not found")
@@ -135,6 +216,15 @@ def patch_index():
 def patch_js():
     text = JS.read_text(encoding="utf-8")
     changed = False
+    if "function refreshTakEnrollmentStatus" not in text:
+        marker = "/* --- Services card --- */"
+        if marker not in text:
+            raise RuntimeError(f"{JS}: services marker not found")
+        text = text.replace(marker, DP_JS + marker)
+        changed = True
+    elif "refreshTakEnrollmentStatus();" not in text.split("function refreshTakEnrollmentStatus", 1)[1]:
+        text = text.replace("showCurrentTls();\n            refreshServices();", "showCurrentTls();\n            refreshServices();\n            refreshTakEnrollmentStatus();")
+        changed = True
     if "function importEnrollmentUrl" not in text:
         marker = "/* --- Services card --- */"
         if marker not in text:
@@ -144,6 +234,7 @@ def patch_js():
     listener = '$("btn-tls-upload").addEventListener("click", installTls);'
     dp_listener = '$("btn-dp-upload").addEventListener("click", importDataPackage);'
     enrollment_listener = '$("btn-enrollment-import").addEventListener("click", importEnrollmentUrl);'
+    refresh_listener = '$("btn-tak-refresh").addEventListener("click", refreshTakEnrollmentStatus);'
     if dp_listener not in text:
         if listener not in text:
             raise RuntimeError(f"{JS}: TLS upload listener marker not found")
@@ -155,6 +246,18 @@ def patch_js():
             raise RuntimeError(f"{JS}: upload listener marker not found")
         text = text.replace(anchor, anchor + "\n" + enrollment_listener)
         changed = True
+    if refresh_listener not in text:
+        anchor = enrollment_listener if enrollment_listener in text else dp_listener
+        if anchor not in text:
+            raise RuntimeError(f"{JS}: refresh listener marker not found")
+        text = text.replace(anchor, anchor + "\n" + refresh_listener)
+        changed = True
+    watch_marker = "    showCurrentTls();\n});"
+    if "refreshTakEnrollmentStatus();" not in text.split("configFile.watch", 1)[1].split("});", 1)[0]:
+        if watch_marker not in text:
+            raise RuntimeError(f"{JS}: config watch marker not found")
+        text = text.replace(watch_marker, "    showCurrentTls();\n    refreshTakEnrollmentStatus();\n});")
+        changed = True
     if changed:
         JS.write_text(text, encoding="utf-8")
     return changed
@@ -162,9 +265,18 @@ def patch_js():
 
 def patch_css():
     text = CSS.read_text(encoding="utf-8")
-    if ".aos-upload-row" in text:
+    additions = []
+    if ".aos-status-table" not in text:
+        additions.append(".aos-status-table { margin: 0.7rem 0 1rem; }")
+        additions.append(".aos-status-table td:first-child { width: 12rem; color: var(--aos-muted); }")
+    if ".aos-upload-row" not in text:
+        additions.append(".aos-upload-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; }")
+        additions.append(".aos-file-label { flex: 1 1 18rem; }")
+        additions.append('.aos-file-label input[type="file"] { display: block; margin-top: 0.3rem; font-weight: 400; }')
+        additions.append('.aos-file-label textarea { display: block; box-sizing: border-box; width: 100%; margin-top: 0.3rem; font: inherit; font-family: monospace; }')
+    if not additions:
         return False
-    CSS.write_text(text.rstrip() + "\n" + DP_CSS, encoding="utf-8")
+    CSS.write_text(text.rstrip() + "\n" + "\n".join(additions) + "\n", encoding="utf-8")
     return True
 
 
