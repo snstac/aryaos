@@ -59,7 +59,10 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/etc
 install -d -m 0755 "${ROOTFS_DIR}/usr/local/sbin"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-import-tak-dp" "${ROOTFS_DIR}/usr/local/sbin/aryaos-import-tak-dp"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tak-dp-importd" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tak-dp-importd"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-gps-time-sync" "${ROOTFS_DIR}/usr/local/sbin/aryaos-gps-time-sync"
 install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-gps-time-sync.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-gps-time-sync.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-tak-dp-importd.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-tak-dp-importd.service"
 

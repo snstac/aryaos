@@ -29,6 +29,12 @@ for svc in "${CORE_SERVICES[@]}"; do
 	fi
 done
 
+if unit_loaded aryaos-gps-time-sync && systemctl is-enabled --quiet aryaos-gps-time-sync.service 2>/dev/null; then
+	ok "aryaos-gps-time-sync installed and enabled"
+else
+	fail "aryaos-gps-time-sync not installed/enabled"
+fi
+
 if test_profile uas; then
 	for svc in readsb adsbcot dump1090-fa dump978-fa; do
 		if unit_active "${svc}"; then

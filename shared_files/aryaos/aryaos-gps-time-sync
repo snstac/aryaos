@@ -1,0 +1,101 @@
+#!/usr/bin/python3
+"""Set system time once from gpsd after the first valid GNSS fix."""
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+from datetime import datetime, timezone
+
+GPSPIPE = "/usr/bin/gpspipe"
+DATE = "/usr/bin/date"
+
+
+def parse_gps_time(value):
+    if not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    dt = dt.astimezone(timezone.utc)
+    if dt.year < 2024:
+        return None
+    return dt
+
+
+def run_gpspipe(timeout):
+    return subprocess.Popen(
+        [GPSPIPE, "-w"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        bufsize=1,
+    )
+
+
+def set_system_time(dt, dry_run=False):
+    current = time.time()
+    target = dt.timestamp()
+    delta = target - current
+    if abs(delta) < 1.0:
+        print(f"system clock already within 1s of GPS time ({dt.isoformat()})")
+        return 0
+    if dry_run:
+        print(f"would set system clock to {dt.isoformat()} (delta {delta:.3f}s)")
+        return 0
+    subprocess.run([DATE, "-u", "--set", f"@{target:.6f}"], check=True)
+    print(f"set system clock to GPS time {dt.isoformat()} (delta {delta:.3f}s)")
+    return 0
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--timeout", type=float, default=0.0, help="seconds to wait; 0 waits forever")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+
+    deadline = time.monotonic() + args.timeout if args.timeout > 0 else None
+    proc = run_gpspipe(args.timeout)
+    try:
+        while True:
+            if deadline is not None and time.monotonic() >= deadline:
+                print("timed out waiting for a GPS fix", file=sys.stderr)
+                return 0
+            line = proc.stdout.readline() if proc.stdout else ""
+            if not line:
+                if proc.poll() is not None:
+                    err = proc.stderr.read().strip() if proc.stderr else ""
+                    print(err or "gpspipe exited before a GPS fix", file=sys.stderr)
+                    return 0
+                time.sleep(0.1)
+                continue
+            try:
+                doc = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if doc.get("class") != "TPV":
+                continue
+            try:
+                mode = int(doc.get("mode") or 0)
+            except (TypeError, ValueError):
+                mode = 0
+            if mode < 2 or doc.get("lat") is None or doc.get("lon") is None:
+                continue
+            dt = parse_gps_time(doc.get("time"))
+            if dt is None:
+                continue
+            return set_system_time(dt, args.dry_run)
+    finally:
+        try:
+            proc.terminate()
+        except ProcessLookupError:
+            pass
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -70,10 +70,23 @@
     dest: /usr/local/sbin/aryaos-tak-dp-importd
     mode: "0755"
 
+- name: Upload GPS time sync helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-gps-time-sync"
+    dest: /usr/local/sbin/aryaos-gps-time-sync
+    mode: "0755"
+
 - name: Install TAK data package import daemon unit
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/systemd/aryaos-tak-dp-importd.service"
     dest: /etc/systemd/system/aryaos-tak-dp-importd.service
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Install GPS time sync unit
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/systemd/aryaos-gps-time-sync.service"
+    dest: /etc/systemd/system/aryaos-gps-time-sync.service
     mode: "0644"
   notify: Reload systemd
 
@@ -126,5 +139,11 @@
 - name: Enable gpsd at boot
   ansible.builtin.systemd:
     name: gpsd.service
+    enabled: true
+    daemon_reload: true
+
+- name: Enable GPS time sync at boot
+  ansible.builtin.systemd:
+    name: aryaos-gps-time-sync.service
     enabled: true
     daemon_reload: true

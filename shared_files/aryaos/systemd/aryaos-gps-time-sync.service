@@ -1,0 +1,13 @@
+[Unit]
+Description=AryaOS GPS time sync from first GNSS fix
+Documentation=man:gpsd
+After=gpsd.service gpsd.socket
+Wants=gpsd.service gpsd.socket
+ConditionPathExists=/usr/bin/gpspipe
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/aryaos-gps-time-sync
+
+[Install]
+WantedBy=multi-user.target

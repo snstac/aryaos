@@ -32,6 +32,7 @@ systemctl enable NetworkManager-dispatcher
 
 systemctl enable cockpit.socket
 systemctl enable lighttpd
+systemctl enable aryaos-gps-time-sync.service
 systemctl enable aryaos-tak-dp-importd.service
 
 getent group gpsd >/dev/null || groupadd --system gpsd
