@@ -6,12 +6,16 @@
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
 # -n : push data without waiting for the first client (faster bring-up for receivers).
-# -G gpsd : control socket /run/gpsd.sock is group-readable so www-data (portal CGI) can use gpspipe.
-# Do not pre-claim generic ttyUSB*/ttyACM* ports; UAS sensors and SDR debug
-# consoles often use the same device classes. USBAUTO lets gpsd attach devices
-# identified as GNSS by udev rules. Set DEVICES explicitly for site-specific GPS.
+# Socket permissions are handled by gpsd.socket.d/socket-group.conf; do not pass
+# a group name to gpsd. The -G flag is for remote TCP listening and takes no
+# argument, so "-G gpsd" makes gpsd try to open a bogus device named "gpsd".
+#
+# Prefer the stable Prolific GNSS symlink used by AryaOS GPS pucks. Do not
+# pre-claim generic ttyUSB*/ttyACM* paths; UAS sensors and SDR debug consoles
+# often use the same device classes. USBAUTO can still attach GNSS receivers
+# identified by udev rules.
 
 START_DAEMON="true"
-GPSD_OPTIONS="-n -G gpsd"
-DEVICES=""
+GPSD_OPTIONS="-n"
+DEVICES="/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0"
 USBAUTO="true"

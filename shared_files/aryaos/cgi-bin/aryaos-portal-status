@@ -751,6 +751,26 @@ def gather_tac_gateways():
     return out
 
 
+def _tpv_score(tpv):
+    if not tpv:
+        return (-1, 0, 0)
+    mode = tpv.get("mode")
+    try:
+        mode_score = int(mode)
+    except (TypeError, ValueError):
+        mode_score = 0
+    has_position = 1 if tpv.get("lat") is not None and tpv.get("lon") is not None else 0
+    has_time = 1 if tpv.get("time") else 0
+    return (mode_score, has_position, has_time)
+
+
+def _sky_score(sky):
+    if not sky:
+        return (-1, 0)
+    sats = sky.get("satellites") or []
+    return (len(sats), sum(1 for s in sats if s.get("used")))
+
+
 def gather_gps():
     out = {
         "ok": False,
@@ -780,8 +800,8 @@ def gather_gps():
         out["error"] = err or f"gpspipe exit {code}"
         return out
 
-    last_tpv = None
-    last_sky = None
+    best_tpv = None
+    best_sky = None
     last_err = None
     saw_json = False
 
@@ -796,9 +816,11 @@ def gather_gps():
         saw_json = True
         cls = doc.get("class")
         if cls == "TPV":
-            last_tpv = doc
+            if _tpv_score(doc) >= _tpv_score(best_tpv):
+                best_tpv = doc
         elif cls == "SKY":
-            last_sky = doc
+            if _sky_score(doc) >= _sky_score(best_sky):
+                best_sky = doc
         elif cls == "ERROR":
             last_err = doc.get("message") or str(doc)
 
@@ -809,20 +831,20 @@ def gather_gps():
     out["ok"] = True
     if last_err:
         out["error"] = last_err
-    elif code != 0 and err and last_tpv is None:
+    elif code != 0 and err and best_tpv is None:
         out["error"] = err
 
-    if last_sky is not None:
-        sats = last_sky.get("satellites") or []
+    if best_sky is not None:
+        sats = best_sky.get("satellites") or []
         out["satellites_visible"] = len(sats)
         out["satellites_used"] = sum(1 for s in sats if s.get("used"))
 
-    if last_tpv is None:
+    if best_tpv is None:
         if not out["error"]:
             out["error"] = "no TPV from gpsd yet"
         return out
 
-    mode = last_tpv.get("mode")
+    mode = best_tpv.get("mode")
     out["mode"] = mode
     ft, _ = fix_type_from_mode(mode)
     out["fix_type"] = ft
@@ -839,8 +861,8 @@ def gather_gps():
         ("climb", "climb_mps"),
         ("time", "time"),
     ):
-        if key in last_tpv and last_tpv[key] is not None:
-            v = last_tpv[key]
+        if key in best_tpv and best_tpv[key] is not None:
+            v = best_tpv[key]
             if isinstance(v, (int, float)):
                 if math.isnan(v) or math.isinf(v):
                     continue
@@ -858,9 +880,9 @@ def gather_gps():
             return float(v)
         return None
 
-    out["alt_hae_m"] = _tpv_float(last_tpv, "altHAE")
+    out["alt_hae_m"] = _tpv_float(best_tpv, "altHAE")
 
-    eph = _tpv_float(last_tpv, "eph")
+    eph = _tpv_float(best_tpv, "eph")
     ex = out.get("epx_m")
     ey = out.get("epy_m")
     ev = out.get("epv_m")

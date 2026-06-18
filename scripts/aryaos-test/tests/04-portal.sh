@@ -48,6 +48,10 @@ d = json.loads(sys.argv[1])
 assert d.get('hostname')
 assert 'system' in d and 'ok' in d['system']
 assert 'tak_gateways' in d
+g = d.get('gps') or {}
+assert g.get('ok') is True
+assert 'fix_type' in g and 'mode' in g
+assert 'satellites_visible' in g and 'satellites_used' in g
 " "${JSON}" && ok "portal JSON minimal schema" || fail "portal JSON schema"
 fi
 
