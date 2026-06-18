@@ -16,6 +16,10 @@ on:
         description: "Release build: disable dev mode (no lab SSH key/sudo, first-boot password expiry enforced)"
         type: boolean
         default: false
+      release_tag:
+        description: "Optional release tag override for workflow_dispatch release builds, e.g. v2.0.0-beta"
+        type: string
+        default: ""
 
 # Per-ref group: main image builds serialize against each other, but PR validate
 # jobs don't queue behind (or get cancelled by) multi-hour main builds.
@@ -221,7 +225,21 @@ jobs:
           set -euo pipefail
           SHORT="$(git rev-parse --short=12 HEAD)"
           TS="$(date -u +%Y.%m.%d.%H%M%S)"
-          TAG="v${TS}-${SHORT}"
+          OVERRIDE="${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || '' }}"
+          if [ -n "${OVERRIDE}" ]; then
+            if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
+              echo "release_tag override is only allowed for release builds" >&2
+              exit 1
+            fi
+            SEMVER_RE='^v(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)([.](0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?([+][0-9A-Za-z-]+([.][0-9A-Za-z-]+)*)?$'
+            if ! printf '%s' "${OVERRIDE}" | grep -Eq "${SEMVER_RE}"; then
+              echo "Invalid release_tag: ${OVERRIDE}" >&2
+              exit 1
+            fi
+            TAG="${OVERRIDE}"
+          else
+            TAG="v${TS}-${SHORT}"
+          fi
           if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
             TAG="${TAG}-dev"
           fi
