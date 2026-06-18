@@ -74,6 +74,7 @@ install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-tak-dp-upload" "/usr/lib/cgi-
 
 install_file 0644 "${SHARED}/aryaos/cockpit.conf" "/etc/cockpit/cockpit.conf"
 install_file 0644 "${SHARED}/aryaos/cockpit.socket-listen.conf" "/etc/systemd/system/cockpit.socket.d/listen.conf"
+install_file 0644 "${SHARED}/aryaos/cockpit/branding.css" "/usr/share/aryaos/cockpit/branding.css"
 install_file 0644 "${SHARED}/aryaos/94-aryaos-setenv-module.conf" "/etc/lighttpd/conf-available/94-aryaos-setenv-module.conf"
 install_file 0644 "${SHARED}/aryaos/95-aryaos-cockpit-https.conf" "/etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf"
 install_file 0644 "${SHARED}/aryaos/96-aryaos-cloudtak-proxy.conf" "/etc/lighttpd/conf-available/96-aryaos-cloudtak-proxy.conf"

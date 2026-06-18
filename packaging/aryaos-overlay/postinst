@@ -48,6 +48,12 @@ case "$1" in
       chgrp ssl-cert /etc/lighttpd/ssl/snakeoil-combined.pem 2>/dev/null || true
     fi
 
+    if [ -f /usr/share/aryaos/cockpit/branding.css ]; then
+      install -d -m 0755 /usr/share/cockpit/branding/debian /usr/share/cockpit/branding/default
+      install -m 0644 -o root -g root /usr/share/aryaos/cockpit/branding.css /usr/share/cockpit/branding/debian/branding.css
+      install -m 0644 -o root -g root /usr/share/aryaos/cockpit/branding.css /usr/share/cockpit/branding/default/branding.css
+    fi
+
     if command -v systemctl >/dev/null 2>&1; then
       systemctl daemon-reload || true
       systemctl enable aryaos-firstboot.service aryaos-tak-dp-importd.service NetworkManager-dispatcher.service 2>/dev/null || true
@@ -58,6 +64,7 @@ case "$1" in
     if [ -x /usr/local/sbin/patch-cockpit-aryaos-dp ]; then
       /usr/local/sbin/patch-cockpit-aryaos-dp >/dev/null 2>&1 || true
     fi
+    rm -rf /var/lib/cockpit/*/cache 2>/dev/null || true
     ;;
 esac
 

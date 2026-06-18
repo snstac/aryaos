@@ -1,0 +1,136 @@
+/*
+ * AryaOS Cockpit branding.
+ *
+ * Cockpit loads this as ../../static/branding.css from the login and shell.
+ * Keep overrides restrained: theme the frame and brand identity while leaving
+ * Cockpit's app internals to their own stylesheets.
+ */
+
+:root {
+  --arya-cockpit-bg: #eef1f0;
+  --arya-cockpit-panel: #fbfdfc;
+  --arya-cockpit-ink: #122322;
+  --arya-cockpit-muted: #53615f;
+  --arya-cockpit-border: rgba(21, 48, 47, 0.18);
+  --arya-cockpit-accent: #1f6f62;
+  --arya-cockpit-accent-dark: #164d45;
+  --arya-cockpit-amber: #9c6b1e;
+}
+
+#badge {
+  inline-size: 72px;
+  block-size: 72px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(31, 111, 98, 0.38);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(31, 111, 98, 0.18), rgba(156, 107, 30, 0.08)),
+    var(--arya-cockpit-panel);
+  box-shadow: 0 10px 28px rgba(14, 29, 31, 0.12);
+}
+
+#badge::before {
+  content: "A";
+  color: var(--arya-cockpit-accent-dark);
+  font-family: "RedHatDisplay", "Red Hat Display", sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+#brand {
+  min-inline-size: 12rem;
+  min-block-size: 2.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: none;
+}
+
+#brand::before {
+  content: "AryaOS";
+  color: var(--arya-cockpit-ink);
+  font-family: "RedHatDisplay", "Red Hat Display", sans-serif;
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+#brand::after {
+  content: "TAK / RF / GNSS";
+  margin-block-start: 0.2rem;
+  color: var(--arya-cockpit-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+body.login-pf,
+html.index-page body {
+  background:
+    linear-gradient(180deg, rgba(12, 31, 31, 0.09), rgba(12, 31, 31, 0) 18rem),
+    var(--arya-cockpit-bg);
+}
+
+.login-pf .container,
+.login-pf .details {
+  background: var(--arya-cockpit-panel);
+  color: var(--arya-cockpit-ink);
+  border-color: var(--arya-cockpit-border);
+}
+
+.login-pf .container .control-label,
+.login-pf .details,
+.login-pf .details p {
+  color: var(--arya-cockpit-ink);
+}
+
+.login-pf .container .help-block,
+.login-pf .details p:not(:first-child) {
+  color: var(--arya-cockpit-muted);
+}
+
+html.index-page .page {
+  background:
+    linear-gradient(to bottom, var(--arya-cockpit-accent), var(--arya-cockpit-accent) 3px, transparent 3px),
+    var(--arya-cockpit-bg);
+}
+
+html.index-page .page .pf-v6-c-masthead,
+html.index-page .page .pf-v6-c-toolbar,
+html.index-page .page .sidebar,
+html.index-page .page .navbar,
+html.index-page .page .area-ct-content {
+  background-color: transparent;
+}
+
+html.index-page .page .sidebar,
+html.index-page .page .navbar {
+  border-color: var(--arya-cockpit-border);
+}
+
+html.index-page .pf-v6-c-page__main-section,
+html.index-page .pf-v6-c-card,
+html.index-page .pf-v6-c-panel {
+  background-color: var(--arya-cockpit-panel);
+}
+
+html.index-page .pf-v6-c-page__main-section,
+html.index-page .pf-v6-c-card,
+html.index-page .pf-v6-c-panel,
+html.index-page .pf-v6-c-content {
+  color: var(--arya-cockpit-ink);
+}
+
+html.index-page .pf-v6-c-nav__link.pf-m-current,
+html.index-page .pf-v6-c-nav__link:hover {
+  --pf-v6-c-nav__link--BackgroundColor: rgba(31, 111, 98, 0.1);
+  --pf-v6-c-nav__link--Color: var(--arya-cockpit-accent-dark);
+}
+
+html.index-page .pf-v6-c-button.pf-m-primary {
+  --pf-v6-c-button--m-primary--BackgroundColor: var(--arya-cockpit-accent);
+  --pf-v6-c-button--m-primary--hover--BackgroundColor: var(--arya-cockpit-accent-dark);
+}
