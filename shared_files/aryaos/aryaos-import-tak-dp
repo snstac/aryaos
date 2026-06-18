@@ -2,6 +2,7 @@
 """Import an ATAK/iTAK connection data package into AryaOS TAK forwarding."""
 
 import configparser
+import asyncio
 import json
 import os
 import shutil
@@ -11,6 +12,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs12
@@ -20,6 +22,7 @@ CHARONTAK_INI = Path(os.environ.get("ARYAOS_CHARONTAK_INI", "/etc/charontak.ini"
 ARYAOS_CONFIG = Path(os.environ.get("ARYAOS_CONFIG", "/etc/aryaos/aryaos-config.txt"))
 TAK_CERTS_GROUP = os.environ.get("ARYAOS_TAK_CERTS_GROUP", "tak-certs")
 MAX_ZIP_BYTES = 12 * 1024 * 1024
+MAX_ENROLLMENT_URL_BYTES = 8192
 
 
 def fail(message, code=1):
@@ -59,6 +62,26 @@ def parse_connect_string(value):
     if proto not in ("ssl", "tls", "tcp"):
         fail(f"Unsupported TAK connectString protocol: {proto}")
     return host, port, proto
+
+
+def parse_enrollment_url(value):
+    value = (value or "").strip()
+    if not value:
+        fail("Enrollment URL is empty")
+    if len(value.encode("utf-8")) > MAX_ENROLLMENT_URL_BYTES:
+        fail("Enrollment URL is too large")
+    parsed = urlparse(value)
+    if parsed.scheme.lower() != "tak":
+        fail("Enrollment URL must use tak://")
+    if parsed.netloc != "com.atakmap.app" or parsed.path.rstrip("/") != "/enroll":
+        fail("Enrollment URL must be a TAK enrollment deep-link")
+    qs = parse_qs(parsed.query, keep_blank_values=False)
+    host = (qs.get("host") or [""])[0].strip()
+    username = (qs.get("username") or [""])[0].strip()
+    token = (qs.get("token") or [""])[0].strip()
+    if not host or not username or not token:
+        fail("Enrollment URL must include host, username, and token")
+    return value, host, username
 
 
 def parse_preferences(pref_bytes):
@@ -276,9 +299,51 @@ def import_package(path):
     }
 
 
+def import_enrollment_url(enrollment_url):
+    try:
+        from pytak.onboarding_packages import enroll_onboarding_package
+    except ImportError as exc:
+        fail(f"PyTAK enrollment support is not installed: {exc}")
+
+    url, host, username = parse_enrollment_url(enrollment_url)
+    with tempfile.TemporaryDirectory(prefix="aryaos-tak-enroll-") as tmpdir:
+        try:
+            result = asyncio.run(
+                enroll_onboarding_package(
+                    url,
+                    output_dir=tmpdir,
+                    package_stem="aryaos-enrollment",
+                    streaming_host=host,
+                    streaming_port=8089,
+                    location_callsign=username,
+                )
+            )
+        except Exception as exc:
+            fail(f"TAK enrollment failed for {username}@{host}: {exc}")
+        package = result.get("data_package_zip") or result.get("data_package_itak_zip")
+        if not package or not os.path.isfile(package):
+            fail("TAK enrollment did not produce a connection package")
+        imported = import_package(package)
+        imported.update(
+            {
+                "source": "enrollment_url",
+                "description": f"TAK enrollment for {username}@{host}",
+                "username": username,
+            }
+        )
+        return imported
+
+
 def main(argv):
+    if len(argv) == 3 and argv[1] == "--enrollment-url-file":
+        try:
+            enrollment_url = Path(argv[2]).read_text(encoding="utf-8").strip()
+        except OSError as exc:
+            fail(f"Could not read enrollment URL: {exc}")
+        print(json.dumps(import_enrollment_url(enrollment_url), sort_keys=True))
+        return
     if len(argv) != 2:
-        fail("usage: aryaos-import-tak-dp <connection-data-package.zip>")
+        fail("usage: aryaos-import-tak-dp <connection-data-package.zip>|--enrollment-url-file <path>")
     try:
         print(json.dumps(import_package(argv[1]), sort_keys=True))
     except zipfile.BadZipFile:

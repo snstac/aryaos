@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""CGI wrapper for AryaOS ATAK/iTAK connection data package upload."""
+"""CGI wrapper for AryaOS TAK connection package or enrollment URL import."""
 
 from email.parser import BytesParser
 from email.policy import default
@@ -10,6 +10,7 @@ import sys
 
 SOCKET_PATH = "/run/aryaos/tak-dp-import.sock"
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+MAX_ENROLLMENT_URL_BYTES = 8192
 
 
 def response(status, payload):
@@ -51,35 +52,58 @@ def parse_upload():
     msg = BytesParser(policy=default).parsebytes(raw)
     if not msg.is_multipart():
         error("400 Bad Request", "Invalid multipart upload")
+    enrollment_url = ""
     for part in msg.iter_parts():
         if part.get_content_disposition() != "form-data":
             continue
-        if part.get_param("name", header="content-disposition") != "package":
+        field_name = part.get_param("name", header="content-disposition")
+        if field_name == "enrollment_url":
+            enrollment_url = (part.get_content() or "").strip()
+            if len(enrollment_url.encode("utf-8")) > MAX_ENROLLMENT_URL_BYTES:
+                error("413 Payload Too Large", "Enrollment URL is too large")
             continue
-        filename = part.get_param("filename", header="content-disposition") or ""
-        payload = part.get_payload(decode=True) or b""
-        if not payload:
-            error("400 Bad Request", "Uploaded package is empty")
-        if len(payload) > MAX_UPLOAD_BYTES:
-            error("413 Payload Too Large", "Connection package is too large")
-        return filename, payload
-    error("400 Bad Request", "Missing package file field")
+        if field_name == "package":
+            filename = part.get_param("filename", header="content-disposition") or ""
+            payload = part.get_payload(decode=True) or b""
+            if payload:
+                if len(payload) > MAX_UPLOAD_BYTES:
+                    error("413 Payload Too Large", "Connection package is too large")
+                return {"type": "package", "filename": filename, "payload": payload}
+    if enrollment_url:
+        return {"type": "enrollment_url", "enrollment_url": enrollment_url}
+    error("400 Bad Request", "Missing package file or enrollment URL field")
 
 
 def main():
     method = os.environ.get("REQUEST_METHOD", "GET").upper()
     if method == "GET":
-        response("200 OK", {"ok": True, "accept": [".zip", ".dpk"], "max_bytes": MAX_UPLOAD_BYTES})
+        response(
+            "200 OK",
+            {
+                "ok": True,
+                "accept": [".zip", ".dpk"],
+                "accept_enrollment_url": True,
+                "max_bytes": MAX_UPLOAD_BYTES,
+                "max_enrollment_url_bytes": MAX_ENROLLMENT_URL_BYTES,
+            },
+        )
         return
     if method != "POST":
         error("405 Method Not Allowed", "Use POST")
-    filename, payload = parse_upload()
-    suffix = ".dpk" if filename.lower().endswith(".dpk") else ".zip"
+    upload = parse_upload()
     try:
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
-            sock.settimeout(50)
+            sock.settimeout(120)
             sock.connect(SOCKET_PATH)
-            sock.sendall(payload)
+            if upload["type"] == "enrollment_url":
+                sock.sendall(
+                    json.dumps(
+                        {"type": "enrollment_url", "enrollment_url": upload["enrollment_url"]},
+                        separators=(",", ":"),
+                    ).encode("utf-8")
+                )
+            else:
+                sock.sendall(upload["payload"])
             sock.shutdown(socket.SHUT_WR)
             chunks = []
             while True:

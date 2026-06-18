@@ -1,17 +1,17 @@
-/* AryaOS portal — SIGINT / RF terminal theme (UIKit overrides) */
+/* AryaOS portal — restrained operations theme (UIKit overrides) */
 
 .aos-theme-sigint {
-  --aos-bg0: #070b0a;
-  --aos-bg1: #0c1210;
-  --aos-panel: rgba(18, 28, 24, 0.92);
-  --aos-panel-border: rgba(0, 255, 170, 0.14);
-  --aos-text: #dce8e2;
-  --aos-muted: #7a9a8c;
-  --aos-phosphor: #3dff9a;
-  --aos-phosphor-dim: #1a8f5a;
-  --aos-amber: #ffb020;
-  --aos-magenta: #ff3d9a;
-  --aos-danger: #ff4466;
+  --aos-bg0: #0b0f0e;
+  --aos-bg1: #111816;
+  --aos-panel: rgba(19, 27, 24, 0.94);
+  --aos-panel-border: rgba(126, 178, 151, 0.22);
+  --aos-text: #e0e7e3;
+  --aos-muted: #91a59b;
+  --aos-phosphor: #7edc9f;
+  --aos-phosphor-dim: #4c8d68;
+  --aos-amber: #d8aa4a;
+  --aos-magenta: #bd6c88;
+  --aos-danger: #dc5f67;
   --aos-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Monaco, Consolas, monospace;
 }
 
@@ -20,8 +20,8 @@
   color: var(--aos-text);
   background-color: var(--aos-bg0);
   background-image:
-    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(0, 255, 140, 0.08), transparent 55%),
-    linear-gradient(180deg, var(--aos-bg1) 0%, var(--aos-bg0) 45%, #050807 100%);
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(126, 220, 159, 0.055), transparent 55%),
+    linear-gradient(180deg, var(--aos-bg1) 0%, var(--aos-bg0) 48%, #080b0a 100%);
   position: relative;
 }
 
@@ -32,7 +32,7 @@
     position: fixed;
     inset: 0;
     z-index: 9999;
-    opacity: 0.04;
+    opacity: 0.018;
     background: repeating-linear-gradient(
       0deg,
       transparent,
@@ -49,7 +49,7 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--aos-muted);
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(5, 8, 7, 0.62);
   border-bottom: 1px solid var(--aos-panel-border);
   padding: 0.45rem 1rem;
   display: flex;
@@ -70,8 +70,8 @@
 
 .aos-topstrip-rx {
   margin-left: auto;
-  color: var(--aos-bg0);
-  background: var(--aos-phosphor);
+  color: #07100b;
+  background: #9fcfab;
   padding: 0.12rem 0.45rem;
   border-radius: 2px;
   font-weight: 700;
@@ -87,10 +87,10 @@
 @keyframes aos-rx-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(61, 255, 154, 0.35);
+    box-shadow: 0 0 0 0 rgba(126, 220, 159, 0.22);
   }
   50% {
-    box-shadow: 0 0 12px 1px rgba(61, 255, 154, 0.25);
+    box-shadow: 0 0 8px 1px rgba(126, 220, 159, 0.16);
   }
 }
 
@@ -102,7 +102,7 @@
 
 .aos-hero {
   border-bottom: 1px solid var(--aos-panel-border);
-  background: linear-gradient(180deg, rgba(0, 40, 28, 0.25) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(26, 42, 35, 0.34) 0%, transparent 100%);
   padding-top: 0.85rem;
   padding-bottom: 0.85rem;
 }
@@ -112,11 +112,11 @@
   font-size: 1.45rem;
   letter-spacing: 0.06em;
   color: var(--aos-text);
-  text-shadow: 0 0 24px rgba(61, 255, 154, 0.15);
+  text-shadow: 0 0 18px rgba(126, 220, 159, 0.08);
 }
 
 .aos-hero-lead {
-  color: #b8cfc4;
+  color: #c1cec8;
   font-size: 0.95rem;
   max-width: 36rem;
   margin-left: auto;
@@ -144,7 +144,7 @@
   padding: 0.2rem 0.55rem;
   border: 1px solid var(--aos-panel-border);
   border-radius: 3px;
-  background: rgba(0, 30, 20, 0.5);
+  background: rgba(11, 20, 16, 0.72);
 }
 
 .aos-hero-badge-dot {
@@ -152,7 +152,7 @@
   height: 0.45rem;
   border-radius: 50%;
   background: var(--aos-phosphor);
-  box-shadow: 0 0 8px var(--aos-phosphor);
+  box-shadow: 0 0 6px rgba(126, 220, 159, 0.45);
 }
 
 @media (prefers-reduced-motion: no-preference) {

@@ -12,6 +12,12 @@ else
 	warn "dhbridge not installed (flash before dhbridge merge?)"
 fi
 
+if dpkg-query -W -f='${Status}' aryaos-overlay 2>/dev/null | grep -q "install ok installed"; then
+	ok "aryaos-overlay package installed"
+else
+	warn "aryaos-overlay package not installed (legacy pre-package image?)"
+fi
+
 if [[ -d /var/www/html/calfire_airbases ]]; then
 	warn "calfire_airbases tiles still present (removal not on this image)"
 else

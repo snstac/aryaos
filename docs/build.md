@@ -35,7 +35,8 @@ Use this checklist when building an **arm64** Raspberry Pi OS–based image on y
 6. Optional **logged Docker build:** `./scripts/agent-build-docker.sh` mirrors output to `build-YYYYMMDD-HHMMSS.log`.
 7. **Lab vs release builds:** by default images carry **no lab access** and **expire the default `pi` password at first login**. For a lab image (aryaos-dev-lab SSH key + passwordless sudo for `pi`, no password expiry) build with **`ARYAOS_LAB_ACCESS=1 make build-docker`** (or `sudo ARYAOS_LAB_ACCESS=1 ./build.sh` native). See `shared_files/aryaos/ssh/README.md`.
 8. **Verify a built image:** `sudo scripts/verify-image.sh [--lab] <image>.img|.img.xz|.zip` loop-mounts the image and asserts key files, packages, units — and that release images ship no lab access. CI runs this on every `main` build before publishing a release.
-9. Lightweight validation without an image: **`make ansible-syntax`** (requires Ansible / `ansible-galaxy` per Makefile).
+9. **Build the AryaOS overlay package only:** `make package-overlay` writes `deploy/debs/aryaos-overlay_<version>_all.deb`, containing the portal, Cockpit proxy integration, TAK data package/enrollment helpers, first-boot identity scripts, gpsd defaults, dispatcher hooks, and related systemd/lighttpd configuration.
+10. Lightweight validation without an image: **`make ansible-syntax`** (requires Ansible / `ansible-galaxy` per Makefile).
 
 ### Cleanup / retry
 
@@ -146,6 +147,8 @@ ansible-playbook -i inventory.yml -e 'aryaos_profile=generic' site.yml --skip-ta
 ```
 
 The PyTAK sensor stack installs from the signed [snstac apt repository](https://snstac.github.io/packages) (built by [snstac/packages](https://github.com/snstac/packages) from each product's latest GitHub Release). The package list is defined once in `manifests/aryaos-sensor-packages.yml` for both image builds and Ansible; the repo's trust anchor (`snstac.gpg` + `snstac.sources`) is vendored at `shared_files/aryaos/snstac-packages/`. `dhbridge` installs from the same repo (public since v0.3.2); `shared_files/dhbridge/` carries only its config payload.
+
+AryaOS-owned appliance files are also buildable as a local Debian package with `make package-overlay`. During pi-gen, `stage-aryaos/00-install` builds that package into the target rootfs and installs it with apt so the running image records the overlay as `aryaos-overlay` in dpkg. The legacy direct-copy path remains in the stage for now as a fallback while the overlay package is being hardened.
 
 ### Check playbook syntax
 

@@ -1,0 +1,12 @@
+Package: aryaos-overlay
+Version: @VERSION@
+Section: admin
+Priority: optional
+Architecture: all
+Maintainer: Sensors & Signals LLC <info@snstac.com>
+Depends: python3, python3-cryptography, pytak, lighttpd, systemd, gpsd, cockpit, ssl-cert
+Recommends: gpsd-clients, bluez
+Description: AryaOS appliance overlay files
+ AryaOS portal, Cockpit proxy integration, TAK connection import helpers,
+ first-boot identity scripts, gpsd defaults, NetworkManager dispatcher hooks,
+ and related systemd/lighttpd configuration.

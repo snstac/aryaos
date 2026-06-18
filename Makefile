@@ -16,7 +16,7 @@
 # pi-gen is intentionally not phony: the clone recipe runs only when ./pi-gen is missing.
 .PHONY: help sync mkdocs aryaaio ansible-syntax check build build-docker \
 	build-docker-clean apt-cacher-up apt-cacher-down apt-cacher-logs apt-cacher-ping \
-	clean distclean clean-logs pi-gen-pull skip unskip test-dev-pi \
+	clean distclean clean-logs pi-gen-pull skip unskip test-dev-pi package-overlay \
 	copyback skip3 skip4 skip5 debauto imxtak
 
 # Optional apt HTTP cache for Docker builds: start `apt-cacher-up`, then:
@@ -27,6 +27,7 @@ ARYAOS_APT_CACHE ?= 0
 # 1 = lab image: aryaos-dev-lab SSH key + passwordless sudo for pi, no first-boot
 # password expiry. Default 0 — release images carry no lab access.
 ARYAOS_LAB_ACCESS ?= 0
+ARYAOS_PROFILE ?= rpi
 ARYAOS_APT_CACHER_PORT ?= 3142
 ARYAOS_APT_PROXY_URL ?= http://host.docker.internal:$(ARYAOS_APT_CACHER_PORT)
 
@@ -43,6 +44,7 @@ help:
 	@echo "  apt-cacher-ping         Curl cache UI on http://127.0.0.1:<ARYAOS_APT_CACHER_PORT>"
 	@echo "  ARYAOS_APT_CACHE=1      Prefix for build-docker to use APT_PROXY (after apt-cacher-up)"
 	@echo "  ARYAOS_LAB_ACCESS=1     Prefix for build/build-docker: bake lab SSH key + pi NOPASSWD sudo"
+	@echo "  ARYAOS_PROFILE=uas      Prefix for UAS image: keep ADS-B/UAT services disabled"
 	@echo "  build-docker-clean      Remove pigen_* containers and .aryaos-pigen-work|deploy only"
 	@echo "  clean                   build-docker-clean + pi-gen/work|deploy + deploy/ + build-*.log"
 	@echo "  clean-logs              Remove repo-root build-*.log only"
@@ -51,6 +53,7 @@ help:
 	@echo "  skip / unskip           Touch or remove SKIP for stage0-2 (faster rebuild loop)"
 	@echo "  ansible-syntax          ansible-playbook --syntax-check"
 	@echo "  test-dev-pi             SSH integration tests against lab Pi (scripts/aryaos-test/run.sh)"
+	@echo "  package-overlay         Build deploy/debs/aryaos-overlay_<version>_all.deb"
 	@echo "  mkdocs                  Docs dev server (pip install -r docs/requirements.txt)"
 	@echo "  Also: check, debauto, imxtak, aryaaio, sync, copyback — see Makefile"
 
@@ -71,6 +74,9 @@ ansible-syntax:
 test-dev-pi:
 	./scripts/aryaos-test/run.sh
 
+package-overlay:
+	./scripts/build-aryaos-overlay-deb.sh
+
 check:
 	ansible-playbook -i inventory.yml -e '@secret' site.yml -l aryaaio --check
 
@@ -85,7 +91,7 @@ build-docker: pi-gen
 	cd pi-gen && \
 	export GIT_HASH=$$(git -C $(CURDIR) rev-parse HEAD) && \
 	export NUM_CORES=$${NUM_CORES:-$$(nproc)} && \
-	PIGEN_DOCKER_OPTS="-v $(CURDIR):/aryaos:ro -v $(CURDIR)/.aryaos-pigen-work:/pi-gen/work -v $(CURDIR)/.aryaos-pigen-deploy:/pi-gen/deploy -e NUM_CORES=$$NUM_CORES -e ARYAOS_LAB_ACCESS=$(ARYAOS_LAB_ACCESS) $(PIGEN_APT_CACHE_FLAGS)" \
+	PIGEN_DOCKER_OPTS="-v $(CURDIR):/aryaos:ro -v $(CURDIR)/.aryaos-pigen-work:/pi-gen/work -v $(CURDIR)/.aryaos-pigen-deploy:/pi-gen/deploy -e NUM_CORES=$$NUM_CORES -e ARYAOS_LAB_ACCESS=$(ARYAOS_LAB_ACCESS) -e ARYAOS_PROFILE=$(ARYAOS_PROFILE) $(PIGEN_APT_CACHE_FLAGS)" \
 	./build-docker.sh -c "$(CURDIR)/config.docker"
 
 apt-cacher-up:

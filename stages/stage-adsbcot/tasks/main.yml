@@ -21,26 +21,48 @@
       - adsb_sdr_sn | string != uat_sdr_sn | string
     fail_msg: "adsb_sdr_sn and uat_sdr_sn must differ — the same EEPROM serial cannot bind readsb/dump1090 and dump978."
 
+- name: Disable ADS-B/UAT services for UAS profile
+  when:
+    - ansible_virtualization_type != 'docker'
+    - aryaos_profile | string == 'uas'
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+  failed_when: false
+  loop:
+    - adsbcot
+    - readsb
+    - dump1090-fa
+    - dump978-fa
+
 - name: Include fa
   ansible.builtin.include_tasks: fa.yml
+  when: aryaos_profile | string != 'uas'
 
 - name: Include tar1090
   ansible.builtin.include_tasks: tar1090.yml
+  when: aryaos_profile | string != 'uas'
 
 - name: Include dump978
   ansible.builtin.include_tasks: dump978.yml
+  when: aryaos_profile | string != 'uas'
 
 - name: Include readsb
   ansible.builtin.include_tasks: readsb.yml
+  when: aryaos_profile | string != 'uas'
 
 - name: Enforce single 1090 MHz decoder (readsb vs dump1090-fa)
   ansible.builtin.include_tasks: adsb-decoder.yml
+  when: aryaos_profile | string != 'uas'
 
 - name: Include adsbcot
   ansible.builtin.include_tasks: adsbcot.yml
+  when: aryaos_profile | string != 'uas'
 
 - name: Include cockpit-adsbcot
   ansible.builtin.include_tasks: cockpit-adsbcot.yml
+  when: aryaos_profile | string != 'uas'
 
 # Create a task that installs the osmocom-rtl-sdr udev rules
 - name: Install osmocom-rtl-sdr udev rules
@@ -49,4 +71,6 @@
     dest: /etc/udev/rules.d/
     mode: "0644"
   # notify: reload udev rules
-  when: ansible_virtualization_type != 'docker'
+  when:
+    - ansible_virtualization_type != 'docker'
+    - aryaos_profile | string != 'uas'

@@ -50,6 +50,7 @@ sed --follow-symlinks -i -E -e "s/FEED_URL.*/FEED_URL=file:\/\/\/run\/adsb\/airc
 
 # 1090 MHz decoder enablement (mutually exclusive). Default readsb; export ARYAOS_ADSB_DECODER_DEFAULT=dump1090_fa to match vars.yml.
 ARYAOS_ADSB_DECODER_DEFAULT="${ARYAOS_ADSB_DECODER_DEFAULT:-readsb}"
+ARYAOS_PROFILE="${ARYAOS_PROFILE:-rpi}"
 
 # Remove # from the line containing FEED_URL in /etc/default/adsbcot
 sed --follow-symlinks -i -E -e "s/^# (FEED_URL.*)/\1/" /etc/default/adsbcot
@@ -58,7 +59,9 @@ sed --follow-symlinks -i -E -e "s/^# (FEED_URL.*)/\1/" /etc/default/adsbcot
 grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/adsbcot.service || sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/adsbcot.service
 
 systemctl daemon-reload || true
-if [[ "${ARYAOS_ADSB_DECODER_DEFAULT}" == "dump1090_fa" ]]; then
+if [[ "${ARYAOS_PROFILE}" == "uas" ]]; then
+	systemctl disable --now adsbcot.service readsb.service dump1090-fa.service dump978-fa.service 2>/dev/null || true
+elif [[ "${ARYAOS_ADSB_DECODER_DEFAULT}" == "dump1090_fa" ]]; then
 	systemctl disable --now readsb.service 2>/dev/null || true
 	systemctl enable dump1090-fa.service 2>/dev/null || true
 else

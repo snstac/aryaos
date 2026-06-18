@@ -71,6 +71,15 @@ else
 	fail "Bluetooth hci0 not found (dhbridge needs BT adapter)"
 fi
 
+if test_profile uas; then
+	GPSD_CMD="$(ps -eo args | grep -E '^/usr/sbin/gpsd([[:space:]]|$)' | head -n1 || true)"
+	if echo "${GPSD_CMD}" | grep -qE '/dev/tty(USB|ACM)[0-9]'; then
+		fail "gpsd claims generic USB serial device on UAS profile (${GPSD_CMD})"
+	else
+		ok "gpsd not claiming generic USB serial devices"
+	fi
+fi
+
 if unit_loaded dronecot; then
 	if unit_active dronecot; then
 		ok "dronecot active"

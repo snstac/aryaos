@@ -17,6 +17,12 @@
 #
 
 
+# Register the AryaOS appliance overlay package in dpkg when stage-aryaos/00-run.sh
+# built it. Legacy file copies remain in 00-run.sh for now as a fallback.
+if [[ -f /usr/src/aryaos-overlay.deb ]]; then
+	DEBIAN_FRONTEND=noninteractive apt-get install -y /usr/src/aryaos-overlay.deb || dpkg -i /usr/src/aryaos-overlay.deb
+fi
+
 # RFC UUID
 systemctl enable aryaos-firstboot
 systemctl set-default multi-user

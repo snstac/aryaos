@@ -39,4 +39,6 @@ export SHARED_FILES
 # Native builds: sudo ARYAOS_LAB_ACCESS=1 ./build.sh; Docker: ARYAOS_LAB_ACCESS=1 make build-docker.
 ARYAOS_LAB_ACCESS="${ARYAOS_LAB_ACCESS:-0}"
 export ARYAOS_LAB_ACCESS
+ARYAOS_PROFILE="${ARYAOS_PROFILE:-rpi}"
+export ARYAOS_PROFILE
 # Optional: export PI_GEN_ROOT for stage-patch if pi-gen dir is not ../pi-gen or ../pi-gen-src relative to repo root.

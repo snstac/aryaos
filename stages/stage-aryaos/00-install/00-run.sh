@@ -28,6 +28,18 @@ if [[ -z "${SHARED_FILES:-}" || ! -d "${SHARED_FILES}" ]]; then
 fi
 export SHARED_FILES
 
+## AryaOS overlay Debian package: keep the appliance-owned files installable via dpkg
+## as well as by the legacy pi-gen copy path below.
+install -d -m 0755 "${ROOTFS_DIR}/usr/src"
+REPO_ROOT="$(cd "${SHARED_FILES}/.." && pwd)"
+if [[ -x "${REPO_ROOT}/scripts/build-aryaos-overlay-deb.sh" ]]; then
+	ARYAOS_DEB_OUT_DIR="${ROOTFS_DIR}/usr/src" "${REPO_ROOT}/scripts/build-aryaos-overlay-deb.sh"
+	OVERLAY_DEB="$(find "${ROOTFS_DIR}/usr/src" -maxdepth 1 -name 'aryaos-overlay_*_all.deb' | sort | tail -n1)"
+	if [[ -n "${OVERLAY_DEB}" ]]; then
+		cp -f "${OVERLAY_DEB}" "${ROOTFS_DIR}/usr/src/aryaos-overlay.deb"
+	fi
+fi
+
 
 # Common
 

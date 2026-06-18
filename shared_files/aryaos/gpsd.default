@@ -7,10 +7,11 @@
 #
 # -n : push data without waiting for the first client (faster bring-up for receivers).
 # -G gpsd : control socket /run/gpsd.sock is group-readable so www-data (portal CGI) can use gpspipe.
-# Common USB serial: ttyUSB* (FTDI/PL2303) and ttyACM* (CDC ACM). USBAUTO picks up
-# hot-plugged GNSS per Debian udev rules.
+# Do not pre-claim generic ttyUSB*/ttyACM* ports; UAS sensors and SDR debug
+# consoles often use the same device classes. USBAUTO lets gpsd attach devices
+# identified as GNSS by udev rules. Set DEVICES explicitly for site-specific GPS.
 
 START_DAEMON="true"
 GPSD_OPTIONS="-n -G gpsd"
-DEVICES="/dev/ttyUSB0 /dev/ttyACM0"
+DEVICES=""
 USBAUTO="true"

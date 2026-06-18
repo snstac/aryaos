@@ -1,0 +1,64 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+  configure)
+    getent group gpsd >/dev/null 2>&1 || groupadd --system gpsd || true
+    getent group tak-certs >/dev/null 2>&1 || groupadd --system tak-certs || true
+    usermod -aG gpsd www-data 2>/dev/null || true
+    usermod -aG ssl-cert www-data 2>/dev/null || true
+    usermod -aG video www-data 2>/dev/null || true
+
+    if [ -f /usr/share/aryaos/defaults/gpsd.default ]; then
+      install -m 0644 -o root -g root /usr/share/aryaos/defaults/gpsd.default /etc/default/gpsd
+    fi
+    if [ ! -f /etc/aryaos/aryaos-config.txt ] && [ -f /usr/share/aryaos/defaults/aryaos-config.txt ]; then
+      install -d -m 0755 /etc/aryaos
+      install -m 0644 -o root -g root /usr/share/aryaos/defaults/aryaos-config.txt /etc/aryaos/aryaos-config.txt
+    fi
+    for banner in issue issue.net motd; do
+      if [ -f "/usr/share/aryaos/defaults/$banner" ]; then
+        install -m 0644 -o root -g root "/usr/share/aryaos/defaults/$banner" "/etc/$banner"
+      fi
+    done
+
+    for user in adsbcot aiscot dronecot lincot charontak dhbridge; do
+      if getent passwd "$user" >/dev/null 2>&1; then
+        usermod -aG tak-certs "$user" 2>/dev/null || true
+      fi
+    done
+
+    for conf in 94-aryaos-setenv-module.conf 95-aryaos-cockpit-https.conf 96-aryaos-cloudtak-proxy.conf 99-aryaos-recorder.conf; do
+      if [ -f "/etc/lighttpd/conf-available/$conf" ]; then
+        ln -sf "/etc/lighttpd/conf-available/$conf" "/etc/lighttpd/conf-enabled/$conf"
+      fi
+    done
+    for mod in openssl proxy redirect cgi deflate; do
+      if [ -f "/etc/lighttpd/conf-available/10-$mod.conf" ]; then
+        ln -sf "/etc/lighttpd/conf-available/10-$mod.conf" "/etc/lighttpd/conf-enabled/10-$mod.conf"
+      fi
+    done
+
+    if [ -r /etc/ssl/certs/ssl-cert-snakeoil.pem ] && [ -r /etc/ssl/private/ssl-cert-snakeoil.key ]; then
+      install -d -m 0755 /etc/lighttpd/ssl
+      umask 077
+      cat /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/private/ssl-cert-snakeoil.key > /etc/lighttpd/ssl/snakeoil-combined.pem.tmp
+      mv -f /etc/lighttpd/ssl/snakeoil-combined.pem.tmp /etc/lighttpd/ssl/snakeoil-combined.pem
+      chmod 0640 /etc/lighttpd/ssl/snakeoil-combined.pem
+      chgrp ssl-cert /etc/lighttpd/ssl/snakeoil-combined.pem 2>/dev/null || true
+    fi
+
+    if command -v systemctl >/dev/null 2>&1; then
+      systemctl daemon-reload || true
+      systemctl enable aryaos-firstboot.service aryaos-tak-dp-importd.service NetworkManager-dispatcher.service 2>/dev/null || true
+      systemctl restart aryaos-tak-dp-importd.service lighttpd.service 2>/dev/null || true
+      systemctl try-restart gpsd.socket gpsd.service cockpit.socket 2>/dev/null || true
+    fi
+
+    if [ -x /usr/local/sbin/patch-cockpit-aryaos-dp ]; then
+      /usr/local/sbin/patch-cockpit-aryaos-dp >/dev/null 2>&1 || true
+    fi
+    ;;
+esac
+
+exit 0

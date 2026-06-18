@@ -8,6 +8,13 @@ source "$(dirname "$0")/../lib.sh"
 
 TIER="${ARYAOS_TEST_TIER:-default}"
 
+FAILED_UNITS="$(systemctl --failed --no-legend --plain 2>/dev/null | awk '{print $1}' | paste -sd ' ' -)"
+if [[ -n "${FAILED_UNITS}" ]]; then
+	fail "system has failed units: ${FAILED_UNITS}"
+else
+	ok "no failed systemd units"
+fi
+
 if test_profile uas; then
 	CORE_SERVICES=(lighttpd gpsd)
 else
@@ -23,11 +30,25 @@ for svc in "${CORE_SERVICES[@]}"; do
 done
 
 if test_profile uas; then
-	for svc in readsb adsbcot; do
+	for svc in readsb adsbcot dump1090-fa dump978-fa; do
 		if unit_active "${svc}"; then
-			warn "${svc} active on UAS profile"
+			fail "${svc} active on UAS profile"
+		elif systemctl is-active "${svc}" 2>/dev/null | grep -qE 'activating|reloading|deactivating'; then
+			fail "${svc} restarting on UAS profile"
 		else
 			skip "${svc} inactive on UAS profile"
+		fi
+	done
+else
+	for svc in dump978-fa; do
+		if unit_loaded "${svc}" && systemctl is-enabled --quiet "${svc}" 2>/dev/null; then
+			if unit_active "${svc}"; then
+				ok "${svc} active"
+			elif systemctl is-active "${svc}" 2>/dev/null | grep -qE 'activating|reloading|deactivating'; then
+				fail "${svc} restarting"
+			else
+				fail "${svc} enabled but not active"
+			fi
 		fi
 	done
 fi

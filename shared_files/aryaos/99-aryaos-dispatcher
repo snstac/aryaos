@@ -17,6 +17,8 @@
 #
 
 AOS_CONFIG="/etc/aryaos/aryaos-config.txt"
+RESTART_STAMP="/run/aryaos-dispatcher-services-restarted"
+RESTART_MIN_INTERVAL_SEC="${ARYAOS_DISPATCHER_RESTART_MIN_INTERVAL_SEC:-20}"
 
 if [ -n "$IP4_NUM_ADDRESSES" ] && [ "$IP4_NUM_ADDRESSES" -gt 0 ]; then
    ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet"
@@ -57,6 +59,19 @@ fi
 # "I'm gonna go-ahead and need you to turn it off, and turn it back on again."
 # - John Leonard, summer 2004.
 restart_aos_services() {
+    now="$(date +%s)"
+    if [ -r "$RESTART_STAMP" ]; then
+        last="$(cat "$RESTART_STAMP" 2>/dev/null || echo 0)"
+        case "$last" in
+            *[!0-9]*|'') last=0 ;;
+        esac
+        if [ $((now - last)) -lt "$RESTART_MIN_INTERVAL_SEC" ]; then
+            echo "99-aryaos-dispatcher skipping service restart; last restart was $((now - last))s ago"
+            return 0
+        fi
+    fi
+    echo "$now" > "$RESTART_STAMP" 2>/dev/null || true
+
     for srv in $AOS_SERVICES; do
         if [ "$(systemctl is-enabled "$srv")" = "enabled" ]; then
             echo "99-aryaos-dispatcher restarting $srv"

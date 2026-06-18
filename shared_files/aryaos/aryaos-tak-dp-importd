@@ -10,6 +10,7 @@ import tempfile
 HELPER = "/usr/local/sbin/aryaos-import-tak-dp"
 SOCKET_PATH = "/run/aryaos/tak-dp-import.sock"
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+MAX_ENROLLMENT_URL_BYTES = 8192
 
 
 def response(conn, payload):
@@ -31,10 +32,34 @@ def handle(conn):
         return
     tmp_path = None
     try:
-        with tempfile.NamedTemporaryFile(prefix="aryaos-tak-dp-", suffix=".zip", delete=False) as tmp:
-            tmp_path = tmp.name
-            tmp.write(data)
-        run = subprocess.run([HELPER, tmp_path], capture_output=True, text=True, timeout=45, check=False)
+        argv = None
+        if data[:1] == b"{":
+            try:
+                request = json.loads(data.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                response(conn, {"ok": False, "error": "Invalid import request"})
+                return
+            if request.get("type") != "enrollment_url":
+                response(conn, {"ok": False, "error": "Unsupported import request"})
+                return
+            enrollment_url = str(request.get("enrollment_url") or "").strip()
+            if not enrollment_url:
+                response(conn, {"ok": False, "error": "Enrollment URL is empty"})
+                return
+            if len(enrollment_url.encode("utf-8")) > MAX_ENROLLMENT_URL_BYTES:
+                response(conn, {"ok": False, "error": "Enrollment URL is too large"})
+                return
+            with tempfile.NamedTemporaryFile(prefix="aryaos-tak-enroll-", suffix=".txt", delete=False, mode="w", encoding="utf-8") as tmp:
+                tmp_path = tmp.name
+                os.chmod(tmp_path, 0o600)
+                tmp.write(enrollment_url)
+            argv = [HELPER, "--enrollment-url-file", tmp_path]
+        else:
+            with tempfile.NamedTemporaryFile(prefix="aryaos-tak-dp-", suffix=".zip", delete=False) as tmp:
+                tmp_path = tmp.name
+                tmp.write(data)
+            argv = [HELPER, tmp_path]
+        run = subprocess.run(argv, capture_output=True, text=True, timeout=90, check=False)
         if run.returncode != 0:
             detail = (run.stderr or run.stdout or "Import failed").strip()
             try:
