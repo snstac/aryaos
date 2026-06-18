@@ -1,0 +1,20 @@
+#!/bin/sh
+# Skip dronecot startup when its configured bind address is not present.
+
+set -eu
+
+if [ -r /etc/default/dronecot ]; then
+	# shellcheck disable=SC1091
+	. /etc/default/dronecot
+fi
+
+if [ -z "${DJI_BIND_ADDRESS:-}" ]; then
+	exit 0
+fi
+
+if ip -4 addr show to "${DJI_BIND_ADDRESS}/32" 2>/dev/null | grep -q .; then
+	exit 0
+fi
+
+echo "dronecot bind address ${DJI_BIND_ADDRESS} is not present; skipping startup" >&2
+exit 1

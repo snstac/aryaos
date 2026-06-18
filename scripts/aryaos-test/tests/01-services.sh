@@ -41,6 +41,8 @@ for svc in charontak lincot adsbcot aiscot dronecot; do
 		ok "TAK gateway ${svc} active"
 	elif test_profile uas && [[ "${svc}" == "adsbcot" ]]; then
 		skip "TAK gateway ${svc} inactive on UAS profile"
+	elif ! test_profile uas && [[ "${svc}" == "dronecot" ]]; then
+		skip "TAK gateway ${svc} inactive outside UAS profile"
 	else
 		warn "TAK gateway ${svc} loaded but not active"
 	fi

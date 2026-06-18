@@ -100,7 +100,7 @@ class NmeaFanout:
                 logger.debug("nmea send %s: %s", addr, exc)
 
 
-def cot_event(tpv, uid, cot_type, stale):
+def cot_event(tpv, uid, cot_type, stale, source_name):
     """CoT position event from a gpsd TPV report."""
     lat = tpv.get("lat")
     lon = tpv.get("lon")
@@ -129,7 +129,7 @@ def cot_event(tpv, uid, cot_type, stale):
     track.set("course", str(tpv.get("track", 0.0) or 0.0))
     track.set("speed", str(tpv.get("speed", 0.0) or 0.0))
     remarks = ET.SubElement(detail, "remarks")
-    remarks.text = "GPSTAK Network GPS (gpsd)"
+    remarks.text = f"Network GPS from {source_name}"
     return ET.tostring(root)
 
 
@@ -143,13 +143,14 @@ class GpsWorker(pytak.QueueWorker):
     async def run(self):
         rate = float(conf("GPSTAK_RATE", "1.0"))
         uid = conf("GPSTAK_UID", "GPSTAK-" + socket.gethostname())
+        source_name = conf("GPSTAK_SOURCE_NAME", socket.gethostname())
         cot_type = conf("GPSTAK_COT_TYPE", "a-f-G")
         stale = int(conf("GPSTAK_STALE", "10"))
-        logger.info("emitting CoT every %ss as uid=%s", rate, uid)
+        logger.info("emitting CoT every %ss as uid=%s source=%s", rate, uid, source_name)
         while True:
             tpv = self.gpsd.tpv
             if tpv:
-                event = cot_event(tpv, uid, cot_type, stale)
+                event = cot_event(tpv, uid, cot_type, stale, source_name)
                 if event:
                     await self.put_queue(event)
             await asyncio.sleep(rate)

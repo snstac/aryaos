@@ -65,6 +65,18 @@ else
 	warn "DEVICE_SUFFIX missing or invalid in aryaos-config.txt"
 fi
 
+if grep -qE '^AOS_SERVICES=.*(^|[[:space:]])dhbridge([[:space:]]|")' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+	fail "dhbridge included in AOS_SERVICES (network restarts interrupt Bluetooth pairing)"
+else
+	ok "dhbridge excluded from network restart list"
+fi
+
+if grep -qE '^AOS_SERVICES=.*(^|[[:space:]])(readsb|dump1090-fa|dump978-fa|gpsd|nodered|tar1090)([[:space:]]|")' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+	fail "local decoder/system service included in AOS_SERVICES"
+else
+	ok "local decoder/system services excluded from network restart list"
+fi
+
 if [[ -f /etc/default/lincot ]]; then
 	if grep -q '^ENABLED=1' /etc/default/lincot && grep -q 'gpspipe' /etc/default/lincot; then
 		ok "lincot enabled with gpspipe"

@@ -11,20 +11,22 @@ if command -v docker >/dev/null && systemctl is-active --quiet docker 2>/dev/nul
 	if docker ps --format '{{.Names}}' 2>/dev/null | grep -qi mqtt; then
 		ok "mqtt docker container running"
 	else
-		warn "no mqtt broker container visible (DroneScout stack down?)"
+		skip "local MQTT broker container not configured by default"
 	fi
 else
 	warn "docker not active (dronecot UAS stack optional)"
 fi
 
-if command -v mosquitto_sub >/dev/null; then
+if command -v mosquitto_sub >/dev/null && ss -ltn 2>/dev/null | awk '{print $4}' | grep -Eq '(^|:|\])1883$'; then
 	if timeout 3 mosquitto_sub -h localhost -t '#' -C 1 >/dev/null 2>&1; then
 		ok "MQTT broker reachable on localhost"
 	else
 		warn "MQTT localhost not responding (no DroneScout traffic)"
 	fi
+elif command -v mosquitto_sub >/dev/null; then
+	skip "mosquitto_sub installed but no local MQTT listener"
 else
-	warn "mosquitto_sub not installed"
+	skip "mosquitto_sub not installed; local MQTT broker not configured by default"
 fi
 
 RFKILL="$(command -v rfkill || true)"
@@ -72,8 +74,22 @@ fi
 if unit_loaded dronecot; then
 	if unit_active dronecot; then
 		ok "dronecot active"
-	else
+	elif test_profile uas; then
 		warn "dronecot not active"
+	else
+		skip "dronecot inactive outside UAS profile"
+	fi
+fi
+
+if unit_active dhbridge; then
+	HOSTNAME_SHORT="$(hostname -s 2>/dev/null || hostname)"
+	DHBRIDGE_BT_NAME="$(journalctl -u dhbridge --grep 'broadcast name' -n 1 --no-pager 2>/dev/null | sed -n "s/.*broadcast name '\([^']*\)'.*/\1/p" | tail -n1)"
+	if [[ "${DHBRIDGE_BT_NAME}" == "${HOSTNAME_SHORT}" ]]; then
+		ok "dhbridge broadcast name matches hostname (${HOSTNAME_SHORT})"
+	elif [[ -n "${DHBRIDGE_BT_NAME}" ]]; then
+		fail "dhbridge broadcast name ${DHBRIDGE_BT_NAME} does not match hostname ${HOSTNAME_SHORT}"
+	else
+		warn "dhbridge broadcast name not found in journal"
 	fi
 fi
 

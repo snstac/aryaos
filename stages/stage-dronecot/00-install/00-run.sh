@@ -31,6 +31,7 @@ rsync -va "${SHARED_FILES}/dronecot/docker-uas-sensor" "${ROOTFS_DIR}/usr/src/"
 # Script to reset wlan interfaces when restarting dronecot
 # FIXME: Add to DroneCOT deb package installer.
 install -v -m 755 "${SHARED_FILES}/dronecot/reset_wlan.sh" "${ROOTFS_DIR}/usr/local/sbin/"
+install -v -m 755 "${SHARED_FILES}/dronecot/aryaos-dronecot-ready" "${ROOTFS_DIR}/usr/local/sbin/"
 mkdir -p "${ROOTFS_DIR}/etc/systemd/system/dronecot.service.d"
 install -v -m 0644 "${SHARED_FILES}/dronecot/execprestart.conf" "${ROOTFS_DIR}/etc/systemd/system/dronecot.service.d"
 install -v -m 0644 \

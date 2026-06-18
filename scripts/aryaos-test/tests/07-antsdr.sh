@@ -6,6 +6,12 @@ set -euo pipefail
 # shellcheck source=../lib.sh
 source "$(dirname "$0")/../lib.sh"
 
+if ! test_profile uas; then
+	skip "ANTSDR checks skipped outside UAS profile"
+	print_summary
+	exit 0
+fi
+
 ANTSDR_HOST_IP="${ARYAOS_ANTSDR_HOST_IP:-172.31.100.1}"
 ANTSDR_DEVICE_IP="${ARYAOS_ANTSDR_DEVICE_IP:-172.31.100.2}"
 

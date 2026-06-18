@@ -96,5 +96,6 @@ if [[ ! -f /etc/sudoers.d/aryaos-lab && ! -f "$PASS_EXPIRED_MARKER" ]] \
 fi
 
 if [[ "$CHANGED" -eq 0 ]]; then
-	exit 64
+	echo "AryaOS firstboot: no changes needed."
+	exit 0
 fi

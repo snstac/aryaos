@@ -38,8 +38,10 @@ ARYAOS_ADSB_DECODER=readsb
 # 1090 MHz ADS-B JSON directory (readsb --write-json and dump1090-fa --write-json). adsbcot FEED_URL uses aircraft.json here.
 ARYAOS_ADSB_JSON_DIR=/run/adsb
 
-# List of services to restart if network state changes (wifi up, ethernet down, etc).
-AOS_SERVICES="charontak dhbridge gpstak readsb dump1090-fa dump978-fa tar1090 dump1090 dump1090-mutability gpsd aiscatcher nodered aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
+# Network-facing CoT services to restart if network state changes.
+# Keep local decoders, GPS, UI, and Bluetooth bridge out of this list; restarting
+# them during boot interrupts radio ingest and Bluetooth pairing/RFCOMM.
+AOS_SERVICES="charontak gpstak aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
 
 # RTL-SDR USB serial string for dump978-fa (UAT / 978 MHz). Factory default matches Nooelec
 # NESDR Nano 3 “978” EEPROM preset: stx:978:0 — do not use the same serial as the 1090 path

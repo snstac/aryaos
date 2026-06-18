@@ -14,6 +14,8 @@ NMEA_TARGETS=
 # Update rate (seconds), CoT identity, staleness:
 GPSTAK_RATE=1.0
 # GPSTAK_UID=GPSTAK-mysensor
+# Defaults to this device's hostname, e.g. aryaos-f285.
+# GPSTAK_SOURCE_NAME=aryaos-mysensor
 GPSTAK_COT_TYPE=a-f-G
 GPSTAK_STALE=10
 

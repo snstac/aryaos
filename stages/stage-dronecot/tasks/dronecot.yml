@@ -22,6 +22,12 @@
     dest: /usr/local/sbin/
     mode: "0755"
 
+- name: Copy aryaos-dronecot-ready to /usr/local/sbin
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/dronecot/aryaos-dronecot-ready"
+    dest: /usr/local/sbin/
+    mode: "0755"
+
 - name: Create /etc/systemd/system/dronecot.service.d
   ansible.builtin.file:
     path: /etc/systemd/system/dronecot.service.d
