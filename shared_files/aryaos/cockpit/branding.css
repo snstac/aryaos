@@ -7,14 +7,17 @@
  */
 
 :root {
-  --arya-cockpit-bg: #eef1f0;
-  --arya-cockpit-panel: #fbfdfc;
-  --arya-cockpit-ink: #122322;
-  --arya-cockpit-muted: #53615f;
-  --arya-cockpit-border: rgba(21, 48, 47, 0.18);
-  --arya-cockpit-accent: #1f6f62;
-  --arya-cockpit-accent-dark: #164d45;
-  --arya-cockpit-amber: #9c6b1e;
+  color-scheme: dark;
+  --arya-cockpit-bg: #071211;
+  --arya-cockpit-bg-2: #0d1b1a;
+  --arya-cockpit-panel: #122322;
+  --arya-cockpit-panel-2: #172c2a;
+  --arya-cockpit-ink: #edf7f4;
+  --arya-cockpit-muted: #9bb2ad;
+  --arya-cockpit-border: rgba(124, 170, 160, 0.28);
+  --arya-cockpit-accent: #35a58f;
+  --arya-cockpit-accent-dark: #6ed4be;
+  --arya-cockpit-amber: #d4a24d;
 }
 
 #badge {
@@ -25,9 +28,9 @@
   border: 1px solid rgba(31, 111, 98, 0.38);
   border-radius: 8px;
   background:
-    linear-gradient(135deg, rgba(31, 111, 98, 0.18), rgba(156, 107, 30, 0.08)),
+    linear-gradient(135deg, rgba(53, 165, 143, 0.24), rgba(212, 162, 77, 0.14)),
     var(--arya-cockpit-panel);
-  box-shadow: 0 10px 28px rgba(14, 29, 31, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.34);
 }
 
 #badge::before {
@@ -70,7 +73,8 @@
 body.login-pf,
 html.index-page body {
   background:
-    linear-gradient(180deg, rgba(12, 31, 31, 0.09), rgba(12, 31, 31, 0) 18rem),
+    linear-gradient(180deg, rgba(53, 165, 143, 0.18), rgba(7, 18, 17, 0) 18rem),
+    linear-gradient(135deg, var(--arya-cockpit-bg-2), var(--arya-cockpit-bg)),
     var(--arya-cockpit-bg);
 }
 
@@ -115,6 +119,7 @@ html.index-page .pf-v6-c-page__main-section,
 html.index-page .pf-v6-c-card,
 html.index-page .pf-v6-c-panel {
   background-color: var(--arya-cockpit-panel);
+  border-color: var(--arya-cockpit-border);
 }
 
 html.index-page .pf-v6-c-page__main-section,
@@ -126,7 +131,7 @@ html.index-page .pf-v6-c-content {
 
 html.index-page .pf-v6-c-nav__link.pf-m-current,
 html.index-page .pf-v6-c-nav__link:hover {
-  --pf-v6-c-nav__link--BackgroundColor: rgba(31, 111, 98, 0.1);
+  --pf-v6-c-nav__link--BackgroundColor: rgba(53, 165, 143, 0.16);
   --pf-v6-c-nav__link--Color: var(--arya-cockpit-accent-dark);
 }
 
