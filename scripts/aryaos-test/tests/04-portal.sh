@@ -41,6 +41,13 @@ else
 	fail "neighbors CGI schema invalid"
 fi
 
+DETAIL_XML="$(/usr/local/sbin/aryaos-cot-detail 2>/dev/null || true)"
+if python3 -c "import sys,xml.etree.ElementTree as ET; root=ET.fromstring(sys.stdin.read()); assert root.tag == '__aryaos'; assert root.find('host') is not None" <<<"${DETAIL_XML}" 2>/dev/null; then
+	ok "AryaOS CoT detail uses __aryaos tag"
+else
+	fail "AryaOS CoT detail tag invalid"
+fi
+
 VALIDATOR="${ARYAOS_VALIDATE_PORTAL:-}"
 if [[ -n "${VALIDATOR}" && -f "${VALIDATOR}" ]]; then
 	if echo "${JSON}" | python3 "${VALIDATOR}"; then

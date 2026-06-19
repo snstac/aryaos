@@ -52,12 +52,15 @@ fi
 if grep -q 'id="card-dp"' /usr/share/cockpit/aryaos/index.html 2>/dev/null \
 	&& grep -q 'tak-enrollment-table' /usr/share/cockpit/aryaos/index.html 2>/dev/null \
 	&& grep -q 'dp-enrollment-url' /usr/share/cockpit/aryaos/index.html 2>/dev/null \
+	&& grep -q 'id="card-neighbors"' /usr/share/cockpit/aryaos/index.html 2>/dev/null \
+	&& grep -q 'neighbors-table' /usr/share/cockpit/aryaos/index.html 2>/dev/null \
 	&& grep -q 'btn-dp-upload' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null \
 	&& grep -q 'btn-enrollment-import' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null \
-	&& grep -q 'refreshTakEnrollmentStatus' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null; then
-	ok "Cockpit AryaOS TAK connection UI installed"
+	&& grep -q 'refreshTakEnrollmentStatus' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null \
+	&& grep -q 'refreshNeighbors' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null; then
+	ok "Cockpit AryaOS TAK connection and neighbor UI installed"
 else
-	fail "Cockpit AryaOS TAK connection UI missing"
+	fail "Cockpit AryaOS TAK connection or neighbor UI missing"
 fi
 
 PORTAL_BODY="$(curl -gk --max-time 8 -sS https://127.0.0.1/ 2>/dev/null || true)"

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Add AryaOS TAK data package import UI to the packaged cockpit-aryaos page."""
+"""Patch packaged cockpit-aryaos with AryaOS overlay-only UI panels."""
 
 from pathlib import Path
 
@@ -27,6 +27,32 @@ DP_CARD = """    <section class="aos-card" id="card-dp">
         <button class="aos-btn" id="btn-tak-refresh">Refresh status</button>
       </div>
       <span id="dp-status" class="aos-status"></span>
+    </section>
+
+"""
+
+NEIGHBOR_CARD = """    <section class="aos-card" id="card-neighbors">
+      <div class="aos-section-head">
+        <h2>Nearby AryaOS nodes</h2>
+        <button class="aos-icon-btn" id="btn-neighbors-refresh" title="Refresh neighbor list" aria-label="Refresh neighbor list">&#8635;</button>
+      </div>
+      <div class="aos-neighbor-summary" id="neighbors-summary">Listening for AryaOS CoT beacons...</div>
+      <div class="aos-table-scroll">
+        <table class="aos-table aos-neighbor-table" id="neighbors-table">
+          <thead>
+            <tr>
+              <th>Node</th>
+              <th>Roles</th>
+              <th>Health</th>
+              <th>Position</th>
+              <th>Seen</th>
+              <th>Admin</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <span id="neighbors-status" class="aos-status"></span>
     </section>
 
 """
@@ -163,6 +189,124 @@ function importEnrollmentUrl() {
 
 """
 
+NEIGHBOR_JS = """
+/* --- AryaOS neighbor discovery --- */
+function truthy(value) {
+    return value === true || value === "true" || value === "1" || value === 1;
+}
+
+function fmtAge(seconds) {
+    const n = Number(seconds);
+    if (!Number.isFinite(n) || n < 0) return "-";
+    if (n < 60) return Math.round(n) + "s";
+    if (n < 3600) return Math.round(n / 60) + "m";
+    return Math.round(n / 3600) + "h";
+}
+
+function fmtNum(value, digits) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return null;
+    return n.toFixed(digits);
+}
+
+function roleText(roles) {
+    const out = [];
+    if (truthy(roles && roles.adsb)) out.push("ADS-B");
+    if (truthy(roles && roles.ais)) out.push("AIS");
+    if (truthy(roles && roles.uas)) out.push("UAS");
+    return out.length ? out.join(" / ") : "base";
+}
+
+function healthText(item) {
+    const sys = item.system || {};
+    const svc = item.services || {};
+    const parts = [];
+    if (sys.load1) parts.push("load " + sys.load1);
+    if (sys.mem_pct) parts.push("mem " + sys.mem_pct + "%");
+    if (sys.temp_c) parts.push(sys.temp_c + " C");
+    const keys = Object.keys(svc);
+    if (keys.length) {
+        const active = keys.filter((k) => svc[k] === "active").length;
+        parts.push(active + "/" + keys.length + " svc");
+    }
+    return parts.join(" | ") || "-";
+}
+
+function positionText(point) {
+    if (!point) return "-";
+    const ce = Number(point.ce);
+    const le = Number(point.le);
+    if (ce >= 999000 || le >= 999000) return "no fix";
+    const lat = fmtNum(point.lat, 4);
+    const lon = fmtNum(point.lon, 4);
+    if (lat === null || lon === null) return "-";
+    return lat + ", " + lon;
+}
+
+function renderNeighbors(payload) {
+    const tbody = $("neighbors-table").querySelector("tbody");
+    const summary = $("neighbors-summary");
+    const status = $("neighbors-status");
+    tbody.innerHTML = "";
+    status.textContent = "";
+    status.className = "aos-status";
+
+    if (!payload || payload.ok === false) {
+        summary.textContent = "Neighbor cache unavailable.";
+        setStatus(status, payload && payload.error ? payload.error : "Could not load neighbors.", false);
+        return;
+    }
+
+    const items = Array.isArray(payload.items) ? payload.items : [];
+    summary.textContent = items.length
+        ? items.length + " node" + (items.length === 1 ? "" : "s") + " heard on Mesh SA"
+        : "Listening for AryaOS CoT beacons...";
+
+    items.forEach((item) => {
+        const host = item.host || {};
+        const tr = document.createElement("tr");
+        [
+            host.name || item.uid || item.source_ip || "-",
+            roleText(item.roles || {}),
+            healthText(item),
+            positionText(item.point || {}),
+            fmtAge(item.age_s),
+        ].forEach((text) => {
+            const td = document.createElement("td");
+            td.textContent = text;
+            tr.appendChild(td);
+        });
+        const td = document.createElement("td");
+        if (host.admin_url) {
+            const a = document.createElement("a");
+            a.href = host.admin_url;
+            a.rel = "noopener noreferrer";
+            a.textContent = "Open";
+            td.appendChild(a);
+        } else {
+            td.textContent = "-";
+        }
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+    });
+}
+
+function refreshNeighbors() {
+    return fetch("/cgi-bin/aryaos-neighbors", {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store",
+    })
+        .then((r) => r.json().then((payload) => {
+            if (!r.ok || payload.ok === false) throw new Error(payload.error || ("HTTP " + r.status));
+            return payload;
+        }))
+        .then(renderNeighbors)
+        .catch((ex) => renderNeighbors({ ok: false, error: ex.message || String(ex) }));
+}
+
+"""
+
 DP_CSS = """
 .aos-status-table { margin: 0.7rem 0 1rem; }
 .aos-status-table td:first-child { width: 12rem; color: var(--aos-muted); }
@@ -175,8 +319,9 @@ DP_CSS = """
 
 def patch_index():
     text = INDEX.read_text(encoding="utf-8")
+    changed = False
+    services_marker = '    <section class="aos-card" id="card-services">\n'
     if 'id="card-dp"' in text:
-        changed = False
         if 'id="tak-enrollment-table"' not in text:
             marker = '      <div class="aos-upload-row">\n        <label class="aos-file-label">One-time enrollment URL'
             insert = '      <table class="aos-table aos-status-table" id="tak-enrollment-table"><tbody></tbody></table>\n'
@@ -203,14 +348,19 @@ def patch_index():
                 raise RuntimeError(f"{INDEX}: data package upload row marker not found")
             text = text.replace(marker, insert + marker)
             changed = True
-        if changed:
-            INDEX.write_text(text, encoding="utf-8")
-        return changed
-    marker = '    <section class="aos-card" id="card-services">\n'
-    if marker not in text:
-        raise RuntimeError(f"{INDEX}: services card marker not found")
-    INDEX.write_text(text.replace(marker, DP_CARD + marker), encoding="utf-8")
-    return True
+    else:
+        if services_marker not in text:
+            raise RuntimeError(f"{INDEX}: services card marker not found")
+        text = text.replace(services_marker, DP_CARD + services_marker)
+        changed = True
+    if 'id="card-neighbors"' not in text:
+        if services_marker not in text:
+            raise RuntimeError(f"{INDEX}: services card marker not found")
+        text = text.replace(services_marker, services_marker + NEIGHBOR_CARD)
+        changed = True
+    if changed:
+        INDEX.write_text(text, encoding="utf-8")
+    return changed
 
 
 def patch_js():
@@ -231,10 +381,17 @@ def patch_js():
             raise RuntimeError(f"{JS}: services marker not found")
         text = text.replace(marker, DP_JS + marker)
         changed = True
+    if "function refreshNeighbors" not in text:
+        marker = "/* --- Services card --- */"
+        if marker not in text:
+            raise RuntimeError(f"{JS}: services marker not found")
+        text = text.replace(marker, NEIGHBOR_JS + marker)
+        changed = True
     listener = '$("btn-tls-upload").addEventListener("click", installTls);'
     dp_listener = '$("btn-dp-upload").addEventListener("click", importDataPackage);'
     enrollment_listener = '$("btn-enrollment-import").addEventListener("click", importEnrollmentUrl);'
     refresh_listener = '$("btn-tak-refresh").addEventListener("click", refreshTakEnrollmentStatus);'
+    neighbors_listener = '$("btn-neighbors-refresh").addEventListener("click", refreshNeighbors);'
     if dp_listener not in text:
         if listener not in text:
             raise RuntimeError(f"{JS}: TLS upload listener marker not found")
@@ -252,11 +409,27 @@ def patch_js():
             raise RuntimeError(f"{JS}: refresh listener marker not found")
         text = text.replace(anchor, anchor + "\n" + refresh_listener)
         changed = True
+    if neighbors_listener not in text:
+        anchor = refresh_listener if refresh_listener in text else listener
+        if anchor not in text:
+            raise RuntimeError(f"{JS}: neighbor refresh listener marker not found")
+        text = text.replace(anchor, anchor + "\n" + neighbors_listener)
+        changed = True
+    if "setInterval(refreshNeighbors, 8000);" not in text:
+        text = text.rstrip() + "\nsetInterval(refreshNeighbors, 8000);\n"
+        changed = True
     watch_marker = "    showCurrentTls();\n});"
-    if "refreshTakEnrollmentStatus();" not in text.split("configFile.watch", 1)[1].split("});", 1)[0]:
+    watch_block = text.split("configFile.watch", 1)[1].split("});", 1)[0]
+    if "refreshTakEnrollmentStatus();" not in watch_block:
         if watch_marker not in text:
             raise RuntimeError(f"{JS}: config watch marker not found")
         text = text.replace(watch_marker, "    showCurrentTls();\n    refreshTakEnrollmentStatus();\n});")
+        changed = True
+    if "refreshNeighbors();" not in text.split("configFile.watch", 1)[1].split("});", 1)[0]:
+        marker = "    refreshTakEnrollmentStatus();"
+        if marker not in text:
+            raise RuntimeError(f"{JS}: neighbor watch marker not found")
+        text = text.replace(marker, marker + "\n    refreshNeighbors();", 1)
         changed = True
     if changed:
         JS.write_text(text, encoding="utf-8")
@@ -274,6 +447,13 @@ def patch_css():
         additions.append(".aos-file-label { flex: 1 1 18rem; }")
         additions.append('.aos-file-label input[type="file"] { display: block; margin-top: 0.3rem; font-weight: 400; }')
         additions.append('.aos-file-label textarea { display: block; box-sizing: border-box; width: 100%; margin-top: 0.3rem; font: inherit; font-family: monospace; }')
+    if ".aos-section-head" not in text:
+        additions.append(".aos-section-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }")
+        additions.append(".aos-section-head h2 { margin: 0; }")
+        additions.append(".aos-icon-btn { width: 2.2rem; height: 2.2rem; border: 1px solid var(--aos-accent); border-radius: 5px; background: var(--aos-panel-2); color: var(--aos-accent-dark); cursor: pointer; font-size: 1.2rem; line-height: 1; }")
+        additions.append(".aos-table-scroll { width: 100%; overflow-x: auto; }")
+        additions.append(".aos-neighbor-summary { margin: 0.6rem 0 0.75rem; color: var(--aos-muted); font-size: 0.9rem; }")
+        additions.append(".aos-neighbor-table { min-width: 48rem; }")
     if not additions:
         return False
     CSS.write_text(text.rstrip() + "\n" + "\n".join(additions) + "\n", encoding="utf-8")
@@ -286,7 +466,7 @@ def main():
     changed = [patch_index(), patch_js(), patch_css()]
     for path in (INDEX, JS, CSS):
         path.chmod(0o644)
-    print("patched cockpit-aryaos data package UI" if any(changed) else "cockpit-aryaos data package UI already present")
+    print("patched cockpit-aryaos overlay UI" if any(changed) else "cockpit-aryaos overlay UI already present")
 
 
 if __name__ == "__main__":

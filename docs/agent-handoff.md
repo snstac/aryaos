@@ -74,7 +74,7 @@ RAM, swap, disk, temperature, uptime, and Pi throttle state. LINCOT maps gpsd TP
 `altHAE`/`eph`/`epx`/`epy`/`epv` to CoT `hae`/`ce`/`le`.
 
 AryaOS also sets `COT_DETAIL_XML_CMD=/usr/local/sbin/aryaos-cot-detail` so the LINCOT
-host beacon carries a structured `<aryaos>` detail block. `aryaos-neighbord.service`
+host beacon carries a structured `<__aryaos>` detail block. `aryaos-neighbord.service`
 listens on Mesh SA multicast (`239.2.3.1:6969`) and writes `/run/aryaos/neighbors.json`
 for `/cgi-bin/aryaos-neighbors` and the landing-page neighbor table.
 | readsb 3.16.15-2 | Jun 2026 | synced to wiedehopf dev; **build debs in `debian:trixie` containers** (Ubuntu builds depend on `librtlsdr2`, uninstallable on Debian) |

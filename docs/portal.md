@@ -52,12 +52,12 @@ Node-RED is **not** on the configuration critical path; use Cockpit and Comitup 
 ## AryaOS Neighbor Discovery
 
 LINCOT emits the local host beacon through Charontak like every other AryaOS CoT
-producer. AryaOS adds a structured `<aryaos>` detail element to that beacon via
+producer. AryaOS adds a structured `<__aryaos>` detail element to that beacon via
 `/usr/local/sbin/aryaos-cot-detail`. The detail carries hostname, admin URL, source IP,
 roles, service states, and coarse system health.
 
 `aryaos-neighbord.service` listens on the Mesh SA multicast group `239.2.3.1:6969`,
-parses CoT events containing `<detail><aryaos>`, and writes a TTL cache to
+parses CoT events containing `<detail><__aryaos>`, and writes a TTL cache to
 `/run/aryaos/neighbors.json`. If LINCOT is not producing a current self beacon
 because the box has no GNSS fix, `aryaos-neighbord` emits a low-rate status-only
 CoT beacon so the node still appears in other AryaOS dashboards. The landing page

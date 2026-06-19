@@ -18,6 +18,8 @@ GROUP = os.environ.get("ARYAOS_NEIGHBOR_COT_GROUP", "239.2.3.1")
 PORT = int(os.environ.get("ARYAOS_NEIGHBOR_COT_PORT", "6969"))
 CACHE_PATH = os.environ.get("ARYAOS_NEIGHBOR_CACHE", "/run/aryaos/neighbors.json")
 TTL = int(os.environ.get("ARYAOS_NEIGHBOR_TTL", "240"))
+DETAIL_TAG = "__aryaos"
+LEGACY_DETAIL_TAG = "aryaos"
 BEACON_ENABLED = os.environ.get("ARYAOS_NEIGHBOR_BEACON", "1").lower() not in {"0", "false", "no"}
 BEACON_INTERVAL = int(os.environ.get("ARYAOS_NEIGHBOR_BEACON_INTERVAL", "60"))
 BEACON_CMD = os.environ.get("ARYAOS_NEIGHBOR_DETAIL_CMD", "/usr/local/sbin/aryaos-cot-detail")
@@ -44,7 +46,7 @@ def _aryaos_detail(root: ET.Element) -> ET.Element | None:
     if detail is None:
         return None
     for child in detail:
-        if _strip_ns(child.tag) == "aryaos":
+        if _strip_ns(child.tag) in {DETAIL_TAG, LEGACY_DETAIL_TAG}:
             return child
     return None
 
@@ -137,11 +139,11 @@ def _detail_xml() -> ET.Element:
     if out:
         try:
             root = ET.fromstring(out)
-            if _strip_ns(root.tag) == "aryaos":
+            if _strip_ns(root.tag) in {DETAIL_TAG, LEGACY_DETAIL_TAG}:
                 return root
         except ET.ParseError:
             pass
-    root = ET.Element("aryaos", {"version": "1"})
+    root = ET.Element(DETAIL_TAG, {"version": "1"})
     ET.SubElement(
         root,
         "host",

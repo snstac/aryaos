@@ -215,7 +215,7 @@ state when available.
 
 For AryaOS-to-AryaOS discovery, the same LINCOT beacon also runs
 `COT_DETAIL_XML_CMD=/usr/local/sbin/aryaos-cot-detail`. That helper emits a structured
-`<aryaos>` CoT detail block. `aryaos-neighbord.service` listens on Mesh SA
+`<__aryaos>` CoT detail block. `aryaos-neighbord.service` listens on Mesh SA
 `239.2.3.1:6969`, caches those beacons in `/run/aryaos/neighbors.json`, and the portal
 serves them from `/cgi-bin/aryaos-neighbors`. If a node has no current GNSS fix and
 LINCOT is not emitting its normal host beacon, `aryaos-neighbord` sends a low-rate

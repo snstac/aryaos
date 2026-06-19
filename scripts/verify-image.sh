@@ -143,6 +143,8 @@ require_path /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
 # AryaOS Site cockpit plugin (site-wide TAK config + TLS)
 require_path /usr/share/cockpit/aryaos/manifest.json
 require_path /usr/share/cockpit/aryaos/aryaos.js
+require_grep 'id="card-neighbors"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos neighbor card"
+require_grep 'refreshNeighbors' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos neighbor refresh"
 
 # GPSTAK network GPS (package from stage-pytak)
 require_pkg gpstak

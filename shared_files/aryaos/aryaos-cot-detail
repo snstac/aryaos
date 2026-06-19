@@ -115,7 +115,7 @@ def main() -> int:
     hostname = socket.gethostname().split(".", 1)[0]
     load1, load5, load15 = _loadavg()
 
-    root = ET.Element("aryaos", {"version": "1"})
+    root = ET.Element("__aryaos", {"version": "1"})
     ET.SubElement(
         root,
         "host",
