@@ -60,7 +60,22 @@ HEX_BIN_MAP=( \
   ["F"]="1111" \
 )
 
-THROTTLED_OUTPUT=$(vcgencmd get_throttled)
+if ! command -v vcgencmd >/dev/null 2>&1; then
+  echo "vcgencmd unavailable."
+  exit 0
+fi
+
+if ! THROTTLED_OUTPUT=$(vcgencmd get_throttled 2>/dev/null); then
+  echo "Throttling status unavailable."
+  exit 0
+fi
+case "$THROTTLED_OUTPUT" in
+  throttled=*) ;;
+  *)
+    echo "Throttling status unavailable."
+    exit 0
+    ;;
+esac
 IFS='x'
 read -a strarr <<< "$THROTTLED_OUTPUT"
 THROTTLED_CODE_HEX=${strarr[1]}

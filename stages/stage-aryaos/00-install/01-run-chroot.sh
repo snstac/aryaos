@@ -42,3 +42,4 @@ usermod -aG gpsd www-data || true
 usermod -aG gpsd lincot || true
 usermod -aG ssl-cert www-data || true
 usermod -aG video www-data || true
+usermod -aG video lincot || true

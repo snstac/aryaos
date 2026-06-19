@@ -101,6 +101,17 @@ if [[ -f /etc/default/lincot ]]; then
 	else
 		fail "lincot host environment remarks helper not configured"
 	fi
+	if id -nG lincot 2>/dev/null | grep -qw video; then
+		ok "lincot can read Raspberry Pi firmware telemetry"
+	else
+		fail "lincot missing video group for Raspberry Pi firmware telemetry"
+	fi
+	REMARKS="$(sudo -u lincot /usr/local/sbin/aryaos-lincot-remarks 2>/dev/null || true)"
+	if grep -q 'Throttle: Can.t open device file' <<<"${REMARKS}"; then
+		fail "lincot remarks leak vcgencmd permission error"
+	else
+		ok "lincot remarks suppress vcgencmd permission errors"
+	fi
 else
 	skip "lincot defaults not present"
 fi

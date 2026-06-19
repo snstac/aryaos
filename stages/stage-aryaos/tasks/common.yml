@@ -136,6 +136,13 @@
     append: true
   notify: Restart lighttpd
 
+- name: Ensure lincot can read Raspberry Pi throttle state
+  ansible.builtin.user:
+    name: lincot
+    groups: video
+    append: true
+  notify: Restart lincot
+
 - name: Enable gpsd at boot
   ansible.builtin.systemd:
     name: gpsd.service

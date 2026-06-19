@@ -110,8 +110,10 @@ def throttle_line() -> str:
         )
     except (OSError, subprocess.TimeoutExpired):
         return ""
+    if run.returncode != 0:
+        return ""
     value = (run.stdout or "").strip()
-    if not value:
+    if not value.startswith("throttled="):
         return ""
     return f"Throttle: {value.split('=', 1)[-1]}"
 
