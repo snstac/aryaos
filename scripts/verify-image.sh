@@ -140,8 +140,9 @@ require_path /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
 require_path /usr/share/cockpit/aryaos/manifest.json
 require_path /usr/share/cockpit/aryaos/aryaos.js
 
-# GPSTAK network GPS (stage-aryaos)
-require_path /usr/local/bin/gpstak
+# GPSTAK network GPS (package from stage-pytak)
+require_pkg gpstak
+require_path /usr/bin/gpstak
 require_path /lib/systemd/system/gpstak.service
 require_path /etc/default/gpstak
 require_path /usr/share/cockpit/gpstak/manifest.json

@@ -192,7 +192,7 @@ All administration happens in Cockpit at `https://<host>/admin/`:
 
 ## GPSTAK: Network GPS for ATAK / WinTAK
 
-`gpstak` (shared_files/gpstak/) feeds the onboard GNSS to TAK devices so tablets can use
+`gpstak` feeds the onboard GNSS to TAK devices so tablets can use
 the sensor's GPS as their own position source: CoT position events to `COT_URL`
 (default `udp+broadcast://255.255.255.255:4349` — ATAK's *External or Network GPS* port)
 plus optional raw-NMEA passthrough for WinTAK (`NMEA_TARGETS`). PyTAK-style config in

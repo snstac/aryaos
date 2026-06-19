@@ -9,6 +9,7 @@ sensor_apt_packages:
   - python3-asyncinotify
   - aircot
   - charontak
+  - gpstak
   - adsbcot
   - aiscot
   - cockpit-aiscot

@@ -86,9 +86,6 @@ install_file 0644 "${SHARED}/aryaos/99-aryaos-recorder.conf" "/etc/lighttpd/conf
 install_file 0600 "${SHARED}/aryaos/NetworkManager/system-connections/aryaos-antsdr.nmconnection" "/etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection"
 install_file 0755 "${SHARED}/aryaos/99-aryaos-dispatcher" "/etc/NetworkManager/dispatcher.d/99-aryaos-dispatcher"
 
-install_file 0755 "${SHARED}/gpstak/gpstak.py" "/usr/local/bin/gpstak"
-install_file 0644 "${SHARED}/gpstak/gpstak.service" "/lib/systemd/system/gpstak.service"
-install_file 0644 "${SHARED}/gpstak/gpstak.default" "/etc/default/gpstak"
 
 DEB_PATH="${OUT_DIR}/aryaos-overlay_${VERSION}_all.deb"
 dpkg-deb --root-owner-group --build "${PKG_ROOT}" "${DEB_PATH}"

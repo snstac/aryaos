@@ -49,13 +49,13 @@ AryaOS is the **master consumer of the PyTAK stack**. Three pillars landed in Ju
 
 ## GPSTAK (new, 2026-06-12)
 
-`shared_files/gpstak/gpstak.py` → `/usr/local/bin/gpstak`: feeds onboard GNSS to TAK
+`gpstak` package → `/usr/bin/gpstak`: feeds onboard GNSS to TAK
 devices per https://ampledata.org/network_gps.html — CoT position events to `COT_URL`
 (default `udp+broadcast://255.255.255.255:4349`, ATAK's *External or Network GPS*) and
 raw-NMEA passthrough for WinTAK (`NMEA_TARGETS`). Reads gpsd's JSON socket; pytak for
 transport (so `PYTAK_TLS_*` applies). Ships **disabled**; managed in Cockpit → GPSTAK
 ([cockpit-gpstak](https://github.com/snstac/cockpit-gpstak)). Verified live on the dev
-Pi. Candidate for extraction to its own repo + deb later.
+Pi. Source and Debian/RPM release packaging live in https://github.com/snstac/gpstak.
 
 ## Fleet state (all on pytak >= 7.3.0, releasing versioned debs)
 
