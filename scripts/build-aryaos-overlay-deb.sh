@@ -58,6 +58,7 @@ install_file 0755 "${SHARED}/aryaos/patch-cockpit-aryaos-dp" "/usr/local/sbin/pa
 install_file 0755 "${SHARED}/aryaos/aryaos-device-suffix.sh" "/usr/local/sbin/aryaos-device-suffix.sh"
 install_file 0755 "${SHARED}/aryaos/aryaos-firstboot.sh" "/usr/local/sbin/aryaos-firstboot.sh"
 install_file 0755 "${SHARED}/aryaos/aryaos-gps-time-sync" "/usr/local/sbin/aryaos-gps-time-sync"
+install_file 0755 "${SHARED}/aryaos/aryaos-lincot-remarks" "/usr/local/sbin/aryaos-lincot-remarks"
 install_file 0755 "${SHARED}/aryaos/get_throttled.sh" "/usr/local/sbin/get_throttled.sh"
 install_file 0755 "${SHARED}/aryaos/run_comitup.sh" "/usr/local/sbin/run_comitup.sh"
 install_file 0755 "${SHARED}/aryaos/comitup-callback.sh" "/usr/local/sbin/comitup-callback.sh"

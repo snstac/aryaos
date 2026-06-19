@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""Emit concise AryaOS host telemetry for LINCOT CoT remarks."""
+
+from __future__ import annotations
+
+import os
+import shutil
+import subprocess
+import time
+
+
+def _read(path: str) -> str:
+    try:
+        with open(path, encoding="utf-8") as fp:
+            return fp.read().strip()
+    except OSError:
+        return ""
+
+
+def _cpu_times() -> tuple[int, int]:
+    fields = _read("/proc/stat").splitlines()[0].split()[1:]
+    vals = [int(v) for v in fields]
+    idle = vals[3] + (vals[4] if len(vals) > 4 else 0)
+    return sum(vals), idle
+
+
+def cpu_percent() -> str:
+    try:
+        total1, idle1 = _cpu_times()
+        time.sleep(0.1)
+        total2, idle2 = _cpu_times()
+    except (IndexError, ValueError):
+        return ""
+    total = total2 - total1
+    idle = idle2 - idle1
+    if total <= 0:
+        return ""
+    return f"{((total - idle) * 100.0 / total):.0f}%"
+
+
+def meminfo() -> dict[str, int]:
+    vals = {}
+    for line in _read("/proc/meminfo").splitlines():
+        parts = line.split()
+        if len(parts) >= 2:
+            vals[parts[0].rstrip(":")] = int(parts[1])
+    return vals
+
+
+def mem_line(vals: dict[str, int]) -> str:
+    total = vals.get("MemTotal", 0)
+    avail = vals.get("MemAvailable", 0)
+    if not total:
+        return ""
+    used = total - avail
+    pct = used * 100.0 / total
+    return f"RAM: {used // 1024}M/{total // 1024}M used ({pct:.0f}%)"
+
+
+def swap_line(vals: dict[str, int]) -> str:
+    total = vals.get("SwapTotal", 0)
+    free = vals.get("SwapFree", 0)
+    if not total:
+        return ""
+    used = total - free
+    return f"Swap: {used // 1024}M/{total // 1024}M used ({(used * 100.0 / total):.0f}%)"
+
+
+def disk_line() -> str:
+    try:
+        usage = shutil.disk_usage("/")
+    except OSError:
+        return ""
+    used = usage.used / (1024 ** 3)
+    total = usage.total / (1024 ** 3)
+    return f"Disk /: {used:.1f}G/{total:.1f}G used ({(usage.used * 100.0 / usage.total):.0f}%)"
+
+
+def temp_line() -> str:
+    raw = _read("/sys/class/thermal/thermal_zone0/temp")
+    try:
+        return f"Temp: {(int(raw) / 1000.0):.1f}C"
+    except ValueError:
+        return ""
+
+
+def uptime_line() -> str:
+    try:
+        seconds = int(float(_read("/proc/uptime").split()[0]))
+    except (IndexError, ValueError):
+        return ""
+    days, rem = divmod(seconds, 86400)
+    hours, rem = divmod(rem, 3600)
+    minutes = rem // 60
+    if days:
+        return f"Uptime: {days}d {hours}h"
+    return f"Uptime: {hours}h {minutes}m"
+
+
+def throttle_line() -> str:
+    if not os.path.exists("/usr/bin/vcgencmd"):
+        return ""
+    try:
+        run = subprocess.run(
+            ["/usr/bin/vcgencmd", "get_throttled"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=1,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    value = (run.stdout or "").strip()
+    if not value:
+        return ""
+    return f"Throttle: {value.split('=', 1)[-1]}"
+
+
+def main() -> int:
+    load = _read("/proc/loadavg").split()[:3]
+    vals = meminfo()
+    lines = ["Host environment:"]
+    cpu = cpu_percent()
+    if cpu or load:
+        lines.append(f"CPU: {cpu or 'n/a'} load {' '.join(load)}")
+    for line in (mem_line(vals), swap_line(vals), disk_line(), temp_line(), uptime_line(), throttle_line()):
+        if line:
+            lines.append(line)
+    print("\n".join(lines))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

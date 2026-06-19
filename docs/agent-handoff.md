@@ -64,6 +64,14 @@ Pi. Candidate for extraction to its own repo + deb later.
 | pytak | 7.3.11 | capability line: cert enrollment, `tak://`, `wss://`, `marti://`, `pytak dp`, `+wo`/`+ro`, MQTT |
 | adsbcot 9.1.0, aprscot 8.0.0, inrcot 5.2.1, cotproxy 1.0.1 | Jun 2026 | pipelines modernized (lincot-style ci.yml) |
 | aiscot 7.1.4, dronecot 2.1.3, djicot 1.2.0, lincot 1.2.3, charontak 0.1.13 | Jun 2026 | charontak ≥ 0.1.13 no longer ships its cockpit plugin in-deb |
+
+## LINCOT / Host Beacon
+
+AryaOS expects LINCOT v1.3.1+ for dynamic host remarks and gpsd-derived CoT accuracy.
+`/etc/default/lincot` sets `GPS_INFO_CMD=gpspipe --json -n 5` and
+`REMARKS_EXTRA_CMD=/usr/local/sbin/aryaos-lincot-remarks`. The helper emits CPU/load,
+RAM, swap, disk, temperature, uptime, and Pi throttle state. LINCOT maps gpsd TPV
+`altHAE`/`eph`/`epx`/`epy`/`epv` to CoT `hae`/`ce`/`le`.
 | readsb 3.16.15-2 | Jun 2026 | synced to wiedehopf dev; **build debs in `debian:trixie` containers** (Ubuntu builds depend on `librtlsdr2`, uninstallable on Debian) |
 | dhbridge 0.3.3 | Jun 2026 | public now; ≥ 0.3.2 required for Pi 5 (sysfs has no `address` attr); `/etc/default/dhbridge` masks `dhbridge.ini` keys (issue #3) |
 | AIS-catcher (fork) 0.68 | Jun 2026 | release workflow runs upstream `build-debian.sh` as root; upstream CI workflows disabled on the fork |

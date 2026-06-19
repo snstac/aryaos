@@ -199,3 +199,16 @@ plus optional raw-NMEA passthrough for WinTAK (`NMEA_TARGETS`). PyTAK-style conf
 `/etc/default/gpstak`; ships **disabled** — enable and configure in **Cockpit → GPSTAK**.
 On the ATAK device: Settings → Device Preferences → GPS Preferences →
 *External or Network GPS*. See https://ampledata.org/network_gps.html.
+
+## LINCOT: Host Beacon Remarks And Accuracy
+
+`lincot` sends the gateway's own host beacon to TAK. AryaOS keeps its `COT_URL` pointed
+at Charontak and sets `GPS_INFO_CMD=gpspipe --json -n 5`, so the beacon position comes
+from the local gpsd TPV fix. LINCOT v1.3.1+ maps gpsd accuracy into CoT point fields:
+`hae` from `altHAE` when present, `ce` from `eph` or `sqrt(epx^2 + epy^2)`, and `le`
+from `epv`.
+
+AryaOS also sets `REMARKS_EXTRA_CMD=/usr/local/sbin/aryaos-lincot-remarks`. LINCOT runs
+that helper for each host beacon and appends a concise host environment snapshot to the
+remarks: CPU/load, RAM, swap, root disk, temperature, uptime, and Raspberry Pi throttle
+state when available.

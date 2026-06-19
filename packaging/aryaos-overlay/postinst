@@ -6,6 +6,7 @@ case "$1" in
     getent group gpsd >/dev/null 2>&1 || groupadd --system gpsd || true
     getent group tak-certs >/dev/null 2>&1 || groupadd --system tak-certs || true
     usermod -aG gpsd www-data 2>/dev/null || true
+    usermod -aG gpsd lincot 2>/dev/null || true
     usermod -aG ssl-cert www-data 2>/dev/null || true
     usermod -aG video www-data 2>/dev/null || true
 

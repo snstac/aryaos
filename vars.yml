@@ -61,6 +61,8 @@ lincot_poll_interval: 61
 lincot_cot_type: a-f-G-E-S
 lincot_cockpit_url: https://127.0.0.1/admin/
 lincot_ssh_user: pi
+lincot_remarks_extra_cmd: /usr/local/sbin/aryaos-lincot-remarks
+lincot_remarks_extra_cmd_timeout: 2
 
 takserver_rpm: takserver-5.2-RELEASE43.noarch.rpm
 takserver_gpg_key: takserver-public-gpg.key

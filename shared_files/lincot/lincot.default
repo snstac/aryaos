@@ -27,6 +27,7 @@ COT_TYPE=a-f-G-E-S
 # Edge node connect info (CoT remarks / link); Cockpit is behind lighttpd /admin/ on AryaOS.
 COCKPIT_URL=https://127.0.0.1/admin/
 SSH_USER=pi
-# REMARKS_EXTRA=
+REMARKS_EXTRA_CMD=/usr/local/sbin/aryaos-lincot-remarks
+REMARKS_EXTRA_CMD_TIMEOUT=2
 
 # Static fallback (no gpsd): GPS_INFO_CMD=/usr/local/bin/get_position.sh

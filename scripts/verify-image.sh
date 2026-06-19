@@ -127,6 +127,7 @@ require_path /etc/aryaos-version
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
 require_path /usr/local/sbin/aryaos-firstboot.sh
+require_path /usr/local/sbin/aryaos-lincot-remarks
 require_path /etc/systemd/system/aryaos-firstboot.service
 require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to charontak"
 
@@ -171,6 +172,7 @@ require_pkg cockpit-charontak
 require_pkg cockpit-gpstak
 require_pkg cockpit-aryaos
 require_pkg readsb
+require_pkg python3-gps
 require_pkg ais-catcher
 require_unit adsbcot.service
 require_unit aiscot.service

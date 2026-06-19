@@ -29,6 +29,7 @@ netcat-openbsd
 nmap
 pkg-config
 python3-cryptography
+python3-gps
 python3-pip
 python3-setuptools
 python3-yaml

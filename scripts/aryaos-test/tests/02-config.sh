@@ -95,6 +95,12 @@ if [[ -f /etc/default/lincot ]]; then
 	else
 		warn "lincot defaults not fully enabled"
 	fi
+	if grep -q '^REMARKS_EXTRA_CMD=/usr/local/sbin/aryaos-lincot-remarks' /etc/default/lincot &&
+		[[ -x /usr/local/sbin/aryaos-lincot-remarks ]]; then
+		ok "lincot host environment remarks helper configured"
+	else
+		fail "lincot host environment remarks helper not configured"
+	fi
 else
 	skip "lincot defaults not present"
 fi
