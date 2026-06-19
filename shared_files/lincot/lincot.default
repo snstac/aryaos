@@ -18,7 +18,7 @@ ENABLED=1
 # STATIC_LAT=
 # STATIC_LON=
 # STATIC_HAE=
-GPS_INFO_CMD=gpspipe --json -n 5
+GPS_INFO_CMD="gpspipe --json -n 5"
 POLL_INTERVAL=61
 
 COT_STALE=3600

@@ -203,7 +203,7 @@ On the ATAK device: Settings → Device Preferences → GPS Preferences →
 ## LINCOT: Host Beacon Remarks And Accuracy
 
 `lincot` sends the gateway's own host beacon to TAK. AryaOS keeps its `COT_URL` pointed
-at Charontak and sets `GPS_INFO_CMD=gpspipe --json -n 5`, so the beacon position comes
+at Charontak and sets `GPS_INFO_CMD="gpspipe --json -n 5"`, so the beacon position comes
 from the local gpsd TPV fix. LINCOT v1.3.1+ maps gpsd accuracy into CoT point fields:
 `hae` from `altHAE` when present, `ce` from `eph` or `sqrt(epx^2 + epy^2)`, and `le`
 from `epv`.

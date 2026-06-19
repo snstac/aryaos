@@ -68,7 +68,7 @@ Pi. Source and Debian/RPM release packaging live in https://github.com/snstac/gp
 ## LINCOT / Host Beacon
 
 AryaOS expects LINCOT v1.3.1+ for dynamic host remarks and gpsd-derived CoT accuracy.
-`/etc/default/lincot` sets `GPS_INFO_CMD=gpspipe --json -n 5` and
+`/etc/default/lincot` sets `GPS_INFO_CMD="gpspipe --json -n 5"` and
 `REMARKS_EXTRA_CMD=/usr/local/sbin/aryaos-lincot-remarks`. The helper emits CPU/load,
 RAM, swap, disk, temperature, uptime, and Pi throttle state. LINCOT maps gpsd TPV
 `altHAE`/`eph`/`epx`/`epy`/`epv` to CoT `hae`/`ce`/`le`.
