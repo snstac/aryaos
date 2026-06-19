@@ -9,6 +9,18 @@ import subprocess
 import time
 
 
+THROTTLE_ISSUES = {
+    0: "Under-voltage detected",
+    1: "Arm frequency capped",
+    2: "Currently throttled",
+    3: "Soft temperature limit active",
+    16: "Under-voltage has occurred",
+    17: "Arm frequency capping has occurred",
+    18: "Throttling has occurred",
+    19: "Soft temperature limit has occurred",
+}
+
+
 def _read(path: str) -> str:
     try:
         with open(path, encoding="utf-8") as fp:
@@ -97,6 +109,15 @@ def uptime_line() -> str:
     return f"Uptime: {hours}h {minutes}m"
 
 
+def throttle_labels(mask: int, bit_base: int) -> list[str]:
+    labels = []
+    for bit in range(4):
+        label = THROTTLE_ISSUES.get(bit_base + bit)
+        if label and mask & (1 << bit):
+            labels.append(label)
+    return labels
+
+
 def throttle_line() -> str:
     if not os.path.exists("/usr/bin/vcgencmd"):
         return ""
@@ -115,7 +136,21 @@ def throttle_line() -> str:
     value = (run.stdout or "").strip()
     if not value.startswith("throttled="):
         return ""
-    return f"Throttle: {value.split('=', 1)[-1]}"
+    raw_text = value.split("=", 1)[-1]
+    try:
+        raw = int(raw_text, 16)
+    except ValueError:
+        return f"Throttle: {raw_text}"
+    current = throttle_labels(raw & 0xF, 0)
+    history = throttle_labels((raw >> 16) & 0xF, 16)
+    if not current and not history:
+        return f"Throttle: ok ({raw_text})"
+    parts = []
+    if current:
+        parts.append("current: " + ", ".join(current))
+    if history:
+        parts.append("history: " + ", ".join(history))
+    return f"Throttle: {'; '.join(parts)} ({raw_text})"
 
 
 def main() -> int:

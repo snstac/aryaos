@@ -91,8 +91,8 @@ else
   for (( i=${#CURRENT_BIN}-1; i>=0; i--)); do
     if [ "${CURRENT_BIN:$i:1}" = "1" ]; then
       echo "~ ${ISSUES_MAP[$bit_n]}"
-      bit_n=$((bit_n+1))
     fi
+    bit_n=$((bit_n+1))
   done
 fi
 
@@ -109,7 +109,7 @@ else
   for (( i=${#PAST_BIN}-1; i>=0; i--)); do
     if [ "${PAST_BIN:$i:1}" = "1" ]; then
       echo "~ ${ISSUES_MAP[$bit_n]}"
-      bit_n=$((bit_n+1))
     fi
+    bit_n=$((bit_n+1))
   done
 fi

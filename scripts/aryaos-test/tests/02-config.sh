@@ -112,6 +112,13 @@ if [[ -f /etc/default/lincot ]]; then
 	else
 		ok "lincot remarks suppress vcgencmd permission errors"
 	fi
+	if grep -Eq 'Throttle: (ok|current:|history:).*\(0x[0-9a-fA-F]+\)' <<<"${REMARKS}"; then
+		ok "lincot remarks decode throttle status"
+	elif grep -q '^Throttle: 0x' <<<"${REMARKS}"; then
+		fail "lincot remarks show raw throttle code only"
+	else
+		skip "lincot throttle status unavailable"
+	fi
 else
 	skip "lincot defaults not present"
 fi
