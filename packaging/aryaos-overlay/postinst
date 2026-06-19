@@ -57,8 +57,8 @@ case "$1" in
 
     if command -v systemctl >/dev/null 2>&1; then
       systemctl daemon-reload || true
-      systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service NetworkManager-dispatcher.service 2>/dev/null || true
-      systemctl restart aryaos-tak-dp-importd.service lighttpd.service 2>/dev/null || true
+      systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-neighbord.service NetworkManager-dispatcher.service 2>/dev/null || true
+      systemctl restart aryaos-tak-dp-importd.service aryaos-neighbord.service lighttpd.service 2>/dev/null || true
       systemctl try-restart gpsd.socket gpsd.service cockpit.socket 2>/dev/null || true
       systemctl start aryaos-gps-time-sync.service 2>/dev/null || true
     fi

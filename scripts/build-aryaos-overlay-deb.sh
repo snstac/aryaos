@@ -59,6 +59,8 @@ install_file 0755 "${SHARED}/aryaos/aryaos-device-suffix.sh" "/usr/local/sbin/ar
 install_file 0755 "${SHARED}/aryaos/aryaos-firstboot.sh" "/usr/local/sbin/aryaos-firstboot.sh"
 install_file 0755 "${SHARED}/aryaos/aryaos-gps-time-sync" "/usr/local/sbin/aryaos-gps-time-sync"
 install_file 0755 "${SHARED}/aryaos/aryaos-lincot-remarks" "/usr/local/sbin/aryaos-lincot-remarks"
+install_file 0755 "${SHARED}/aryaos/aryaos-cot-detail" "/usr/local/sbin/aryaos-cot-detail"
+install_file 0755 "${SHARED}/aryaos/aryaos-neighbord" "/usr/local/sbin/aryaos-neighbord"
 install_file 0755 "${SHARED}/aryaos/get_throttled.sh" "/usr/local/sbin/get_throttled.sh"
 install_file 0755 "${SHARED}/aryaos/run_comitup.sh" "/usr/local/sbin/run_comitup.sh"
 install_file 0755 "${SHARED}/aryaos/comitup-callback.sh" "/usr/local/sbin/comitup-callback.sh"
@@ -68,12 +70,14 @@ install_file 0755 "${SHARED}/aryaos/get_position.sh" "/usr/local/bin/get_positio
 install_file 0644 "${SHARED}/aryaos/aryaos-firstboot.service" "/etc/systemd/system/aryaos-firstboot.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-gps-time-sync.service" "/etc/systemd/system/aryaos-gps-time-sync.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-tak-dp-importd.service" "/etc/systemd/system/aryaos-tak-dp-importd.service"
+install_file 0644 "${SHARED}/aryaos/systemd/aryaos-neighbord.service" "/etc/systemd/system/aryaos-neighbord.service"
 install_file 0644 "${SHARED}/aryaos/systemd/gpsd.socket.d/socket-group.conf" "/etc/systemd/system/gpsd.socket.d/socket-group.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf" "/etc/systemd/system/lighttpd.service.d/aryaos-netlink.conf"
 
 install_tree "${SHARED}/aryaos/html" "/var/www/html"
 install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-portal-status" "/usr/lib/cgi-bin/aryaos-portal-status"
 install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-tak-dp-upload" "/usr/lib/cgi-bin/aryaos-tak-dp-upload"
+install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-neighbors" "/usr/lib/cgi-bin/aryaos-neighbors"
 
 install_file 0644 "${SHARED}/aryaos/cockpit.conf" "/etc/cockpit/cockpit.conf"
 install_file 0644 "${SHARED}/aryaos/cockpit.socket-listen.conf" "/etc/systemd/system/cockpit.socket.d/listen.conf"

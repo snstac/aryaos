@@ -212,3 +212,9 @@ AryaOS also sets `REMARKS_EXTRA_CMD=/usr/local/sbin/aryaos-lincot-remarks`. LINC
 that helper for each host beacon and appends a concise host environment snapshot to the
 remarks: CPU/load, RAM, swap, root disk, temperature, uptime, and Raspberry Pi throttle
 state when available.
+
+For AryaOS-to-AryaOS discovery, the same LINCOT beacon also runs
+`COT_DETAIL_XML_CMD=/usr/local/sbin/aryaos-cot-detail`. That helper emits a structured
+`<aryaos>` CoT detail block. `aryaos-neighbord.service` listens on Mesh SA
+`239.2.3.1:6969`, caches those beacons in `/run/aryaos/neighbors.json`, and the portal
+serves them from `/cgi-bin/aryaos-neighbors`.

@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+"""Listen for AryaOS CoT beacons and maintain a local neighbor cache."""
+
+from __future__ import annotations
+
+import json
+import os
+import socket
+import struct
+import tempfile
+import time
+import xml.etree.ElementTree as ET
+
+
+GROUP = os.environ.get("ARYAOS_NEIGHBOR_COT_GROUP", "239.2.3.1")
+PORT = int(os.environ.get("ARYAOS_NEIGHBOR_COT_PORT", "6969"))
+CACHE_PATH = os.environ.get("ARYAOS_NEIGHBOR_CACHE", "/run/aryaos/neighbors.json")
+TTL = int(os.environ.get("ARYAOS_NEIGHBOR_TTL", "240"))
+
+
+def _strip_ns(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1] if "}" in tag else tag
+
+
+def _child_attrs(parent: ET.Element, name: str) -> dict[str, str]:
+    for child in parent:
+        if _strip_ns(child.tag) == name:
+            return dict(child.attrib)
+    return {}
+
+
+def _aryaos_detail(root: ET.Element) -> ET.Element | None:
+    detail = None
+    for child in root:
+        if _strip_ns(child.tag) == "detail":
+            detail = child
+            break
+    if detail is None:
+        return None
+    for child in detail:
+        if _strip_ns(child.tag) == "aryaos":
+            return child
+    return None
+
+
+def _point(root: ET.Element) -> dict[str, str]:
+    for child in root:
+        if _strip_ns(child.tag) == "point":
+            return dict(child.attrib)
+    return {}
+
+
+def _parse_event(data: bytes, source_ip: str) -> tuple[str, dict] | None:
+    try:
+        root = ET.fromstring(data.strip())
+    except ET.ParseError:
+        return None
+    if _strip_ns(root.tag) != "event":
+        return None
+    aryaos = _aryaos_detail(root)
+    if aryaos is None:
+        return None
+    host = _child_attrs(aryaos, "host")
+    system = _child_attrs(aryaos, "system")
+    services = _child_attrs(aryaos, "services")
+    roles = _child_attrs(aryaos, "roles")
+    point = _point(root)
+    name = host.get("name") or root.attrib.get("uid") or source_ip
+    now = int(time.time())
+    item = {
+        "uid": root.attrib.get("uid"),
+        "cot_type": root.attrib.get("type"),
+        "stale": root.attrib.get("stale"),
+        "event_time": root.attrib.get("time"),
+        "seen_at": now,
+        "source_ip": source_ip,
+        "host": host,
+        "system": system,
+        "services": services,
+        "roles": roles,
+        "point": point,
+    }
+    return name, item
+
+
+def _load_cache() -> dict[str, dict]:
+    try:
+        with open(CACHE_PATH, encoding="utf-8") as fp:
+            data = json.load(fp)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    items = data.get("items", [])
+    if not isinstance(items, list):
+        return {}
+    out = {}
+    for item in items:
+        if isinstance(item, dict):
+            host = item.get("host") or {}
+            name = host.get("name") or item.get("uid")
+            if name:
+                out[str(name)] = item
+    return out
+
+
+def _write_cache(cache: dict[str, dict]) -> None:
+    now = int(time.time())
+    items = []
+    for item in cache.values():
+        try:
+            age = now - int(item.get("seen_at") or 0)
+        except (TypeError, ValueError):
+            age = TTL + 1
+        if age <= TTL:
+            out = dict(item)
+            out["age_s"] = age
+            items.append(out)
+    items.sort(key=lambda i: ((i.get("host") or {}).get("name") or ""))
+    payload = {"ok": True, "updated_at": now, "ttl_s": TTL, "items": items}
+    directory = os.path.dirname(CACHE_PATH)
+    os.makedirs(directory, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=".neighbors.", dir=directory, text=True)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fp:
+            json.dump(payload, fp, separators=(",", ":"), sort_keys=True)
+            fp.write("\n")
+        os.chmod(tmp, 0o644)
+        os.replace(tmp, CACHE_PATH)
+    finally:
+        try:
+            os.unlink(tmp)
+        except FileNotFoundError:
+            pass
+
+
+def _socket() -> socket.socket:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    except OSError:
+        pass
+    sock.bind(("", PORT))
+    mreq = struct.pack("=4s4s", socket.inet_aton(GROUP), socket.inet_aton("0.0.0.0"))
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    return sock
+
+
+def main() -> int:
+    cache = _load_cache()
+    _write_cache(cache)
+    sock = _socket()
+    while True:
+        data, addr = sock.recvfrom(65535)
+        parsed = _parse_event(data, addr[0])
+        if parsed is None:
+            continue
+        name, item = parsed
+        cache[name] = item
+        _write_cache(cache)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

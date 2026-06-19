@@ -61,11 +61,15 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-import-tak-dp" "${ROOTFS_DIR}/
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tak-dp-importd" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tak-dp-importd"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-gps-time-sync" "${ROOTFS_DIR}/usr/local/sbin/aryaos-gps-time-sync"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-lincot-remarks" "${ROOTFS_DIR}/usr/local/sbin/aryaos-lincot-remarks"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-cot-detail" "${ROOTFS_DIR}/usr/local/sbin/aryaos-cot-detail"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-neighbord" "${ROOTFS_DIR}/usr/local/sbin/aryaos-neighbord"
 install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-gps-time-sync.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-gps-time-sync.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-tak-dp-importd.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-tak-dp-importd.service"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-neighbord.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-neighbord.service"
 
 ## Raspberry Pi: raise USB host current where firmware supports it (multi-SDR loads)
 ARYAOS_USB_FRAG="${SHARED_FILES}/aryaos/boot/firmware/aryaos-usb-power.fragment"
@@ -111,6 +115,7 @@ chmod 0655 "${ROOTFS_DIR}/var/www/html"
 install -d -m 0755 "${ROOTFS_DIR}/usr/lib/cgi-bin"
 install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-portal-status" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-portal-status"
 install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-tak-dp-upload" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-tak-dp-upload"
+install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-neighbors" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-neighbors"
 
 ## Lab access (ARYAOS_LAB_ACCESS=1 only): trust aryaos-dev-lab.pub for user pi and
 ## grant pi passwordless sudo. Release builds (default) get neither — see

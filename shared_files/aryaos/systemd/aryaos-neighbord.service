@@ -1,0 +1,15 @@
+[Unit]
+Description=AryaOS CoT neighbor discovery cache
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/aryaos-neighbord
+Restart=on-failure
+RestartSec=3s
+RuntimeDirectory=aryaos
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target

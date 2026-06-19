@@ -72,6 +72,11 @@ AryaOS expects LINCOT v1.3.1+ for dynamic host remarks and gpsd-derived CoT accu
 `REMARKS_EXTRA_CMD=/usr/local/sbin/aryaos-lincot-remarks`. The helper emits CPU/load,
 RAM, swap, disk, temperature, uptime, and Pi throttle state. LINCOT maps gpsd TPV
 `altHAE`/`eph`/`epx`/`epy`/`epv` to CoT `hae`/`ce`/`le`.
+
+AryaOS also sets `COT_DETAIL_XML_CMD=/usr/local/sbin/aryaos-cot-detail` so the LINCOT
+host beacon carries a structured `<aryaos>` detail block. `aryaos-neighbord.service`
+listens on Mesh SA multicast (`239.2.3.1:6969`) and writes `/run/aryaos/neighbors.json`
+for `/cgi-bin/aryaos-neighbors` and the landing-page neighbor table.
 | readsb 3.16.15-2 | Jun 2026 | synced to wiedehopf dev; **build debs in `debian:trixie` containers** (Ubuntu builds depend on `librtlsdr2`, uninstallable on Debian) |
 | dhbridge 0.3.3 | Jun 2026 | public now; ≥ 0.3.2 required for Pi 5 (sysfs has no `address` attr); `/etc/default/dhbridge` masks `dhbridge.ini` keys (issue #3) |
 | AIS-catcher (fork) 0.68 | Jun 2026 | release workflow runs upstream `build-debian.sh` as root; upstream CI workflows disabled on the fork |

@@ -128,12 +128,16 @@ require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
 require_path /usr/local/sbin/aryaos-firstboot.sh
 require_path /usr/local/sbin/aryaos-lincot-remarks
+require_path /usr/local/sbin/aryaos-cot-detail
+require_path /usr/local/sbin/aryaos-neighbord
 require_path /etc/systemd/system/aryaos-firstboot.service
+require_path /etc/systemd/system/aryaos-neighbord.service
 require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to charontak"
 
 # Portal (stage-aryaos)
 require_path /var/www/html/index.html
 require_path /usr/lib/cgi-bin/aryaos-portal-status
+require_path /usr/lib/cgi-bin/aryaos-neighbors
 require_path /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
 
 # AryaOS Site cockpit plugin (site-wide TAK config + TLS)

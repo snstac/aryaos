@@ -482,7 +482,110 @@
     });
   }
 
+  function truthy(v) {
+    return v === true || v === "true" || v === "1" || v === 1;
+  }
+
+  function fmtAge(seconds) {
+    var n = Number(seconds);
+    if (!isFinite(n) || n < 0) return "—";
+    if (n < 60) return Math.round(n) + "s";
+    if (n < 3600) return Math.round(n / 60) + "m";
+    return Math.round(n / 3600) + "h";
+  }
+
+  function roleText(roles) {
+    var out = [];
+    if (truthy(roles && roles.adsb)) out.push("ADS-B");
+    if (truthy(roles && roles.ais)) out.push("AIS");
+    if (truthy(roles && roles.uas)) out.push("UAS");
+    return out.length ? out.join(" / ") : "base";
+  }
+
+  function healthText(item) {
+    var sys = item.system || {};
+    var svc = item.services || {};
+    var parts = [];
+    if (sys.load1) parts.push("load " + sys.load1);
+    if (sys.mem_pct) parts.push("mem " + sys.mem_pct + "%");
+    if (sys.temp_c) parts.push(sys.temp_c + " °C");
+    var active = Object.keys(svc).filter(function (k) { return svc[k] === "active"; }).length;
+    var total = Object.keys(svc).length;
+    if (total) parts.push(active + "/" + total + " svc");
+    return parts.join(" · ") || "—";
+  }
+
+  function positionText(point) {
+    if (!point) return "—";
+    var lat = fmtNum(point.lat, 4);
+    var lon = fmtNum(point.lon, 4);
+    if (lat == null || lon == null) return "—";
+    return lat + ", " + lon;
+  }
+
+  function fillNeighbors(n) {
+    var err = document.getElementById("aos-neighbors-error");
+    var empty = document.getElementById("aos-neighbors-empty");
+    var table = document.getElementById("aos-neighbor-table");
+    var tbody = document.getElementById("aos-neighbors-tbody");
+    if (!empty || !table || !tbody) return;
+    tbody.innerHTML = "";
+    if (err) {
+      err.classList.add("uk-hidden");
+      err.textContent = "";
+    }
+    if (!n || n.ok === false) {
+      if (err) {
+        err.textContent = n && n.error ? n.error : "Neighbor cache unavailable.";
+        err.classList.remove("uk-hidden");
+      }
+      empty.textContent = "No AryaOS neighbor data available.";
+      empty.classList.remove("uk-hidden");
+      table.classList.add("uk-hidden");
+      return;
+    }
+    var items = n.items || [];
+    if (!items.length) {
+      empty.textContent = "Listening for AryaOS CoT beacons…";
+      empty.classList.remove("uk-hidden");
+      table.classList.add("uk-hidden");
+      return;
+    }
+    empty.classList.add("uk-hidden");
+    table.classList.remove("uk-hidden");
+    items.forEach(function (item) {
+      var host = item.host || {};
+      var tr = document.createElement("tr");
+      var admin = host.admin_url || "";
+      var cells = [
+        host.name || item.uid || item.source_ip || "—",
+        roleText(item.roles || {}),
+        healthText(item),
+        positionText(item.point || {}),
+        fmtAge(item.age_s),
+      ];
+      cells.forEach(function (text) {
+        var td = document.createElement("td");
+        td.textContent = text != null && text !== "" ? String(text) : "—";
+        tr.appendChild(td);
+      });
+      var td = document.createElement("td");
+      if (admin) {
+        var a = document.createElement("a");
+        a.href = admin;
+        a.textContent = "Open";
+        a.rel = "noopener noreferrer";
+        td.appendChild(a);
+      } else {
+        td.textContent = "—";
+      }
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    });
+  }
+
   var api = "/cgi-bin/aryaos-portal-status";
+  var neighborsApi = "/cgi-bin/aryaos-neighbors";
   function loadStatus() {
     fetch(api, { credentials: "same-origin", cache: "no-store" })
       .then(function (r) {
@@ -505,6 +608,23 @@
         fillSystem(null);
       });
   }
+
+  function loadNeighbors() {
+    fetch(neighborsApi, { credentials: "same-origin", cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (d) {
+        fillNeighbors(d);
+      })
+      .catch(function (e) {
+        fillNeighbors({ ok: false, error: e && e.message ? e.message : "Neighbor fetch failed." });
+      });
+  }
+
   loadStatus();
+  loadNeighbors();
   setInterval(loadStatus, 8000);
+  setInterval(loadNeighbors, 8000);
 })();

@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""Emit structured AryaOS CoT detail XML for LINCOT host beacons."""
+
+from __future__ import annotations
+
+import os
+import socket
+import subprocess
+import time
+import xml.etree.ElementTree as ET
+
+
+SERVICES = ("charontak", "lincot", "adsbcot", "aiscot", "dronecot", "dhbridge")
+
+
+def _read(path: str) -> str:
+    try:
+        with open(path, encoding="utf-8") as fp:
+            return fp.read().strip()
+    except OSError:
+        return ""
+
+
+def _run(args: list[str], timeout: float = 1.0) -> str:
+    try:
+        proc = subprocess.run(
+            args,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    if proc.returncode != 0:
+        return ""
+    return (proc.stdout or "").strip()
+
+
+def _loadavg() -> tuple[str, str, str]:
+    parts = _read("/proc/loadavg").split()
+    vals = (parts + ["", "", ""])[:3]
+    return vals[0], vals[1], vals[2]
+
+
+def _mem_pct() -> str:
+    vals: dict[str, int] = {}
+    for line in _read("/proc/meminfo").splitlines():
+        parts = line.split()
+        if len(parts) >= 2:
+            try:
+                vals[parts[0].rstrip(":")] = int(parts[1])
+            except ValueError:
+                pass
+    total = vals.get("MemTotal", 0)
+    avail = vals.get("MemAvailable", 0)
+    if not total:
+        return ""
+    return str(round((total - avail) * 100.0 / total, 1))
+
+
+def _disk_pct() -> str:
+    try:
+        st = os.statvfs("/")
+    except OSError:
+        return ""
+    total = st.f_blocks * st.f_frsize
+    avail = st.f_bavail * st.f_frsize
+    if total <= 0:
+        return ""
+    return str(round((total - avail) * 100.0 / total, 1))
+
+
+def _temp_c() -> str:
+    raw = _read("/sys/class/thermal/thermal_zone0/temp")
+    try:
+        return str(round(int(raw) / 1000.0, 1))
+    except ValueError:
+        return ""
+
+
+def _uptime_s() -> str:
+    try:
+        return str(int(float(_read("/proc/uptime").split()[0])))
+    except (IndexError, ValueError):
+        return ""
+
+
+def _primary_ip() -> str:
+    out = _run(["/usr/sbin/ip", "-4", "route", "get", "1.1.1.1"])
+    parts = out.split()
+    if "src" in parts:
+        idx = parts.index("src")
+        if idx + 1 < len(parts):
+            return parts[idx + 1]
+    return ""
+
+
+def _service_state(name: str) -> str:
+    if not os.path.exists("/usr/bin/systemctl"):
+        return "unknown"
+    state = _run(["/usr/bin/systemctl", "is-active", f"{name}.service"], timeout=0.7)
+    return state or "unknown"
+
+
+def _roles() -> dict[str, str]:
+    return {
+        "adsb": str(_service_state("adsbcot") == "active").lower(),
+        "ais": str(_service_state("aiscot") == "active").lower(),
+        "uas": str(_service_state("dronecot") == "active").lower(),
+    }
+
+
+def main() -> int:
+    hostname = socket.gethostname().split(".", 1)[0]
+    load1, load5, load15 = _loadavg()
+
+    root = ET.Element("aryaos", {"version": "1"})
+    ET.SubElement(
+        root,
+        "host",
+        {
+            "name": hostname,
+            "fqdn": socket.getfqdn(),
+            "ip": _primary_ip(),
+            "admin_url": f"https://{hostname}.local/admin/",
+            "ssh": f"pi@{hostname}.local",
+            "seen_source": "lincot",
+        },
+    )
+    ET.SubElement(
+        root,
+        "system",
+        {
+            "timestamp": str(int(time.time())),
+            "uptime_s": _uptime_s(),
+            "load1": load1,
+            "load5": load5,
+            "load15": load15,
+            "mem_pct": _mem_pct(),
+            "disk_pct": _disk_pct(),
+            "temp_c": _temp_c(),
+        },
+    )
+    services = ET.SubElement(root, "services")
+    for svc in SERVICES:
+        services.set(svc, _service_state(svc))
+    ET.SubElement(root, "roles", _roles())
+    print(ET.tostring(root, encoding="unicode", short_empty_elements=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

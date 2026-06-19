@@ -343,6 +343,36 @@
     <div class="uk-section uk-section-small uk-padding-remove-top">
       <div class="uk-container">
         <div class="uk-width-1-1">
+          <div class="uk-card uk-card-default uk-card-body uk-card-small aos-neighbor-card">
+            <h2 class="uk-card-title">Nearby AryaOS nodes</h2>
+            <p class="uk-text-meta uk-margin-remove-top">
+              AryaOS host beacons heard on the CoT mesh. Admin links open the remote node's Cockpit page.
+            </p>
+            <div id="aos-neighbors-error" class="uk-alert-warning uk-hidden aos-neighbor-alert" uk-alert></div>
+            <p id="aos-neighbors-empty" class="uk-text-meta aos-neighbor-empty" role="status">Listening for AryaOS CoT beacons…</p>
+            <div class="uk-overflow-auto">
+              <table class="uk-table uk-table-small uk-table-divider uk-table-middle aos-neighbor-table uk-hidden" id="aos-neighbor-table" aria-label="Nearby AryaOS nodes">
+                <thead>
+                  <tr>
+                    <th scope="col">Node</th>
+                    <th scope="col">Roles</th>
+                    <th scope="col">Health</th>
+                    <th scope="col">Position</th>
+                    <th scope="col">Seen</th>
+                    <th scope="col">Admin</th>
+                  </tr>
+                </thead>
+                <tbody id="aos-neighbors-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uk-section uk-section-small uk-padding-remove-top">
+      <div class="uk-container">
+        <div class="uk-width-1-1">
           <div class="uk-card uk-card-default uk-card-body uk-card-small aos-rf-card">
             <h2 class="uk-card-title">Radios / RF</h2>
             <p class="uk-text-meta uk-margin-remove-top">

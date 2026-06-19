@@ -760,20 +760,24 @@
 }
 
 /* Radios / RF panel */
+.aos-neighbor-card .aos-neighbor-alert,
 .aos-rf-card .aos-rf-alert {
   margin-bottom: 0.75rem;
 }
 
+.aos-neighbor-empty,
 .aos-rf-empty {
   margin-bottom: 0.5rem;
 }
 
+.aos-theme-sigint .aos-neighbor-table,
 .aos-theme-sigint .aos-rf-table {
   font-family: var(--aos-mono);
   font-size: 0.75rem;
   min-width: 18rem;
 }
 
+.aos-theme-sigint .aos-neighbor-table thead th,
 .aos-theme-sigint .aos-rf-table thead th {
   color: var(--aos-amber);
   text-transform: uppercase;
@@ -782,6 +786,7 @@
   border-bottom-color: var(--aos-panel-border);
 }
 
+.aos-theme-sigint .aos-neighbor-table tbody td,
 .aos-theme-sigint .aos-rf-table tbody td {
   color: var(--aos-text);
   border-top-color: var(--aos-panel-border);
@@ -789,6 +794,7 @@
   word-break: break-word;
 }
 
+.aos-theme-sigint .aos-neighbor-table tbody tr:hover,
 .aos-theme-sigint .aos-rf-table tbody tr:hover {
   background: rgba(61, 255, 154, 0.04);
 }

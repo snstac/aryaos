@@ -49,6 +49,18 @@ Node-RED is **not** on the configuration critical path; use Cockpit and Comitup 
 | `system` | `{ ok, cpu_temp_c, load{1,5,15}, mem{total_mb,available_mb,used_pct}, throttle{raw,state,current[],history[]} }` |
 | `radios` | `{ ok, devices[] }` RF inventory |
 
+## AryaOS Neighbor Discovery
+
+LINCOT emits the local host beacon through Charontak like every other AryaOS CoT
+producer. AryaOS adds a structured `<aryaos>` detail element to that beacon via
+`/usr/local/sbin/aryaos-cot-detail`. The detail carries hostname, admin URL, source IP,
+roles, service states, and coarse system health.
+
+`aryaos-neighbord.service` listens on the Mesh SA multicast group `239.2.3.1:6969`,
+parses CoT events containing `<detail><aryaos>`, and writes a TTL cache to
+`/run/aryaos/neighbors.json`. The landing page reads that cache through
+`/cgi-bin/aryaos-neighbors` to show nearby AryaOS boxes and admin links.
+
 ## Deploy to lab Pi (fast iteration)
 
 From repo root (host must reach **`172.17.2.158`**; see [dev-pi.md](dev-pi.md)):

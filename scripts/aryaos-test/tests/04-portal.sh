@@ -34,6 +34,13 @@ else
 	exit 1
 fi
 
+NEIGHBORS_JSON="$(curl -gk --max-time 8 -sS https://127.0.0.1/cgi-bin/aryaos-neighbors 2>/dev/null || true)"
+if python3 -c "import json,sys; d=json.loads(sys.stdin.read()); assert 'ok' in d; assert isinstance(d.get('items'), list)" <<<"${NEIGHBORS_JSON}" 2>/dev/null; then
+	ok "neighbors CGI schema"
+else
+	fail "neighbors CGI schema invalid"
+fi
+
 VALIDATOR="${ARYAOS_VALIDATE_PORTAL:-}"
 if [[ -n "${VALIDATOR}" && -f "${VALIDATOR}" ]]; then
 	if echo "${JSON}" | python3 "${VALIDATOR}"; then
