@@ -66,7 +66,7 @@ Once you've connected AirTAK C-UAS to your ethernet network, you can access the 
 
 ## Connecting an EUD
 
-AirTAK C-UAS has been tested with all TAK Products, including iTAK, WinTAK & ATAK. Out-of-the-box, the device will transmit Cursor on Target CoT to the multicast Mesh SA group of 239.2.3.1:6969. The destination for CoT can be changed by accessing the AirTAK C-UAS dashboard at [http://aryaos.local](http://aryaos.local) or [http://10.41.0.1](http://10.41.0.1).
+AirTAK C-UAS has been tested with all TAK Products, including iTAK, WinTAK & ATAK. Out-of-the-box, local CoT feeders send to Charontak on the gateway, and Charontak transmits Cursor on Target CoT to the multicast Mesh SA group of 239.2.3.1:6969. Upstream TAK Server destinations are configured as Charontak lanes from Cockpit at `https://<host>/admin/`.
 
 
 # Connect to a TAK Server over TLS
@@ -87,7 +87,7 @@ AirTAK C-UAS has been tested with all TAK Products, including iTAK, WinTAK & ATA
 
     ![AryaOS System Configuration Dashboard Button](./media/aryaos_sys_config.png)
 
-6. Under **AirTAK Config**, change `COT_URL` to the URL of your TAK Server, for example: `tls://takserver.example.com:8089`, and change `PYTAK_TLS_CLIENT_CERT` to the path to your combined PEM TLS Client Cert & unecrypted Key.
+6. In Cockpit, open **Charontak** and configure the `local-to-takserver` lane with the TAK Server URL, for example `tls://takserver.example.com:8089`, plus the TLS certificate paths. Keep local feeder `COT_URL` values pointed at Charontak (`udp+wo://127.0.0.1:28087`).
 
     ![AirTAK Config](./media/airtak_config.png)
 

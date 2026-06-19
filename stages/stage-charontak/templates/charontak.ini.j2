@@ -13,9 +13,9 @@ ingress_cot_url = {{ charontak_ingress_cot_url }}
 egress_cot_url = {{ charontak_egress_cot_url }}
 PYTAK_NO_HELLO = true
 
-[lane:mesh-to-takserver]
+[lane:local-to-takserver]
 enabled = false
 mode = forward
-ingress_cot_url = udp://239.2.3.1:6969
+ingress_cot_url = {{ charontak_ingress_cot_url }}
 egress_cot_url = tls://takserver.example.com:8089
 PYTAK_NO_HELLO = true

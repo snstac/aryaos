@@ -95,6 +95,14 @@ require_path() {
 forbid_path() {
 	if [[ ! -e "${MNT}$1" && ! -L "${MNT}$1" ]]; then ok "$1 absent"; else fail "$1 present (must not ship)"; fi
 }
+require_grep() {
+	local pattern="$1" path="$2" label="$3"
+	if grep -qsE "${pattern}" "${MNT}${path}"; then
+		ok "${label}"
+	else
+		fail "${label} missing from ${path}"
+	fi
+}
 require_unit() {
 	local u="$1" d
 	for d in etc/systemd/system lib/systemd/system usr/lib/systemd/system; do
@@ -120,6 +128,7 @@ require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
 require_path /usr/local/sbin/aryaos-firstboot.sh
 require_path /etc/systemd/system/aryaos-firstboot.service
+require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to charontak"
 
 # Portal (stage-aryaos)
 require_path /var/www/html/index.html
@@ -138,6 +147,11 @@ require_path /usr/share/cockpit/gpstak/manifest.json
 
 # charontak cockpit page (ships inside the charontak deb >= 0.1.12)
 require_path /usr/share/cockpit/charontak/manifest.json
+require_path /etc/charontak.ini
+require_grep '^\[lane:local-to-mesh\]$' /etc/charontak.ini "charontak local-to-mesh lane"
+require_grep '^egress_cot_url = udp\+wo://239\.2\.3\.1:6969$' /etc/charontak.ini "charontak Mesh SA egress"
+require_grep '^\[lane:local-to-takserver\]$' /etc/charontak.ini "charontak local-to-takserver lane"
+require_grep '^ingress_cot_url = udp\+ro://127\.0\.0\.1:28087$' /etc/charontak.ini "charontak TAK Server lane local ingress"
 
 # GNSS (stage-aryaos)
 require_path /etc/default/gpsd

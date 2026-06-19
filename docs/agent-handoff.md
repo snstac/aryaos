@@ -32,6 +32,11 @@ AryaOS is the **master consumer of the PyTAK stack**. Three pillars landed in Ju
   `/etc/default/<svc>` — site sets defaults, per-service values override. The
   injection happens in each stage's chroot script (sed after `[Service]`); drop-in
   files would invert the precedence (drop-ins parse *after* the unit file).
+- **CoT routing hub**: `adsbcot`, `aiscot`, `dronecot`, `lincot`, and other local
+  PyTAK feeders should keep `COT_URL=udp+wo://127.0.0.1:28087`. Charontak listens on
+  `udp+ro://127.0.0.1:28087` and owns the external egress lanes: default Mesh SA
+  `udp+wo://239.2.3.1:6969`, optional TAK Server, and other tools. Do not point each
+  feeder independently at the same TAK Server except for deliberate legacy/debug bypass.
 - **apt pinning**: `install-sensor-debs.sh` pins `release o=snstac` at **995** because
   stage-adsbcot pins trixie at 990 and Debian ships an SDR-less readsb that must never
   win. readsb is also `apt-mark hold` (status `hold ok installed` — verify-image

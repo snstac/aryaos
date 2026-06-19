@@ -56,7 +56,9 @@ def _charontak_lane():
         cfg.read(CHARONTAK_INI)
     except configparser.Error:
         return {}
-    section = "lane:mesh-to-takserver"
+    section = "lane:local-to-takserver"
+    if not cfg.has_section(section):
+        section = "lane:mesh-to-takserver"
     if not cfg.has_section(section):
         return {}
     return {key: value for key, value in cfg.items(section)}
@@ -103,9 +105,9 @@ def enrollment_status():
     configured = bool(lane_enabled and takserver_target and (tls_ready or cot_url.startswith("tcp://")))
     detail = ""
     if configured:
-        detail = "Charontak mesh-to-TAK Server lane is enabled."
+        detail = "Charontak local-to-TAK Server lane is enabled."
     elif not lane_enabled:
-        detail = "Charontak mesh-to-TAK Server lane is not enabled."
+        detail = "Charontak local-to-TAK Server lane is not enabled."
     elif not takserver_target:
         detail = "No TAK Server target is configured."
     elif not tls_ready:

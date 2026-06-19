@@ -232,14 +232,17 @@ def update_charontak(host, port, proto):
     if not cfg.has_section("charontak"):
         cfg.add_section("charontak")
         cfg.set("charontak", "DEBUG", "false")
-    section = "lane:mesh-to-takserver"
+    section = "lane:local-to-takserver"
     if not cfg.has_section(section):
         cfg.add_section(section)
+    legacy_section = "lane:mesh-to-takserver"
+    if cfg.has_section(legacy_section):
+        cfg.set(legacy_section, "enabled", "false")
     scheme = "tls" if proto in ("ssl", "tls") else "tcp"
     values = {
         "enabled": "true",
         "mode": "forward",
-        "ingress_cot_url": "udp://239.2.3.1:6969",
+        "ingress_cot_url": "udp+ro://127.0.0.1:28087",
         "egress_cot_url": f"{scheme}://{host}:{port}",
         "PYTAK_NO_HELLO": "true",
     }

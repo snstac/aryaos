@@ -8,13 +8,13 @@
 |------|--------|
 | Live status (read) | HTTPS portal at **`https://<host>/`** |
 | Services, networking, packages | **Cockpit** at **`https://<host>/admin/`** |
-| Upstream CoT lanes (mesh / TAK Server) | Cockpit → **Charontak** → **`/etc/charontak.ini`** |
+| Upstream CoT lanes (mesh / TAK Server / tools) | Cockpit → **Charontak** → **`/etc/charontak.ini`** |
 | Feeder tuning (`adsbcot`, `aiscot`, `lincot`, …) | Cockpit feeder apps + **`/etc/default/*`** |
 | WiFi join / hotspot recovery | **Comitup** at **`http://<host>:9080/`** |
 
 The **Node-RED Dashboard** at **`:1880/ui`** is **deprecated for configuration**. It remains for maps, TFR injection, and optional recorder logging only. See [node-red.md](node-red.md).
 
-After changing **`COT_URL`** in **`/etc/aryaos/aryaos-config.txt`** or Charontak/feeder defaults, restart the affected units:
+After changing **Charontak lanes** in **`/etc/charontak.ini`** or advanced feeder defaults, restart the affected units:
 
 ```bash
 sudo systemctl restart charontak adsbcot aiscot lincot dronecot
@@ -42,7 +42,7 @@ Disable or reconfigure wireless interfaces from **Cockpit** (Networking), **Netw
 
 ## Change TAK / CoT destination (summary)
 
-Local **\*cot** feeders read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`** (default **`udp+wo://127.0.0.1:28087`** → Charontak). Upstream mesh / TAK Server lanes are **`/etc/charontak.ini`** (Cockpit → Charontak). For command-line edits and service restarts, see **Command-line Configuration → Change TAK / CoT Destination** below.
+Local **\*cot** feeders read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`** (default **`udp+wo://127.0.0.1:28087`** → Charontak). Upstream mesh, TAK Server, and tool fan-out lanes belong in **`/etc/charontak.ini`** (Cockpit → Charontak). For command-line edits and service restarts, see **Command-line Configuration → Change TAK / CoT Routing** below.
 
 ## Command-line Configuration
 
@@ -62,18 +62,28 @@ To change the default password:
 
 See also: [Raspberry Pi Insecure first user](https://www.raspberrypi.com/news/raspberry-pi-bullseye-update-april-2022/)
 
-### Change TAK / CoT Destination
+### Change TAK / CoT Routing
 
 AryaOS uses a **two-tier** CoT routing model:
 
-1. **Local feeders** (`adsbcot`, `aiscot`, `dronecot`, `lincot`, …) read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`**. The default sends CoT to **Charontak** on **`udp+wo://127.0.0.1:28087`**. **LINCOT** (v1.2+) reports the gateway’s GNSS/fix position via **`gpspipe`** (or static coordinates from **`aryaos-config.txt`**); configure **`/etc/default/lincot`** for callsign, poll interval, and Cockpit link text (**`COCKPIT_URL`** defaults to **`https://127.0.0.1/admin/`**).
-2. **Charontak** reads **`/etc/charontak.ini`** and forwards to mesh multicast, a TAK Server, or other lanes. Manage lanes via **Cockpit → Charontak** at **`https://<host>/admin/`** (restart **`charontak.service`** after saves).
+1. **Local feeders** (`adsbcot`, `aiscot`, `dronecot`, `lincot`, …) read **`COT_URL`** from **`/etc/aryaos/aryaos-config.txt`**. The image default sends CoT to **Charontak** on **`udp+wo://127.0.0.1:28087`**. Keep this value in place for normal AryaOS deployments.
+2. **Charontak** listens on **`udp+ro://127.0.0.1:28087`**, reads **`/etc/charontak.ini`**, and forwards the same local feeder stream to Mesh SA, a TAK Server, another local tool, or multiple destinations. Manage lanes via **Cockpit → Charontak** at **`https://<host>/admin/`** (restart **`charontak.service`** after saves).
 
-Default Charontak egress is **`udp+wo://239.2.3.1:6969`** (Mesh SA). Node-RED and other mesh listeners continue to use that group.
+Default Charontak egress is **`udp+wo://239.2.3.1:6969`** (Mesh SA) through the enabled **`local-to-mesh`** lane. Node-RED and other mesh listeners continue to use that group.
 
-**Feeders only (advanced):** edit **`COT_URL`** in **`/etc/aryaos/aryaos-config.txt`**, then restart the gateway units (for example ``sudo systemctl restart adsbcot``).
+#### CoT routing COAs
 
-**Upstream TAK Server / extra lanes:** edit **`/etc/charontak.ini`** in Cockpit Charontak or with ``sudo nano /etc/charontak.ini``, then ``sudo systemctl restart charontak``. A disabled **`mesh-to-takserver`** lane template is shipped for TLS enrollment; enable it and set **`egress_cot_url`** (and TLS paths) as needed.
+| COA | Use case | Feeder `COT_URL` | Charontak lanes |
+|-----|----------|------------------|-----------------|
+| **Default Mesh SA** | Offline / local MANET / tablets listening to multicast | `udp+wo://127.0.0.1:28087` | Enable `local-to-mesh`: `udp+ro://127.0.0.1:28087` → `udp+wo://239.2.3.1:6969` |
+| **TAK Server only** | Appliance sends all sensor CoT to one TAK Server | `udp+wo://127.0.0.1:28087` | Disable `local-to-mesh`; enable `local-to-takserver`: `udp+ro://127.0.0.1:28087` → `tls://<takserver>:8089` or `tcp://<takserver>:8087` |
+| **Mesh SA + TAK Server** | Local tablets see Mesh SA while upstream also receives the same CoT | `udp+wo://127.0.0.1:28087` | Enable both `local-to-mesh` and `local-to-takserver` |
+| **Other local tools** | Feed a recorder, processor, or sidecar without touching individual sensor daemons | `udp+wo://127.0.0.1:28087` | Add another lane from `udp+ro://127.0.0.1:28087` to that tool's CoT URL |
+| **Legacy direct feeder routing** | Debug or bypass charontak entirely | Set each feeder directly, for example `udp+wo://239.2.3.1:6969` | Disable `charontak.service`; this is not the normal AryaOS pattern |
+
+**Feeders only (advanced):** edit **`COT_URL`** in **`/etc/aryaos/aryaos-config.txt`** only when intentionally bypassing charontak, then restart the gateway units (for example ``sudo systemctl restart adsbcot``).
+
+**Upstream TAK Server / extra lanes:** edit **`/etc/charontak.ini`** in Cockpit Charontak or with ``sudo nano /etc/charontak.ini``, then ``sudo systemctl restart charontak``. A disabled **`local-to-takserver`** lane template is shipped for TAK data package / enrollment URL imports; enable it and set **`egress_cot_url`** (and TLS paths) as needed.
 
 **Legacy direct multicast:** to bypass Charontak entirely, set feeder **`COT_URL=udp+wo://239.2.3.1:6969`** in **`aryaos-config.txt`** and disable **`charontak.service`**.
 

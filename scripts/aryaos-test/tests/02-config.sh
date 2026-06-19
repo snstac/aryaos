@@ -24,6 +24,18 @@ if [[ -f /etc/charontak.ini ]]; then
 	else
 		fail "charontak.ini missing ingress 127.0.0.1:28087"
 	fi
+	if grep -q '^\[lane:local-to-mesh\]' /etc/charontak.ini &&
+		grep -q '^egress_cot_url = udp+wo://239.2.3.1:6969' /etc/charontak.ini; then
+		ok "charontak default local-to-mesh egress"
+	else
+		fail "charontak default local-to-mesh egress missing"
+	fi
+	if grep -q '^\[lane:local-to-takserver\]' /etc/charontak.ini &&
+		grep -q '^ingress_cot_url = udp+ro://127.0.0.1:28087' /etc/charontak.ini; then
+		ok "charontak TAK Server lane uses local ingress"
+	else
+		fail "charontak TAK Server lane not wired to local ingress"
+	fi
 else
 	skip "charontak.ini not present"
 fi
