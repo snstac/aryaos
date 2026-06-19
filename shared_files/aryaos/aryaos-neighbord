@@ -3,10 +3,12 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 import os
 import socket
 import struct
+import subprocess
 import tempfile
 import time
 import xml.etree.ElementTree as ET
@@ -16,6 +18,10 @@ GROUP = os.environ.get("ARYAOS_NEIGHBOR_COT_GROUP", "239.2.3.1")
 PORT = int(os.environ.get("ARYAOS_NEIGHBOR_COT_PORT", "6969"))
 CACHE_PATH = os.environ.get("ARYAOS_NEIGHBOR_CACHE", "/run/aryaos/neighbors.json")
 TTL = int(os.environ.get("ARYAOS_NEIGHBOR_TTL", "240"))
+BEACON_ENABLED = os.environ.get("ARYAOS_NEIGHBOR_BEACON", "1").lower() not in {"0", "false", "no"}
+BEACON_INTERVAL = int(os.environ.get("ARYAOS_NEIGHBOR_BEACON_INTERVAL", "60"))
+BEACON_CMD = os.environ.get("ARYAOS_NEIGHBOR_DETAIL_CMD", "/usr/local/sbin/aryaos-cot-detail")
+MULTICAST_LOCAL_ADDR = os.environ.get("PYTAK_MULTICAST_LOCAL_ADDR", "0.0.0.0")
 
 
 def _strip_ns(tag: str) -> str:
@@ -48,6 +54,138 @@ def _point(root: ET.Element) -> dict[str, str]:
         if _strip_ns(child.tag) == "point":
             return dict(child.attrib)
     return {}
+
+
+def _read(path: str) -> str:
+    try:
+        with open(path, encoding="utf-8") as fp:
+            return fp.read().strip()
+    except OSError:
+        return ""
+
+
+def _run(args: list[str], timeout: float = 2.0, env: dict[str, str] | None = None) -> str:
+    try:
+        proc = subprocess.run(
+            args,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            env=env,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    if proc.returncode != 0:
+        return ""
+    return (proc.stdout or "").strip()
+
+
+def _cot_time(offset_s: int = 0) -> str:
+    when = dt.datetime.now(dt.UTC) + dt.timedelta(seconds=offset_s)
+    return when.isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+
+def _uid() -> str:
+    machine_id = _read("/etc/machine-id") or _read("/var/lib/dbus/machine-id")
+    host = socket.gethostname().split(".", 1)[0]
+    return f"aryaos-{machine_id or host}"
+
+
+def _gps_point() -> tuple[dict[str, str], str]:
+    out = _run(["/usr/bin/gpspipe", "--json", "-n", "8"], timeout=6.0)
+    for line in out.splitlines():
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("class") != "TPV" or int(obj.get("mode") or 0) < 2:
+            continue
+        lat = obj.get("lat")
+        lon = obj.get("lon")
+        if lat is None or lon is None:
+            continue
+        hae = obj.get("altHAE", obj.get("alt", 0))
+        ce = obj.get("eph", obj.get("epx", 9999999))
+        le = obj.get("epv", 9999999)
+        return (
+            {
+                "lat": str(round(float(lat), 4)),
+                "lon": str(round(float(lon), 4)),
+                "hae": str(round(float(hae), 3)),
+                "ce": str(round(float(ce), 1)),
+                "le": str(round(float(le), 1)),
+            },
+            "gpsd",
+        )
+    return (
+        {
+            "lat": "0.0000",
+            "lon": "0.0000",
+            "hae": "9999999",
+            "ce": "9999999",
+            "le": "9999999",
+        },
+        "no-fix",
+    )
+
+
+def _detail_xml() -> ET.Element:
+    env = dict(os.environ)
+    env["ARYAOS_SEEN_SOURCE"] = "aryaos-neighbord"
+    out = _run([BEACON_CMD], timeout=3.0, env=env)
+    if out:
+        try:
+            root = ET.fromstring(out)
+            if _strip_ns(root.tag) == "aryaos":
+                return root
+        except ET.ParseError:
+            pass
+    root = ET.Element("aryaos", {"version": "1"})
+    ET.SubElement(
+        root,
+        "host",
+        {
+            "name": socket.gethostname().split(".", 1)[0],
+            "fqdn": socket.getfqdn(),
+            "seen_source": "aryaos-neighbord",
+        },
+    )
+    return root
+
+
+def _self_event() -> bytes:
+    point, point_source = _gps_point()
+    event = ET.Element(
+        "event",
+        {
+            "version": "2.0",
+            "uid": _uid(),
+            "type": "a-f-G-E-S",
+            "how": "m-g",
+            "time": _cot_time(),
+            "start": _cot_time(),
+            "stale": _cot_time(TTL),
+        },
+    )
+    ET.SubElement(event, "point", point)
+    detail = ET.SubElement(event, "detail")
+    aryaos = _detail_xml()
+    aryaos.set("point_source", point_source)
+    detail.append(aryaos)
+    return ET.tostring(event, encoding="utf-8", short_empty_elements=True)
+
+
+def _should_beacon(cache: dict[str, dict]) -> bool:
+    host = socket.gethostname().split(".", 1)[0]
+    item = cache.get(host)
+    if not item:
+        return True
+    try:
+        age = int(time.time()) - int(item.get("seen_at") or 0)
+    except (TypeError, ValueError):
+        return True
+    return age > BEACON_INTERVAL + 10
 
 
 def _parse_event(data: bytes, source_ip: str) -> tuple[str, dict] | None:
@@ -142,6 +280,19 @@ def _socket() -> socket.socket:
     sock.bind(("", PORT))
     mreq = struct.pack("=4s4s", socket.inet_aton(GROUP), socket.inet_aton("0.0.0.0"))
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    sock.settimeout(1.0)
+    return sock
+
+
+def _tx_socket() -> socket.socket:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+    if MULTICAST_LOCAL_ADDR and MULTICAST_LOCAL_ADDR != "0.0.0.0":
+        try:
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(MULTICAST_LOCAL_ADDR))
+        except OSError:
+            pass
     return sock
 
 
@@ -149,14 +300,23 @@ def main() -> int:
     cache = _load_cache()
     _write_cache(cache)
     sock = _socket()
+    tx_sock = _tx_socket()
+    next_beacon = 0.0
     while True:
-        data, addr = sock.recvfrom(65535)
-        parsed = _parse_event(data, addr[0])
-        if parsed is None:
+        now = time.monotonic()
+        if BEACON_ENABLED and now >= next_beacon:
+            if _should_beacon(cache):
+                tx_sock.sendto(_self_event(), (GROUP, PORT))
+            next_beacon = now + BEACON_INTERVAL
+        try:
+            data, addr = sock.recvfrom(65535)
+        except (TimeoutError, socket.timeout):
             continue
-        name, item = parsed
-        cache[name] = item
-        _write_cache(cache)
+        parsed = _parse_event(data, addr[0])
+        if parsed is not None:
+            name, item = parsed
+            cache[name] = item
+            _write_cache(cache)
 
 
 if __name__ == "__main__":

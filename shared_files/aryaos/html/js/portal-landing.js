@@ -517,6 +517,9 @@
 
   function positionText(point) {
     if (!point) return "—";
+    var ce = Number(point.ce);
+    var le = Number(point.le);
+    if (ce >= 999000 || le >= 999000) return "no fix";
     var lat = fmtNum(point.lat, 4);
     var lon = fmtNum(point.lon, 4);
     if (lat == null || lon == null) return "—";

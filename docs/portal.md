@@ -58,8 +58,11 @@ roles, service states, and coarse system health.
 
 `aryaos-neighbord.service` listens on the Mesh SA multicast group `239.2.3.1:6969`,
 parses CoT events containing `<detail><aryaos>`, and writes a TTL cache to
-`/run/aryaos/neighbors.json`. The landing page reads that cache through
-`/cgi-bin/aryaos-neighbors` to show nearby AryaOS boxes and admin links.
+`/run/aryaos/neighbors.json`. If LINCOT is not producing a current self beacon
+because the box has no GNSS fix, `aryaos-neighbord` emits a low-rate status-only
+CoT beacon so the node still appears in other AryaOS dashboards. The landing page
+reads the cache through `/cgi-bin/aryaos-neighbors` to show nearby AryaOS boxes and
+admin links.
 
 ## Deploy to lab Pi (fast iteration)
 

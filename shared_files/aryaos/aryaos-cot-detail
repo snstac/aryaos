@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Emit structured AryaOS CoT detail XML for LINCOT host beacons."""
+"""Emit structured AryaOS CoT detail XML for AryaOS host beacons."""
 
 from __future__ import annotations
 
@@ -125,7 +125,7 @@ def main() -> int:
             "ip": _primary_ip(),
             "admin_url": f"https://{hostname}.local/admin/",
             "ssh": f"pi@{hostname}.local",
-            "seen_source": "lincot",
+            "seen_source": os.environ.get("ARYAOS_SEEN_SOURCE", "lincot"),
         },
     )
     ET.SubElement(
