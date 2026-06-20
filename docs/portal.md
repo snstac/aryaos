@@ -30,7 +30,7 @@ flowchart LR
 
 ## Landing page features (current)
 
-- **Hero — TAK gateways:** `charontak`, `adsbcot`, `aiscot`, `lincot`, `dronecot` via `tak_gateways` in JSON; colored tiles (green / amber / red / gray) from `systemctl show`.
+- **Hero — TAK gateways:** `charontak`, `adsbcot`, `aiscot`, `lincot`, `dronecot`, `sikw00fcot` via `tak_gateways` in JSON; colored tiles (green / amber / red / gray) from `systemctl show`.
 - **Hero — system health:** CPU temp, load (1/5/15), power/throttle pill from `system` in JSON (`vcgencmd` on Pi; `/proc` + thermal sysfs fallback).
 - **Connection & status:** hostname, FQDN, primary IP, IPv4 block, uptime; grouped rows (`.aos-status-group--meta|net`) with left accent.
 - **GNSS:** gpsd snapshot — position, **MSL** (`alt_m`), **HAE** (`altHAE` → `alt_hae_m`), **CE/LE** (`eph` or √(epx²+epy²), `epv` → `le_m`), grid, sats, motion; status **pill** from fix quality.

@@ -189,6 +189,10 @@ All administration happens in Cockpit at `https://<host>/admin/`:
 - **Per-tool plugins** (from the snstac apt repo) — cockpit-adsbcot, cockpit-aiscot,
   cockpit-lincot, cockpit-dronecot, cockpit-aiscatcher, cockpit-gps: service control plus
   per-service config (`/etc/default/<svc>`) and per-service TLS overrides.
+- **SiKW00FCOT** ([sikw00fcot](https://github.com/snstac/sikw00fcot)) — installed as
+  `sikw00fcot.service` for SiKW00F MAVLink fan-out to CoT. It inherits the AryaOS
+  site `COT_URL` first, so the default route is through Charontak; edit
+  `/etc/default/sikw00fcot` for SiK-specific values such as `MAV_URL`.
 
 ## GPSTAK: Network GPS for ATAK / WinTAK
 

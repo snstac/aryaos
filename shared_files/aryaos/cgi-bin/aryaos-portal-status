@@ -702,6 +702,7 @@ def gather_tac_gateways():
         ("adsbcot", "ADS-B→TAK", "ADS-B"),
         ("aiscot", "AIS→TAK", "AIS"),
         ("dronecot", "UAS→TAK", "UAS"),
+        ("sikw00fcot", "SiK→TAK", "SiK"),
     )
     for unit_id, label, label_short in specs:
         unit = f"{unit_id}.service"

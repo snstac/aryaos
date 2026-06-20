@@ -181,12 +181,16 @@ require_pkg cockpit-aryaos
 require_pkg readsb
 require_pkg python3-gps
 require_pkg ais-catcher
+require_pkg sikw00fcot
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
+require_unit sikw00fcot.service
 require_unit lincot.service
 require_unit charontak.service
 require_unit readsb.service
+require_grep '^EnvironmentFile=/etc/aryaos/aryaos-config.txt$' /lib/systemd/system/sikw00fcot.service "sikw00fcot inherits AryaOS site config"
+require_grep '^EnvironmentFile=/etc/default/sikw00fcot$' /lib/systemd/system/sikw00fcot.service "sikw00fcot keeps service defaults override"
 
 # Node-RED (stage-node-red)
 require_path /home/node-red/.node-red/flows.json

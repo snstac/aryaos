@@ -59,7 +59,7 @@ else
 	done
 fi
 
-for svc in charontak lincot adsbcot aiscot dronecot; do
+for svc in charontak lincot adsbcot aiscot dronecot sikw00fcot; do
 	if ! unit_loaded "${svc}"; then
 		fail "TAK gateway unit ${svc} missing (portal expects it)"
 		continue
@@ -70,6 +70,8 @@ for svc in charontak lincot adsbcot aiscot dronecot; do
 		skip "TAK gateway ${svc} inactive on UAS profile"
 	elif ! test_profile uas && [[ "${svc}" == "dronecot" ]]; then
 		skip "TAK gateway ${svc} inactive outside UAS profile"
+	elif [[ "${svc}" == "sikw00fcot" ]]; then
+		warn "TAK gateway ${svc} loaded but not active (SiK radio/fan-out optional)"
 	else
 		warn "TAK gateway ${svc} loaded but not active"
 	fi

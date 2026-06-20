@@ -38,7 +38,7 @@ install_after_charontak() {
 		"/etc/systemd/system/${unit}.service.d/after-charontak.conf"
 }
 
-for svc in adsbcot aiscot dronecot lincot aircot; do
+for svc in adsbcot aiscot dronecot sikw00fcot lincot aircot; do
 	add_environment_file "${svc}" "/etc/default/${svc}"
 	install_after_charontak "${svc}"
 done

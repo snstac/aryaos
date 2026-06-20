@@ -123,4 +123,20 @@ else
 	skip "lincot defaults not present"
 fi
 
+if [[ -f /lib/systemd/system/sikw00fcot.service ]]; then
+	if grep -q '^EnvironmentFile=/etc/aryaos/aryaos-config.txt$' /lib/systemd/system/sikw00fcot.service &&
+		grep -q '^EnvironmentFile=/etc/default/sikw00fcot$' /lib/systemd/system/sikw00fcot.service; then
+		ok "sikw00fcot inherits AryaOS site config before service defaults"
+	else
+		fail "sikw00fcot service missing AryaOS site config inheritance"
+	fi
+	if [[ -f /etc/systemd/system/sikw00fcot.service.d/after-charontak.conf ]]; then
+		ok "sikw00fcot starts after charontak"
+	else
+		fail "sikw00fcot missing after-charontak drop-in"
+	fi
+else
+	fail "sikw00fcot service missing"
+fi
+
 print_summary

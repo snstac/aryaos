@@ -63,7 +63,7 @@ Pi. Source and Debian/RPM release packaging live in https://github.com/snstac/gp
 |---|---|---|
 | pytak | 7.3.11 | capability line: cert enrollment, `tak://`, `wss://`, `marti://`, `pytak dp`, `+wo`/`+ro`, MQTT |
 | adsbcot 9.1.0, aprscot 8.0.0, inrcot 5.2.1, cotproxy 1.0.1 | Jun 2026 | pipelines modernized (lincot-style ci.yml) |
-| aiscot 7.1.4, dronecot 2.1.3, djicot 1.2.0, lincot 1.2.3, charontak 0.1.13 | Jun 2026 | charontak ≥ 0.1.13 no longer ships its cockpit plugin in-deb |
+| aiscot 7.1.4, dronecot 2.1.3, djicot 1.2.0, lincot 1.2.3, charontak 0.1.13, sikw00fcot 1.0.0 | Jun 2026 | charontak ≥ 0.1.13 no longer ships its cockpit plugin in-deb; sikw00fcot is SiKW00F MAVLink fan-out to CoT |
 
 ## LINCOT / Host Beacon
 

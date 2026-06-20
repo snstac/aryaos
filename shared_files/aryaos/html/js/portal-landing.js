@@ -349,7 +349,7 @@
   }
 
   function fillTakGateways(tg) {
-    var ids = ["adsbcot", "aiscot", "dronecot"];
+    var ids = ["adsbcot", "aiscot", "dronecot", "sikw00fcot"];
     if (!tg || tg.ok === false) {
       showTakErr(tg && tg.error ? tg.error : "TAK gateway status unavailable.");
       ids.forEach(function (id) {

@@ -12,6 +12,7 @@ services_optional:
   - lincot
   - aiscot
   - dronecot
+  - sikw00fcot
   - dhbridge
 
 tak_gateway_ids:
@@ -20,6 +21,7 @@ tak_gateway_ids:
   - adsbcot
   - aiscot
   - dronecot
+  - sikw00fcot
 
 adsb_json: /run/adsb/aircraft.json
 cot_url: udp+wo://127.0.0.1:28087
