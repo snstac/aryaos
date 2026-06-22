@@ -16,10 +16,39 @@
 # limitations under the License.
 #
 
-- name: Install ais-catcher from the snstac apt repository
+- name: Install snstac apt repository keyring
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/snstac-packages/snstac.gpg"
+    dest: /usr/share/keyrings/snstac.gpg
+    mode: "0644"
+  when: ansible_os_family == "Debian"
+
+- name: Install snstac apt repository sources
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/snstac-packages/snstac.sources"
+    dest: /etc/apt/sources.list.d/snstac.sources
+    mode: "0644"
+  when: ansible_os_family == "Debian"
+
+- name: Prefer snstac packages over distro packages
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/99-snstac-repo.pref
+    mode: "0644"
+    content: |
+      Package: *
+      Pin: release o=snstac
+      Pin-Priority: 995
+  when: ansible_os_family == "Debian"
+
+- name: Install AIS packages from the snstac apt repository
   ansible.builtin.apt:
-    name: ais-catcher
+    name:
+      - ais-catcher
+      - aiscot
+      - takproto
+      - cockpit-aiscot
     state: present
+    update_cache: true
 
 - name: Copy AIS-catcher systemd config
   ansible.builtin.copy:
@@ -32,7 +61,22 @@
     src: "{{ shared_files }}/aiscot/ais-catcher.default.conf"
     dest: /etc/default/ais-catcher
     mode: "0644"
-    owner: node-red
+    force: false
+
+- name: Detect dAISy AIS serial receiver
+  ansible.builtin.shell: "set -o pipefail; ls -1 /dev/serial/by-id/*dAISy* 2>/dev/null | head -n1"
+  args:
+    executable: /bin/bash
+  register: aiscot_daisy_serial
+  changed_when: false
+  failed_when: false
+
+- name: Configure AIS-catcher serial port for detected dAISy receiver
+  ansible.builtin.lineinfile:
+    path: /etc/default/ais-catcher
+    regexp: '^SERIAL_PORT='
+    line: "SERIAL_PORT={{ aiscot_daisy_serial.stdout }}"
+  when: aiscot_daisy_serial.stdout | length > 0
 
 - name: Add ais-catcher to dialout (USB access)
   ansible.builtin.user:
@@ -48,6 +92,26 @@
     name: ais-catcher.service
     enabled: true
     daemon_reload: true
+
+- name: Start AIS-catcher service when a serial receiver is present
+  ansible.builtin.systemd_service:
+    name: ais-catcher.service
+    state: started
+  when: aiscot_daisy_serial.stdout | length > 0
+
+- name: Add optional AryaOS EnvironmentFile to aiscot.service
+  ansible.builtin.lineinfile:
+    path: /lib/systemd/system/aiscot.service
+    line: 'EnvironmentFile=-/etc/aryaos/aryaos-config.txt'
+    insertbefore: '^EnvironmentFile=/etc/default/aiscot'
+  notify: Restart aiscot
+
+- name: Remove duplicate required AryaOS EnvironmentFile from aiscot.service
+  ansible.builtin.lineinfile:
+    path: /lib/systemd/system/aiscot.service
+    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
+    state: absent
+  notify: Restart aiscot
 
 # - name: Perform HTTP request to AIS-catcher
 #   ansible.builtin.uri:

@@ -1,0 +1,11 @@
+# code: language=ansible
+# Handlers for stage-aiscot.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+- name: Restart aiscot
+  ansible.builtin.systemd:
+    name: aiscot.service
+    state: restarted
+    daemon_reload: true
+  failed_when: false

@@ -38,9 +38,31 @@ mapfile -t PKGS < <(python3 - <<'PY'
 import os
 import yaml
 
+PYTAK_TOOLS = {
+    "adsbcot",
+    "aircot",
+    "aiscot",
+    "aprscot",
+    "charontak",
+    "cotproxy",
+    "djicot",
+    "dronecot",
+    "gpstak",
+    "inrcot",
+    "kraktak",
+    "lincot",
+    "pulsecot",
+    "sikw00fcot",
+    "takline",
+    "windtak",
+}
+
 with open(os.environ["_ARYAOS_SENSOR_MANIFEST"], encoding="utf-8") as f:
     data = yaml.safe_load(f)
-for pkg in data.get("sensor_apt_packages", []):
+pkgs = list(data.get("sensor_apt_packages", []))
+if "takproto" not in pkgs and any(pkg in PYTAK_TOOLS for pkg in pkgs):
+    pkgs.append("takproto")
+for pkg in pkgs:
     print(pkg)
 PY
 )

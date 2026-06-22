@@ -120,6 +120,7 @@
     group: root
     mode: "0644"
     backup: true
+    force: "{{ aryaos_force_gpsd_default | default(false) | bool }}"
   notify: Restart gpsd
 
 - name: Ensure www-data can use gpspipe (gpsd socket group)
