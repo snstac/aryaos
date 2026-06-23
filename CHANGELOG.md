@@ -1,3 +1,9 @@
+## AryaOS (Unreleased)
+
+- Set `COT_HOST_ID` to `aryaos-<suffix>` on first boot (in `aryaos-config.txt`,
+  alongside `DEVICE_SUFFIX`) so the PyTAK *cot tools stamp a functional source id
+  into their CoT `_flow-tags_` and remarks.
+
 ## AryaOS 2.0.0
 
 Complete re-write of AryaOS to support both Ansible and Pi-Gen.

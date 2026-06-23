@@ -53,3 +53,7 @@ ARYAOS_UAT_RTL_SERIAL=stx:978:0
 # Device identity — set on first boot by aryaos-firstboot.sh; do not modify. NO STEP.
 # DEVICE_SUFFIX: last 4 hex of machine-id (or MAC); hostname aryaos-xxxx and WiFi AryaOS-xxxx.
 DEVICE_SUFFIX=""
+
+# COT_HOST_ID: functional source id stamped into the CoT _flow-tags_ and remarks by
+# the PyTAK *cot tools. Set on first boot to aryaos-<suffix>; override for a custom name.
+COT_HOST_ID=""
