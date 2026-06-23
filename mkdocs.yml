@@ -16,6 +16,7 @@ nav:
   - Download or build: build.md
   - Agent handoff: agent-handoff.md
   - Configuration: config.md
+  - Bluetooth PAN: bluetooth-pan.md
   - Definitions: definitions.md
   - Troubleshooting: troubleshooting.md
   - AirTAK CUAS getting started: airtak_cuas_getting_started.md

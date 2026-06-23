@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""Local-only Bluetooth PAN Network Access Point for AryaOS."""
+
+import os
+import signal
+import subprocess
+
+import dbus
+import dbus.mainloop.glib
+from gi.repository import GLib
+
+
+def env(name, default):
+    return os.environ.get(name, default).strip()
+
+
+ADAPTER = env("BT_PAN_ADAPTER", env("DHBRIDGE_BT_ADAPTER", env("BT_ADAPTER", "hci0")))
+BRIDGE = env("BT_PAN_BRIDGE", "pan0")
+ADDRESS = env("BT_PAN_ADDRESS", "10.44.0.1")
+PREFIX = env("BT_PAN_PREFIX", "24")
+DHCP_START = env("BT_PAN_DHCP_START", "10.44.0.20")
+DHCP_END = env("BT_PAN_DHCP_END", "10.44.0.60")
+DHCP_LEASE = env("BT_PAN_DHCP_LEASE", "12h")
+
+
+def log(message):
+    print(f"aryaos-bt-pan-nap: {message}", flush=True)
+
+
+def run(*args, check=True):
+    log("+ " + " ".join(args))
+    return subprocess.run(args, check=check)
+
+
+def ensure_bridge():
+    run("rfkill", "unblock", "bluetooth", check=False)
+    run("systemctl", "start", "bluetooth.service")
+    run("modprobe", "bnep", check=False)
+
+    if subprocess.run(["ip", "link", "show", BRIDGE], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+        run("ip", "link", "add", "name", BRIDGE, "type", "bridge")
+
+    run("ip", "addr", "replace", f"{ADDRESS}/{PREFIX}", "dev", BRIDGE)
+    run("ip", "link", "set", BRIDGE, "up")
+
+
+def register_nap():
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    bus = dbus.SystemBus()
+    obj = bus.get_object("org.bluez", f"/org/bluez/{ADAPTER}")
+    server = dbus.Interface(obj, "org.bluez.NetworkServer1")
+
+    try:
+        server.Unregister("nap")
+    except dbus.exceptions.DBusException:
+        pass
+
+    server.Register("nap", BRIDGE)
+    log(f"registered BlueZ NAP on {ADAPTER} using {BRIDGE}")
+    return server
+
+
+def start_dnsmasq():
+    args = [
+        "dnsmasq",
+        "--no-daemon",
+        "--bind-interfaces",
+        f"--interface={BRIDGE}",
+        "--except-interface=lo",
+        "--dhcp-authoritative",
+        "--domain-needed",
+        "--bogus-priv",
+        f"--dhcp-range={DHCP_START},{DHCP_END},{DHCP_LEASE}",
+        "--dhcp-option=3",
+        "--dhcp-option=6",
+        "--log-dhcp",
+    ]
+    log("starting local-only DHCP on " + BRIDGE)
+    return subprocess.Popen(args)
+
+
+def main():
+    if env("BT_PAN_ENABLED", "1").lower() in {"0", "false", "no", "off"}:
+        log("disabled by BT_PAN_ENABLED")
+        return 0
+
+    ensure_bridge()
+    server = register_nap()
+    dnsmasq = start_dnsmasq()
+    loop = GLib.MainLoop()
+    stopped = False
+    dnsmasq_status = 0
+
+    def stop(*_args):
+        nonlocal stopped
+        stopped = True
+        log("stopping")
+        try:
+            server.Unregister("nap")
+        except dbus.exceptions.DBusException:
+            pass
+        if dnsmasq.poll() is None:
+            dnsmasq.terminate()
+        loop.quit()
+
+    def check_dnsmasq():
+        nonlocal dnsmasq_status
+        status = dnsmasq.poll()
+        if status is None:
+            return True
+        dnsmasq_status = status
+        if not stopped:
+            log(f"dnsmasq exited with status {dnsmasq_status}")
+            loop.quit()
+        return False
+
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
+    GLib.timeout_add_seconds(2, check_dnsmasq)
+
+    loop.run()
+    if dnsmasq.poll() is None:
+        try:
+            dnsmasq.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            dnsmasq.kill()
+    return dnsmasq_status
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except Exception as exc:
+        log(f"failed: {exc}")
+        raise

@@ -4,6 +4,16 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 
+- name: Install Bluetooth PAN dependencies
+  ansible.builtin.apt:
+    name:
+      - bluez
+      - dnsmasq-base
+      - python3-dbus
+      - python3-gi
+    state: present
+    update_cache: true
+
 - name: Install dhbridge configuration
   ansible.builtin.copy:
     src: "{{ shared_files }}/dhbridge/dhbridge.ini"
@@ -29,6 +39,14 @@
     - Reload systemd
     - Restart dhbridge
 
+- name: Install AryaOS Bluetooth PAN helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/dhbridge/aryaos-bt-pan-nap"
+    dest: /usr/local/sbin/aryaos-bt-pan-nap
+    mode: "0755"
+  notify:
+    - Reload systemd
+
 - name: Install AryaOS Bluetooth readiness service
   ansible.builtin.copy:
     src: "{{ shared_files }}/dhbridge/systemd/system/aryaos-bt-ready.service"
@@ -37,6 +55,14 @@
   notify:
     - Reload systemd
     - Restart dhbridge
+
+- name: Install AryaOS Bluetooth PAN service
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/dhbridge/systemd/system/aryaos-bt-pan.service"
+    dest: /etc/systemd/system/aryaos-bt-pan.service
+    mode: "0644"
+  notify:
+    - Reload systemd
 
 - name: Ensure dhbridge.service.d exists
   ansible.builtin.file:
@@ -76,6 +102,14 @@
     name: aryaos-bt-ready.service
     enabled: true
     daemon_reload: true
+
+- name: Enable and start AryaOS Bluetooth PAN service
+  ansible.builtin.systemd:
+    name: aryaos-bt-pan.service
+    enabled: true
+    state: started
+    daemon_reload: true
+  failed_when: false
 
 - name: Enable and start dhbridge
   ansible.builtin.systemd:

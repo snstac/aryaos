@@ -1,0 +1,17 @@
+[Unit]
+Description=AryaOS local Bluetooth PAN IP link
+Documentation=https://aryaos.org/
+After=bluetooth.service aryaos-bt-ready.service
+Wants=bluetooth.service aryaos-bt-ready.service
+ConditionPathExists=/sys/class/bluetooth
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+EnvironmentFile=-/etc/default/dhbridge
+ExecStart=/usr/local/sbin/aryaos-bt-pan-nap
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -57,3 +57,14 @@ DEVICE_SUFFIX=""
 # COT_HOST_ID: functional source id stamped into the CoT _flow-tags_ and remarks by
 # the PyTAK *cot tools. Set on first boot to aryaos-<suffix>; override for a custom name.
 COT_HOST_ID=""
+
+# Local-only Bluetooth PAN. AryaOS acts as a Bluetooth NAP with address
+# BT_PAN_ADDRESS and serves DHCP to paired phones on the PAN link. No NAT or
+# forwarding is enabled; this is for reaching AryaOS services over Bluetooth.
+BT_PAN_ENABLED=1
+BT_PAN_BRIDGE=pan0
+BT_PAN_ADDRESS=10.44.0.1
+BT_PAN_PREFIX=24
+BT_PAN_DHCP_START=10.44.0.20
+BT_PAN_DHCP_END=10.44.0.60
+BT_PAN_DHCP_LEASE=12h

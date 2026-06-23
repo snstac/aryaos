@@ -12,10 +12,20 @@ if [[ -f /usr/src/dhbridge-aryaos/aryaos-bt-ready.sh ]]; then
 	install -v -m 0755 /usr/src/dhbridge-aryaos/aryaos-bt-ready.sh /usr/local/sbin/aryaos-bt-ready.sh
 fi
 
+if [[ -f /usr/src/dhbridge-aryaos/aryaos-bt-pan-nap ]]; then
+	install -v -m 0755 /usr/src/dhbridge-aryaos/aryaos-bt-pan-nap /usr/local/sbin/aryaos-bt-pan-nap
+fi
+
 if [[ -f /usr/src/dhbridge-aryaos/systemd/system/aryaos-bt-ready.service ]]; then
 	install -v -m 0644 \
 		/usr/src/dhbridge-aryaos/systemd/system/aryaos-bt-ready.service \
 		/etc/systemd/system/aryaos-bt-ready.service
+fi
+
+if [[ -f /usr/src/dhbridge-aryaos/systemd/system/aryaos-bt-pan.service ]]; then
+	install -v -m 0644 \
+		/usr/src/dhbridge-aryaos/systemd/system/aryaos-bt-pan.service \
+		/etc/systemd/system/aryaos-bt-pan.service
 fi
 
 if [[ -f /usr/src/dhbridge-aryaos/systemd/dhbridge.service.d/aryaos-config.conf ]]; then
@@ -34,4 +44,5 @@ fi
 
 systemctl daemon-reload || true
 systemctl enable aryaos-bt-ready.service 2>/dev/null || true
+systemctl enable aryaos-bt-pan.service 2>/dev/null || true
 systemctl enable dhbridge.service 2>/dev/null || true

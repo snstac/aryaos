@@ -64,5 +64,9 @@ cockpit-bridge
 cockpit-ws
 cockpit-networkmanager
 cockpit-packagekit
+bluez
+dnsmasq-base
+python3-dbus
+python3-gi
 python3-tz
 python3-pytz
