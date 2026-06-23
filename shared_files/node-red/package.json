@@ -4,13 +4,13 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "axios": "1.17.0",
+    "axios": "^1.18.1",
     "node-red-contrib-qrcode-generator": "^0.4.0",
     "node-red-contrib-tak": "^4.2.0",
     "node-red-contrib-tfr2cot": "^2.0.0",
-    "node-red-contrib-web-worldmap": "^5.8.0",
+    "node-red-contrib-web-worldmap": "^5.8.1",
     "node-red-dashboard": "^3.6.6",
-    "node-red-node-ui-table": "^0.4.3"
+    "node-red-node-ui-table": "^0.4.5"
   },
   "overrides": {
     "node-red": "4.1.10",
