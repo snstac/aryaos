@@ -258,13 +258,14 @@ jobs:
 
       - name: Publish GitHub Release
         if: success() && steps.build_aryaos.outputs.image-path != ''
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ steps.reltag.outputs.tag }}
-          name: ${{ steps.reltag.outputs.tag }}
-          files: ${{ steps.build_aryaos.outputs.image-path }}
-          generate_release_notes: true
-          prerelease: ${{ env.ARYAOS_LAB_ACCESS == '1' }}
-          body: "${{ env.ARYAOS_LAB_ACCESS == '1' && '**DEV BUILD** — lab access baked in (aryaos-dev-lab SSH key + passwordless sudo for pi, no first-boot password expiry). For lab burn-and-test only; never deploy in the field. For a release image run this workflow with the release input checked.' || 'Release build — no lab access; default password expires at first login. Contents verified by scripts/verify-image.sh before publishing.' }}"
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.reltag.outputs.tag }}"
+          BODY="${{ env.ARYAOS_LAB_ACCESS == '1' && '**DEV BUILD** — lab access baked in (aryaos-dev-lab SSH key + passwordless sudo for pi, no first-boot password expiry). For lab burn-and-test only; never deploy in the field. For a release image run this workflow with the release input checked.' || 'Release build — no lab access; default password expires at first login. Contents verified by scripts/verify-image.sh before publishing.' }}"
+          args=(release create "$TAG" "${{ steps.build_aryaos.outputs.image-path }}" --title "$TAG" --generate-notes --notes "$BODY" --verify-tag)
+          if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
+            args+=(--prerelease)
+          fi
+          gh "${args[@]}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
