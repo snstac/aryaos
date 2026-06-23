@@ -20,10 +20,19 @@ add_environment_file() {
 	[[ -f "${path}" ]] || return 0
 	grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" "${path}" && return 0
 	grep -qxF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" "${path}" && return 0
-	if grep -q "^EnvironmentFile=${default_env}" "${path}"; then
-		sed --follow-symlinks -i -E \
-			"0,/^EnvironmentFile=${default_env}/s//EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt\nEnvironmentFile=${default_env}/" \
-			"${path}"
+	if grep -qxF "EnvironmentFile=${default_env}" "${path}"; then
+		local tmp
+		tmp="$(mktemp)"
+		awk -v site_env="EnvironmentFile=/etc/aryaos/aryaos-config.txt" \
+			-v default_env="EnvironmentFile=${default_env}" '
+			$0 == default_env && !inserted {
+				print site_env
+				inserted = 1
+			}
+			{ print }
+		' "${path}" > "${tmp}"
+		cat "${tmp}" > "${path}"
+		rm -f "${tmp}"
 	else
 		sed --follow-symlinks -i -E \
 			"/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" \
