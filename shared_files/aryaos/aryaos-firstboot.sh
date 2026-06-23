@@ -48,6 +48,18 @@ if [[ -z "${DEVICE_SUFFIX}" ]]; then
 	CHANGED=1
 fi
 
+grep -qs -e 'COT_HOST_ID' "$AOS_CONFIG" || echo 'COT_HOST_ID=""' >>"$AOS_CONFIG"
+
+# COT_HOST_ID — functional source id stamped into CoT _flow-tags_/remarks by the
+# PyTAK tools. Defaults to aryaos-<suffix> (matches the hostname).
+if [[ -z "${COT_HOST_ID}" && -n "${DEVICE_SUFFIX}" ]]; then
+	NEW_HOST_ID="aryaos-${DEVICE_SUFFIX}"
+	sed --follow-symlinks -i -E -e "s/^COT_HOST_ID=.*/COT_HOST_ID=${NEW_HOST_ID}/" "$AOS_CONFIG"
+	echo "AryaOS COT_HOST_ID is now set to: $NEW_HOST_ID"
+	COT_HOST_ID="$NEW_HOST_ID"
+	CHANGED=1
+fi
+
 # Hostname — factory image uses "aryaos"; personalize once to aryaos-xxxx.
 CURRENT_HOST="$(hostnamectl hostname 2>/dev/null || hostname -s)"
 if [[ "$CURRENT_HOST" == aryaos && -n "${DEVICE_SUFFIX}" ]]; then
