@@ -1,7 +1,32 @@
-# Agent handoff — state as of 2026-06-12
+# Agent handoff — state as of 2026-06-23
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
+
+## Current known-good build
+
+- Latest successful dev image: `v2026.06.23.212757-abe8e41bf5e2-dev`
+- Release URL: https://github.com/snstac/aryaos/releases/tag/v2026.06.23.212757-abe8e41bf5e2-dev
+- GitHub Actions run: `28056974502`
+- Source commit: `abe8e41bf5e2` (`Publish image releases via gh`)
+- Image verification: `58 ok, 0 failed`
+- Notes: this is a **dev/lab image** with `aryaos-dev-lab` SSH key, passwordless
+  `pi` sudo, and no first-boot password expiry. Do not use it as a field release.
+
+Recent build blockers fixed:
+
+- `sikw00fcot.service` was missing AryaOS site config inheritance. Root cause was
+  a broken `sed` expression in `stage-charontak` that used `/` as the delimiter
+  while matching `/etc/default/<svc>`. Fixed in `81ca548` with a path-safe `awk`
+  insert. Keep site `EnvironmentFile=/etc/aryaos/aryaos-config.txt` before the
+  service-specific `/etc/default/<svc>` line.
+- GitHub release publishing failed on immutable releases because
+  `softprops/action-gh-release` published the prerelease before uploading the image
+  asset. Fixed in `abe8e41` by using `gh release create`, which creates a draft,
+  uploads assets, then publishes.
+- `sikw00fcot` depends on `python3-pymavlink`; that package is now published from
+  https://github.com/snstac/python3-pymavlink and indexed by
+  https://snstac.github.io/packages.
 
 ## The big picture
 
@@ -22,7 +47,7 @@ AryaOS is the **master consumer of the PyTAK stack**. Three pillars landed in Ju
    `v<ts>-<sha>-dev` **prerelease** with lab access baked (dev SSH key, pi NOPASSWD,
    no password expiry) for burn-and-test. Hardened release images require dispatching
    the Pi-gen workflow with the **`release`** input checked. `scripts/verify-image.sh`
-   loop-mounts every built image and asserts ~39 facts (packages, units, files, and
+   loop-mounts every built image and asserts ~58 facts (packages, units, files, and
    the lab/release security contract) before anything publishes.
 
 ## Architecture invariants (don't break these)
@@ -46,6 +71,37 @@ AryaOS is the **master consumer of the PyTAK stack**. Three pillars landed in Ju
   pi-gen full-copies per stage and 72 GB arm64 runners can't hold ~15 copies
   (the fleet has 72 GB *and* 145 GB VMs; never rely on runner luck).
   `increase-runner-disk-size` is broken on arm64 runners — keep it false.
+- **Release publication on immutable-release repos**: use `gh release create` for
+  releases with image assets. Do not go back to `softprops/action-gh-release` unless
+  it is configured to keep the release draft until after asset upload.
+
+## Bluetooth PAN
+
+AryaOS now includes a local-only Bluetooth PAN/NAP service for phone-to-box IP
+connectivity without network egress. The service is `aryaos-bt-pan.service`; helper
+source is `shared_files/dhbridge/aryaos-bt-pan-nap`; docs are in
+[bluetooth-pan.md](bluetooth-pan.md).
+
+Defaults in `/etc/aryaos/aryaos-config.txt`:
+
+```ini
+BT_PAN_ENABLED=1
+BT_PAN_BRIDGE=pan0
+BT_PAN_ADDRESS=10.44.0.1
+BT_PAN_PREFIX=24
+BT_PAN_DHCP_START=10.44.0.20
+BT_PAN_DHCP_END=10.44.0.60
+BT_PAN_DHCP_LEASE=12h
+```
+
+Expected behavior:
+
+- AryaOS registers a BlueZ Network Access Point on `hci0` and creates `pan0`.
+- Paired phones get a DHCP lease on `10.44.0.0/24`; AryaOS is `10.44.0.1`.
+- No NAT or forwarding is enabled. This is only for reaching AryaOS local services,
+  for example `https://10.44.0.1:9090/`.
+- Phone OS support varies. Android vendor builds differ; iOS is usually restrictive
+  for arbitrary Bluetooth PAN client use.
 
 ## GPSTAK (new, 2026-06-12)
 
@@ -64,6 +120,12 @@ Pi. Source and Debian/RPM release packaging live in https://github.com/snstac/gp
 | pytak | 7.3.11 | capability line: cert enrollment, `tak://`, `wss://`, `marti://`, `pytak dp`, `+wo`/`+ro`, MQTT |
 | adsbcot 9.1.0, aprscot 8.0.0, inrcot 5.2.1, cotproxy 1.0.1 | Jun 2026 | pipelines modernized (lincot-style ci.yml) |
 | aiscot 7.1.4, dronecot 2.1.3, djicot 1.2.0, lincot 1.2.3, charontak 0.1.13, sikw00fcot 1.0.0 | Jun 2026 | charontak ≥ 0.1.13 no longer ships its cockpit plugin in-deb; sikw00fcot is SiKW00F MAVLink fan-out to CoT |
+| python3-pymavlink | 2.4.49-1 | packaged for AryaOS so sikw00fcot can install cleanly; pure-Python fallback path, depends on `python3` and `python3-lxml` |
+| readsb | 3.16.15-2 | synced to wiedehopf dev; build debs in `debian:trixie` containers because Ubuntu builds depend on `librtlsdr2`, uninstallable on Debian |
+| dhbridge | 0.3.3 | public now; ≥ 0.3.2 required for Pi 5 (sysfs has no `address` attr); `/etc/default/dhbridge` masks `dhbridge.ini` keys (issue #3) |
+| AIS-catcher fork | 0.68 | release workflow runs upstream `build-debian.sh` as root; upstream CI workflows disabled on the fork |
+| kraktak 10.1.1, windtak 1.0.0, takline 0.1.1 | Jun 2026 | kraktak release decoupled from its best-effort docker job |
+| cockpit-* ×9 | 1.0.0+ | Cockpit plugins use the dark AryaOS/GPSTAK visual style; watch for regressions to white-on-white UI |
 
 ## LINCOT / Host Beacon
 
@@ -77,15 +139,13 @@ AryaOS also sets `COT_DETAIL_XML_CMD=/usr/local/sbin/aryaos-cot-detail` so the L
 host beacon carries a structured `<__aryaos>` detail block. `aryaos-neighbord.service`
 listens on Mesh SA multicast (`239.2.3.1:6969`) and writes `/run/aryaos/neighbors.json`
 for `/cgi-bin/aryaos-neighbors` and the landing-page neighbor table.
-| readsb 3.16.15-2 | Jun 2026 | synced to wiedehopf dev; **build debs in `debian:trixie` containers** (Ubuntu builds depend on `librtlsdr2`, uninstallable on Debian) |
-| dhbridge 0.3.3 | Jun 2026 | public now; ≥ 0.3.2 required for Pi 5 (sysfs has no `address` attr); `/etc/default/dhbridge` masks `dhbridge.ini` keys (issue #3) |
-| AIS-catcher (fork) 0.68 | Jun 2026 | release workflow runs upstream `build-debian.sh` as root; upstream CI workflows disabled on the fork |
-| kraktak 10.1.1, windtak 1.0.0, takline 0.1.1 | Jun 2026 | kraktak release decoupled from its best-effort docker job |
-| cockpit-* ×9 | 1.0.0+ | see pillar 2 |
 
 ## Recurring gotchas (each cost a build this month)
 
 - `gh release upload` fails on fresh tags — `gh release view || gh release create` first.
+- Immutable GitHub releases reject assets uploaded after publication. Use
+  `gh release create <tag> <asset> ...`, not a create-then-upload flow that publishes
+  first.
 - `dpkg-deb -c | grep | head` → SIGPIPE kills dpkg-deb under `set -e`.
 - `dh_install` treats destinations as directories (`foo.conf` becomes a *dir*).
 - stdeb deb names default to `python3-<name>` without `stdeb.cfg` `Package3:`.
@@ -96,24 +156,54 @@ for `/cgi-bin/aryaos-neighbors` and the landing-page neighbor table.
 
 ## Dev lab
 
-`pi@172.17.2.158` (`aryaos-dev-pi`), key `id_ed25519_aryaos_dev` at repo root
-(gitignored via `.git/info/exclude` — consider a tracked `.gitignore` entry).
-Integration suite: `ARYAOS_SSH=pi@172.17.2.158 ARYAOS_DEV_PI_SSH_KEY=./id_ed25519_aryaos_dev
-./scripts/aryaos-test/run.sh` — last full run 32/32. The Pi runs dhbridge 0.3.3,
-readsb 3.16.15 (held), RTL serial `2002` (`host_vars/aryaos-dev-pi.yml`).
+Known lab hosts recently used:
 
-## Open items (need Greg's decision or action)
+- `pi@aryaos-dev-pi` / `pi@172.17.2.158`: original default dev Pi; may be unreachable
+  depending on current lab network.
+- `192.168.0.199`: ADS-B box used for readsb/adsbcot/gpsd/dashboard checks.
+- `192.168.0.13`: UAS-mode box with AntSDR and BlueMark DroneScout bridge DS100.
 
-1. **takline + windtak are private** — the packages publish token can't read them;
+Use the lab SSH key in `shared_files/aryaos/ssh/` where possible. Integration suite:
+
+```bash
+ARYAOS_SSH=pi@<host> ./scripts/aryaos-test/run.sh
+```
+
+After flashing the latest dev image, first checks should include:
+
+- `systemctl status charontak lincot adsbcot aiscot dronecot sikw00fcot`
+- `/cgi-bin/aryaos-portal-status` and `/admin/aryaos`
+- `gpsd` data on GPS-capable units
+- `readsb` and `/run/adsb/aircraft.json` on ADS-B units
+- AntSDR Ethernet reachability and dronecot feed behavior on UAS units
+- Bluetooth pairing plus `aryaos-bt-pan.service`/`pan0` on Bluetooth-capable units
+
+## Open items / next handoff tasks
+
+1. **Flash and test the latest dev image**: burn
+   `v2026.06.23.212757-abe8e41bf5e2-dev`, then run the integration suite against the
+   current lab ADS-B and UAS boxes. Pay special attention to `sikw00fcot`, Charontak
+   inheritance, and the new Bluetooth PAN service.
+2. **Bluetooth PAN live validation**: pair an Android phone to AryaOS, confirm it
+   receives `10.44.0.20-60`, confirm `https://10.44.0.1:9090/` works, and confirm no
+   unwanted NAT/default-route behavior is introduced.
+3. **AntSDR operational follow-through**: keep the AntSDR path focused on
+   `alphafox02/antsdr_dji_droneid`; do not rely on DroneScout containers for this
+   setup. Verify the matching Ethernet interface comes up and that dronecot consumes
+   the AntSDR output.
+4. **Release hygiene**: for dev builds, verify published prereleases have the image
+   asset attached. Delete empty prereleases immediately if publish fails after tag
+   creation.
+5. **takline + windtak are private** — the packages publish token can't read them;
    flip public (`gh repo edit snstac/<r> --visibility public
    --accept-visibility-change-consequences`), then add to `products.txt`.
-2. **Archive** `spotcot` (pre-pytak-5, dormant since 2022) and `cockpit-sdrconnect`
+6. **Archive** `spotcot` (pre-pytak-5, dormant since 2022) and `cockpit-sdrconnect`
    (unmodified cockpit-dronecot clone, no releases).
-3. **Delete** stray fork `snstac/AIS-catcher-1` (accidental duplicate).
-4. adsbcot PyPI job needs a **trusted publisher** configured on PyPI (release works
+7. **Delete** stray fork `snstac/AIS-catcher-1` (accidental duplicate).
+8. adsbcot PyPI job needs a **trusted publisher** configured on PyPI (release works
    regardless; the job just reads red).
-5. Possible next plugins: charontak *lane editor* (structured `charontak.ini` UI —
-   current plugin is a raw editor), kraktak/windtak/aprscot pages; extract GPSTAK to
-   its own repo; backport SIGPIPE fix everywhere `dpkg-deb -c | head` survives.
-6. Node-RED runtime check after the worldmap 5.x / tfr2cot 2.0 major bumps
+9. Possible next plugins: charontak *lane editor* (structured `charontak.ini` UI —
+   current plugin is a raw editor), kraktak/windtak/aprscot pages; backport SIGPIPE
+   fixes everywhere `dpkg-deb -c | head` survives.
+10. Node-RED runtime check after the worldmap 5.x / tfr2cot 2.0 major bumps
    (palette installs now go through the npm 11 override).
