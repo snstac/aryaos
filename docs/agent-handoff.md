@@ -103,6 +103,34 @@ Expected behavior:
 - Phone OS support varies. Android vendor builds differ; iOS is usually restrictive
   for arbitrary Bluetooth PAN client use.
 
+## Hardening + one-click updates (new, 2026-07-02)
+
+See [security.md](security.md) for the full posture. Summary of what landed:
+
+- **firewalld** enabled with an explicit allowlist in the default zone
+  (`shared_files/aryaos/firewalld/`); AntSDR link pinned to the trusted zone
+  via `zone=trusted` in `aryaos-antsdr.nmconnection`. Operators use Cockpit →
+  Networking → Firewall. If a new service opens a port, add a firewalld
+  service XML + zone entry + verify-image assert, or it will be unreachable.
+- **fail2ban** (sshd jail), **sshd drop-in** (`50-aryaos.conf`, password auth
+  deliberately stays on), **sysctl** hardening, **unattended-upgrades**
+  (Debian security only; snstac origin commented out by design).
+- **Per-device web TLS**: `aryaos-firstboot.sh` regenerates the snakeoil key
+  and `/etc/lighttpd/ssl/snakeoil-combined.pem` once per device (marker
+  `/etc/aryaos/.web-tls-regenerated`). Firstboot also stopped `chown -R
+  node-red /etc/aryaos` — Node-RED now owns only the config file, and
+  `/etc/aryaos/tls` is `root:tak-certs 0750` with the key `0640`.
+- **One-click updates**: `/usr/local/sbin/aryaos-update {check|apply|status}`
+  + `aryaos-update.service` (oneshot, survives browser close), driven by the
+  *Software updates* card in cockpit-aryaos ≥ 1.1 (falls back to
+  `systemd-run` + plain apt on pre-2.1 images). JSON state in
+  `/var/lib/aryaos/update-*.json`.
+- **aryaos-overlay 2.1** is built by CI and attached to releases as a deb
+  asset, so units can upgrade the overlay itself once `snstac/aryaos` is in
+  the packages repo `products.txt` (see open items — sequencing matters).
+- New verify-image asserts cover all of the above; runtime checks are in
+  `scripts/aryaos-test/tests/09-security.sh`.
+
 ## GPSTAK (new, 2026-06-12)
 
 `gpstak` package → `/usr/bin/gpstak`: feeds onboard GNSS to TAK
@@ -180,6 +208,14 @@ After flashing the latest dev image, first checks should include:
 
 ## Open items / next handoff tasks
 
+0. **Hardening burn-in (2026-07-02)**: flash the first post-hardening dev
+   image and run the integration suite (esp. `09-security.sh`). Watch for
+   firewalld regressions: comitup hotspot onboarding, Bluetooth PAN DHCP,
+   Mesh SA neighbor discovery, AntSDR → dronecot, Docker-published CloudTAK
+   ports, Node-RED/AIS-catcher dashboards. Then, **after the first release
+   with the `aryaos-overlay_*_all.deb` asset exists**, add `snstac/aryaos` to
+   packages `products.txt` (adding it earlier breaks the whole publish —
+   `gh release download` fails on a release with no deb assets).
 1. **Flash and test the latest dev image**: burn
    `v2026.06.23.212757-abe8e41bf5e2-dev`, then run the integration suite against the
    current lab ADS-B and UAS boxes. Pay special attention to `sikw00fcot`, Charontak

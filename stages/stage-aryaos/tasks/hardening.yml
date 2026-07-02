@@ -1,0 +1,88 @@
+# code: language=ansible
+# AryaOS hardening + one-click updates (mirrors stages/stage-aryaos/00-install).
+# See docs/security.md for the posture and rationale.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Install hardening packages
+  ansible.builtin.apt:
+    name:
+      - fail2ban
+      - python3-systemd
+      - firewalld
+      - unattended-upgrades
+    state: present
+
+- name: Install sshd hardening drop-in
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/sshd/50-aryaos.conf"
+    dest: /etc/ssh/sshd_config.d/50-aryaos.conf
+    mode: "0644"
+
+- name: Install sysctl hardening
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/sysctl/90-aryaos-hardening.conf"
+    dest: /etc/sysctl.d/90-aryaos-hardening.conf
+    mode: "0644"
+
+- name: Install fail2ban jail policy
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/fail2ban/aryaos.local"
+    dest: /etc/fail2ban/jail.d/aryaos.local
+    mode: "0644"
+
+- name: Install unattended-upgrades policy
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/apt/{{ item }}"
+    dest: "/etc/apt/apt.conf.d/{{ item }}"
+    mode: "0644"
+  loop:
+    - 20auto-upgrades
+    - 52unattended-upgrades-aryaos
+
+- name: Install firewalld service definitions
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/firewalld/services/
+    mode: "0644"
+  with_fileglob:
+    - "{{ shared_files }}/aryaos/firewalld/services/*.xml"
+
+- name: Install firewalld default zone
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/firewalld/zones/public.xml"
+    dest: /etc/firewalld/zones/public.xml
+    mode: "0644"
+
+- name: Install aryaos-update helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-update"
+    dest: /usr/local/sbin/aryaos-update
+    mode: "0755"
+
+- name: Install aryaos-update service
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/systemd/aryaos-update.service"
+    dest: /etc/systemd/system/aryaos-update.service
+    mode: "0644"
+
+- name: Enable firewalld and fail2ban
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: true
+  loop:
+    - firewalld
+    - fail2ban

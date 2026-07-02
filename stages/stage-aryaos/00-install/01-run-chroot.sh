@@ -32,6 +32,11 @@ systemctl enable NetworkManager-dispatcher
 
 systemctl enable cockpit.socket
 systemctl enable lighttpd
+
+# Hardening: firewall + SSH brute-force protection. unattended-upgrades runs
+# via the static apt-daily timers; no enable needed.
+systemctl enable firewalld
+systemctl enable fail2ban
 systemctl enable aryaos-gps-time-sync.service
 systemctl enable aryaos-tak-dp-importd.service
 systemctl enable aryaos-neighbord.service

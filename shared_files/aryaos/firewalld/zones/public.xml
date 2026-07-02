@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+AryaOS default zone. Explicit inbound allowlist for everything a field unit
+serves; all other inbound traffic is rejected. dhcp/dns are only answered
+while comitup runs its onboarding hotspot (dnsmasq is not otherwise active);
+Bluetooth PAN (pan0) clients also get their lease through dhcp here.
+Loopback traffic is implicitly accepted by firewalld.
+Managed in Cockpit: Networking -> Firewall.
+-->
+<zone>
+  <short>AryaOS</short>
+  <description>AryaOS field appliance: web portal/Cockpit, SSH, sensor dashboards, TAK Mesh SA, and WiFi/Bluetooth onboarding.</description>
+  <service name="ssh"/>
+  <service name="http"/>
+  <service name="https"/>
+  <service name="mdns"/>
+  <service name="dhcp"/>
+  <service name="dhcpv6-client"/>
+  <service name="dns"/>
+  <service name="aryaos-mesh-sa"/>
+  <service name="aryaos-node-red"/>
+  <service name="aryaos-ais-catcher"/>
+  <service name="aryaos-comitup"/>
+  <forward/>
+</zone>

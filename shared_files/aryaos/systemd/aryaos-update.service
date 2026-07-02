@@ -1,0 +1,13 @@
+[Unit]
+Description=AryaOS software update (apt full-upgrade)
+Documentation=https://github.com/snstac/aryaos
+# Never fight the daily unattended-upgrades run for the dpkg lock.
+After=network-online.target apt-daily.service apt-daily-upgrade.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/aryaos-update apply
+# Big sensor-stack upgrades on a slow field link can take a while.
+TimeoutStartSec=45min
+KillMode=process

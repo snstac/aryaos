@@ -16,6 +16,7 @@ nav:
   - Download or build: build.md
   - Agent handoff: agent-handoff.md
   - Configuration: config.md
+  - Security posture: security.md
   - Bluetooth PAN: bluetooth-pan.md
   - Definitions: definitions.md
   - Troubleshooting: troubleshooting.md

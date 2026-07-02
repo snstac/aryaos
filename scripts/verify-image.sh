@@ -145,6 +145,7 @@ require_path /usr/share/cockpit/aryaos/manifest.json
 require_path /usr/share/cockpit/aryaos/aryaos.js
 require_grep 'id="card-neighbors"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos neighbor card"
 require_grep 'refreshNeighbors' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos neighbor refresh"
+require_grep 'id="card-updates"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos software updates card"
 
 # GPSTAK network GPS (package from stage-pytak)
 require_pkg gpstak
@@ -194,6 +195,31 @@ require_grep '^EnvironmentFile=/etc/default/sikw00fcot$' /lib/systemd/system/sik
 
 # Node-RED (stage-node-red)
 require_path /home/node-red/.node-red/flows.json
+
+# Hardening (stage-aryaos): firewall, brute-force protection, auto security
+# updates, per-device web TLS, sysctl/sshd tightening
+require_pkg firewalld
+require_pkg fail2ban
+require_pkg unattended-upgrades
+require_pkg cockpit-packagekit
+require_path /etc/ssh/sshd_config.d/50-aryaos.conf
+require_grep '^PermitRootLogin no$' /etc/ssh/sshd_config.d/50-aryaos.conf "sshd: root login disabled"
+require_path /etc/sysctl.d/90-aryaos-hardening.conf
+require_path /etc/fail2ban/jail.d/aryaos.local
+require_path /etc/apt/apt.conf.d/20auto-upgrades
+require_path /etc/apt/apt.conf.d/52unattended-upgrades-aryaos
+require_path /etc/firewalld/zones/public.xml
+require_path /etc/firewalld/services/aryaos-mesh-sa.xml
+require_grep 'aryaos-mesh-sa' /etc/firewalld/zones/public.xml "firewall zone allows Mesh SA"
+require_grep 'name="https"' /etc/firewalld/zones/public.xml "firewall zone allows HTTPS"
+require_path /etc/systemd/system/multi-user.target.wants/firewalld.service
+require_path /etc/systemd/system/multi-user.target.wants/fail2ban.service
+require_grep 'zone=trusted' /etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection "AntSDR link in trusted firewall zone"
+require_grep 'web-tls-regenerated' /usr/local/sbin/aryaos-firstboot.sh "firstboot mints per-device web TLS cert"
+
+# One-click updates (Cockpit -> AryaOS Site drives aryaos-update)
+require_path /usr/local/sbin/aryaos-update
+require_path /etc/systemd/system/aryaos-update.service
 
 # Lab access must match the build flavor
 if [[ "${LAB_EXPECTED}" == "1" ]]; then

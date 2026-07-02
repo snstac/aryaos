@@ -1,0 +1,5 @@
+// AryaOS: refresh package lists and apply unattended (security) upgrades
+// daily. Which origins are auto-applied is set in
+// /etc/apt/apt.conf.d/52unattended-upgrades-aryaos.
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";

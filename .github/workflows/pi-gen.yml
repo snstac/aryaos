@@ -256,6 +256,15 @@ jobs:
           git tag -a "$TAG" -m "Automated image build ${{ github.sha }}"
           git push origin "refs/tags/${TAG}"
 
+      - name: Build overlay deb for release asset
+        if: success() && steps.build_aryaos.outputs.image-path != ''
+        run: |
+          set -euo pipefail
+          # Attach aryaos-overlay to the release so snstac/packages indexes it
+          # and deployed units can upgrade the overlay itself via apt/Cockpit.
+          ./scripts/build-aryaos-overlay-deb.sh
+          ls -l deploy/debs/
+
       - name: Publish GitHub Release
         if: success() && steps.build_aryaos.outputs.image-path != ''
         run: |
@@ -263,6 +272,9 @@ jobs:
           TAG="${{ steps.reltag.outputs.tag }}"
           BODY="${{ env.ARYAOS_LAB_ACCESS == '1' && '**DEV BUILD** — lab access baked in (aryaos-dev-lab SSH key + passwordless sudo for pi, no first-boot password expiry). For lab burn-and-test only; never deploy in the field. For a release image run this workflow with the release input checked.' || 'Release build — no lab access; default password expires at first login. Contents verified by scripts/verify-image.sh before publishing.' }}"
           args=(release create "$TAG" "${{ steps.build_aryaos.outputs.image-path }}" --title "$TAG" --generate-notes --notes "$BODY" --verify-tag)
+          for deb in deploy/debs/aryaos-overlay_*_all.deb; do
+            [ -f "$deb" ] && args+=("$deb")
+          done
           if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
             args+=(--prerelease)
           fi

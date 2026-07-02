@@ -62,6 +62,7 @@ install_file 0755 "${SHARED}/aryaos/aryaos-lincot-remarks" "/usr/local/sbin/arya
 install_file 0755 "${SHARED}/aryaos/aryaos-cot-detail" "/usr/local/sbin/aryaos-cot-detail"
 install_file 0755 "${SHARED}/aryaos/aryaos-neighbord" "/usr/local/sbin/aryaos-neighbord"
 install_file 0755 "${SHARED}/aryaos/get_throttled.sh" "/usr/local/sbin/get_throttled.sh"
+install_file 0755 "${SHARED}/aryaos/aryaos-update" "/usr/local/sbin/aryaos-update"
 install_file 0755 "${SHARED}/aryaos/run_comitup.sh" "/usr/local/sbin/run_comitup.sh"
 install_file 0755 "${SHARED}/aryaos/comitup-callback.sh" "/usr/local/sbin/comitup-callback.sh"
 install_file 0755 "${SHARED}/aryaos/wifi-nuke.py" "/usr/local/sbin/wifi-nuke.py"
@@ -71,6 +72,7 @@ install_file 0644 "${SHARED}/aryaos/aryaos-firstboot.service" "/etc/systemd/syst
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-gps-time-sync.service" "/etc/systemd/system/aryaos-gps-time-sync.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-tak-dp-importd.service" "/etc/systemd/system/aryaos-tak-dp-importd.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-neighbord.service" "/etc/systemd/system/aryaos-neighbord.service"
+install_file 0644 "${SHARED}/aryaos/systemd/aryaos-update.service" "/etc/systemd/system/aryaos-update.service"
 install_file 0644 "${SHARED}/aryaos/systemd/gpsd.socket.d/socket-group.conf" "/etc/systemd/system/gpsd.socket.d/socket-group.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf" "/etc/systemd/system/lighttpd.service.d/aryaos-netlink.conf"
 
@@ -88,6 +90,16 @@ install_file 0644 "${SHARED}/aryaos/96-aryaos-cloudtak-proxy.conf" "/etc/lighttp
 install_file 0644 "${SHARED}/aryaos/99-aryaos-recorder.conf" "/etc/lighttpd/conf-available/99-aryaos-recorder.conf"
 
 install_file 0600 "${SHARED}/aryaos/NetworkManager/system-connections/aryaos-antsdr.nmconnection" "/etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection"
+
+install_file 0644 "${SHARED}/aryaos/sshd/50-aryaos.conf" "/etc/ssh/sshd_config.d/50-aryaos.conf"
+install_file 0644 "${SHARED}/aryaos/sysctl/90-aryaos-hardening.conf" "/etc/sysctl.d/90-aryaos-hardening.conf"
+install_file 0644 "${SHARED}/aryaos/fail2ban/aryaos.local" "/etc/fail2ban/jail.d/aryaos.local"
+install_file 0644 "${SHARED}/aryaos/apt/20auto-upgrades" "/etc/apt/apt.conf.d/20auto-upgrades"
+install_file 0644 "${SHARED}/aryaos/apt/52unattended-upgrades-aryaos" "/etc/apt/apt.conf.d/52unattended-upgrades-aryaos"
+for svc_xml in "${SHARED}/aryaos/firewalld/services/"*.xml; do
+	install_file 0644 "${svc_xml}" "/etc/firewalld/services/$(basename "${svc_xml}")"
+done
+install_file 0644 "${SHARED}/aryaos/firewalld/zones/public.xml" "/etc/firewalld/zones/public.xml"
 install_file 0755 "${SHARED}/aryaos/99-aryaos-dispatcher" "/etc/NetworkManager/dispatcher.d/99-aryaos-dispatcher"
 
 

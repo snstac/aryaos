@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>AryaOS Mesh SA</short>
+  <description>TAK Mesh SA multicast (charontak egress/ingress and aryaos-neighbord on 239.2.3.1:6969).</description>
+  <port protocol="udp" port="6969"/>
+</service>

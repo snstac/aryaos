@@ -1,0 +1,24 @@
+// AryaOS unattended-upgrades policy
+// (/etc/apt/apt.conf.d/52unattended-upgrades-aryaos).
+//
+// Security fixes only by default. The snstac sensor stack is deliberately NOT
+// auto-upgraded: sensor services restarting mid-operation is an operator
+// decision — use Cockpit -> AryaOS Site -> Software updates (or `sudo
+// aryaos-update apply`) instead. Uncomment the snstac origin below to opt a
+// unit into automatic sensor-stack upgrades.
+Unattended-Upgrade::Origins-Pattern {
+        "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+        "origin=Raspbian,codename=${distro_codename},label=Raspbian";
+        "origin=Raspberry Pi Foundation,codename=${distro_codename},label=Raspberry Pi Foundation";
+//      "origin=snstac";
+};
+
+// Never reboot on its own — these are field units.
+Unattended-Upgrade::Automatic-Reboot "false";
+
+// Keep the small root filesystem tidy.
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+
+// Don't let a flaky field link wedge dpkg: allow resume on next run.
+Unattended-Upgrade::MinimalSteps "true";

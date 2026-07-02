@@ -3,6 +3,9 @@ id=AryaOS ANTSDR
 type=ethernet
 interface-name=eth1
 autoconnect=true
+# Dedicated point-to-point sensor link: keep firewalld out of the way so the
+# AntSDR can reach the dronecot listener (172.31.100.1:52002).
+zone=trusted
 
 [ethernet]
 
