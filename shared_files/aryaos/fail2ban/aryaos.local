@@ -1,0 +1,18 @@
+# AryaOS fail2ban policy (/etc/fail2ban/jail.d/aryaos.local).
+#
+# Units ship with a published default password (expired at first login); ban
+# brute-force SSH attempts anyway. Bluetooth PAN clients (10.44.0.0/24) are the
+# operator standing next to the box — never ban them.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+[DEFAULT]
+backend = systemd
+bantime = 15m
+findtime = 10m
+maxretry = 6
+ignoreip = 127.0.0.1/8 ::1 10.44.0.0/24
+
+[sshd]
+enabled = true

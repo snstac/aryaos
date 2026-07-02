@@ -31,6 +31,9 @@
 - name: Include common
   ansible.builtin.include_tasks: common.yml
 
+- name: Include hardening and one-click updates
+  ansible.builtin.include_tasks: hardening.yml
+
 - name: Include first-boot identity tasks
   ansible.builtin.include_tasks: firstboot.yml
 

@@ -59,6 +59,13 @@ case "$1" in
     if command -v systemctl >/dev/null 2>&1; then
       systemctl daemon-reload || true
       systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-neighbord.service NetworkManager-dispatcher.service 2>/dev/null || true
+      # Hardening: activate sysctl/sshd/fail2ban/firewalld config shipped by
+      # this package (no-ops in image-build chroots where nothing is running).
+      systemctl enable firewalld.service fail2ban.service 2>/dev/null || true
+      sysctl --system >/dev/null 2>&1 || true
+      systemctl reload ssh.service 2>/dev/null || true
+      systemctl try-restart fail2ban.service 2>/dev/null || true
+      firewall-cmd --reload >/dev/null 2>&1 || true
       systemctl restart aryaos-tak-dp-importd.service aryaos-neighbord.service lighttpd.service 2>/dev/null || true
       systemctl try-restart gpsd.socket gpsd.service cockpit.socket 2>/dev/null || true
       systemctl start aryaos-gps-time-sync.service 2>/dev/null || true

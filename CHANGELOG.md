@@ -1,5 +1,19 @@
 ## AryaOS (Unreleased)
 
+- Hardening (see [docs/security.md](docs/security.md)): firewalld inbound
+  allowlist (managed via Cockpit → Networking → Firewall), fail2ban sshd jail,
+  sshd tightening (no root login), sysctl hardening, daily unattended Debian
+  security upgrades (no auto-reboot; snstac stack stays operator-driven),
+  per-device web TLS key minted at first boot, and `/etc/aryaos/tls` no longer
+  owned by the Node-RED user.
+- One-click updates: `aryaos-update {check|apply|status}` +
+  `aryaos-update.service`, driven by the new *Software updates* card in
+  Cockpit → AryaOS Site (cockpit-aryaos ≥ 1.1). `cockpit-packagekit` remains
+  for per-package work.
+- `aryaos-overlay` bumped to 2.1 and now attached as a `.deb` release asset so
+  deployed units can upgrade the overlay itself from the snstac apt repo.
+- New image checks in `scripts/verify-image.sh` and runtime checks in
+  `scripts/aryaos-test/tests/09-security.sh`.
 - Set `COT_HOST_ID` to `aryaos-<suffix>` on first boot (in `aryaos-config.txt`,
   alongside `DEVICE_SUFFIX`) so the PyTAK *cot tools stamp a functional source id
   into their CoT `_flow-tags_` and remarks.

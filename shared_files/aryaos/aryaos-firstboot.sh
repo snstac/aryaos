@@ -76,8 +76,15 @@ if [[ "$CURRENT_HOST" == aryaos && -n "${DEVICE_SUFFIX}" ]]; then
 	CHANGED=1
 fi
 
-if getent group node-red >/dev/null 2>&1 && [[ -d /etc/aryaos ]]; then
-	chown -R node-red /etc/aryaos
+# Node-RED flows may edit the site config file, but must NOT own /etc/aryaos
+# itself (a recursive chown here used to hand the Node-RED user the TAK TLS
+# client key under /etc/aryaos/tls — an editor compromise became key theft).
+if getent group node-red >/dev/null 2>&1 && [[ -f "$AOS_CONFIG" ]]; then
+	chown node-red "$AOS_CONFIG" 2>/dev/null || true
+fi
+if [[ -d /etc/aryaos ]]; then
+	chown root:root /etc/aryaos
+	chmod 0755 /etc/aryaos
 fi
 
 # Site-wide TAK TLS: gateways read /etc/aryaos/tls/client.key via the tak-certs
@@ -90,7 +97,31 @@ for svc_user in adsbcot aiscot dronecot lincot charontak dhbridge; do
 	fi
 done
 if [[ -d /etc/aryaos/tls ]]; then
-	chgrp -R tak-certs /etc/aryaos/tls 2>/dev/null || true
+	chown -R root:tak-certs /etc/aryaos/tls 2>/dev/null || true
+	chmod 0750 /etc/aryaos/tls 2>/dev/null || true
+	[[ -f /etc/aryaos/tls/client.key ]] && chmod 0640 /etc/aryaos/tls/client.key 2>/dev/null || true
+fi
+
+# Every published image shares the build-time snakeoil TLS key pair. Mint a
+# per-device key/cert for the web portal + Cockpit HTTPS proxy on first boot
+# (after the hostname is personalized, so the CN matches aryaos-xxxx).
+TLS_REGEN_MARKER="/etc/aryaos/.web-tls-regenerated"
+if [[ ! -f "$TLS_REGEN_MARKER" ]] && command -v make-ssl-cert >/dev/null 2>&1; then
+	if make-ssl-cert generate-default-snakeoil --force-overwrite; then
+		(
+			umask 077
+			install -d -m 0755 /etc/lighttpd/ssl
+			cat /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/private/ssl-cert-snakeoil.key \
+				>/etc/lighttpd/ssl/snakeoil-combined.pem.tmp
+			mv -f /etc/lighttpd/ssl/snakeoil-combined.pem.tmp /etc/lighttpd/ssl/snakeoil-combined.pem
+		)
+		chmod 0640 /etc/lighttpd/ssl/snakeoil-combined.pem
+		chgrp ssl-cert /etc/lighttpd/ssl/snakeoil-combined.pem 2>/dev/null || true
+		systemctl try-restart lighttpd.service 2>/dev/null || true
+		touch "$TLS_REGEN_MARKER"
+		echo "Per-device web TLS certificate generated."
+		CHANGED=1
+	fi
 fi
 
 # Images ship with a published default password — force a change at first login.

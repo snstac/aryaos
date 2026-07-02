@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>AIS-catcher web</short>
+  <description>AIS-catcher live map / statistics dashboard.</description>
+  <port protocol="tcp" port="8100"/>
+</service>

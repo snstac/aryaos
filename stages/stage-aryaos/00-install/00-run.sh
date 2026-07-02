@@ -91,6 +91,38 @@ fi
 ## Get throttled status on Raspberry Pi
 install -v -m 0755 "${SHARED_FILES}/aryaos/get_throttled.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 
+
+# Hardening (release and lab builds alike; lab differs only in access, not posture)
+
+## sshd: tightened defaults, password auth stays on (published default password
+## is force-expired at first login — see aryaos-firstboot.sh).
+install -d -m 0755 "${ROOTFS_DIR}/etc/ssh/sshd_config.d"
+install -v -m 0644 "${SHARED_FILES}/aryaos/sshd/50-aryaos.conf" "${ROOTFS_DIR}/etc/ssh/sshd_config.d/50-aryaos.conf"
+
+## Kernel/network sysctl hardening
+install -v -m 0644 "${SHARED_FILES}/aryaos/sysctl/90-aryaos-hardening.conf" "${ROOTFS_DIR}/etc/sysctl.d/90-aryaos-hardening.conf"
+
+## fail2ban: SSH brute-force protection (systemd backend)
+install -d -m 0755 "${ROOTFS_DIR}/etc/fail2ban/jail.d"
+install -v -m 0644 "${SHARED_FILES}/aryaos/fail2ban/aryaos.local" "${ROOTFS_DIR}/etc/fail2ban/jail.d/aryaos.local"
+
+## unattended-upgrades: Debian security fixes auto-applied; snstac stack manual
+install -d -m 0755 "${ROOTFS_DIR}/etc/apt/apt.conf.d"
+install -v -m 0644 "${SHARED_FILES}/aryaos/apt/20auto-upgrades" "${ROOTFS_DIR}/etc/apt/apt.conf.d/20auto-upgrades"
+install -v -m 0644 "${SHARED_FILES}/aryaos/apt/52unattended-upgrades-aryaos" "${ROOTFS_DIR}/etc/apt/apt.conf.d/52unattended-upgrades-aryaos"
+
+## firewalld: explicit inbound allowlist (Cockpit Networking -> Firewall manages it)
+install -d -m 0755 "${ROOTFS_DIR}/etc/firewalld/services" "${ROOTFS_DIR}/etc/firewalld/zones"
+for svc_xml in "${SHARED_FILES}/aryaos/firewalld/services/"*.xml; do
+	install -v -m 0644 "${svc_xml}" "${ROOTFS_DIR}/etc/firewalld/services/"
+done
+install -v -m 0644 "${SHARED_FILES}/aryaos/firewalld/zones/public.xml" "${ROOTFS_DIR}/etc/firewalld/zones/public.xml"
+
+## One-click updates: helper + oneshot unit (driven by Cockpit -> AryaOS Site)
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-update" "${ROOTFS_DIR}/usr/local/sbin/aryaos-update"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-update.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-update.service"
+
 ## gpsd: USB GNSS defaults (see shared_files/aryaos/gpsd.default)
 install -v -m 0644 "${SHARED_FILES}/aryaos/gpsd.default" "${ROOTFS_DIR}/etc/default/gpsd"
 

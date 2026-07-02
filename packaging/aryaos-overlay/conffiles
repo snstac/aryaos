@@ -1,0 +1,6 @@
+/etc/firewalld/zones/public.xml
+/etc/fail2ban/jail.d/aryaos.local
+/etc/apt/apt.conf.d/20auto-upgrades
+/etc/apt/apt.conf.d/52unattended-upgrades-aryaos
+/etc/ssh/sshd_config.d/50-aryaos.conf
+/etc/sysctl.d/90-aryaos-hardening.conf

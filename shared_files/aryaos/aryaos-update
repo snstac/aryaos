@@ -1,0 +1,129 @@
+#!/bin/bash
+# aryaos-update — one-command update path for deployed AryaOS units.
+#
+# Subcommands:
+#   check    Refresh apt metadata and report upgradable packages (JSON).
+#   apply    Non-interactively apply all pending upgrades (full-upgrade).
+#   status   Report last check/apply results and reboot-required (JSON).
+#
+# Backend for the "Software updates" card in Cockpit -> AryaOS Site
+# (cockpit-aryaos): the plugin runs `check` directly and starts `apply` via
+# aryaos-update.service so an upgrade survives a closed browser session.
+# Also usable directly: `sudo aryaos-update apply`.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+STATE_DIR="/var/lib/aryaos"
+CHECK_STATE="${STATE_DIR}/update-check.json"
+APPLY_STATE="${STATE_DIR}/update-apply.json"
+
+export DEBIAN_FRONTEND=noninteractive
+# Preserve locally edited conffiles (site config, lighttpd snippets) on
+# upgrade; never block on a dpkg conffile prompt.
+APT_OPTS=(
+	-y
+	-o 'Dpkg::Options::=--force-confdef'
+	-o 'Dpkg::Options::=--force-confold'
+)
+
+require_root() {
+	if [[ "$(id -u)" != "0" ]]; then
+		echo "aryaos-update: must run as root (try sudo)" >&2
+		exit 2
+	fi
+}
+
+now_iso() {
+	date -u +%Y-%m-%dT%H:%M:%SZ
+}
+
+# apt list --upgradable + dpkg holds -> JSON on stdout.
+emit_check_json() {
+	local checked_at="$1"
+	apt list --upgradable 2>/dev/null | python3 -c '
+import json
+import subprocess
+import sys
+
+upgradable = []
+for line in sys.stdin:
+    line = line.strip()
+    # "pkg/suite version arch [upgradable from: old]"
+    if "[upgradable from:" not in line:
+        continue
+    name = line.split("/", 1)[0]
+    parts = line.split()
+    candidate = parts[1] if len(parts) > 1 else ""
+    current = parts[-1].rstrip("]") if line.endswith("]") else ""
+    upgradable.append({"name": name, "current": current, "candidate": candidate})
+
+held = subprocess.run(
+    ["dpkg", "--get-selections"], capture_output=True, text=True, check=False
+).stdout
+held = sorted(l.split()[0] for l in held.splitlines() if l.split()[1:] == ["hold"])
+
+json.dump(
+    {
+        "checked_at": sys.argv[1],
+        "count": len(upgradable),
+        "upgradable": upgradable,
+        "held": held,
+    },
+    sys.stdout,
+)
+print()
+' "${checked_at}"
+}
+
+cmd_check() {
+	require_root
+	install -d -m 0755 "${STATE_DIR}"
+	apt-get -qq update >&2
+	local out
+	out="$(emit_check_json "$(now_iso)")"
+	printf '%s\n' "${out}" | tee "${CHECK_STATE}.tmp" >/dev/null
+	mv -f "${CHECK_STATE}.tmp" "${CHECK_STATE}"
+	printf '%s\n' "${out}"
+}
+
+cmd_apply() {
+	require_root
+	install -d -m 0755 "${STATE_DIR}"
+	local started_at rc=0
+	started_at="$(now_iso)"
+	apt-get "${APT_OPTS[@]}" full-upgrade || rc=$?
+	if [[ "${rc}" -eq 0 ]]; then
+		apt-get "${APT_OPTS[@]}" autoremove --purge || rc=$?
+	fi
+	local reboot_required=false
+	[[ -f /run/reboot-required ]] && reboot_required=true
+	printf '{"started_at":"%s","finished_at":"%s","rc":%d,"reboot_required":%s}\n' \
+		"${started_at}" "$(now_iso)" "${rc}" "${reboot_required}" >"${APPLY_STATE}.tmp"
+	mv -f "${APPLY_STATE}.tmp" "${APPLY_STATE}"
+	# Refresh the pending-updates view so status/check reflect the new state.
+	emit_check_json "$(now_iso)" >"${CHECK_STATE}.tmp" && mv -f "${CHECK_STATE}.tmp" "${CHECK_STATE}" || true
+	exit "${rc}"
+}
+
+cmd_status() {
+	local check="null" apply="null" reboot_required=false version=""
+	[[ -s "${CHECK_STATE}" ]] && check="$(cat "${CHECK_STATE}")"
+	[[ -s "${APPLY_STATE}" ]] && apply="$(cat "${APPLY_STATE}")"
+	[[ -f /run/reboot-required ]] && reboot_required=true
+	[[ -r /etc/aryaos-version ]] && version="$(tr -d '[:space:]' </etc/aryaos-version)"
+	printf '{"aryaos_version":"%s","reboot_required":%s,"last_check":%s,"last_apply":%s}\n' \
+		"${version}" "${reboot_required}" "${check}" "${apply}"
+}
+
+case "${1:-}" in
+	check) cmd_check ;;
+	apply) cmd_apply ;;
+	status) cmd_status ;;
+	*)
+		echo "Usage: aryaos-update {check|apply|status}" >&2
+		exit 2
+		;;
+esac

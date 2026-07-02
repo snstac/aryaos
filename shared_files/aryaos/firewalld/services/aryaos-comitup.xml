@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>Comitup WiFi setup</short>
+  <description>Comitup captive WiFi-onboarding web UI (only listens while in hotspot mode).</description>
+  <port protocol="tcp" port="9080"/>
+</service>
