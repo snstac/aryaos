@@ -17,11 +17,10 @@
 #
 
 
-# Register the AryaOS appliance overlay package in dpkg when stage-aryaos/00-run.sh
-# built it. Legacy file copies remain in 00-run.sh for now as a fallback.
-if [[ -f /usr/src/aryaos-overlay.deb ]]; then
-	DEBIAN_FRONTEND=noninteractive apt-get install -y /usr/src/aryaos-overlay.deb || dpkg -i /usr/src/aryaos-overlay.deb
-fi
+# The AryaOS overlay deb is built into /usr/src by stage-aryaos/00-run.sh but
+# INSTALLED in stage-pytak/00-install/01-run-chroot.sh: it Depends on pytak,
+# which only becomes installable once stage-pytak configures the snstac apt
+# repo. Legacy file copies remain in 00-run.sh for now as a fallback.
 
 # RFC UUID
 systemctl enable aryaos-firstboot
