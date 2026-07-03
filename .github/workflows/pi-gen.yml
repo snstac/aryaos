@@ -262,7 +262,7 @@ jobs:
           set -euo pipefail
           # Attach aryaos-overlay to the release so snstac/packages indexes it
           # and deployed units can upgrade the overlay itself via apt/Cockpit.
-          ./scripts/build-aryaos-overlay-deb.sh
+          bash ./scripts/build-aryaos-overlay-deb.sh
           ls -l deploy/debs/
 
       - name: Publish GitHub Release
