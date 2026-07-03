@@ -53,6 +53,20 @@ jobs:
           ansible-galaxy collection install -r requirements.yml
           ansible-playbook -i localhost, -c local site.yml --syntax-check
 
+      - name: Shellcheck appliance scripts
+        # Lint the shell that ships to /usr/local/sbin and the build/test
+        # tooling. Error severity only: legacy scripts carry style warnings.
+        run: |
+          set -euo pipefail
+          shellcheck -S error \
+            shared_files/aryaos/*.sh \
+            shared_files/aryaos/aryaos-update \
+            scripts/*.sh \
+            scripts/aryaos-test/run.sh \
+            scripts/aryaos-test/lib.sh \
+            scripts/aryaos-test/tests/*.sh \
+            stages/*/00-install/*.sh
+
       - name: Verify image build inputs exist
         run: |
           test -f manifests/aryaos-sensor-packages.yml
