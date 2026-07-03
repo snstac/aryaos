@@ -122,6 +122,9 @@ require_pkg() {
 echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 
 # Core identity and config (stage-aryaos)
+# aryaos-overlay must be registered in dpkg (a 644 exec bit on the build
+# script once skipped this silently — the [[ -x ]] guard in 00-run.sh).
+require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
 require_path /etc/aryaos/aryaos-config.txt
