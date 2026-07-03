@@ -181,9 +181,13 @@ jobs:
           verbose-output: true
           # pi-gen-action bind-mounts stage dirs only; custom scripts resolve repo paths like
           # ${GITHUB_WORKSPACE}/shared_files — bind those trees into the pi-gen Docker container too.
+          # scripts/ + packaging/ are needed by stage-aryaos to build the aryaos-overlay deb
+          # (without them the [[ -x ]] guard silently skipped it; verify-image now asserts it).
           docker-opts: >-
             -v ${{ github.workspace }}/shared_files:${{ github.workspace }}/shared_files:ro
             -v ${{ github.workspace }}/manifests:${{ github.workspace }}/manifests:ro
+            -v ${{ github.workspace }}/scripts:${{ github.workspace }}/scripts:ro
+            -v ${{ github.workspace }}/packaging:${{ github.workspace }}/packaging:ro
             -v ${{ github.workspace }}/pi-gen-src:${{ github.workspace }}/pi-gen-src
             -e GITHUB_WORKSPACE=${{ github.workspace }}
             -e ARYAOS_CI_TRIM_WORK=1
