@@ -2,6 +2,10 @@
 # Shared helpers for remote AryaOS integration tests.
 # SPDX-License-Identifier: Apache-2.0
 
+# Non-interactive SSH sessions get a PATH without sbin, hiding tools like
+# sysctl and turning real checks into silent warns.
+export PATH="${PATH}:/usr/sbin:/sbin"
+
 ARYAOS_TEST_PASSED=0
 ARYAOS_TEST_FAILED=0
 ARYAOS_TEST_WARNED=0
