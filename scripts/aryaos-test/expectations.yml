@@ -13,7 +13,6 @@ services_optional:
   - aiscot
   - dronecot
   - sikw00fcot
-  - dhbridge
 
 tak_gateway_ids:
   - charontak

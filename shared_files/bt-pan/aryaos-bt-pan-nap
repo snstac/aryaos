@@ -14,7 +14,7 @@ def env(name, default):
     return os.environ.get(name, default).strip()
 
 
-ADAPTER = env("BT_PAN_ADAPTER", env("DHBRIDGE_BT_ADAPTER", env("BT_ADAPTER", "hci0")))
+ADAPTER = env("BT_PAN_ADAPTER", env("BT_ADAPTER", "hci0"))
 BRIDGE = env("BT_PAN_BRIDGE", "pan0")
 ADDRESS = env("BT_PAN_ADDRESS", "10.44.0.1")
 PREFIX = env("BT_PAN_PREFIX", "24")

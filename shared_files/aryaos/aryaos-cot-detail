@@ -10,7 +10,7 @@ import time
 import xml.etree.ElementTree as ET
 
 
-SERVICES = ("charontak", "lincot", "adsbcot", "aiscot", "dronecot", "dhbridge")
+SERVICES = ("charontak", "lincot", "adsbcot", "aiscot", "dronecot")
 
 
 def _read(path: str) -> str:

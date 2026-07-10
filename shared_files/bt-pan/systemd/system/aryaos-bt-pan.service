@@ -8,7 +8,6 @@ ConditionPathExists=/sys/class/bluetooth
 [Service]
 Type=simple
 EnvironmentFile=-/etc/aryaos/aryaos-config.txt
-EnvironmentFile=-/etc/default/dhbridge
 ExecStart=/usr/local/sbin/aryaos-bt-pan-nap
 Restart=on-failure
 RestartSec=5

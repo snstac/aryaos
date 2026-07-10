@@ -79,7 +79,7 @@ AryaOS is the **master consumer of the PyTAK stack**. Three pillars landed in Ju
 
 AryaOS now includes a local-only Bluetooth PAN/NAP service for phone-to-box IP
 connectivity without network egress. The service is `aryaos-bt-pan.service`; helper
-source is `shared_files/dhbridge/aryaos-bt-pan-nap`; docs are in
+source is `shared_files/bt-pan/aryaos-bt-pan-nap`; docs are in
 [bluetooth-pan.md](bluetooth-pan.md).
 
 Defaults in `/etc/aryaos/aryaos-config.txt`:
@@ -150,9 +150,8 @@ Pi. Source and Debian/RPM release packaging live in https://github.com/snstac/gp
 | aiscot 7.1.4, dronecot 2.1.3, djicot 1.2.0, lincot 1.2.3, charontak 0.1.13, sikw00fcot 1.0.0 | Jun 2026 | charontak ≥ 0.1.13 no longer ships its cockpit plugin in-deb; sikw00fcot is SiKW00F MAVLink fan-out to CoT |
 | python3-pymavlink | 2.4.49-1 | packaged for AryaOS so sikw00fcot can install cleanly; pure-Python fallback path, depends on `python3` and `python3-lxml` |
 | readsb | 3.16.15-2 | synced to wiedehopf dev; build debs in `debian:trixie` containers because Ubuntu builds depend on `librtlsdr2`, uninstallable on Debian |
-| dhbridge | 0.3.3 | public now; ≥ 0.3.2 required for Pi 5 (sysfs has no `address` attr); `/etc/default/dhbridge` masks `dhbridge.ini` keys (issue #3) |
 | AIS-catcher fork | 0.68 | release workflow runs upstream `build-debian.sh` as root; upstream CI workflows disabled on the fork |
-| kraktak 10.1.1, windtak 1.0.0, takline 0.1.1 | Jun 2026 | kraktak release decoupled from its best-effort docker job |
+| windtak 1.0.0, takline 0.1.1 | Jun 2026 | |
 | cockpit-* ×9 | 1.0.0+ | Cockpit plugins use the dark AryaOS/GPSTAK visual style; watch for regressions to white-on-white UI |
 
 ## LINCOT / Host Beacon
@@ -239,7 +238,7 @@ After flashing the latest dev image, first checks should include:
 8. adsbcot PyPI job needs a **trusted publisher** configured on PyPI (release works
    regardless; the job just reads red).
 9. Possible next plugins: charontak *lane editor* (structured `charontak.ini` UI —
-   current plugin is a raw editor), kraktak/windtak/aprscot pages; backport SIGPIPE
+   current plugin is a raw editor), windtak/aprscot pages; backport SIGPIPE
    fixes everywhere `dpkg-deb -c | head` survives.
 10. Node-RED runtime check after the worldmap 5.x / tfr2cot 2.0 major bumps
    (palette installs now go through the npm 11 override).

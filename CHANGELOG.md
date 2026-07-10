@@ -1,5 +1,9 @@
 ## AryaOS (Unreleased)
 
+- dhbridge (DroneHone Bluetooth bridge) and kraktak removed from public builds
+  while their source is private. The Bluetooth PAN phone-to-box link stays:
+  `stage-dhbridge` is now `stage-bt-pan` (payload in `shared_files/bt-pan/`),
+  and `verify-image.sh` now fails if dhbridge artifacts ship in an image.
 - Hardening (see [docs/security.md](docs/security.md)): firewalld inbound
   allowlist (managed via Cockpit → Networking → Firewall), fail2ban sshd jail,
   sshd tightening (no root login), sysctl hardening, daily unattended Debian

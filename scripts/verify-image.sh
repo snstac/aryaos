@@ -172,8 +172,18 @@ require_path /etc/default/gpsd
 require_path /usr/share/keyrings/snstac.gpg
 require_path /etc/apt/sources.list.d/snstac.sources
 
+# Bluetooth PAN (stage-bt-pan)
+require_path /usr/local/sbin/aryaos-bt-ready.sh
+require_path /usr/local/sbin/aryaos-bt-pan-nap
+require_unit aryaos-bt-ready.service
+require_unit aryaos-bt-pan.service
+
+# dhbridge is private — public images must not ship it or its config
+forbid_path /etc/dhbridge.ini
+forbid_path /usr/bin/dhbridge
+forbid_path /etc/systemd/system/dhbridge.service.d
+
 # Sensor / CoT stack
-require_pkg dhbridge
 require_pkg cockpit-gps
 require_pkg cockpit-adsbcot
 require_pkg cockpit-lincot

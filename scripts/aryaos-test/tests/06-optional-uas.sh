@@ -68,7 +68,7 @@ if [[ -d /sys/class/bluetooth/hci0 ]]; then
 		warn "hciconfig not available"
 	fi
 else
-	fail "Bluetooth hci0 not found (dhbridge needs BT adapter)"
+	fail "Bluetooth hci0 not found (Bluetooth PAN needs BT adapter)"
 fi
 
 if test_profile uas; then
@@ -87,18 +87,6 @@ if unit_loaded dronecot; then
 		warn "dronecot not active"
 	else
 		skip "dronecot inactive outside UAS profile"
-	fi
-fi
-
-if unit_active dhbridge; then
-	HOSTNAME_SHORT="$(hostname -s 2>/dev/null || hostname)"
-	DHBRIDGE_BT_NAME="$(journalctl -u dhbridge --grep 'broadcast name' -n 1 --no-pager 2>/dev/null | sed -n "s/.*broadcast name '\([^']*\)'.*/\1/p" | tail -n1)"
-	if [[ "${DHBRIDGE_BT_NAME}" == "${HOSTNAME_SHORT}" ]]; then
-		ok "dhbridge broadcast name matches hostname (${HOSTNAME_SHORT})"
-	elif [[ -n "${DHBRIDGE_BT_NAME}" ]]; then
-		fail "dhbridge broadcast name ${DHBRIDGE_BT_NAME} does not match hostname ${HOSTNAME_SHORT}"
-	else
-		warn "dhbridge broadcast name not found in journal"
 	fi
 fi
 

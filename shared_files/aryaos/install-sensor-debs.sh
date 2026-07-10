@@ -49,7 +49,6 @@ PYTAK_TOOLS = {
     "dronecot",
     "gpstak",
     "inrcot",
-    "kraktak",
     "lincot",
     "pulsecot",
     "sikw00fcot",
