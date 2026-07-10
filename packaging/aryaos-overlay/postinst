@@ -24,7 +24,7 @@ case "$1" in
       fi
     done
 
-    for user in adsbcot aiscot dronecot lincot charontak dhbridge; do
+    for user in adsbcot aiscot dronecot lincot charontak; do
       if getent passwd "$user" >/dev/null 2>&1; then
         usermod -aG tak-certs "$user" 2>/dev/null || true
       fi

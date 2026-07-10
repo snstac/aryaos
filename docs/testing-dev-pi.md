@@ -46,7 +46,7 @@ scripts/aryaos-test/
     02-config.sh      # aryaos-config, charontak, adsbcot, readsb
     03-adsb.sh        # readsb SDR flags, aircraft.json
     04-portal.sh      # HTTPS/HTTP CGI + validate_portal.py
-    05-packages.sh    # dhbridge, calfire tiles
+    05-packages.sh    # overlay package, calfire tiles
     06-optional-uas.sh # docker, MQTT, Bluetooth (warn-only)
 ```
 
@@ -74,7 +74,6 @@ Expectations live in **`expectations.yml`**; update that file when image default
 
 - Empty `aircraft.json` (no ADS-B traffic)
 - Inactive optional TAK gateways
-- Missing `dhbridge` on older flashes
 - CalFire tiles still present (until removal lands on main)
 - GNSS fix quality, DroneScout/docker/MQTT, Bluetooth `hci0`
 

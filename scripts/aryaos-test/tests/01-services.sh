@@ -77,14 +77,14 @@ for svc in charontak lincot adsbcot aiscot dronecot sikw00fcot; do
 	fi
 done
 
-if unit_loaded dhbridge; then
-	if unit_active dhbridge; then
-		ok "dhbridge active"
+if unit_loaded aryaos-bt-pan; then
+	if unit_active aryaos-bt-pan; then
+		ok "aryaos-bt-pan active"
 	else
-		warn "dhbridge installed but not active"
+		warn "aryaos-bt-pan installed but not active"
 	fi
 else
-	warn "dhbridge unit not installed (older image?)"
+	warn "aryaos-bt-pan unit not installed (older image?)"
 fi
 
 print_summary

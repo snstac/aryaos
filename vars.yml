@@ -46,16 +46,6 @@ charontak_ingress_cot_url: udp+ro://127.0.0.1:28087
 charontak_egress_cot_url: udp+wo://239.2.3.1:6969
 charontak_feeder_cot_url: udp+wo://127.0.0.1:28087
 
-# DroneHone Bluetooth sensor bridge — installed from the snstac apt repo
-# (manifests/aryaos-sensor-packages.yml).
-dhbridge_mqtt_broker: localhost
-dhbridge_mqtt_port: 1883
-dhbridge_mqtt_topic: "#"
-dhbridge_bt_adapter: hci0
-dhbridge_bt_name: "AryaOS RemoteID"
-dhbridge_rfcomm_enabled: true
-dhbridge_ble_enabled: false
-
 lincot_gps_info_cmd: gpspipe --json -n 5
 lincot_poll_interval: 61
 lincot_cot_type: a-f-G-E-S

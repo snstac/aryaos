@@ -146,7 +146,7 @@ Hardware-specific roles (ADS-B, AIS) are tagged `hardware`; skip them if the hos
 ansible-playbook -i inventory.yml -e 'aryaos_profile=generic' site.yml --skip-tags hardware
 ```
 
-The PyTAK sensor stack installs from the signed [snstac apt repository](https://snstac.github.io/packages) (built by [snstac/packages](https://github.com/snstac/packages) from each product's latest GitHub Release). The package list is defined once in `manifests/aryaos-sensor-packages.yml` for both image builds and Ansible; the repo's trust anchor (`snstac.gpg` + `snstac.sources`) is vendored at `shared_files/aryaos/snstac-packages/`. `dhbridge` installs from the same repo (public since v0.3.2); `shared_files/dhbridge/` carries only its config payload.
+The PyTAK sensor stack installs from the signed [snstac apt repository](https://snstac.github.io/packages) (built by [snstac/packages](https://github.com/snstac/packages) from each product's latest GitHub Release). The package list is defined once in `manifests/aryaos-sensor-packages.yml` for both image builds and Ansible; the repo's trust anchor (`snstac.gpg` + `snstac.sources`) is vendored at `shared_files/aryaos/snstac-packages/`.
 
 AryaOS-owned appliance files are also buildable as a local Debian package with `make package-overlay`. During pi-gen, `stage-aryaos/00-install` builds that package into the target rootfs and installs it with apt so the running image records the overlay as `aryaos-overlay` in dpkg. The legacy direct-copy path remains in the stage for now as a fallback while the overlay package is being hardened.
 

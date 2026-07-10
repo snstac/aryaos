@@ -91,7 +91,7 @@ fi
 # group (installed from the "AryaOS Site" Cockpit plugin). Service users are
 # created by their debs, so membership is reconciled here on every boot.
 getent group tak-certs >/dev/null 2>&1 || groupadd --system tak-certs
-for svc_user in adsbcot aiscot dronecot lincot charontak dhbridge; do
+for svc_user in adsbcot aiscot dronecot lincot charontak; do
 	if getent passwd "$svc_user" >/dev/null 2>&1; then
 		usermod -aG tak-certs "$svc_user" 2>/dev/null || true
 	fi

@@ -1,0 +1,65 @@
+# code: language=ansible
+# Bluetooth PAN — local phone-to-box IP link for AryaOS management.
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+
+- name: Install Bluetooth PAN dependencies
+  ansible.builtin.apt:
+    name:
+      - bluez
+      - dnsmasq-base
+      - python3-dbus
+      - python3-gi
+    state: present
+    update_cache: true
+
+- name: Install AryaOS Bluetooth readiness helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/bt-pan/aryaos-bt-ready.sh"
+    dest: /usr/local/sbin/aryaos-bt-ready.sh
+    mode: "0755"
+  notify:
+    - Reload systemd
+    - Restart Bluetooth PAN
+
+- name: Install AryaOS Bluetooth PAN helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/bt-pan/aryaos-bt-pan-nap"
+    dest: /usr/local/sbin/aryaos-bt-pan-nap
+    mode: "0755"
+  notify:
+    - Reload systemd
+    - Restart Bluetooth PAN
+
+- name: Install AryaOS Bluetooth readiness service
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/bt-pan/systemd/system/aryaos-bt-ready.service"
+    dest: /etc/systemd/system/aryaos-bt-ready.service
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart Bluetooth PAN
+
+- name: Install AryaOS Bluetooth PAN service
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/bt-pan/systemd/system/aryaos-bt-pan.service"
+    dest: /etc/systemd/system/aryaos-bt-pan.service
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart Bluetooth PAN
+
+- name: Enable AryaOS Bluetooth readiness service
+  ansible.builtin.systemd:
+    name: aryaos-bt-ready.service
+    enabled: true
+    daemon_reload: true
+
+- name: Enable and start AryaOS Bluetooth PAN service
+  ansible.builtin.systemd:
+    name: aryaos-bt-pan.service
+    enabled: true
+    state: started
+    daemon_reload: true
+  failed_when: false

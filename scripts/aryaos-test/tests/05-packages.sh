@@ -6,10 +6,10 @@ set -euo pipefail
 # shellcheck source=../lib.sh
 source "$(dirname "$0")/../lib.sh"
 
-if command -v dhbridge >/dev/null || dpkg -l dhbridge >/dev/null 2>&1; then
-	ok "dhbridge package/binary present"
+if command -v dhbridge >/dev/null || dpkg -s dhbridge >/dev/null 2>&1; then
+	warn "dhbridge present (private package; expected absent on public images)"
 else
-	warn "dhbridge not installed (flash before dhbridge merge?)"
+	ok "dhbridge absent (private package)"
 fi
 
 if dpkg-query -W -f='${Status}' aryaos-overlay 2>/dev/null | grep -q "install ok installed"; then

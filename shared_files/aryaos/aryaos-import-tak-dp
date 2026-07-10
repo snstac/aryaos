@@ -200,7 +200,7 @@ def install_tls_files(client_blob, client_password, ca_blob, ca_password):
     for path in (TLS_DIR / "client.p12", TLS_DIR / "caCert.p12", TLS_DIR / "client.key"):
         subprocess.run(["/usr/bin/chgrp", TAK_CERTS_GROUP, str(path)], check=False)
     if os.geteuid() == 0:
-        for user in ("adsbcot", "aiscot", "dronecot", "lincot", "charontak", "dhbridge"):
+        for user in ("adsbcot", "aiscot", "dronecot", "lincot", "charontak"):
             if subprocess.run(["/usr/bin/getent", "passwd", user], stdout=subprocess.DEVNULL, check=False).returncode == 0:
                 subprocess.run(["/usr/sbin/usermod", "-aG", TAK_CERTS_GROUP, user], check=False)
 

@@ -1,14 +1,12 @@
 #!/bin/bash
-# Ensure the built-in Bluetooth adapter is usable before dhbridge starts.
+# Ensure the built-in Bluetooth adapter is usable before dependent services start.
 
 set -euo pipefail
 
-ADAPTER="${DHBRIDGE_BT_ADAPTER:-${BT_ADAPTER:-hci0}}"
-RFCOMM_CHANNEL="${DHBRIDGE_RFCOMM_CHANNEL:-${RFCOMM_CHANNEL:-1}}"
+ADAPTER="${BT_ADAPTER:-hci0}"
 RFKILL="${RFKILL:-/usr/sbin/rfkill}"
 BLUETOOTHCTL="${BLUETOOTHCTL:-/usr/bin/bluetoothctl}"
 HCICONFIG="${HCICONFIG:-/usr/bin/hciconfig}"
-SDPTOOL="${SDPTOOL:-/usr/bin/sdptool}"
 
 log() {
 	echo "aryaos-bt-ready: $*"
@@ -41,18 +39,6 @@ if [[ -x "${BLUETOOTHCTL}" ]]; then
 	timeout 8 "${BLUETOOTHCTL}" discoverable-timeout 0
 	timeout 8 "${BLUETOOTHCTL}" discoverable on
 	timeout 8 "${BLUETOOTHCTL}" pairable on
-fi
-
-if [[ -x "${SDPTOOL}" ]]; then
-	for _ in $(seq 1 5); do
-		if timeout 10 "${SDPTOOL}" add --channel "${RFCOMM_CHANNEL}" SP >/dev/null 2>&1; then
-			if timeout 10 "${SDPTOOL}" browse local 2>/dev/null | grep -q "Serial Port"; then
-				log "Serial Port Profile registered on RFCOMM channel ${RFCOMM_CHANNEL}"
-				break
-			fi
-		fi
-		sleep 1
-	done
 fi
 
 if [[ -r "/sys/class/bluetooth/${ADAPTER}/address" ]]; then

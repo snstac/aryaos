@@ -96,13 +96,13 @@ make test-dev-pi
 
 See [testing-dev-pi.md](testing-dev-pi.md) for tiers, check matrix, and interpreting results.
 
-## Apply Charontak / CoT / dhbridge config on a running Pi
+## Apply Charontak / CoT config on a running Pi
 
 `sync-to-dev-pi.sh` mirrors the repo to **`~/aryaos-sync/`** only. To install **`/etc`** defaults and bump pinned **charontak** / **lincot** `.debs` without reflashing:
 
 ```bash
 ansible-playbook -i inventory.yml site.yml --limit aryaos-dev-pi \
-  --tags charontak,lincot,dhbridge
+  --tags charontak,lincot
 ```
 
 (`inventory.yml` uses **`shared_files/aryaos/ssh/aryaos-dev-lab`** when present.) If **`get_url`** fails on the Pi (old Python/urllib), copy config manually:
@@ -110,8 +110,7 @@ ansible-playbook -i inventory.yml site.yml --limit aryaos-dev-pi \
 ```bash
 ssh pi@aryaos-dev-pi 'sudo install -m 0644 ~/aryaos-sync/shared_files/aryaos/aryaos-config.txt /etc/aryaos/aryaos-config.txt
 sudo install -m 0644 ~/aryaos-sync/shared_files/charontak/charontak.ini /etc/charontak.ini
-sudo install -m 0644 ~/aryaos-sync/shared_files/dhbridge/dhbridge.ini /etc/dhbridge.ini
-sudo systemctl restart charontak dhbridge lincot adsbcot'
+sudo systemctl restart charontak lincot adsbcot'
 ```
 
 Default feeder **`COT_URL`** is **`udp+wo://127.0.0.1:28087`**; Charontak listens on **`udp+ro://127.0.0.1:28087`**.
