@@ -44,7 +44,6 @@ PYTAK_TOOLS = {
     "aiscot",
     "aprscot",
     "charontak",
-    "cotproxy",
     "djicot",
     "dronecot",
     "gpstak",
