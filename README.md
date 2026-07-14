@@ -31,7 +31,6 @@ AryaOS ships with the full [Sensors & Signals](https://www.snstac.com) open-sour
 | [INRCOT — Garmin inReach to TAK gateway](https://github.com/snstac/inrcot) | Displays Garmin inReach satellite tracker positions in TAK. |
 | [SiKW00FCOT — MAVLink drone telemetry to TAK](https://github.com/snstac/sikw00fcot) | Converts SiK-radio MAVLink drone telemetry to Cursor on Target. |
 | [CharonTAK — Cursor on Target ferryman](https://github.com/snstac/charontak) | Bridges & relays CoT between networks and TAK servers. |
-| [COTProxy — CoT transformation proxy](https://github.com/snstac/cotproxy) | Tactical ETL: in-flight transformation of Cursor on Target messages. |
 | [QRTAK — TAK onboarding with QR codes](https://github.com/snstac/qrtak) | Onboard devices to TAK Server by scanning a QR code. |
 
 Every gateway on AryaOS is managed from a touch-friendly browser UI built on [Cockpit](https://cockpit-project.org/), including [cockpit-aryaos](https://github.com/snstac/cockpit-aryaos), [cockpit-adsbcot](https://github.com/snstac/cockpit-adsbcot), [cockpit-aiscot](https://github.com/snstac/cockpit-aiscot), [cockpit-dronecot](https://github.com/snstac/cockpit-dronecot), [cockpit-gpstak](https://github.com/snstac/cockpit-gpstak) & [cockpit-lincot](https://github.com/snstac/cockpit-lincot).
