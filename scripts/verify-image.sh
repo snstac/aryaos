@@ -238,6 +238,7 @@ require_path /etc/systemd/system/aryaos-update.service
 require_path /usr/local/sbin/aryaos-support-bundle
 require_path /usr/local/sbin/aryaos-set-nodered-password
 require_path /usr/local/sbin/aryaos-sdr
+require_path /usr/local/sbin/aryaos-role
 require_pkg rtl-sdr
 
 # Lab access must match the build flavor

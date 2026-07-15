@@ -127,6 +127,7 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-update.service" \
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-support-bundle" "${ROOTFS_DIR}/usr/local/sbin/aryaos-support-bundle"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-set-nodered-password" "${ROOTFS_DIR}/usr/local/sbin/aryaos-set-nodered-password"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-sdr" "${ROOTFS_DIR}/usr/local/sbin/aryaos-sdr"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-role" "${ROOTFS_DIR}/usr/local/sbin/aryaos-role"
 
 ## gpsd: USB GNSS defaults (see shared_files/aryaos/gpsd.default)
 install -v -m 0644 "${SHARED_FILES}/aryaos/gpsd.default" "${ROOTFS_DIR}/etc/default/gpsd"

@@ -61,6 +61,10 @@ jobs:
           shellcheck -S error \
             shared_files/aryaos/*.sh \
             shared_files/aryaos/aryaos-update \
+            shared_files/aryaos/aryaos-support-bundle \
+            shared_files/aryaos/aryaos-set-nodered-password \
+            shared_files/aryaos/aryaos-sdr \
+            shared_files/aryaos/aryaos-role \
             scripts/*.sh \
             scripts/aryaos-test/run.sh \
             scripts/aryaos-test/lib.sh \

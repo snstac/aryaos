@@ -1,0 +1,147 @@
+#!/bin/bash
+# aryaos-role — switch the device's sensor role at runtime.
+#
+# Subcommands:
+#   list        JSON: available roles, their units, and the current role.
+#   set ROLE    Enable/start the role's sensor units, disable/stop the rest,
+#               and persist ARYAOS_ROLE in /etc/aryaos/aryaos-config.txt.
+#
+# Roles select which *sensor* pipelines run; the CoT core (charontak, lincot,
+# gpstak, gpsd) is never touched. The ADS-B decoder unit follows
+# ARYAOS_ADSB_DECODER (readsb | dump1090_fa). Units missing from the image
+# (e.g. optional decoders) are skipped, not errors.
+#
+# Backend for the "Device role" card in Cockpit -> AryaOS Site.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+SITE_CONFIG="/etc/aryaos/aryaos-config.txt"
+ROLES="multi air maritime cuas relay"
+DEFAULT_ROLE="multi"
+
+usage() {
+	echo "usage: aryaos-role {list | set ROLE}  (roles: ${ROLES})" >&2
+	exit 2
+}
+
+require_root() {
+	if [[ "$(id -u)" != "0" ]]; then
+		echo "aryaos-role: must run as root (try sudo)" >&2
+		exit 2
+	fi
+}
+
+config_get() {
+	local key="$1"
+	[[ -f "${SITE_CONFIG}" ]] || return 0
+	sed -n "s/^${key}=[\"']\?\([^\"']*\)[\"']\?$/\1/p" "${SITE_CONFIG}" | tail -1
+}
+
+config_set() {
+	local key="$1" value="$2"
+	if grep -qE "^#?\s*${key}=" "${SITE_CONFIG}"; then
+		sed -i "s|^#\?\s*${key}=.*|${key}=${value}|" "${SITE_CONFIG}"
+	else
+		printf '%s=%s\n' "${key}" "${value}" >> "${SITE_CONFIG}"
+	fi
+}
+
+adsb_decoder_unit() {
+	local decoder
+	decoder="$(config_get ARYAOS_ADSB_DECODER)"
+	if [[ "${decoder}" == "dump1090_fa" ]]; then
+		echo "dump1090-fa"
+	else
+		echo "readsb"
+	fi
+}
+
+# Sensor unit sets per role. The unused ADS-B decoder is always disabled so a
+# decoder switch in site config takes effect on the next role apply.
+role_units() {
+	local role="$1"
+	local adsb_units ais_units drone_units
+	adsb_units="$(adsb_decoder_unit) dump978-fa adsbcot"
+	ais_units="ais-catcher aiscot"
+	drone_units="dronecot sikw00fcot"
+	case "${role}" in
+		multi)    echo "${adsb_units} ${ais_units} ${drone_units}" ;;
+		air)      echo "${adsb_units}" ;;
+		maritime) echo "${ais_units}" ;;
+		cuas)     echo "${drone_units}" ;;
+		relay)    echo "" ;;
+		*)        return 1 ;;
+	esac
+}
+
+all_managed_units() {
+	echo "readsb dump1090-fa dump978-fa adsbcot ais-catcher aiscot dronecot sikw00fcot"
+}
+
+unit_exists() {
+	systemctl list-unit-files --no-legend "$1.service" 2>/dev/null | grep -q .
+}
+
+list_json() {
+	local current
+	current="$(config_get ARYAOS_ROLE)"
+	[[ -n "${current}" ]] || current="${DEFAULT_ROLE}"
+	local role units first=1
+	printf '{"current": "%s", "roles": {' "${current}"
+	for role in ${ROLES}; do
+		units="$(role_units "${role}")"
+		[[ "${first}" == "1" ]] || printf ', '
+		first=0
+		printf '"%s": {"units": [' "${role}"
+		local u sep=""
+		for u in ${units}; do
+			printf '%s"%s"' "${sep}" "${u}"
+			sep=", "
+		done
+		printf ']}'
+	done
+	printf '}}\n'
+}
+
+set_role() {
+	local role="$1"
+	local wanted
+	if ! wanted="$(role_units "${role}")"; then
+		echo "aryaos-role: unknown role '${role}' (roles: ${ROLES})" >&2
+		exit 2
+	fi
+
+	local unit
+	for unit in $(all_managed_units); do
+		unit_exists "${unit}" || continue
+		if [[ " ${wanted} " == *" ${unit} "* ]]; then
+			echo "enable  ${unit}"
+			systemctl enable --now "${unit}" >/dev/null 2>&1 || \
+				echo "aryaos-role: warning: could not start ${unit}" >&2
+		else
+			echo "disable ${unit}"
+			systemctl disable --now "${unit}" >/dev/null 2>&1 || true
+		fi
+	done
+
+	config_set ARYAOS_ROLE "${role}"
+	echo "Device role set to '${role}'."
+}
+
+cmd="${1:-}"
+case "${cmd}" in
+	list)
+		list_json
+		;;
+	set)
+		require_root
+		[[ $# -eq 2 ]] || usage
+		set_role "$2"
+		;;
+	*)
+		usage
+		;;
+esac

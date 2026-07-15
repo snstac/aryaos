@@ -97,6 +97,12 @@
     dest: /usr/local/sbin/aryaos-sdr
     mode: "0755"
 
+- name: Install aryaos-role helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-role"
+    dest: /usr/local/sbin/aryaos-role
+    mode: "0755"
+
 - name: Enable firewalld and fail2ban
   ansible.builtin.systemd_service:
     name: "{{ item }}"
