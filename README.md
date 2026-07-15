@@ -11,7 +11,7 @@ Features of AryaOS:
 * Facilitates rapid test & evaluation of edge node sensors.
 * Browser based low-code development tool for visual programming & open API.
 * Runs on inexpensive COTS & low SWaP-C small board computers, including the Raspberry Pi.
-* Compatible with Intel & Arm (amd64 & arm64) architectures.
+* Built for Arm (arm64) single-board computers today; Intel/amd64 support is planned ([#129](https://github.com/snstac/aryaos/issues/129)) — the full gateway suite already installs on any Debian host from the [signed apt repository](https://snstac.github.io/packages).
 
 ## AryaOS Software Suite
 
