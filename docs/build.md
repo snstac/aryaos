@@ -92,6 +92,19 @@ The workflow `.github/workflows/pi-gen.yml`:
 - **`usimd/pi-gen-action`** mounts **stage directories** into the pi-gen Docker container, but not the whole repo. This workflow passes **`docker-opts`** so **`shared_files/`**, **`manifests/`**, and the checkout **`pi-gen-src/`** appear at the same **`${{ github.workspace }}` paths** inside the container (needed for `../../../shared_files`, **`REPO_ROOT`/manifests**, and **`stage-patch`** edits under **`pi-gen-src`**).
 - If disk pressure persists on hosted runners, consider enabling **`increase-runner-disk-size`** on **`pi-gen-action`** or trimming stages; pi-gen **work/** trees are large.
 
+### SBOMs
+
+Every image build also produces a **Software Bill of Materials** in both
+SPDX 2.3 and CycloneDX JSON (`aryaos-<tag>.spdx.json` / `.cdx.json`), attached
+to the GitHub Release beside the image and kept as a 90-day workflow artifact.
+The generator is `scripts/generate-sbom.sh` (loop-mounts the image, runs a
+pinned [syft](https://github.com/anchore/syft) over the rootfs — covers dpkg,
+Python site-packages, and the Node-RED npm tree). Run it locally with:
+
+```bash
+sudo SYFT_BIN=syft ./scripts/generate-sbom.sh deploy/<image>.img.xz /tmp/aryaos-sbom
+```
+
 ### Manual `v*` tags (optional)
 
 The workflow no longer triggers on `push` of version tags (that avoided rebuilding when the workflow itself pushes a release tag). Use **`workflow_dispatch`** in the Actions UI to rebuild from `main`, or adjust the workflow `on:` section if you want tag-triggered builds again.

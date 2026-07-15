@@ -264,6 +264,29 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "Computed release tag ${TAG}"
 
+      - name: Generate SBOMs (SPDX + CycloneDX)
+        # Runs before the tag is pushed so an SBOM failure cannot leave a tag
+        # with no published release behind (see release-hygiene notes).
+        if: success() && steps.build_aryaos.outputs.image-path != ''
+        run: |
+          set -euo pipefail
+          SYFT_VERSION="v1.18.1"
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
+            | sudo sh -s -- -b /usr/local/bin "${SYFT_VERSION}"
+          sudo bash ./scripts/generate-sbom.sh \
+            "${{ steps.build_aryaos.outputs.image-path }}" \
+            "deploy/sbom/aryaos-${{ steps.reltag.outputs.tag }}"
+          ls -l deploy/sbom/
+
+      - name: Upload SBOM artifact
+        if: success() && steps.build_aryaos.outputs.image-path != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: aryaos-sbom-${{ github.sha }}
+          path: deploy/sbom/
+          retention-days: 90
+          if-no-files-found: error
+
       - name: Create and push release tag
         if: success() && steps.build_aryaos.outputs.image-path != ''
         run: |
@@ -292,6 +315,9 @@ jobs:
           args=(release create "$TAG" "${{ steps.build_aryaos.outputs.image-path }}" --title "$TAG" --generate-notes --notes "$BODY" --verify-tag)
           for deb in deploy/debs/aryaos-overlay_*_all.deb; do
             [ -f "$deb" ] && args+=("$deb")
+          done
+          for sbom in deploy/sbom/aryaos-*.json; do
+            [ -f "$sbom" ] && args+=("$sbom")
           done
           if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
             args+=(--prerelease)
