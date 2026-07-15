@@ -91,6 +91,12 @@
     dest: /usr/local/sbin/aryaos-set-nodered-password
     mode: "0755"
 
+- name: Install aryaos-sdr helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-sdr"
+    dest: /usr/local/sbin/aryaos-sdr
+    mode: "0755"
+
 - name: Enable firewalld and fail2ban
   ansible.builtin.systemd_service:
     name: "{{ item }}"

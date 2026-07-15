@@ -27,6 +27,7 @@
     name:
       - librtlsdr0
       - librtlsdr-dev
+      - rtl-sdr
       - libsoapysdr-dev
       - soapysdr-tools
       - soapysdr-module-airspy

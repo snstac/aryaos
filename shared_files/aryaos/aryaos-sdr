@@ -1,0 +1,122 @@
+#!/bin/bash
+# aryaos-sdr — enumerate RTL-SDR dongles and rewrite their EEPROM serials.
+#
+# Subcommands:
+#   list                       JSON list of detected dongles (index, product, serial).
+#   set-serial INDEX SERIAL    Stop SDR consumers, write a new EEPROM serial,
+#                              restart the consumers that were running.
+#
+# Backend for the "Radios" card in Cockpit -> AryaOS Site (cockpit-aryaos).
+# AryaOS serial conventions: stx:1090:0 (readsb/dump1090), stx:978:0 (UAT,
+# ARYAOS_UAT_RTL_SERIAL). A replug or reboot is required before the new
+# serial is visible to consumers.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+# Units that claim RTL-SDR devices; stopped/restarted around EEPROM writes.
+SDR_UNITS="readsb dump1090-fa dump978-fa ais-catcher"
+SERIAL_RE='^[A-Za-z0-9:._-]{1,32}$'
+
+usage() {
+	echo "usage: aryaos-sdr {list | set-serial INDEX SERIAL}" >&2
+	exit 2
+}
+
+require_root() {
+	if [[ "$(id -u)" != "0" ]]; then
+		echo "aryaos-sdr: must run as root (try sudo)" >&2
+		exit 2
+	fi
+}
+
+require_tools() {
+	if ! command -v rtl_test >/dev/null 2>&1 || ! command -v rtl_eeprom >/dev/null 2>&1; then
+		echo "aryaos-sdr: rtl-sdr tools not installed (apt install rtl-sdr)" >&2
+		exit 1
+	fi
+}
+
+# rtl_test with an out-of-range index prints the enumeration to stderr and
+# exits without claiming any device:
+#   Found 2 device(s):
+#     0:  Realtek, RTL2838UHIDIR, SN: stx:1090:0
+#     1:  Realtek, RTL2838UHIDIR, SN: stx:978:0
+list_devices() {
+	rtl_test -d 99 2>&1 | python3 -c '
+import json
+import re
+import sys
+
+devices = []
+for line in sys.stdin:
+    m = re.match(r"\s*(\d+):\s+([^,]*),\s*([^,]*),\s*SN:\s*(.*)$", line.rstrip())
+    if m:
+        devices.append({
+            "index": int(m.group(1)),
+            "vendor": m.group(2).strip(),
+            "product": m.group(3).strip(),
+            "serial": m.group(4).strip(),
+        })
+print(json.dumps({"devices": devices}))
+'
+}
+
+set_serial() {
+	local index="$1" serial="$2"
+	if [[ ! "${index}" =~ ^[0-9]+$ ]]; then
+		echo "aryaos-sdr: INDEX must be a number" >&2
+		exit 2
+	fi
+	if [[ ! "${serial}" =~ ${SERIAL_RE} ]]; then
+		echo "aryaos-sdr: SERIAL must be 1-32 chars of [A-Za-z0-9:._-]" >&2
+		exit 2
+	fi
+
+	# Stop only the SDR consumers that are currently active, remember them.
+	local stopped=()
+	local unit
+	for unit in ${SDR_UNITS}; do
+		if systemctl is-active --quiet "${unit}" 2>/dev/null; then
+			systemctl stop "${unit}"
+			stopped+=("${unit}")
+		fi
+	done
+	restart_stopped() {
+		local u
+		for u in "${stopped[@]:-}"; do
+			[[ -n "${u}" ]] && systemctl start "${u}" || true
+		done
+	}
+	trap restart_stopped EXIT
+
+	echo "Writing serial '${serial}' to RTL-SDR device ${index}..."
+	if ! printf 'y\n' | rtl_eeprom -d "${index}" -s "${serial}" 2>&1; then
+		echo "aryaos-sdr: rtl_eeprom failed (device busy or index gone?)" >&2
+		exit 1
+	fi
+
+	echo "Serial written. Replug the dongle (or reboot) for the new serial to take effect."
+	if [[ "${#stopped[@]}" -gt 0 ]]; then
+		echo "Restarting: ${stopped[*]}"
+	fi
+}
+
+cmd="${1:-}"
+case "${cmd}" in
+	list)
+		require_tools
+		list_devices
+		;;
+	set-serial)
+		require_root
+		require_tools
+		[[ $# -eq 3 ]] || usage
+		set_serial "$2" "$3"
+		;;
+	*)
+		usage
+		;;
+esac

@@ -65,6 +65,7 @@ install_file 0755 "${SHARED}/aryaos/get_throttled.sh" "/usr/local/sbin/get_throt
 install_file 0755 "${SHARED}/aryaos/aryaos-update" "/usr/local/sbin/aryaos-update"
 install_file 0755 "${SHARED}/aryaos/aryaos-support-bundle" "/usr/local/sbin/aryaos-support-bundle"
 install_file 0755 "${SHARED}/aryaos/aryaos-set-nodered-password" "/usr/local/sbin/aryaos-set-nodered-password"
+install_file 0755 "${SHARED}/aryaos/aryaos-sdr" "/usr/local/sbin/aryaos-sdr"
 install_file 0755 "${SHARED}/aryaos/run_comitup.sh" "/usr/local/sbin/run_comitup.sh"
 install_file 0755 "${SHARED}/aryaos/comitup-callback.sh" "/usr/local/sbin/comitup-callback.sh"
 install_file 0755 "${SHARED}/aryaos/wifi-nuke.py" "/usr/local/sbin/wifi-nuke.py"
