@@ -5,6 +5,7 @@ git wget unzip curl build-essential python3-dev socat python3-venv ncurses-dev n
 python3-websockets
 librtlsdr0
 librtlsdr-dev
+rtl-sdr
 libsoapysdr-dev
 soapysdr-tools
 soapysdr-module-airspy
