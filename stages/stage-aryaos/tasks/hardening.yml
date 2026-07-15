@@ -79,6 +79,18 @@
     dest: /etc/systemd/system/aryaos-update.service
     mode: "0644"
 
+- name: Install aryaos-support-bundle helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-support-bundle"
+    dest: /usr/local/sbin/aryaos-support-bundle
+    mode: "0755"
+
+- name: Install aryaos-set-nodered-password helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-set-nodered-password"
+    dest: /usr/local/sbin/aryaos-set-nodered-password
+    mode: "0755"
+
 - name: Enable firewalld and fail2ban
   ansible.builtin.systemd_service:
     name: "{{ item }}"

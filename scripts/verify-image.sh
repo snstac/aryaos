@@ -234,6 +234,10 @@ require_grep 'web-tls-regenerated' /usr/local/sbin/aryaos-firstboot.sh "firstboo
 require_path /usr/local/sbin/aryaos-update
 require_path /etc/systemd/system/aryaos-update.service
 
+# Field support helpers (Cockpit -> AryaOS Site drives both)
+require_path /usr/local/sbin/aryaos-support-bundle
+require_path /usr/local/sbin/aryaos-set-nodered-password
+
 # Lab access must match the build flavor
 if [[ "${LAB_EXPECTED}" == "1" ]]; then
 	require_path /etc/sudoers.d/aryaos-lab

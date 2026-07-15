@@ -1,0 +1,149 @@
+#!/bin/bash
+# aryaos-support-bundle — collect redacted diagnostics into a tarball.
+#
+# Backend for the "Support bundle" card in Cockpit -> AryaOS Site
+# (cockpit-aryaos); also usable directly: `sudo aryaos-support-bundle`.
+# Prints the bundle path on the last line of stdout and records it in
+# /var/lib/aryaos/support-bundle.json. Keeps the three newest bundles.
+#
+# Secrets policy: values of keys matching PASSWORD/TOKEN/SECRET/PASSPHRASE/PSK
+# and tak:// enrollment credentials are replaced with [REDACTED]. Nothing from
+# /etc/aryaos/tls, /etc/charontak/tls, or any private key material is included.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+STATE_DIR="/var/lib/aryaos"
+OUT_DIR="${STATE_DIR}/support"
+STATE_JSON="${STATE_DIR}/support-bundle.json"
+SITE_CONFIG="/etc/aryaos/aryaos-config.txt"
+KEEP_BUNDLES=3
+JOURNAL_BOOT_LINES=4000
+JOURNAL_UNIT_LINES=500
+
+if [[ "$(id -u)" != "0" ]]; then
+	echo "aryaos-support-bundle: must run as root (try sudo)" >&2
+	exit 2
+fi
+
+now_iso() {
+	date -u +%Y-%m-%dT%H:%M:%SZ
+}
+
+# Mask secret-bearing values in config-style text on stdin.
+redact() {
+	sed -E \
+		-e 's/^([[:space:]]*(export[[:space:]]+)?[A-Za-z0-9_]*(PASSWORD|TOKEN|SECRET|PASSPHRASE|PSK)[A-Za-z0-9_]*[[:space:]]*[=:][[:space:]]*).*/\1[REDACTED]/I' \
+		-e 's#(token=)[^&"[:space:]]+#\1[REDACTED]#Ig' \
+		-e 's#(username=)[^&"[:space:]]+#\1[REDACTED]#Ig'
+}
+
+# run <outfile> <cmd...> — capture a command, never fail the bundle.
+run() {
+	local out="$1"
+	shift
+	{
+		echo "\$ $*"
+		timeout 15 "$@" 2>&1 || echo "[exit $?]"
+	} >> "${out}" 2>&1 || true
+	echo >> "${out}"
+}
+
+# copy_redacted <src> <dst> — copy a config file through the redactor.
+copy_redacted() {
+	local src="$1" dst="$2"
+	[[ -f "${src}" ]] || return 0
+	redact < "${src}" > "${dst}" || true
+}
+
+HOSTNAME_SAFE="$(hostname | tr -c 'A-Za-z0-9.-' '-')"
+STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+BUNDLE_NAME="aryaos-support_${HOSTNAME_SAFE}_${STAMP}"
+WORK="$(mktemp -d)"
+ROOT="${WORK}/${BUNDLE_NAME}"
+mkdir -p "${ROOT}/configs" "${ROOT}/journals"
+trap 'rm -rf "${WORK}"' EXIT
+
+# Service list: site config AOS_SERVICES wins, plus infrastructure units.
+AOS_SERVICES="charontak adsbcot aiscot dronecot lincot"
+if [[ -f "${SITE_CONFIG}" ]]; then
+	cfg_services="$(sed -n 's/^AOS_SERVICES=["'\'']\?\([^"'\'']*\)["'\'']\?$/\1/p' "${SITE_CONFIG}" | tail -1)"
+	[[ -n "${cfg_services}" ]] && AOS_SERVICES="${cfg_services}"
+fi
+ALL_UNITS="${AOS_SERVICES} gpstak sikw00fcot readsb dump978-fa ais-catcher gpsd nodered docker lighttpd cockpit.socket firewalld fail2ban comitup aryaos-firstboot aryaos-neighbord aryaos-tak-dp-importd aryaos-bt-pan"
+
+# --- system identity & resources ---
+SYS="${ROOT}/system.txt"
+run "${SYS}" uname -a
+run "${SYS}" cat /etc/aryaos-release /etc/aryaos-version /etc/os-release
+run "${SYS}" uptime
+run "${SYS}" date -u
+run "${SYS}" free -h
+run "${SYS}" df -h
+[[ -x /usr/local/sbin/get_throttled.sh ]] && run "${SYS}" /usr/local/sbin/get_throttled.sh
+if command -v vcgencmd >/dev/null 2>&1; then
+	run "${SYS}" vcgencmd measure_temp
+	run "${SYS}" vcgencmd get_throttled
+fi
+
+# --- packages ---
+run "${ROOT}/packages.txt" bash -c "dpkg-query -W -f '\${Package} \${Version} \${db:Status-Abbrev}\n' | grep -E 'pytak|takproto|aircot|adsbcot|aiscot|dronecot|djicot|lincot|charontak|gpstak|sikw00fcot|cockpit|readsb|dump1090|dump978|ais-catcher|aryaos|gpsd|node-red|nodered|comitup|firewalld|fail2ban' || true"
+
+# --- services & journals ---
+SVC="${ROOT}/services.txt"
+run "${SVC}" systemctl --failed --no-pager
+for unit in ${ALL_UNITS}; do
+	run "${SVC}" systemctl status "${unit}" --no-pager -l -n 20
+done
+journalctl -b --no-pager -n "${JOURNAL_BOOT_LINES}" > "${ROOT}/journals/boot.txt" 2>&1 || true
+for unit in ${AOS_SERVICES} gpstak sikw00fcot readsb gpsd; do
+	journalctl -b -u "${unit}" --no-pager -n "${JOURNAL_UNIT_LINES}" \
+		> "${ROOT}/journals/${unit}.txt" 2>&1 || true
+done
+
+# --- network ---
+NET="${ROOT}/network.txt"
+run "${NET}" ip -br addr
+run "${NET}" ip route
+run "${NET}" cat /etc/resolv.conf
+command -v nmcli >/dev/null 2>&1 && run "${NET}" nmcli -t device status
+if command -v firewall-cmd >/dev/null 2>&1; then
+	run "${NET}" firewall-cmd --state
+	run "${NET}" firewall-cmd --list-all-zones
+fi
+run "${NET}" ss -tulnp
+
+# --- configs (redacted) ---
+copy_redacted "${SITE_CONFIG}" "${ROOT}/configs/aryaos-config.txt"
+copy_redacted /etc/charontak.ini "${ROOT}/configs/charontak.ini"
+copy_redacted /etc/default/gpsd "${ROOT}/configs/default-gpsd"
+for svc in ${AOS_SERVICES} gpstak sikw00fcot charontak; do
+	copy_redacted "/etc/default/${svc}" "${ROOT}/configs/default-${svc}"
+done
+
+# --- sensor snapshots ---
+if [[ -f /run/adsb/aircraft.json ]]; then
+	head -c 16384 /run/adsb/aircraft.json > "${ROOT}/adsb-aircraft.json" 2>/dev/null || true
+fi
+[[ -f /run/aryaos/neighbors.json ]] && cp /run/aryaos/neighbors.json "${ROOT}/neighbors.json"
+if command -v gpspipe >/dev/null 2>&1; then
+	timeout 5 gpspipe -w -n 5 > "${ROOT}/gpsd.json" 2>&1 || true
+fi
+
+# --- pack, rotate, record ---
+mkdir -p "${OUT_DIR}"
+chmod 0700 "${OUT_DIR}"
+BUNDLE_PATH="${OUT_DIR}/${BUNDLE_NAME}.tar.gz"
+tar -C "${WORK}" -czf "${BUNDLE_PATH}" "${BUNDLE_NAME}"
+chmod 0600 "${BUNDLE_PATH}"
+
+ls -1t "${OUT_DIR}"/aryaos-support_*.tar.gz 2>/dev/null | tail -n "+$((KEEP_BUNDLES + 1))" | xargs -r rm -f
+
+SIZE="$(stat -c %s "${BUNDLE_PATH}")"
+printf '{"generated_at": "%s", "path": "%s", "size": %s}\n' \
+	"$(now_iso)" "${BUNDLE_PATH}" "${SIZE}" > "${STATE_JSON}"
+
+echo "Bundle ready (${SIZE} bytes; secrets redacted)."
+echo "${BUNDLE_PATH}"

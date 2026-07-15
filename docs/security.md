@@ -67,6 +67,26 @@ expiry), never in posture.
   `readsb` stays on `apt-mark hold` and is reported as held.
 - Per-package operations: Cockpit → Software updates (PackageKit).
 
+## Node-RED admin password
+
+Node-RED ships with a publicly known default admin password (`aryaos415`) and
+the editor can run arbitrary code as the `node-red` user — **rotate it before
+fielding a unit**. Cockpit → AryaOS Site → *Node-RED admin password* does
+this in the browser; the backend is
+`/usr/local/sbin/aryaos-set-nodered-password` (reads the new password on
+stdin, bcrypt-hashes it with Node-RED's bundled bcryptjs, rewrites the
+`adminAuth` entry in `settings.js`, restarts Node-RED).
+
+## Support bundles
+
+Cockpit → AryaOS Site → *Support bundle* generates a downloadable diagnostics
+tarball via `/usr/local/sbin/aryaos-support-bundle`: system/package/service
+state, capped journals, network and firewall state, and sensor-gateway
+configs. Values of keys matching `PASSWORD/TOKEN/SECRET/PASSPHRASE/PSK` and
+`tak://` enrollment credentials are redacted; nothing from `/etc/aryaos/tls`
+or other private key material is included. Bundles land in
+`/var/lib/aryaos/support/` (`0600`, three newest kept).
+
 ## Enforcement
 
 `scripts/verify-image.sh` loop-mounts every built image and asserts this

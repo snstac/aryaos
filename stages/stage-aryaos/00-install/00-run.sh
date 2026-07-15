@@ -123,6 +123,10 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-update" "${ROOTFS_DIR}/usr/loc
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-update.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-update.service"
 
+## Field support helpers (driven by Cockpit -> AryaOS Site)
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-support-bundle" "${ROOTFS_DIR}/usr/local/sbin/aryaos-support-bundle"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-set-nodered-password" "${ROOTFS_DIR}/usr/local/sbin/aryaos-set-nodered-password"
+
 ## gpsd: USB GNSS defaults (see shared_files/aryaos/gpsd.default)
 install -v -m 0644 "${SHARED_FILES}/aryaos/gpsd.default" "${ROOTFS_DIR}/etc/default/gpsd"
 
