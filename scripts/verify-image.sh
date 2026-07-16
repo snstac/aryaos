@@ -196,10 +196,12 @@ require_pkg readsb
 require_pkg python3-gps
 require_pkg ais-catcher
 require_pkg sikw00fcot
+require_pkg gdltak
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
 require_unit sikw00fcot.service
+require_unit gdltak.service
 require_unit lincot.service
 require_unit charontak.service
 require_unit readsb.service

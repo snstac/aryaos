@@ -16,6 +16,10 @@ sensor_apt_packages:
   - dronecot
   - sikw00fcot
   - lincot
+  # gdltak — CoT to GDL90: ForeFlight/EFB display of the TAK air picture.
+  # NOTE: requires gdltak indexed in the apt repo (snstac/packages PR #1) —
+  # merge/publish that before building an image from this manifest.
+  - gdltak
   # cockpit-gps — live GNSS data from gpsd with spoof/jam integrity monitoring.
   - cockpit-gps
   # Cockpit is the AryaOS admin surface: every installed gateway ships its plugin.
