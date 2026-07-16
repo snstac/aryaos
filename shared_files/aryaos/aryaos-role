@@ -64,7 +64,7 @@ adsb_decoder_unit() {
 role_units() {
 	local role="$1"
 	local adsb_units ais_units drone_units
-	adsb_units="$(adsb_decoder_unit) dump978-fa adsbcot"
+	adsb_units="$(adsb_decoder_unit) dump978-fa adsbcot gdltak"
 	ais_units="ais-catcher aiscot"
 	drone_units="dronecot sikw00fcot"
 	case "${role}" in
@@ -78,7 +78,7 @@ role_units() {
 }
 
 all_managed_units() {
-	echo "readsb dump1090-fa dump978-fa adsbcot ais-catcher aiscot dronecot sikw00fcot"
+	echo "readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot dronecot sikw00fcot"
 }
 
 unit_exists() {
