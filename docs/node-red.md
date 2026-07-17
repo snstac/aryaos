@@ -1,55 +1,50 @@
-# Node-RED (ops dashboard)
+# Node-RED dashboard
 
-Node-RED runs as **`nodered.service`** on port **1880**. The **Dashboard** UI is at **`http://<host>:1880/ui`** (or HTTPS if proxied).
+AryaOS ships [Node-RED](https://nodered.org/) as an optional low-code
+automation and visualization surface. It runs as **`nodered.service`** on port
+**1880**; the read-only **Dashboard** is at **`http://<host>:1880/ui`** and the
+flow editor at **`http://<host>:1880/`**.
 
-## What it still does
+!!! warning "Rotate the Node-RED admin password before fielding a unit"
+    Node-RED ships with a **publicly known default admin password** and its
+    editor can run code on the device. Change it from **AryaOS Site → Node-RED
+    admin password** (see [AryaOS Site](admin/aryaos-site.md)) or with
+    `sudo aryaos-set-nodered-password`. Restrict access to the flow editor on any
+    production gateway.
+
+## What it does
 
 | Tab / flow | Purpose |
 |------------|---------|
-| **Dashboard** | Admin links to portal, Cockpit, and Comitup |
-| **TAK / Maps** | Mesh SA visualization (`tak2wm`, world map) — read-only ops |
-| **TFR** | Injects TFR CoT from **`TFR_STATE`** file |
-| **Recorder** | Optional logging under **`/var/www/html/recorder/`** |
-| **ADS-B** | Decoder stats display (when JSON feeds are present) |
+| **Dashboard** | Admin links to the portal, Cockpit, and the onboarding hotspot |
+| **TAK / Maps** | Mesh SA visualization (world map) — read-only ops picture |
+| **TFR** | Injects Temporary Flight Restriction CoT from a `TFR_STATE` file |
+| **Recorder** | Optional CoT logging under `/var/www/html/recorder/` |
+| **ADS-B** | Decoder stats display when JSON feeds are present |
 | **Debug Logs** | Operator debug channel |
 
-Flow editor: **`http://<host>:1880/`** (restrict access on production gateways).
+## Node-RED is not the admin surface
 
-## What was removed (legacy config sunset)
+Earlier AryaOS builds used Node-RED to edit configuration. That role has moved
+entirely to the [web console](admin/index.md) — Node-RED is now for
+visualization and custom automation only. Configure the system here instead:
 
-The following Dashboard tabs and flows were **removed**; do not expect them on current images:
-
-- **Config** — edited **`aryaos-config.txt`**, **`/etc/default/*`**, PyTAK TLS fields
-- **Update** — `.deb` upload / **`dpkg -i`**
-- **OS Status** — host/GNSS/service polling (superseded by the [HTTPS portal](portal.md))
-- **Control / Admin** — **`systemctl`**, reboot/shutdown, WiFi **`wifi-nuke`**
-
-**Use instead:**
-
-| Need | Surface |
-|------|---------|
-| Status | [Portal](portal.md) **`GET /cgi-bin/aryaos-portal-status`** |
-| Services | Cockpit → Services |
-| Charontak upstream | Cockpit → Charontak fields → **`/etc/charontak.ini`** |
-| Feeders | Cockpit **`adsbcot`** / **`aiscot`** + **`/etc/default/*`** |
-| WiFi | Comitup **`:9080`** |
+| Need | Where |
+|------|-------|
+| Site TAK destination, TLS, role, updates | [AryaOS Site page](admin/aryaos-site.md) |
+| Where CoT flows (Mesh SA / TAK Server) | [Charontak lane editor](admin/charontak-lanes.md) |
+| Per-sensor settings | [Gateway pages](admin/gateways.md) → `/etc/default/<svc>` |
+| SDR serials & decoder | [Radios & SDRs](config/radios-sdr.md) |
+| Wi-Fi / hotspot | [Wi-Fi & onboarding hotspot](networking/wifi-hotspot.md) |
+| Services (start/stop/restart) | Cockpit → Services, or each gateway page |
 
 ## Security
 
-- **`node-red`** is **not** in the **`sudo`** group.
-- No passwordless **`sudo`** rules for **`node-red`** (see **`/etc/sudoers.d/aryaos`**).
-- Regenerate flows from [`shared_files/node-red/aryaos_flows.json`](../shared_files/node-red/aryaos_flows.json) via pi-gen / Ansible stage-node-red.
+- The **`node-red`** user is **not** in the `sudo` group and has no passwordless
+  `sudo` rules (see `/etc/sudoers.d/aryaos`).
+- Node-RED owns only its own configuration, not the AryaOS TLS material.
+- Flows are provisioned at build time from
+  [`shared_files/node-red/`](https://github.com/snstac/aryaos/tree/main/shared_files/node-red);
+  Node-RED loads `flows.json` on restart: `sudo systemctl restart nodered`.
 
-## Known gaps (no Node-RED replacement)
-
-| Gap | Workaround |
-|-----|------------|
-| SDR serial / decoder choice | SSH, Ansible, [#21](https://github.com/snstac/AryaOS/issues/21), [`readsb-use-rtl-serial.sh`](../scripts/readsb-use-rtl-serial.sh) |
-| **cockpit-lincot** UI | Edit **`/etc/default/lincot`** until upstream packages **`cockpit-lincot`** |
-| Feeder restart helper | Manual **`systemctl restart charontak adsbcot aiscot lincot dronecot`** after config edits ([config.md](config.md)) |
-
-## Dev / lab
-
-Mirror flows to the lab Pi with **`./scripts/sync-to-dev-pi.sh`** (full tree). Node-RED picks up **`flows.json`** on service restart: **`sudo systemctl restart nodered`**.
-
-Source: [`scripts/strip-node-red-config-flows.py`](../scripts/strip-node-red-config-flows.py) documents the sunset transform applied to **`aryaos_flows.json`**.
+See the [security posture](security.md) for the full picture.

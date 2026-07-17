@@ -3,3 +3,4 @@ mkdocstrings[python]
 markdown-include
 mkdocs-include-markdown-plugin
 mkdocs-material
+pymdown-extensions

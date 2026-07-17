@@ -19,7 +19,7 @@ sudo visudo -c
 
 ## Lab SSH key (passwordless, preferred)
 
-The repo ships **`shared_files/aryaos/ssh/aryaos-dev-lab.pub`**; new AryaOS images append it to **`pi`**’s **`authorized_keys`**. The matching **private** key is **gitignored** at **`shared_files/aryaos/ssh/aryaos-dev-lab`** (generate once in the repo with `ssh-keygen`; see [shared_files/aryaos/ssh/README.md](../shared_files/aryaos/ssh/README.md)).
+The repo ships **`shared_files/aryaos/ssh/aryaos-dev-lab.pub`**; new AryaOS images append it to **`pi`**’s **`authorized_keys`**. The matching **private** key is **gitignored** at **`shared_files/aryaos/ssh/aryaos-dev-lab`** (generate once in the repo with `ssh-keygen`; see [shared_files/aryaos/ssh/README.md](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/ssh/README.md)).
 
 **One-time on your workstation** (from repo root, after the private key exists):
 
@@ -40,7 +40,7 @@ ssh-copy-id -i shared_files/aryaos/ssh/aryaos-dev-lab.pub pi@aryaos-dev-pi
 
 (or append the `.pub` line manually to `/home/pi/.ssh/authorized_keys` on the Pi).
 
-**Override key path (force `ssh -i` for sync scripts):** set **`ARYAOS_DEV_PI_SSH_KEY`** to a private key file. [scripts/sync-to-dev-pi.sh](../scripts/sync-to-dev-pi.sh) tries normal **`ssh` first** (so **`~/.ssh/config`** + **ssh-agent** match your interactive `ssh pi@aryaos-dev-pi`), then the repo **`aryaos-dev-lab`** file, then password. [scripts/sync-portal-review.sh](../scripts/sync-portal-review.sh) uses **`ARYAOS_DEV_PI_SSH_KEY`** only when set; otherwise plain **`ssh`/`scp`** (rely on config/agent).
+**Override key path (force `ssh -i` for sync scripts):** set **`ARYAOS_DEV_PI_SSH_KEY`** to a private key file. [scripts/sync-to-dev-pi.sh](https://github.com/snstac/aryaos/blob/main/scripts/sync-to-dev-pi.sh) tries normal **`ssh` first** (so **`~/.ssh/config`** + **ssh-agent** match your interactive `ssh pi@aryaos-dev-pi`), then the repo **`aryaos-dev-lab`** file, then password. [scripts/sync-portal-review.sh](https://github.com/snstac/aryaos/blob/main/scripts/sync-portal-review.sh) uses **`ARYAOS_DEV_PI_SSH_KEY`** only when set; otherwise plain **`ssh`/`scp`** (rely on config/agent).
 
 ## USB power (multiple SDRs)
 
@@ -82,7 +82,7 @@ ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh
 
 (`Host aryaos-dev-pi` in `~/.ssh/config` with `User pi` is enough; `pi@aryaos-dev-pi` also works.)
 
-See [scripts/sync-portal-review.sh](../scripts/sync-portal-review.sh) and [portal.md](portal.md) (features, JSON schema, agent next steps).
+See [scripts/sync-portal-review.sh](https://github.com/snstac/aryaos/blob/main/scripts/sync-portal-review.sh) and [portal.md](portal.md) (features, JSON schema, agent next steps).
 
 ## Integration tests
 
@@ -117,7 +117,7 @@ Default feeder **`COT_URL`** is **`udp+wo://127.0.0.1:28087`**; Charontak listen
 
 ## Other one-off files
 
-Use `scp` / `rsync` for scripts or configs not covered by the scripts above. Example: [scripts/readsb-use-rtl-serial.sh](../scripts/readsb-use-rtl-serial.sh) for readsb RTL serial changes.
+Use `scp` / `rsync` for scripts or configs not covered by the scripts above. Example: [scripts/readsb-use-rtl-serial.sh](https://github.com/snstac/aryaos/blob/main/scripts/readsb-use-rtl-serial.sh) for readsb RTL serial changes.
 
 ## Optional SSH config (manual)
 
