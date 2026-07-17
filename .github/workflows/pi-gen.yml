@@ -277,9 +277,14 @@ jobs:
           SYFT_VERSION="v1.18.1"
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
             | sudo sh -s -- -b /usr/local/bin "${SYFT_VERSION}"
+          # Pre-create as the runner user, and chown after the sudo run:
+          # root-owned deploy/ broke the later unprivileged overlay-deb step
+          # (build 29590562438).
+          mkdir -p deploy/sbom
           sudo bash ./scripts/generate-sbom.sh \
             "${{ steps.build_aryaos.outputs.image-path }}" \
             "deploy/sbom/aryaos-${{ steps.reltag.outputs.tag }}"
+          sudo chown -R "$(id -u):$(id -g)" deploy
           ls -l deploy/sbom/
 
       - name: Upload SBOM artifact
