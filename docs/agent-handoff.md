@@ -1,7 +1,20 @@
-# Agent handoff — state as of 2026-06-23
+# Agent handoff — state as of 2026-07-16
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
+
+## 2026-07-15/16 sweep — "never SSH" + fleet dedup (11 PRs pending merge)
+
+Full review + implementation sweep. **Merge order matters**:
+
+1. [packages#1](https://github.com/snstac/packages/pull/1) — indexes **gdltak** into the apt repo. Merge & publish FIRST or the next image build fails on the manifest.
+2. [aryaos#127](https://github.com/snstac/aryaos/pull/127) — overlay helpers `aryaos-support-bundle` (redacted diagnostics), `aryaos-set-nodered-password` (rotates the fixed default; settings.js → root:node-red 0640), `aryaos-sdr` (RTL enumerate/re-serial; adds `rtl-sdr` pkg — tools were missing, only librtlsdr shipped), `aryaos-role` (runtime multi/air/maritime/cuas/relay; CoT core untouched); gdltak in manifest + air/multi roles; verify-image asserts; helpers added to CI shellcheck (no .sh suffix — globs missed them). Also [#128](https://github.com/snstac/aryaos/pull/128) SBOMs (syft, step runs BEFORE tag push on purpose) and [#130](https://github.com/snstac/aryaos/pull/130) README amd64 soften (tracking #129 — installer-script path first).
+3. [cockpit-aryaos#3](https://github.com/snstac/cockpit-aryaos/pull/3) — six cards (support bundle, Node-RED password, radios, device role, comitup hotspot password, Tailscale join). Helper-backed cards need overlay ≥ 2.2 (from #127).
+4. Any order: [cockpit-charontak#3](https://github.com/snstac/cockpit-charontak/pull/3) — React/TS rewrite + **structured lane editor** (cotUrl.ts is a differentially-tested port of charontak config.py — keep in sync!); shared-lib migrations [cockpit-aiscot#67](https://github.com/snstac/cockpit-aiscot/pull/67), [cockpit-adsbcot#2](https://github.com/snstac/cockpit-adsbcot/pull/2), [cockpit-dronecot#3](https://github.com/snstac/cockpit-dronecot/pull/3) (also deduped 7 shadowed PYTAK_TLS_* conf keys), [cockpit-lincot#8](https://github.com/snstac/cockpit-lincot/pull/8).
+
+New repos: [snstac/cockpit-shared](https://github.com/snstac/cockpit-shared) v1.1.0 (shared serviceCard/tlsCard/envDefaultFile/types; source-shipping `github:` dep, keyless `npm ci` verified; all five fleet plugins consume it) and [snstac/gdltak](https://github.com/snstac/gdltak) v1.0.0 (CoT → GDL90/ForeFlight, 48 tests incl. spec CRC known-answer; deb+rpm released).
+
+Issue tracker triaged 42 → 11 open (closures commented). **Next hardware session**: burn a dev image and exercise all six cards + verify the Cockpit expired-password first-login flow (wizard prereq); 09-security.sh candidates. Then: amd64 installer (#129), unified COP map, track record/replay (#8/#9).
 
 ## Current known-good build
 
