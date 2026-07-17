@@ -10,7 +10,7 @@ You can also fetch recent images from **GitHub Actions**:
 2. Open a completed run (push to `main` or **workflow_dispatch**).
 3. Download the workflow **artifact** (this workflow uses **30-day** artifact retention; artifacts accrue toward Actions storage quotas).
 
-For flash instructions, see [Installing AryaOS](install.md).
+For flash instructions, see [Installing AryaOS](get-started/flash-the-image.md).
 
 ## Manual build checklist (local Raspberry Pi image)
 
@@ -67,7 +67,7 @@ To build initially:
 2. Run `make pi-gen` to clone the upstream `arm64` branch of pi-gen into `./pi-gen/` (ignored by git).
 3. Run `make build` to create an image (uses `sudo` on the host for pi-gen).
 
-Docker alternative (no host `sudo` for debootstrap): `make build-docker` runs `./pi-gen/build-docker.sh` with the repo mounted at `/aryaos` and [config.docker](config.docker). It **bind-mounts** `.aryaos-pigen-work` and `.aryaos-pigen-deploy` at the **repo root** (writable even if `pi-gen/` is root-owned) so **retries** reuse finished stages: `docker rm -f pigen_work` then `make build-docker` again. **`NUM_CORES`** defaults to `nproc` for faster package installs. **`make build-docker-clean`** deletes those caches (large) plus stray containers. Images end up in `.aryaos-pigen-deploy/`; the script also unpacks into `pi-gen/deploy/`.
+Docker alternative (no host `sudo` for debootstrap): `make build-docker` runs `./pi-gen/build-docker.sh` with the repo mounted at `/aryaos` and [config.docker](https://github.com/snstac/aryaos/blob/main/config.docker). It **bind-mounts** `.aryaos-pigen-work` and `.aryaos-pigen-deploy` at the **repo root** (writable even if `pi-gen/` is root-owned) so **retries** reuse finished stages: `docker rm -f pigen_work` then `make build-docker` again. **`NUM_CORES`** defaults to `nproc` for faster package installs. **`make build-docker-clean`** deletes those caches (large) plus stray containers. Images end up in `.aryaos-pigen-deploy/`; the script also unpacks into `pi-gen/deploy/`.
 
 To iterate on AryaOS-only stages without rebuilding the base OS:
 
@@ -118,7 +118,7 @@ The workflow no longer triggers on `push` of version tags (that avoided rebuildi
 
 - Prefer upstream **`pi-gen/build-docker.sh`** with **bind mounts or named volumes** for `work/` and `deploy/` so repeated runs reuse downloads where pi-gen allows.
 - **Apt cache (Docker builds):** run `make apt-cacher-up` once (starts **`apt-cacher-ng`** via `docker-compose.apt-cacher.yml` at the repo root; cache lives in the Docker volume `aryaos_apt_cacher_cache`). Then build with **`ARYAOS_APT_CACHE=1 make build-docker`**. The Makefile passes **`APT_PROXY`** into the pi-gen container (`Acquire::http::Proxy`, same as upstream pi-gen) using **`host.docker.internal`** + Docker’s **`host-gateway`**. Check the cache with **`make apt-cacher-ping`**; tail logs with **`make apt-cacher-logs`**. Stop with **`make apt-cacher-down`** (volume is kept until you remove it with `docker volume rm`).
-- **Native `make build`:** set **`APT_PROXY`** in [`config`](config) (commented example) to your proxy URL, e.g. `http://127.0.0.1:3142` when `apt-cacher-ng` publishes that port on the host.
+- **Native `make build`:** set **`APT_PROXY`** in [`config`](config/index.md) (commented example) to your proxy URL, e.g. `http://127.0.0.1:3142` when `apt-cacher-ng` publishes that port on the host.
 - Export **`NUM_CORES`** to match your CPU so pi-gen can parallelize package operations.
 - Use **`make skip`** / **`make unskip`** when iterating only on AryaOS stages after a full base image exists.
 
@@ -192,13 +192,13 @@ ansible-playbook -i inventory.yml site.yml \
 
 - Add **`aryaos`** (or other tags from [`site.yml`](https://github.com/snstac/aryaos/blob/main/site.yml)) when you need portal/lighttpd/Cockpit proxy behaviour (e.g. **`UrlRoot=/admin`**).
 - **`stage-adsbcot`** may assume **Pi-oriented `.deb` artifacts** (e.g. vendored **arm64** readsb) or hardware; an **amd64** laptop often needs different packages or vars — prefer **arm64** for parity with shipped images.
-- **readsb SDR backends:** pi-gen rebuilds readsb with **RTL-SDR**, **SoapySDR** (Airspy), and **HackRF** via [`shared_files/adsbcot/readsb-install.sh`](../shared_files/adsbcot/readsb-install.sh); `04-adsbcot/01-run-chroot.sh` fails the stage if `readsb --help` lacks any of those. See [config.md](config.md#1090-mhz-ads-b-decoder-readsb-vs-dump1090-fa).
+- **readsb SDR backends:** pi-gen rebuilds readsb with **RTL-SDR**, **SoapySDR** (Airspy), and **HackRF** via [`shared_files/adsbcot/readsb-install.sh`](https://github.com/snstac/aryaos/blob/main/shared_files/adsbcot/readsb-install.sh); `04-adsbcot/01-run-chroot.sh` fails the stage if `readsb --help` lacks any of those. See [Radios & SDRs](config/radios-sdr.md#choosing-the-1090-mhz-decoder).
 
 See commented **`dev_arm64`** stubs in [`inventory.yml`](https://github.com/snstac/aryaos/blob/main/inventory.yml).
 
 ### AirTAK-style readsb + adsbcot on DragonOS (`dragonball`)
 
-For a **generic amd64** host (e.g. Ubuntu DragonOS) with SSH as **`gba`** and key **`~/.ssh/id_ed25519_nopass`**, use the thin playbook [`playbooks/readsb-adsbcot-generic.yml`](../playbooks/readsb-adsbcot-generic.yml) (pytak sensor `.debs`, **Charontak** CoT hub, + **`stage-adsbcot`** readsb build). Host vars: [`host_vars/dragonball.yml`](../host_vars/dragonball.yml).
+For a **generic amd64** host (e.g. Ubuntu DragonOS) with SSH as **`gba`** and key **`~/.ssh/id_ed25519_nopass`**, use the thin playbook [`playbooks/readsb-adsbcot-generic.yml`](https://github.com/snstac/aryaos/blob/main/playbooks/readsb-adsbcot-generic.yml) (pytak sensor `.debs`, **Charontak** CoT hub, + **`stage-adsbcot`** readsb build). Host vars: [`host_vars/dragonball.yml`](https://github.com/snstac/aryaos/blob/main/host_vars/dragonball.yml).
 
 ```bash
 ansible-galaxy collection install -r requirements.yml
@@ -210,13 +210,13 @@ ansible-playbook -i inventory.yml playbooks/readsb-adsbcot-generic.yml \
   -e 'adsb_sdr_sn=YOUR_RTL_SERIAL'
 ```
 
-**`dragonball`** defaults in [`host_vars/dragonball.yml`](../host_vars/dragonball.yml) use an **Airspy** (`1d50:60a1`) via **`readsb_device_type: soapysdr`** and **`readsb_soapy_device: driver=airspy`**. RTL dongles: set **`readsb_device_type: rtlsdr`** and **`adsb_sdr_sn`** from `rtl_test` (must differ from **`uat_sdr_sn`**).
+**`dragonball`** defaults in [`host_vars/dragonball.yml`](https://github.com/snstac/aryaos/blob/main/host_vars/dragonball.yml) use an **Airspy** (`1d50:60a1`) via **`readsb_device_type: soapysdr`** and **`readsb_soapy_device: driver=airspy`**. RTL dongles: set **`readsb_device_type: rtlsdr`** and **`adsb_sdr_sn`** from `rtl_test` (must differ from **`uat_sdr_sn`**).
 
-If sudo prompts for a password, copy [`playbooks/dragonball-secret.yml.example`](../playbooks/dragonball-secret.yml.example) to gitignored **`playbooks/dragonball-secret.yml`** and pass **`-e @playbooks/dragonball-secret.yml`**, or run **`--ask-become-pass`**.
+If sudo prompts for a password, copy [`playbooks/dragonball-secret.yml.example`](https://github.com/snstac/aryaos/blob/main/playbooks/dragonball-secret.yml.example) to gitignored **`playbooks/dragonball-secret.yml`** and pass **`-e @playbooks/dragonball-secret.yml`**, or run **`--ask-become-pass`**.
 
-Without sudo (e.g. **`gba`** in the **`docker`** group only): rsync the repo to the host, then run [`scripts/dragonball-deploy-readsb-adsbcot.sh`](../scripts/dragonball-deploy-readsb-adsbcot.sh) on the machine. It builds readsb with SoapySDR/Airspy in Docker, installs units/config on the host rootfs, and enables services via **`nsenter`** (no password).
+Without sudo (e.g. **`gba`** in the **`docker`** group only): rsync the repo to the host, then run [`scripts/dragonball-deploy-readsb-adsbcot.sh`](https://github.com/snstac/aryaos/blob/main/scripts/dragonball-deploy-readsb-adsbcot.sh) on the machine. It builds readsb with SoapySDR/Airspy in Docker, installs units/config on the host rootfs, and enables services via **`nsenter`** (no password).
 
-On a running host: [`scripts/readsb-use-airspy.sh`](../scripts/readsb-use-airspy.sh) or [`scripts/readsb-use-rtl-serial.sh`](../scripts/readsb-use-rtl-serial.sh). Probe Airspy with `SoapySDRUtil --probe="driver=airspy"`.
+On a running host: [`scripts/readsb-use-airspy.sh`](https://github.com/snstac/aryaos/blob/main/scripts/readsb-use-airspy.sh) or [`scripts/readsb-use-rtl-serial.sh`](https://github.com/snstac/aryaos/blob/main/scripts/readsb-use-rtl-serial.sh). Probe Airspy with `SoapySDRUtil --probe="driver=airspy"`.
 
 After deploy: `systemctl status charontak readsb adsbcot`, confirm `/run/adsb/aircraft.json` existss.
 

@@ -1,46 +1,159 @@
 site_name: AryaOS
 site_url: https://www.aryaos.org/
 repo_url: https://github.com/snstac/aryaos
-site_description: AryaOS Documentation
+repo_name: snstac/aryaos
+edit_uri: edit/main/docs/
+site_description: >-
+  AryaOS — the all-in-one operating system for building a Common Operating
+  Picture from aircraft, vessels, and drones with TAK.
 site_author: Greg Albrecht <gba@snstac.com>
-copyright: Copyright Sensors & Signals LLC https://www.snstac.com/
+copyright: Copyright Sensors &amp; Signals LLC https://www.snstac.com/
 
 theme:
   name: material
-  highlightjs: true
+  logo: media/aryaos_logo.png
+  favicon: media/aryaos_logo-25p.png
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
 
 nav:
   - Home: index.md
-  - Introduction: intro.md
-  - Installing AryaOS: install.md
-  - Download or build: build.md
-  - Agent handoff: agent-handoff.md
-  - Configuration: config.md
-  - Security posture: security.md
-  - Bluetooth PAN: bluetooth-pan.md
-  - Definitions: definitions.md
-  - Troubleshooting: troubleshooting.md
-  - AirTAK CUAS getting started: airtak_cuas_getting_started.md
-  - Specifications: specs.md
-  - Purchase: purchase.md
-  - Changelog: changelog.md
+  - Get started:
+      - get-started/overview.md
+      - Quickstart: get-started/quickstart.md
+      - Hardware & requirements: get-started/hardware.md
+      - Flash the image: get-started/flash-the-image.md
+      - First boot & first login: get-started/first-boot.md
+  - Deploy:
+      - deploy/index.md
+      - Aircraft (ADS-B): deploy/air-adsb.md
+      - Maritime vessels (AIS): deploy/maritime-ais.md
+      - Counter-UAS (drones): deploy/counter-uas.md
+      - Own position (GPS): deploy/own-position-gps.md
+      - Multi-sensor COP: deploy/multi-sensor.md
+      - Relay & routing: deploy/relay-routing.md
+      - Connect to a TAK Server: deploy/connect-tak-server.md
+      - ForeFlight & EFBs (GDL90): deploy/foreflight-gdl90.md
+      - Disconnected / backpack ops: deploy/offline-backpack.md
+  - Web admin:
+      - admin/index.md
+      - AryaOS Site page: admin/aryaos-site.md
+      - Charontak lane editor: admin/charontak-lanes.md
+      - Gateway pages: admin/gateways.md
+      - Node-RED dashboard: node-red.md
+  - Configure:
+      - config/index.md
+      - Site configuration: config/site-config.md
+      - Device roles: config/device-roles.md
+      - Radios & SDRs: config/radios-sdr.md
+  - Network:
+      - Wi-Fi & onboarding hotspot: networking/wifi-hotspot.md
+      - Bluetooth PAN: bluetooth-pan.md
+      - VPN (Tailscale): networking/vpn-tailscale.md
+      - Firewall: networking/firewall.md
+  - Operate:
+      - operations/index.md
+      - Updates: operations/updates.md
+      - Support bundles: operations/support-bundles.md
+      - SBOM & supply chain: operations/sbom.md
+      - Nearby nodes: operations/neighbors.md
+      - Security posture: security.md
+  - Reference:
+      - Software suite: reference/software-suite.md
+      - Glossary: reference/glossary.md
+      - CLI helpers: reference/cli-helpers.md
+      - Ports & protocols: reference/ports.md
+      - Specifications: specs.md
+  - Build & develop:
+      - Download or build: build.md
+      - Dev Pi workflow: dev-pi.md
+      - Testing on a dev Pi: testing-dev-pi.md
+      - Lab portal deploy: portal.md
+      - Agent handoff: agent-handoff.md
+  - Help:
+      - Troubleshooting: troubleshooting.md
+      - FAQ: help/faq.md
+      - Buy hardware: purchase.md
+      - Changelog: changelog.md
 
 plugins:
+  - search
   - include-markdown:
       opening_tag: "{!"
       closing_tag: "!}"
-  - search
-  - mkdocstrings:
-      handlers:
-        # See: https://mkdocstrings.github.io/python/usage/
-        python:
-          options:
-            docstring_style: sphinx
 
 markdown_extensions:
-  - attr_list
-  - markdown_include.include:
-      base_path: .
+  - abbr
   - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
   - toc:
-      permalink: True
+      permalink: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/snstac
+    - icon: fontawesome/solid/globe
+      link: https://www.snstac.com/

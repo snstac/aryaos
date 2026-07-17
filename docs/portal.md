@@ -1,6 +1,6 @@
 # HTTPS landing portal
 
-The AryaOS **landing page** is static HTML under [`shared_files/aryaos/html/`](../shared_files/aryaos/html/). Live host/network/GNSS/TAK status comes from a **CGI JSON** endpoint (no Node-RED on the critical path).
+The AryaOS **landing page** is static HTML under [`shared_files/aryaos/html/`](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/html/). Live host/network/GNSS/TAK status comes from a **CGI JSON** endpoint (no Node-RED on the critical path).
 
 ## Architecture
 
@@ -21,12 +21,12 @@ flowchart LR
 
 | Piece | Path (image) | Source in repo |
 |-------|----------------|----------------|
-| Landing HTML/CSS/JS | `/var/www/html/` | [`shared_files/aryaos/html/`](../shared_files/aryaos/html/) |
-| Status CGI | `/usr/lib/cgi-bin/aryaos-portal-status` | [`shared_files/aryaos/cgi-bin/aryaos-portal-status`](../shared_files/aryaos/cgi-bin/aryaos-portal-status) |
-| HTTPS + CGI enable | `95-aryaos-cockpit-https.conf`, `10-cgi.conf` | [`shared_files/aryaos/`](../shared_files/aryaos/) via [`scripts/sync-portal-review.sh`](../scripts/sync-portal-review.sh) |
+| Landing HTML/CSS/JS | `/var/www/html/` | [`shared_files/aryaos/html/`](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/html/) |
+| Status CGI | `/usr/lib/cgi-bin/aryaos-portal-status` | [`shared_files/aryaos/cgi-bin/aryaos-portal-status`](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/cgi-bin/aryaos-portal-status) |
+| HTTPS + CGI enable | `95-aryaos-cockpit-https.conf`, `10-cgi.conf` | [`shared_files/aryaos/`](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/) via [`scripts/sync-portal-review.sh`](https://github.com/snstac/aryaos/blob/main/scripts/sync-portal-review.sh) |
 | `www-data` + gpsd / video | `gpsd` + `video` groups (gpspipe, vcgencmd) | pi-gen stage-aryaos + sync script |
 
-**Client:** [`portal-landing.js`](../shared_files/aryaos/html/js/portal-landing.js) polls **`GET /cgi-bin/aryaos-portal-status`** every **8s** (`cache: no-store`).
+**Client:** [`portal-landing.js`](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/html/js/portal-landing.js) polls **`GET /cgi-bin/aryaos-portal-status`** every **8s** (`cache: no-store`).
 
 ## Landing page features (current)
 
@@ -78,7 +78,7 @@ Full tree mirror (optional): `./scripts/sync-to-dev-pi.sh` then portal script ab
 
 ## Image / pi-gen
 
-Installed in **stage-aryaos** [`00-run.sh`](../stages/stage-aryaos/00-install/00-run.sh) (HTML + CGI). Ansible mirror: [`stages/stage-aryaos/tasks/cockpit-proxy.yml`](../stages/stage-aryaos/tasks/cockpit-proxy.yml).
+Installed in **stage-aryaos** [`00-run.sh`](https://github.com/snstac/aryaos/blob/main/stages/stage-aryaos/00-install/00-run.sh) (HTML + CGI). Ansible mirror: [`stages/stage-aryaos/tasks/cockpit-proxy.yml`](https://github.com/snstac/aryaos/blob/main/stages/stage-aryaos/tasks/cockpit-proxy.yml).
 
 After portal/CGI edits on **`main`**, CI builds a new image; local lab can use **sync-portal-review** without waiting for CI.
 
@@ -96,8 +96,8 @@ After portal/CGI edits on **`main`**, CI builds a new image; local lab can use *
 
 **Lab Pi (`aryaos-dev-pi` / `172.17.2.158`) — operational notes:**
 
-- **readsb:** pi-gen now runs [`readsb-install.sh`](../shared_files/adsbcot/readsb-install.sh) (`RTLSDR=yes`) after the stock `.deb` and restores the AryaOS `run_readsb.sh` unit.
-- **readsb RTL serial `2002`:** `RECEIVER_OPTIONS="--device-type rtlsdr --device 2002 …"`; helper [`scripts/readsb-use-rtl-serial.sh`](../scripts/readsb-use-rtl-serial.sh).
+- **readsb:** pi-gen now runs [`readsb-install.sh`](https://github.com/snstac/aryaos/blob/main/shared_files/adsbcot/readsb-install.sh) (`RTLSDR=yes`) after the stock `.deb` and restores the AryaOS `run_readsb.sh` unit.
+- **readsb RTL serial `2002`:** `RECEIVER_OPTIONS="--device-type rtlsdr --device 2002 …"`; helper [`scripts/readsb-use-rtl-serial.sh`](https://github.com/snstac/aryaos/blob/main/scripts/readsb-use-rtl-serial.sh).
 - **adsbcot** enabled; polls `file:///run/adsb/aircraft.json` (same path for readsb or dump1090-fa).
 - **USB power:** `enable-pi-usb-current.sh` applied; **reboot** if not done since append.
 - **Portal UI polish (`8d2304a`):** may **not** be on the Pi until `sync-portal-review` succeeds from a host on the lab LAN (agent environment often gets **No route to host**).
@@ -113,4 +113,4 @@ After portal/CGI edits on **`main`**, CI builds a new image; local lab can use *
    - lighttpd: add **`mod_openssl`** to `server.modules` (sync logs a future-deprecation warning).
 3. **After meaningful portal/CGI/HTML edits:** run **`sync-portal-review.sh`** on the Pi; for image parity rely on CI **`main`** build or local **`make build-docker`**.
 
-See also [AGENTS.md](../AGENTS.md) (build + lab Pi) and [dev-pi.md](dev-pi.md).
+See also [AGENTS.md](https://github.com/snstac/aryaos/blob/main/AGENTS.md) (build + lab Pi) and [dev-pi.md](dev-pi.md).

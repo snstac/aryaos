@@ -27,7 +27,7 @@ This runs `sync-to-dev-pi.sh` and `sync-portal-review.sh`, then the same test ru
 
 ## SSH authentication
 
-Same order as [dev-pi.md](dev-pi.md) and [scripts/sync-to-dev-pi.sh](../scripts/sync-to-dev-pi.sh):
+Same order as [dev-pi.md](dev-pi.md) and [scripts/sync-to-dev-pi.sh](https://github.com/snstac/aryaos/blob/main/scripts/sync-to-dev-pi.sh):
 
 1. Normal **`ssh`** (agent / `~/.ssh/config`)
 2. Repo dev key **`shared_files/aryaos/ssh/aryaos-dev-lab`**
@@ -95,4 +95,4 @@ The runner exits **1** if any module reports failures; **0** if only warnings/sk
 
 - [dev-pi.md](dev-pi.md) — lab Pi setup, sync, portal deploy
 - [portal.md](portal.md) — portal JSON schema and TAK gateway list
-- [AGENTS.md](../AGENTS.md) — agent workflow after portal or image changes
+- [AGENTS.md](https://github.com/snstac/aryaos/blob/main/AGENTS.md) — agent workflow after portal or image changes
