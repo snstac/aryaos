@@ -1,30 +1,71 @@
-# Agent handoff — state as of 2026-07-16
+# Agent handoff — state as of 2026-07-17
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 
-## 2026-07-15/16 sweep — "never SSH" + fleet dedup (11 PRs pending merge)
+## 2026-07-15/17 sweep — "never SSH" + fleet dedup (SHIPPED)
 
-Full review + implementation sweep. **Merge order matters**:
+Full review + implementation sweep. **All 11 PRs merged and released** (2026-07-17,
+in dependency order: packages → aryaos → cockpit-aryaos → plugins). What landed:
 
-1. [packages#1](https://github.com/snstac/packages/pull/1) — indexes **gdltak** into the apt repo. Merge & publish FIRST or the next image build fails on the manifest.
-2. [aryaos#127](https://github.com/snstac/aryaos/pull/127) — overlay helpers `aryaos-support-bundle` (redacted diagnostics), `aryaos-set-nodered-password` (rotates the fixed default; settings.js → root:node-red 0640), `aryaos-sdr` (RTL enumerate/re-serial; adds `rtl-sdr` pkg — tools were missing, only librtlsdr shipped), `aryaos-role` (runtime multi/air/maritime/cuas/relay; CoT core untouched); gdltak in manifest + air/multi roles; verify-image asserts; helpers added to CI shellcheck (no .sh suffix — globs missed them). Also [#128](https://github.com/snstac/aryaos/pull/128) SBOMs (syft, step runs BEFORE tag push on purpose) and [#130](https://github.com/snstac/aryaos/pull/130) README amd64 soften (tracking #129 — installer-script path first).
-3. [cockpit-aryaos#3](https://github.com/snstac/cockpit-aryaos/pull/3) — six cards (support bundle, Node-RED password, radios, device role, comitup hotspot password, Tailscale join). Helper-backed cards need overlay ≥ 2.2 (from #127).
-4. Any order: [cockpit-charontak#3](https://github.com/snstac/cockpit-charontak/pull/3) — React/TS rewrite + **structured lane editor** (cotUrl.ts is a differentially-tested port of charontak config.py — keep in sync!); shared-lib migrations [cockpit-aiscot#67](https://github.com/snstac/cockpit-aiscot/pull/67), [cockpit-adsbcot#2](https://github.com/snstac/cockpit-adsbcot/pull/2), [cockpit-dronecot#3](https://github.com/snstac/cockpit-dronecot/pull/3) (also deduped 7 shadowed PYTAK_TLS_* conf keys), [cockpit-lincot#8](https://github.com/snstac/cockpit-lincot/pull/8).
+- **aryaos overlay helpers** (all driven by cockpit-aryaos cards, no SSH):
+  `aryaos-support-bundle` (redacted diagnostics tarball, `/var/lib/aryaos/support/`),
+  `aryaos-set-nodered-password` (rotates the publicly-known default; `settings.js`
+  → `root:node-red 0640`), `aryaos-sdr` (RTL-SDR enumerate + EEPROM re-serial; this
+  added the `rtl-sdr` package — only `librtlsdr0` shipped before), `aryaos-role`
+  (runtime device roles **multi/air/maritime/cuas/relay**; CoT core charontak/lincot/
+  gpstak/gpsd never touched; ADS-B decoder follows `ARYAOS_ADSB_DECODER`). Installed
+  via overlay deb + chroot stage + Ansible; asserted in `verify-image.sh`; all four
+  now in the CI shellcheck list (they have **no `.sh` suffix** — the globs missed them,
+  don't re-break that).
+- **SBOMs** — `scripts/generate-sbom.sh` + pinned syft, every image build emits
+  SPDX + CycloneDX attached to the release. The step runs **before the tag push** on
+  purpose (an SBOM failure must not strand a tag). CAUTION: it runs syft under `sudo`,
+  so it chowns `deploy/` back to the runner afterward — a prior version stranded a tag
+  by leaving `deploy/` root-owned (fixed in #131).
+- **cockpit-aryaos v1.3.0** — six new cards: support bundle, Node-RED password,
+  Radios (RTL-SDR), Device role, comitup hotspot password, Tailscale join. The four
+  helper-backed cards need aryaos-overlay ≥ the 2026-07 helpers; on older images they
+  show a clear error toast.
+- **cockpit-charontak v1.2.0** — React/TS rewrite + **structured lane editor**.
+  `src/cotUrl.ts` is a differentially-tested port of `charontak/src/charontak/config.py`
+  — **keep the two in sync** if lane/URL validation changes.
+- **gdltak** (new repo, v1.0.0) — CoT → GDL90 UDP broadcast so ForeFlight/EFBs display
+  the TAK air picture. In the sensor manifest + air/multi roles; egress-only (no
+  inbound firewall service). 48 tests incl. the GDL90-spec CRC known-answer.
+- **@snstac/cockpit-shared** (new repo, v1.1.0) — shared `serviceCard`/`tlsCard`/
+  `envDefaultFile`/`types`. **Source-shipping model**: consumers depend on
+  `github:snstac/cockpit-shared#vX.Y.Z` and esbuild bundles the `.ts/.tsx` directly
+  (no npm registry, no build step); `cockpit` resolves from each consumer's `pkg/lib`.
+  Keyless `npm ci` verified (pacote fetches public repos over anonymous https even
+  though the lockfile `resolved` says `git+ssh`). **All five family-B plugins consume
+  it** (aiscot v1.2.1, adsbcot v1.2.1, dronecot v1.1.1, lincot v1.1.1, charontak v1.2.0).
+  Bumping the shared package = bump its tag, then bump the `#vX.Y.Z` ref in each consumer.
+- **README** amd64 claim softened (arm64 today, amd64 planned) — tracking #129
+  (installer-script path first: the apt repo + overlay deb already run on any Debian host).
 
-New repos: [snstac/cockpit-shared](https://github.com/snstac/cockpit-shared) v1.1.0 (shared serviceCard/tlsCard/envDefaultFile/types; source-shipping `github:` dep, keyless `npm ci` verified; all five fleet plugins consume it) and [snstac/gdltak](https://github.com/snstac/gdltak) v1.0.0 (CoT → GDL90/ForeFlight, 48 tests incl. spec CRC known-answer; deb+rpm released).
+Issue tracker triaged **42 → 11 open** (each closure commented with what superseded it).
 
-Issue tracker triaged 42 → 11 open (closures commented). **Next hardware session**: burn a dev image and exercise all six cards + verify the Cockpit expired-password first-login flow (wizard prereq); 09-security.sh candidates. Then: amd64 installer (#129), unified COP map, track record/replay (#8/#9).
+**Next hardware session**: flash the milestone image below and exercise all six
+cockpit-aryaos cards + verify the Cockpit expired-password first-login flow (the
+prerequisite for a first-login wizard); good `09-security.sh` test candidates. Then:
+amd64 installer (#129), unified COP map, track record/replay (#8/#9), and the cockpit
+plugins still on vanilla-JS could adopt cockpit-shared patterns.
 
 ## Current known-good build
 
-- Latest successful dev image: `v2026.06.23.212757-abe8e41bf5e2-dev`
-- Release URL: https://github.com/snstac/aryaos/releases/tag/v2026.06.23.212757-abe8e41bf5e2-dev
-- GitHub Actions run: `28056974502`
-- Source commit: `abe8e41bf5e2` (`Publish image releases via gh`)
-- Image verification: `58 ok, 0 failed`
-- Notes: this is a **dev/lab image** with `aryaos-dev-lab` SSH key, passwordless
-  `pi` sudo, and no first-boot password expiry. Do not use it as a field release.
+- Latest successful dev image: `v2026.07.17.165541-5fa79a7bfae5-dev` — **the milestone
+  build**: first image with gdltak, the four field-support helpers, device roles, and
+  working SBOM attachment.
+- Release: https://github.com/snstac/aryaos/releases/tag/v2026.07.17.165541-5fa79a7bfae5-dev
+- Assets verified present: `image_*.img.xz`, `aryaos-overlay_2.1_all.deb`, `*.spdx.json`,
+  `*.cdx.json`.
+- Notes: **dev/lab image** (`aryaos-dev-lab` SSH key, passwordless `pi` sudo, no
+  first-boot password expiry). Do not field it. For a release image, dispatch the
+  Pi-gen workflow with the `release` input checked.
+- Watch: the apt index refreshes on the packages repo's daily/push publish — the new
+  plugin deb versions (cockpit-aryaos 1.3.0 etc.) reach deployed units via one-click
+  updates once that runs.
 
 Recent build blockers fixed:
 
