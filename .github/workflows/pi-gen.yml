@@ -167,6 +167,17 @@ jobs:
       - name: Set SHARED_FILES dir
         run: echo "SHARED_FILES=$(pwd)/shared_files" >> "$GITHUB_ENV"
 
+      - name: Build offline documentation into the portal
+        # Renders the MkDocs site into shared_files/aryaos/html/docs so the
+        # overlay deb (install_tree html -> /var/www/html) ships it on the
+        # device at https://<host>/docs/ — usable with no internet. Built here
+        # on the runner (Python present); the pi-gen chroot needs no mkdocs.
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --break-system-packages -r docs/requirements.in
+          mkdocs build --strict --site-dir shared_files/aryaos/html/docs
+          test -f shared_files/aryaos/html/docs/index.html
+
       - name: Build RPi AryaOS image
         uses: usimd/pi-gen-action@v1
         id: build_aryaos

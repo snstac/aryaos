@@ -143,6 +143,12 @@ require_path /usr/lib/cgi-bin/aryaos-portal-status
 require_path /usr/lib/cgi-bin/aryaos-neighbors
 require_path /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
 
+# Offline documentation bundled into the portal (served at /docs/), plus the
+# portal link + QR to the online docs.
+require_path /var/www/html/docs/index.html
+require_path /var/www/html/img/aryaos-docs-qr.svg
+require_grep 'href="/docs/"' /var/www/html/index.html "portal links to on-device docs"
+
 # AryaOS Site cockpit plugin (site-wide TAK config + TLS)
 require_path /usr/share/cockpit/aryaos/manifest.json
 require_path /usr/share/cockpit/aryaos/aryaos.js

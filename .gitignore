@@ -19,3 +19,6 @@ playbooks/dragonball-secret.yml
 
 # Lab dev SSH private key (public key aryaos-dev-lab.pub is committed for image authorized_keys)
 shared_files/aryaos/ssh/aryaos-dev-lab
+
+# Offline docs built into the portal at image-build time (mkdocs output)
+shared_files/aryaos/html/docs/
