@@ -804,3 +804,17 @@
     display: none;
   }
 }
+
+/* Documentation QR (portal Get-started card) */
+.aos-docs-qr {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+.aos-docs-qr img {
+  background: #fff;
+  padding: 4px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+}

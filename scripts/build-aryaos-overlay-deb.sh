@@ -87,6 +87,16 @@ install_file 0644 "${SHARED}/aryaos/zram-generator.conf" "/etc/systemd/zram-gene
 install_file 0644 "${SHARED}/aryaos/systemd/gpsd.socket.d/socket-group.conf" "/etc/systemd/system/gpsd.socket.d/socket-group.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf" "/etc/systemd/system/lighttpd.service.d/aryaos-netlink.conf"
 
+# Offline documentation: ship the rendered MkDocs site in the portal so the
+# device serves it at https://<host>/docs/ with no internet. CI pre-builds it
+# into the html tree; for local host builds, render it here if mkdocs is
+# available. Never fatal — a build host without mkdocs just omits /docs.
+DOCS_OUT="${SHARED}/aryaos/html/docs"
+if [[ ! -f "${DOCS_OUT}/index.html" ]] && command -v mkdocs >/dev/null 2>&1; then
+	( cd "${REPO_ROOT}" && mkdocs build --site-dir "${DOCS_OUT}" ) \
+		|| echo "note: mkdocs build failed; portal /docs will be absent" >&2
+fi
+
 install_tree "${SHARED}/aryaos/html" "/var/www/html"
 install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-portal-status" "/usr/lib/cgi-bin/aryaos-portal-status"
 install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-tak-dp-upload" "/usr/lib/cgi-bin/aryaos-tak-dp-upload"
