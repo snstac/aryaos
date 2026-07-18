@@ -108,6 +108,7 @@ nav:
       - Dev Pi workflow: dev-pi.md
       - Testing on a dev Pi: testing-dev-pi.md
       - Lab portal deploy: portal.md
+      - Roadmap & next steps: roadmap.md
       - Agent handoff: agent-handoff.md
   - Help:
       - Troubleshooting: troubleshooting.md
