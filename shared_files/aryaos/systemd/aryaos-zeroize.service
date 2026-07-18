@@ -1,0 +1,12 @@
+[Unit]
+Description=AryaOS zeroize (best-effort sanitization, then reboot)
+Documentation=https://github.com/snstac/aryaos
+# Not enabled: started on demand by Cockpit -> AryaOS Site after the operator
+# types the confirmation phrase. Runs detached from the browser session; the
+# free-space overwrite can take several minutes before the reboot.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/aryaos-zeroize --service
+TimeoutStartSec=60min
+KillMode=process

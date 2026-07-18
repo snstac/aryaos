@@ -62,6 +62,9 @@ case "$1" in
       # Hardening: activate sysctl/sshd/fail2ban/firewalld config shipped by
       # this package (no-ops in image-build chroots where nothing is running).
       systemctl enable firewalld.service fail2ban.service 2>/dev/null || true
+      # Media longevity: periodic TRIM for SD/NVMe. zram swap config is shipped
+      # to /etc/systemd/zram-generator.conf (activates via systemd-zram-generator).
+      systemctl enable fstrim.timer 2>/dev/null || true
       sysctl --system >/dev/null 2>&1 || true
       systemctl reload ssh.service 2>/dev/null || true
       systemctl try-restart fail2ban.service 2>/dev/null || true

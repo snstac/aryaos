@@ -87,6 +87,31 @@ configs. Values of keys matching `PASSWORD/TOKEN/SECRET/PASSPHRASE/PSK` and
 or other private key material is included. Bundles land in
 `/var/lib/aryaos/support/` (`0600`, three newest kept).
 
+## Decommissioning
+
+When a unit is re-issued, retired, or at risk of capture, AryaOS gives you two
+levels of teardown — always **[back up](operations/backup-restore.md) first** if
+you want the config back (a full backup carries private keys and Wi-Fi PSKs, so
+store it securely):
+
+- **[Factory reset](operations/factory-reset.md)**
+  (`/usr/local/sbin/aryaos-factory-reset`) — restores config to packaged
+  defaults, deletes uploaded TAK certs, clears device identity so first boot
+  re-runs, and reboots. Keeps the OS, packages, and (by default) the network.
+  This is for **re-use**; it does **not** securely erase anything.
+- **[Zeroize](operations/zeroize.md)** (`/usr/local/sbin/aryaos-zeroize`) — for
+  **decommission or capture**: shreds and overwrites all keys, credentials,
+  logs, tracks, and identity, restores a secret-free config, overwrites free
+  space, TRIMs, and reboots clean. The Cockpit card requires a typed
+  confirmation phrase.
+
+!!! danger "Zeroize is best-effort on flash media"
+    Wear-leveling on microSD/eMMC/NVMe means overwrite and TRIM **cannot
+    guarantee** prior contents are unrecoverable — the controller may have
+    written data to blocks software can't reach. For a hard guarantee, use
+    full-disk encryption with crypto-erase (roadmap) or physically destroy the
+    media. See [Zeroize](operations/zeroize.md).
+
 ## Enforcement
 
 `scripts/verify-image.sh` loop-mounts every built image and asserts this

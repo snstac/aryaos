@@ -92,6 +92,10 @@ nav:
       - Support bundles: operations/support-bundles.md
       - SBOM & supply chain: operations/sbom.md
       - Nearby nodes: operations/neighbors.md
+      - Media longevity: operations/media-longevity.md
+      - Back up & restore: operations/backup-restore.md
+      - Factory reset: operations/factory-reset.md
+      - Zeroize: operations/zeroize.md
       - Security posture: security.md
   - Reference:
       - Software suite: reference/software-suite.md

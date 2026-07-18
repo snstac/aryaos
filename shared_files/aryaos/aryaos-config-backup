@@ -1,0 +1,202 @@
+#!/bin/bash
+# aryaos-config-backup — back up and restore the full AryaOS configuration set.
+#
+# Subcommands:
+#   backup [--no-secrets]   Write a restorable tar.gz of all config to
+#                           /var/lib/aryaos/backups/ and print its path.
+#   restore FILE [--service]  Restore a previously created archive, then restart
+#                           services. Prompts for confirmation unless --service.
+#   list                    List existing backups (JSON).
+#
+# Backend for the "Backup & restore" card in Cockpit -> AryaOS Site.
+#
+# SECURITY: a full backup contains PRIVATE KEYS and Wi-Fi passwords (TAK client
+# certs, TLS keys, NetworkManager PSKs, Node-RED credentials). The archive is
+# written 0600 root. Use --no-secrets to omit TLS key material and network
+# secrets for a shareable config-only backup. Store full backups securely.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+STATE_DIR="/var/lib/aryaos"
+OUT_DIR="${STATE_DIR}/backups"
+STATE_JSON="${STATE_DIR}/config-backup.json"
+KEEP=5
+
+require_root() {
+	if [[ "$(id -u)" != "0" ]]; then
+		echo "aryaos-config-backup: must run as root (try sudo)" >&2
+		exit 2
+	fi
+}
+
+now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }
+
+# Config paths to capture. Missing paths are skipped, not errors.
+config_paths() {
+	cat <<'EOF'
+etc/aryaos
+etc/charontak.ini
+etc/charontak
+etc/comitup.conf
+etc/comitup.json
+etc/default/adsbcot
+etc/default/aiscot
+etc/default/dronecot
+etc/default/lincot
+etc/default/gpstak
+etc/default/gdltak
+etc/default/sikw00fcot
+etc/default/charontak
+etc/default/gpsd
+etc/adsbcot
+etc/aiscot
+etc/dronecot
+etc/lincot
+EOF
+}
+
+# Secret-bearing paths, excluded when --no-secrets is given.
+secret_paths() {
+	cat <<'EOF'
+etc/NetworkManager/system-connections
+home/node-red/.node-red/settings.js
+home/node-red/.node-red/flows_cred.json
+EOF
+}
+
+# tar exclusions applied under --no-secrets (key material inside kept trees).
+secret_globs() {
+	cat <<'EOF'
+--exclude=etc/aryaos/tls
+--exclude=etc/charontak/tls
+--exclude=etc/adsbcot/tls
+--exclude=etc/aiscot/tls
+--exclude=etc/dronecot/tls
+--exclude=etc/lincot/tls
+EOF
+}
+
+do_backup() {
+	require_root
+	local include_secrets=1
+	[[ "${1:-}" == "--no-secrets" ]] && include_secrets=0
+
+	local host stamp name work root
+	host="$(hostname | tr -c 'A-Za-z0-9.-' '-')"
+	stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+	name="aryaos-config_${host}_${stamp}"
+	work="$(mktemp -d)"
+	root="${work}/${name}"
+	mkdir -p "${root}"
+	trap 'rm -rf "${work}"' EXIT
+
+	# Build the list of existing paths (relative to /).
+	local -a paths=()
+	local p
+	while IFS= read -r p; do
+		[[ -e "/${p}" ]] && paths+=("${p}")
+	done < <(config_paths)
+	if [[ "${include_secrets}" == "1" ]]; then
+		while IFS= read -r p; do
+			[[ -e "/${p}" ]] && paths+=("${p}")
+		done < <(secret_paths)
+	fi
+
+	# Manifest for restore-time sanity.
+	{
+		echo "aryaos-config-backup"
+		echo "created_at: $(now_iso)"
+		echo "hostname: $(hostname)"
+		echo "aryaos_version: $(cat /etc/aryaos-version 2>/dev/null || echo unknown)"
+		echo "include_secrets: ${include_secrets}"
+		echo "paths:"
+		printf '  - %s\n' "${paths[@]}"
+	} > "${root}/MANIFEST.txt"
+
+	mkdir -p "${OUT_DIR}"
+	chmod 0700 "${OUT_DIR}"
+	local archive="${OUT_DIR}/${name}.tar.gz"
+
+	local -a exclude=()
+	if [[ "${include_secrets}" == "0" ]]; then
+		while IFS= read -r g; do exclude+=("${g}"); done < <(secret_globs)
+	fi
+
+	# Preserve permissions/ownership (system uids are stable across AryaOS images).
+	tar -C / -czpf "${archive}" \
+		--numeric-owner "${exclude[@]}" \
+		-C "${work}" "${name}/MANIFEST.txt" \
+		-C / "${paths[@]}"
+	chmod 0600 "${archive}"
+
+	# Rotate.
+	ls -1t "${OUT_DIR}"/aryaos-config_*.tar.gz 2>/dev/null | tail -n "+$((KEEP + 1))" | xargs -r rm -f
+
+	local size
+	size="$(stat -c %s "${archive}")"
+	printf '{"created_at": "%s", "path": "%s", "size": %s, "include_secrets": %s}\n' \
+		"$(now_iso)" "${archive}" "${size}" "${include_secrets}" > "${STATE_JSON}"
+
+	echo "Backup written (${size} bytes)$([ "${include_secrets}" = 0 ] && echo ', secrets excluded')."
+	echo "${archive}"
+}
+
+do_restore() {
+	require_root
+	local file="${1:-}" service=0
+	[[ "${2:-}" == "--service" ]] && service=1
+	if [[ -z "${file}" || ! -f "${file}" ]]; then
+		echo "aryaos-config-backup: restore needs an existing archive path" >&2
+		exit 2
+	fi
+	# Validate it is one of our archives.
+	if ! tar -tzf "${file}" 2>/dev/null | grep -q '/MANIFEST.txt$'; then
+		echo "aryaos-config-backup: ${file} is not an AryaOS config backup" >&2
+		exit 1
+	fi
+
+	if [[ "${service}" != "1" ]]; then
+		read -r -p "Restore config from ${file}? This overwrites current config. [y/N] " ans
+		[[ "${ans}" == "y" || "${ans}" == "Y" ]] || { echo "Aborted."; exit 0; }
+	fi
+
+	# Extract everything except the manifest back into place, preserving perms.
+	tar -xzpf "${file}" -C / --numeric-owner --exclude='*/MANIFEST.txt'
+
+	# Reconcile group access to TAK certs and reload the fleet.
+	if command -v systemctl >/dev/null 2>&1; then
+		systemctl daemon-reload 2>/dev/null || true
+		# shellcheck disable=SC1091
+		local svcs="charontak gpstak aiscot lincot adsbcot dronecot"
+		[[ -f /etc/aryaos/aryaos-config.txt ]] && . /etc/aryaos/aryaos-config.txt 2>/dev/null || true
+		[[ -n "${AOS_SERVICES:-}" ]] && svcs="${AOS_SERVICES}"
+		# shellcheck disable=SC2086
+		systemctl try-restart ${svcs} lighttpd.service 2>/dev/null || true
+	fi
+	echo "Restore complete. A reboot is recommended to fully apply network and identity changes."
+}
+
+do_list() {
+	local first=1
+	echo -n '{"backups": ['
+	if [[ -d "${OUT_DIR}" ]]; then
+		local f
+		for f in "${OUT_DIR}"/aryaos-config_*.tar.gz; do
+			[[ -f "${f}" ]] || continue
+			[[ "${first}" == "1" ]] || echo -n ', '
+			first=0
+			printf '{"path": "%s", "size": %s}' "${f}" "$(stat -c %s "${f}")"
+		done
+	fi
+	echo ']}'
+}
+
+case "${1:-}" in
+	backup)  shift; do_backup "${1:-}" ;;
+	restore) shift; do_restore "${1:-}" "${2:-}" ;;
+	list)    do_list ;;
+	*) echo "usage: aryaos-config-backup {backup [--no-secrets] | restore FILE [--service] | list}" >&2; exit 2 ;;
+esac

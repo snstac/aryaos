@@ -21,6 +21,13 @@ systemctl disable apt-daily.timer
 systemctl disable apt-daily-upgrade.timer
 systemctl disable man-db.timer
 
+# Media longevity: dphys-swapfile is off (no swapfile writes to the SD/NVMe).
+# Provide zram compressed RAM swap so memory spikes do not OOM-kill services,
+# and enable periodic TRIM. The zram config ships from the aryaos-overlay
+# (/etc/systemd/zram-generator.conf).
+apt-get install -y --no-install-recommends systemd-zram-generator || true
+systemctl enable fstrim.timer || true
+
 if [[ -f /etc/cron.hourly/fake-hwclock ]]; then
 	mv /etc/cron.hourly/fake-hwclock /etc/cron.daily/
 fi

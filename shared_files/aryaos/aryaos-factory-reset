@@ -1,0 +1,120 @@
+#!/bin/bash
+# aryaos-factory-reset — return the box to its just-flashed, pre-first-boot state.
+#
+# Usage: aryaos-factory-reset [--wipe-network] [--service] [--no-reboot]
+#
+# Restores AryaOS-owned configuration to packaged defaults, removes
+# operator-uploaded TAK certificates, clears device identity so
+# aryaos-firstboot regenerates it, and re-expires the login password. Keeps the
+# OS, installed packages, and (by default) the current network connection so a
+# remote box is not stranded. Reboots when done.
+#
+#   --wipe-network   Also remove saved Wi-Fi/NetworkManager connections and the
+#                    onboarding hotspot password (box reverts to open onboarding).
+#   --service        Non-interactive (started by the Cockpit card, which
+#                    confirmed with the operator). Otherwise prompts.
+#   --no-reboot      Do the reset but do not reboot (for testing).
+#
+# This does NOT securely erase anything — see aryaos-zeroize for sanitization.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+DEFAULTS="/usr/share/aryaos/defaults"
+WIPE_NETWORK=0
+SERVICE=0
+REBOOT=1
+
+for arg in "$@"; do
+	case "${arg}" in
+		--wipe-network) WIPE_NETWORK=1 ;;
+		--service) SERVICE=1 ;;
+		--no-reboot) REBOOT=0 ;;
+		*) echo "aryaos-factory-reset: unknown option ${arg}" >&2; exit 2 ;;
+	esac
+done
+
+if [[ "$(id -u)" != "0" ]]; then
+	echo "aryaos-factory-reset: must run as root (try sudo)" >&2
+	exit 2
+fi
+
+# When started as the oneshot service, the Cockpit card signals options via a
+# /run flag file (the unit's ExecStart is static). Consume it here.
+if [[ "${SERVICE}" == "1" && -e /run/aryaos-factory-reset.wipe-network ]]; then
+	WIPE_NETWORK=1
+	rm -f /run/aryaos-factory-reset.wipe-network
+fi
+
+if [[ "${SERVICE}" != "1" ]]; then
+	echo "This resets AryaOS to factory defaults: site config, TAK certificates,"
+	echo "charontak lanes, and device identity are cleared. The OS and packages stay."
+	[[ "${WIPE_NETWORK}" == "1" ]] && echo "Saved Wi-Fi networks will ALSO be removed (--wipe-network)."
+	read -r -p "Type the hostname (${HOSTNAME}) to proceed: " ans
+	[[ "${ans}" == "${HOSTNAME}" ]] || { echo "Aborted."; exit 0; }
+fi
+
+echo "== AryaOS factory reset =="
+
+# 1. Restore AryaOS-owned config from packaged defaults.
+restore_default() {
+	local src="$1" dst="$2" mode="$3"
+	[[ -f "${src}" ]] || return 0
+	install -D -m "${mode}" -o root -g root "${src}" "${dst}"
+	echo "restored ${dst}"
+}
+restore_default "${DEFAULTS}/aryaos-config.txt" /etc/aryaos/aryaos-config.txt 0644
+restore_default "${DEFAULTS}/charontak.ini"     /etc/charontak.ini             0644
+restore_default "${DEFAULTS}/gpsd.default"      /etc/default/gpsd              0644
+for b in issue issue.net motd; do
+	restore_default "${DEFAULTS}/${b}" "/etc/${b}" 0644
+done
+
+# 2. Best-effort reset of per-gateway /etc/default via package reinstall (online only).
+if command -v apt-get >/dev/null 2>&1 && ping -c1 -W2 deb.debian.org >/dev/null 2>&1; then
+	DEBIAN_FRONTEND=noninteractive apt-get -y --reinstall \
+		-o Dpkg::Options::=--force-confmiss -o Dpkg::Options::=--force-confask \
+		install adsbcot aiscot dronecot lincot gpstak gdltak charontak >/dev/null 2>&1 \
+		&& echo "reinstalled sensor package defaults" \
+		|| echo "note: sensor package reinstall skipped/failed (offline?) — /etc/default left as-is"
+else
+	echo "note: offline — per-gateway /etc/default/<svc> left as-is (reset online to restore package defaults)"
+fi
+
+# 3. Remove operator-uploaded TAK certificates (keep the directories).
+for d in /etc/aryaos/tls /etc/charontak/tls /etc/adsbcot/tls /etc/aiscot/tls /etc/dronecot/tls /etc/lincot/tls; do
+	[[ -d "${d}" ]] && find "${d}" -type f -delete 2>/dev/null || true
+done
+echo "removed uploaded TAK certificates"
+
+# 4. Clear device identity + firstboot markers so aryaos-firstboot re-runs.
+rm -f /etc/aryaos/.web-tls-regenerated /etc/aryaos/.default-pass-expired
+rm -f /etc/lighttpd/ssl/snakeoil-combined.pem
+# New machine-id -> new DEVICE_SUFFIX / hostname on next boot.
+rm -f /etc/machine-id /var/lib/dbus/machine-id
+: > /etc/machine-id 2>/dev/null || true
+if command -v hostnamectl >/dev/null 2>&1; then
+	hostnamectl set-hostname aryaos 2>/dev/null || true
+fi
+sed -i -E 's/^(127\.0\.1\.1|::1)[[:space:]]+aryaos-[0-9a-f]{4}.*/\1\taryaos/' /etc/hosts 2>/dev/null || true
+echo "cleared device identity (regenerates on next boot)"
+
+# 5. State: drop backups/support bundles/update state that reference this identity.
+rm -f /var/lib/aryaos/update-*.json /var/lib/aryaos/support-bundle.json /var/lib/aryaos/config-backup.json 2>/dev/null || true
+
+# 6. Optionally wipe saved networks.
+if [[ "${WIPE_NETWORK}" == "1" ]]; then
+	find /etc/NetworkManager/system-connections -type f ! -name 'aryaos-antsdr.nmconnection' -delete 2>/dev/null || true
+	rm -f /etc/comitup.json 2>/dev/null || true
+	sed -i -E 's/^ap_password:.*/# ap_password:/' /etc/comitup.conf 2>/dev/null || true
+	echo "removed saved Wi-Fi networks and hotspot password"
+fi
+
+echo "Factory reset complete."
+if [[ "${REBOOT}" == "1" ]]; then
+	echo "Rebooting into first-boot setup..."
+	sync
+	systemctl --no-block reboot 2>/dev/null || reboot
+fi

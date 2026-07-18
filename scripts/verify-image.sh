@@ -243,6 +243,18 @@ require_path /usr/local/sbin/aryaos-sdr
 require_path /usr/local/sbin/aryaos-role
 require_pkg rtl-sdr
 
+# Lifecycle helpers (Cockpit -> AryaOS Site: backup/restore, factory reset, zeroize)
+require_path /usr/local/sbin/aryaos-config-backup
+require_path /usr/local/sbin/aryaos-factory-reset
+require_path /usr/local/sbin/aryaos-zeroize
+require_path /etc/systemd/system/aryaos-factory-reset.service
+require_path /etc/systemd/system/aryaos-zeroize.service
+require_path /usr/share/aryaos/defaults/charontak.ini
+
+# Media longevity: zram swap config + periodic TRIM
+require_path /etc/systemd/zram-generator.conf
+require_grep '^\[zram0\]' /etc/systemd/zram-generator.conf "zram swap configured"
+
 # Lab access must match the build flavor
 if [[ "${LAB_EXPECTED}" == "1" ]]; then
 	require_path /etc/sudoers.d/aryaos-lab
