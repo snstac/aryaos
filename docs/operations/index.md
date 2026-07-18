@@ -40,6 +40,17 @@ flowchart LR
 
 </div>
 
+## Media, config & decommissioning
+
+<div class="grid cards" markdown>
+
+- :material-sd: **Install media longevity** — the write-avoidance tuning that keeps SD/NVMe media alive; on by default, nothing to configure. [Install media longevity](media-longevity.md)
+- :material-content-save: **Back up & restore** — snapshot the full config set and migrate it to a replacement box. [Back up & restore](backup-restore.md)
+- :material-backup-restore: **Factory reset** — return a box to its just-flashed state without re-flashing. [Factory reset](factory-reset.md)
+- :material-nuke: **Zeroize** — best-effort secure sanitize for decommission or capture. [Zeroize](zeroize.md)
+
+</div>
+
 !!! tip "Most of this lives on one page"
     Software updates, support bundles, the Node-RED admin password, and the
     nearby-nodes list are all cards on **Cockpit → [AryaOS Site](../admin/aryaos-site.md)** —

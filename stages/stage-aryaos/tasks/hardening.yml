@@ -103,6 +103,42 @@
     dest: /usr/local/sbin/aryaos-role
     mode: "0755"
 
+- name: Install lifecycle helpers (backup/restore, factory reset, zeroize)
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/{{ item }}"
+    dest: "/usr/local/sbin/{{ item }}"
+    mode: "0755"
+  loop:
+    - aryaos-config-backup
+    - aryaos-factory-reset
+    - aryaos-zeroize
+
+- name: Install lifecycle oneshot units
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/systemd/{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop:
+    - aryaos-factory-reset.service
+    - aryaos-zeroize.service
+
+- name: Install zram swap config (compressed RAM swap, spares the install media)
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/zram-generator.conf"
+    dest: /etc/systemd/zram-generator.conf
+    mode: "0644"
+
+- name: Ship charontak.ini default for factory reset
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/charontak/charontak.ini"
+    dest: /usr/share/aryaos/defaults/charontak.ini
+    mode: "0644"
+
+- name: Enable periodic TRIM (SD/NVMe longevity)
+  ansible.builtin.systemd_service:
+    name: fstrim.timer
+    enabled: true
+
 - name: Enable firewalld and fail2ban
   ansible.builtin.systemd_service:
     name: "{{ item }}"

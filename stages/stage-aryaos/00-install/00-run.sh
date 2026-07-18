@@ -129,6 +129,20 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-set-nodered-password" "${ROOTF
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-sdr" "${ROOTFS_DIR}/usr/local/sbin/aryaos-sdr"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-role" "${ROOTFS_DIR}/usr/local/sbin/aryaos-role"
 
+## Lifecycle helpers: backup/restore, factory reset, zeroize (Cockpit-driven)
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-config-backup" "${ROOTFS_DIR}/usr/local/sbin/aryaos-config-backup"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-factory-reset" "${ROOTFS_DIR}/usr/local/sbin/aryaos-factory-reset"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-zeroize" "${ROOTFS_DIR}/usr/local/sbin/aryaos-zeroize"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-factory-reset.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-factory-reset.service"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-zeroize.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-zeroize.service"
+
+## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
+## the packaged charontak.ini default (source of truth for factory reset).
+install -v -m 0644 "${SHARED_FILES}/aryaos/zram-generator.conf" "${ROOTFS_DIR}/etc/systemd/zram-generator.conf"
+install -v -D -m 0644 "${SHARED_FILES}/charontak/charontak.ini" "${ROOTFS_DIR}/usr/share/aryaos/defaults/charontak.ini"
+
 ## gpsd: USB GNSS defaults (see shared_files/aryaos/gpsd.default)
 install -v -m 0644 "${SHARED_FILES}/aryaos/gpsd.default" "${ROOTFS_DIR}/etc/default/gpsd"
 

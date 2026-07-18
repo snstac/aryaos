@@ -1,0 +1,11 @@
+[Unit]
+Description=AryaOS factory reset (restore defaults, clear identity, reboot)
+Documentation=https://github.com/snstac/aryaos
+# Not enabled: started on demand by Cockpit -> AryaOS Site after the operator
+# confirms. Runs detached from the browser session and reboots when done.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/aryaos-factory-reset --service
+TimeoutStartSec=15min
+KillMode=process

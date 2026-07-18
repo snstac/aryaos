@@ -1,0 +1,165 @@
+#!/bin/bash
+# aryaos-zeroize — best-effort sanitization of an AryaOS box.
+#
+# Usage: aryaos-zeroize [--keep-network] [--service] [--no-reboot]
+#
+# Removes and overwrites every secret, credential, key, log, recorded track,
+# and identity on the device, then TRIMs and overwrites free space and reboots
+# to a clean first-boot state. The box stays usable (it is NOT bricked).
+#
+#   --keep-network   Preserve saved Wi-Fi/NetworkManager connections (default:
+#                    wipe them — they contain PSKs).
+#   --service        Non-interactive (started by the Cockpit card, which
+#                    required the operator to type a confirmation phrase).
+#   --no-reboot      Do the wipe but do not reboot (for testing).
+#
+# !!! LIMITATION — READ !!!
+# On flash media (microSD, eMMC, NVMe) wear-leveling means overwriting a file
+# or free space does NOT guarantee prior contents are unrecoverable: the
+# controller may have written elsewhere. This tool removes secrets, shreds
+# their current blocks, issues TRIM, and overwrites free space as a best effort.
+# For a hard guarantee, use full-disk encryption with key destruction
+# (crypto-erase) or physically destroy the media. See docs/operations/zeroize.md.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+KEEP_NETWORK=0
+SERVICE=0
+REBOOT=1
+
+for arg in "$@"; do
+	case "${arg}" in
+		--keep-network) KEEP_NETWORK=1 ;;
+		--service) SERVICE=1 ;;
+		--no-reboot) REBOOT=0 ;;
+		*) echo "aryaos-zeroize: unknown option ${arg}" >&2; exit 2 ;;
+	esac
+done
+
+if [[ "$(id -u)" != "0" ]]; then
+	echo "aryaos-zeroize: must run as root (try sudo)" >&2
+	exit 2
+fi
+
+# When started as the oneshot service, the Cockpit card signals options via a
+# /run flag file (the unit's ExecStart is static). Consume it here.
+if [[ "${SERVICE}" == "1" && -e /run/aryaos-zeroize.keep-network ]]; then
+	KEEP_NETWORK=1
+	rm -f /run/aryaos-zeroize.keep-network
+fi
+
+if [[ "${SERVICE}" != "1" ]]; then
+	echo "!!! ZEROIZE: this destroys all keys, credentials, logs, tracks, and"
+	echo "!!! identity on ${HOSTNAME} and reboots it to a clean state."
+	read -r -p "Type ERASE ${HOSTNAME} to proceed: " ans
+	[[ "${ans}" == "ERASE ${HOSTNAME}" ]] || { echo "Aborted."; exit 0; }
+fi
+
+echo "== AryaOS zeroize (best-effort) =="
+
+# shred a single pass + zero, then remove. Multi-pass is pointless on flash.
+wipe() {
+	local target
+	for target in "$@"; do
+		[[ -e "${target}" ]] || continue
+		if [[ -d "${target}" ]]; then
+			find "${target}" -type f -exec shred -u -z -n1 {} + 2>/dev/null || \
+				find "${target}" -type f -delete 2>/dev/null || true
+		else
+			shred -u -z -n1 "${target}" 2>/dev/null || rm -f "${target}" 2>/dev/null || true
+		fi
+	done
+}
+
+# 1. TAK / TLS key material (site, charontak, per-gateway, web).
+wipe /etc/aryaos/tls /etc/charontak/tls \
+	/etc/adsbcot/tls /etc/aiscot/tls /etc/dronecot/tls /etc/lincot/tls \
+	/etc/ssl/private/ssl-cert-snakeoil.key /etc/lighttpd/ssl
+echo "wiped TLS key material"
+
+# 2. SSH host keys (regenerated below so SSH still works after reboot).
+wipe /etc/ssh/ssh_host_rsa_key /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_ed25519_key
+rm -f /etc/ssh/ssh_host_*.pub 2>/dev/null || true
+
+# 3. Tailscale identity/state.
+if command -v tailscale >/dev/null 2>&1; then
+	tailscale logout >/dev/null 2>&1 || true
+fi
+wipe /var/lib/tailscale
+echo "wiped VPN state"
+
+# 4. Node-RED credentials and admin auth (reset to a random, unrecorded password).
+wipe /home/node-red/.node-red/flows_cred.json
+if [[ -x /usr/local/sbin/aryaos-set-nodered-password ]]; then
+	head -c 24 /dev/urandom | base64 | /usr/local/sbin/aryaos-set-nodered-password >/dev/null 2>&1 || true
+fi
+echo "reset Node-RED credentials (rotate the password from the web console after reboot)"
+
+# 5. Recorded CoT tracks, backups, support bundles, update state.
+wipe /var/www/html/recorder /var/lib/aryaos/backups /var/lib/aryaos/support
+rm -f /var/lib/aryaos/*.json 2>/dev/null || true
+echo "wiped recorded tracks and local bundles"
+
+# 6. Saved networks (unless --keep-network) and hotspot password.
+if [[ "${KEEP_NETWORK}" != "1" ]]; then
+	wipe /etc/NetworkManager/system-connections
+	rm -f /etc/comitup.json 2>/dev/null || true
+	sed -i -E 's/^ap_password:.*/# ap_password:/' /etc/comitup.conf 2>/dev/null || true
+	echo "wiped saved Wi-Fi networks"
+fi
+
+# 7. Site config secrets: restore the packaged default (has no secrets) and
+#    strip any secret lines from whatever remains.
+if [[ -f /usr/share/aryaos/defaults/aryaos-config.txt ]]; then
+	install -m 0644 -o root -g root /usr/share/aryaos/defaults/aryaos-config.txt /etc/aryaos/aryaos-config.txt
+fi
+if [[ -f /etc/aryaos/aryaos-config.txt ]]; then
+	sed -i -E '/^[[:space:]]*(export[[:space:]]+)?[A-Za-z0-9_]*(PASSWORD|TOKEN|SECRET|PASSPHRASE|PSK)[A-Za-z0-9_]*[[:space:]]*=/d' \
+		/etc/aryaos/aryaos-config.txt 2>/dev/null || true
+fi
+
+# 8. Shell history and lab access key.
+wipe /root/.bash_history /home/*/.bash_history
+if [[ -f /home/pi/.ssh/authorized_keys ]]; then
+	sed -i '/aryaos-dev-lab/d' /home/pi/.ssh/authorized_keys 2>/dev/null || true
+fi
+
+# 9. Logs (journald is volatile/RAM, but clear anything on disk).
+journalctl --rotate >/dev/null 2>&1 || true
+journalctl --vacuum-time=1s >/dev/null 2>&1 || true
+find /var/log -type f -exec shred -u -z -n1 {} + 2>/dev/null || true
+
+# 10. Device identity — new machine-id => new suffix/hostname on next boot.
+rm -f /etc/aryaos/.web-tls-regenerated /etc/aryaos/.default-pass-expired
+rm -f /etc/machine-id /var/lib/dbus/machine-id
+: > /etc/machine-id 2>/dev/null || true
+hostnamectl set-hostname aryaos 2>/dev/null || true
+sed -i -E 's/^(127\.0\.1\.1|::1)[[:space:]]+aryaos-[0-9a-f]{4}.*/\1\taryaos/' /etc/hosts 2>/dev/null || true
+echo "cleared device identity"
+
+# 11. Regenerate SSH host keys so remote access works after reboot.
+ssh-keygen -A >/dev/null 2>&1 || true
+
+# 12. Overwrite free space (best effort) then TRIM. Fill each writable fs with
+#     zeros until full, delete, then return blocks to the flash controller.
+echo "overwriting free space (this can take a while)..."
+sync
+zf="/var/lib/aryaos/.zerofill"
+mkdir -p /var/lib/aryaos
+dd if=/dev/zero of="${zf}" bs=4M status=none 2>/dev/null || true
+sync
+rm -f "${zf}"
+if command -v fstrim >/dev/null 2>&1; then
+	fstrim -av >/dev/null 2>&1 || true
+fi
+echo "free space overwritten and trimmed"
+
+echo "Zeroize complete (best-effort; see the flash-media limitation note)."
+if [[ "${REBOOT}" == "1" ]]; then
+	echo "Rebooting to a clean first-boot state..."
+	sync
+	systemctl --no-block reboot 2>/dev/null || reboot
+fi

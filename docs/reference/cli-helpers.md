@@ -15,6 +15,9 @@ AryaOS installs a small set of `aryaos-*` helper commands in `/usr/local/sbin`. 
 | [`aryaos-sdr {list\|set-serial}`](#aryaos-sdr) | List RTL-SDR dongles / rewrite EEPROM serials | set-serial: yes | Radios |
 | [`aryaos-role {list\|set}`](#aryaos-role) | Switch the device's sensor role | set: yes | Device role |
 | [`aryaos-import-tak-dp`](#aryaos-import-tak-dp) | Import a TAK connection data package / enrollment | yes | TAK connection |
+| [`aryaos-config-backup {backup\|restore\|list}`](#aryaos-config-backup) | Back up / restore the full config set | yes | Backup & restore |
+| [`aryaos-factory-reset`](#aryaos-factory-reset) | Return the box to its just-flashed state | yes | Factory reset |
+| [`aryaos-zeroize`](#aryaos-zeroize) | Best-effort secure sanitize (decommission) | yes | Zeroize |
 | [`aryaos-firstboot.sh`](#aryaos-firstboot) | One-time first-boot personalization | yes | — (runs automatically) |
 
 Commands print JSON where a machine (Cockpit) consumes the output, and require `sudo` for anything that changes the system.
@@ -107,6 +110,53 @@ sudo aryaos-import-tak-dp --enrollment-url-file /path/to/tak-url.txt
 - Extracts the client and CA certificates, installs them under `/etc/aryaos/tls` (group `tak-certs`, keys `0640`), and writes a CharonTAK `lane:local-to-takserver` egress lane pointing at the server, then restarts CharonTAK.
 - Supports `ssl`/`tls`/`tcp` connect strings; a `tak://com.atakmap.app/enroll` enrollment URL is resolved to a data package via PyTAK before import.
 - Prints a JSON result describing the destination. This is the same import the **TAK connection** card runs. See [Connect to a TAK Server](../deploy/connect-tak-server.md).
+
+## aryaos-config-backup {#aryaos-config-backup}
+
+Backs up and restores the full AryaOS configuration set — site config, charontak lanes, gateway `/etc/default` files, saved networks, TAK certs, and Node-RED credentials — as a single tarball.
+
+```bash
+sudo aryaos-config-backup backup                 # full backup (includes secrets)
+sudo aryaos-config-backup backup --no-secrets    # shareable; TLS keys + network/Node-RED secrets excluded
+sudo aryaos-config-backup restore FILE           # restore an archive (prompts to confirm)
+sudo aryaos-config-backup restore FILE --service # restore without prompting (Cockpit card)
+aryaos-config-backup list                         # list existing backups (JSON)
+```
+
+- Archives land in `/var/lib/aryaos/backups/` as `aryaos-config_<hostname>_<timestamp>.tar.gz`, mode **`0600`** (dir `0700`). Keeps the **five newest**; records the latest in `/var/lib/aryaos/config-backup.json`.
+- `restore` validates the archive by its `MANIFEST.txt`, unpacks in place preserving perms, then `try-restart`s the CoT fleet and `lighttpd`; recommends a reboot.
+
+!!! danger "A full backup contains private keys and Wi-Fi PSKs"
+    The default `backup` includes TAK client certs, TLS keys, NetworkManager PSKs, and Node-RED credentials — store it securely. Use `--no-secrets` for a shareable, config-only archive. Same action as the **Backup & restore** card. See [Back up & restore](../operations/backup-restore.md).
+
+## aryaos-factory-reset {#aryaos-factory-reset}
+
+Returns the box to its just-flashed, pre-first-boot state **without re-flashing**: restores AryaOS config from `/usr/share/aryaos/defaults`, deletes uploaded TAK certs, clears device identity (so `aryaos-firstboot` re-runs and picks a new suffix/hostname), re-expires the login password, then reboots. Keeps the OS, packages, and — by default — the network.
+
+```bash
+sudo aryaos-factory-reset                  # keep network; type the hostname to confirm; reboot
+sudo aryaos-factory-reset --wipe-network   # ALSO remove saved Wi-Fi + hotspot password
+sudo aryaos-factory-reset --service        # non-interactive (Cockpit card)
+sudo aryaos-factory-reset --no-reboot      # reset but don't reboot (testing)
+```
+
+- **Not a secure erase** — it restores/clears config but does not sanitize the media. For decommission use [`aryaos-zeroize`](#aryaos-zeroize).
+- Per-gateway `/etc/default/<svc>` files are reset via `apt-get --reinstall` **only when online**; offline they're left as-is.
+- Same action as the **Factory reset** card. See [Factory reset](../operations/factory-reset.md).
+
+## aryaos-zeroize {#aryaos-zeroize}
+
+**Best-effort** sanitization for decommission or capture: shreds and overwrites every key, credential, log, recorded track, and identity, restores a secret-free site config, overwrites free space, TRIMs, then reboots to a clean first-boot state. The box stays usable (SSH host keys are regenerated).
+
+```bash
+sudo aryaos-zeroize                  # wipe everything incl. saved networks; type "ERASE <hostname>" to confirm; reboot
+sudo aryaos-zeroize --keep-network   # preserve saved Wi-Fi/NetworkManager connections (they hold PSKs)
+sudo aryaos-zeroize --service        # non-interactive (Cockpit card, which required a confirmation phrase)
+sudo aryaos-zeroize --no-reboot      # wipe but don't reboot (testing)
+```
+
+!!! danger "Flash-media limitation"
+    On flash (microSD/eMMC/NVMe), wear-leveling means overwrite + TRIM are **best-effort, not a guarantee** that prior contents are unrecoverable. For a hard guarantee use full-disk encryption + crypto-erase (roadmap) or physically destroy the media. Same action as the **Zeroize** card, which requires a typed confirmation phrase. See [Zeroize](../operations/zeroize.md).
 
 ## aryaos-firstboot.sh {#aryaos-firstboot}
 
