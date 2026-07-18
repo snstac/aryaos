@@ -1,7 +1,11 @@
-# Agent handoff — state as of 2026-07-17
+# Agent handoff — state as of 2026-07-18
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
+
+!!! tip "Looking for what to work on next?"
+    Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
+    This handoff covers the running build/merge state and architecture invariants.
 
 ## 2026-07-15/17 sweep — "never SSH" + fleet dedup (SHIPPED)
 
