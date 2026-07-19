@@ -4,6 +4,8 @@
 
 Open it from Cockpit → **Charontak**.
 
+![The Charontak lane editor — service controls and two bridge lanes (feeders → Mesh SA, and Mesh SA → TAK Server), each with its ingress and egress CoT URLs](../media/screenshots/charontak-lane-editor.png)
+
 ## Concept: one hub, many lanes
 
 AryaOS routes CoT in two tiers:
