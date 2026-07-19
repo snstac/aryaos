@@ -84,14 +84,17 @@ do_backup() {
 	local include_secrets=1
 	[[ "${1:-}" == "--no-secrets" ]] && include_secrets=0
 
-	local host stamp name work root
+	local host stamp name root
 	host="$(hostname | tr -c 'A-Za-z0-9.-' '-')"
 	stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 	name="aryaos-config_${host}_${stamp}"
+	# 'work' is intentionally global (not local): the EXIT trap runs after this
+	# function returns, so a local would be out of scope and, under `set -u`,
+	# error ("work: unbound variable") instead of cleaning up the temp dir.
 	work="$(mktemp -d)"
 	root="${work}/${name}"
 	mkdir -p "${root}"
-	trap 'rm -rf "${work}"' EXIT
+	trap 'rm -rf "${work:-}"' EXIT
 
 	# Build the list of existing paths (relative to /).
 	local -a paths=()
