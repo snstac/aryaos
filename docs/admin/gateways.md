@@ -23,6 +23,8 @@ The AIS receiver (`ais-catcher`) demodulates RF AIS and hands messages to `aisco
 
 ## The common layout
 
+![The aiscot gateway page in Cockpit — service controls, TLS certificates, iconset, and the configuration form over /etc/default/aiscot](../media/screenshots/gateway-aiscot.png)
+
 Every gateway plugin (using **aiscot** as the representative example) shows the same cards, top to bottom:
 
 ### Service card

@@ -40,7 +40,14 @@ plugin with `cockpit` aliased to a mock module, then serve `dist/`:
 1. In the plugin repo, replace `pkg/lib/cockpit.js` with a mock default export
    exposing `spawn`, `file`, `gettext`, and `dbus` (see `mock-cockpit.js` for the
    shape), then `./build.js` (non-production, so `dist/` is uncompressed).
-2. Serve `dist/` and screenshot as above.
+2. `dist/index.html` does not link `index.css` (Cockpit injects it at runtime),
+   so add `<link rel="stylesheet" href="index.css">` to the served copy.
+3. **Force the dark theme.** The plugins use PatternFly v6 tokens that only go
+   dark when `<html>` has class `pf-v6-theme-dark` (added on-device by Cockpit's
+   dark theme). In Playwright:
+   `page.evaluate("document.documentElement.classList.add('pf-v6-theme-dark')")`
+   before the screenshot — otherwise form areas render on a white PF fallback.
+4. Serve `dist/` and screenshot as above.
 
 This path is manual today; automate it here if the plugin screenshots need to be
 refreshed regularly.
