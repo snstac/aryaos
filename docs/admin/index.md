@@ -40,6 +40,8 @@ Log in as the **`pi`** user with the device password.
 
 Browsing to `https://aryaos-xxxx.local/` (no `/admin`) shows the **landing portal** — a lightweight, read-only status page served by `lighttpd`, independent of Cockpit and Node-RED. It is the fastest way to confirm a unit is healthy before you dig into administration.
 
+![The AryaOS landing portal — TAK gateway status, connection and GNSS panels, radios, nearby nodes, and links to the on-device docs](../media/screenshots/portal-landing.png)
+
 The portal polls a JSON status endpoint (`/cgi-bin/aryaos-portal-status`) every 8 seconds and shows:
 
 - **TAK gateway strip** — live up/down/degraded state of `charontak`, `adsbcot`, `aiscot`, `lincot`, `dronecot`, and `sikw00fcot`.
