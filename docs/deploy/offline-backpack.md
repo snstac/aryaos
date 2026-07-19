@@ -27,6 +27,8 @@ Everything happens on the box: sensors decode locally, Charontak multicasts the 
 
 <a id="onboarding-wi-fi"></a>
 
+![The AryaOS portal on a phone joined to the onboarding hotspot](../media/screenshots/portal-landing-mobile.png){ width="300" }
+
 AryaOS runs a **comitup** onboarding hotspot on `wlan0`:
 
 | Property | Value |

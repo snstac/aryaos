@@ -2,7 +2,7 @@
 
 The **AryaOS Site** page is the single most important admin surface on the device. It edits the site-wide settings in `/etc/aryaos/aryaos-config.txt` — the file inherited by every PyTAK sensor gateway — plus onboarding, radios, updates, VPN, and support tooling. Open it from Cockpit's menu, or directly at `https://aryaos-xxxx.local/admin/` → **AryaOS Site**.
 
-![AryaOS system configuration page](../media/aryaos_sys_config.png)
+![The AryaOS Site page in Cockpit — TAK destination, device role, radios, TLS, sensor services, updates, backup, and decommission cards](../media/screenshots/aryaos-site-cockpit.png)
 
 !!! info "How saving works"
     The page edits known keys **in place** and preserves everything else in the file, including comments. Most cards apply immediately, but the **TAK destination** and TLS fields at the top only take effect when you press **Save & restart sensors** (or **Save only**) at the bottom of the page — see [Save & restart](#save-restart). Cards with their own buttons (role, hotspot, radios, updates, VPN, support, Node-RED) act on their own.
