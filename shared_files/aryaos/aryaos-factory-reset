@@ -98,7 +98,11 @@ rm -f /etc/machine-id /var/lib/dbus/machine-id
 if command -v hostnamectl >/dev/null 2>&1; then
 	hostnamectl set-hostname aryaos 2>/dev/null || true
 fi
-sed -i -E 's/^(127\.0\.1\.1|::1)[[:space:]]+aryaos-[0-9a-f]{4}.*/\1\taryaos/' /etc/hosts 2>/dev/null || true
+# Reset the hostname mapping back to factory "aryaos" so firstboot re-derives
+# it. Drop any stale aryaos-xxxx entry (match both 127.0.1.1 and legacy
+# 127.0.0.1), then ensure a clean 127.0.1.1 aryaos line for firstboot to pick up.
+sed -i -E '/^127\.0\.[01]\.1[[:space:]]+aryaos(-[0-9a-f]{4})?([[:space:]]|$)/d;/^::1[[:space:]]+aryaos(-[0-9a-f]{4})?([[:space:]]|$)/d' /etc/hosts 2>/dev/null || true
+grep -qE '^127\.0\.1\.1[[:space:]]+aryaos([[:space:]]|$)' /etc/hosts 2>/dev/null || printf '127.0.1.1\taryaos\n' >> /etc/hosts
 echo "cleared device identity (regenerates on next boot)"
 
 # 5. State: drop backups/support bundles/update state that reference this identity.
