@@ -50,7 +50,17 @@ if [[ -z "${WIFI_SSID:-}" ]]; then
 	logger "AryaOS comitup generated new WIFI_SSID: $WIFI_SSID"
 fi
 
-sed --follow-symlinks -i -E -e "s/# ap_name:.*/ap_name: $WIFI_SSID/" "${COMITUP_CONF}"
+# Set ap_name to the current SSID on every start so it tracks the device suffix
+# even after it has already been set once — e.g. a factory reset regenerates
+# DEVICE_SUFFIX, and the hotspot must follow the new aryaos-xxxx identity. Rewrite
+# an active "ap_name:" line if present, otherwise uncomment the "# ap_name:"
+# template. (The old sed only matched the commented form, so the SSID went stale
+# and kept broadcasting the previous suffix after an identity change.)
+if grep -qsE '^ap_name:' "${COMITUP_CONF}"; then
+	sed --follow-symlinks -i -E -e "s/^ap_name:.*/ap_name: ${WIFI_SSID}/" "${COMITUP_CONF}"
+else
+	sed --follow-symlinks -i -E -e "s/^#[[:space:]]*ap_name:.*/ap_name: ${WIFI_SSID}/" "${COMITUP_CONF}"
+fi
 
 logger "AryaOS comitup using SSID: $WIFI_SSID"
 
