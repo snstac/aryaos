@@ -65,12 +65,12 @@ CURRENT_HOST="$(hostnamectl hostname 2>/dev/null || hostname -s)"
 if [[ "$CURRENT_HOST" == aryaos && -n "${DEVICE_SUFFIX}" ]]; then
 	NEW_HOST="aryaos-${DEVICE_SUFFIX}"
 	hostnamectl set-hostname "$NEW_HOST"
-	if grep -qE '^127\.0\.1\.1[[:space:]]+aryaos([[:space:]]|$)' /etc/hosts; then
-		sed -i -E "s/^127\.0\.1\.1[[:space:]]+aryaos/127.0.0.1 ${NEW_HOST}/" /etc/hosts
-	fi
-	if grep -qE '^::1[[:space:]]+aryaos([[:space:]]|$)' /etc/hosts; then
-		sed -i -E "s/^::1[[:space:]]+aryaos/::1 ${NEW_HOST}/" /etc/hosts
-	fi
+	# Ensure the canonical Debian 127.0.1.1 hostname mapping. Drop any stale
+	# aryaos / aryaos-xxxx entry first (match both 127.0.1.1 and a legacy
+	# 127.0.0.1 line), then add the correct one. Robust to whatever state
+	# /etc/hosts was left in — e.g. after a factory reset — and idempotent.
+	sed -i -E '/^127\.0\.[01]\.1[[:space:]]+aryaos(-[0-9a-f]{4})?([[:space:]]|$)/d;/^::1[[:space:]]+aryaos(-[0-9a-f]{4})?([[:space:]]|$)/d' /etc/hosts
+	printf '127.0.1.1\t%s\n' "${NEW_HOST}" >> /etc/hosts
 	systemctl try-restart avahi-daemon.service 2>/dev/null || true
 	echo "AryaOS hostname is now: $NEW_HOST"
 	CHANGED=1
