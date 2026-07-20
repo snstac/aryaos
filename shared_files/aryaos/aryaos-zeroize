@@ -143,13 +143,20 @@ echo "cleared device identity"
 # 11. Regenerate SSH host keys so remote access works after reboot.
 ssh-keygen -A >/dev/null 2>&1 || true
 
-# 12. Overwrite free space (best effort) then TRIM. Fill each writable fs with
-#     zeros until full, delete, then return blocks to the flash controller.
+# 12. Overwrite free space (best effort) then TRIM. Fill the root filesystem
+#     with zeros, delete, and return the blocks to the flash controller.
+#     Leave a small reserve free rather than filling to 100%: on a live system
+#     a full disk wedges running services (and, if this step is interrupted,
+#     a partially-written fill would strand the box), so stop short of full.
+RESERVE_MB=512
 echo "overwriting free space (this can take a while)..."
 sync
 zf="/var/lib/aryaos/.zerofill"
 mkdir -p /var/lib/aryaos
-dd if=/dev/zero of="${zf}" bs=4M status=none 2>/dev/null || true
+avail_mb="$(df -PBM /var/lib/aryaos 2>/dev/null | awk 'NR==2 { gsub(/M/, "", $4); print $4 }')"
+if [[ -n "${avail_mb}" && "${avail_mb}" -gt "${RESERVE_MB}" ]]; then
+	dd if=/dev/zero of="${zf}" bs=1M count="$((avail_mb - RESERVE_MB))" status=none 2>/dev/null || true
+fi
 sync
 rm -f "${zf}"
 if command -v fstrim >/dev/null 2>&1; then
