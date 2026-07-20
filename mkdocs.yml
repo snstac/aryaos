@@ -86,6 +86,7 @@ nav:
       - Bluetooth PAN: bluetooth-pan.md
       - VPN (Tailscale): networking/vpn-tailscale.md
       - Firewall: networking/firewall.md
+      - EMCON & radio control: networking/emcon.md
   - Operate:
       - operations/index.md
       - Updates: operations/updates.md

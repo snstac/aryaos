@@ -257,6 +257,18 @@ require_path /etc/systemd/system/aryaos-factory-reset.service
 require_path /etc/systemd/system/aryaos-zeroize.service
 require_path /usr/share/aryaos/defaults/charontak.ini
 
+# Radios: WiFi hotspot control + EMCON/radio-silence (Cockpit -> AryaOS Site)
+require_path /usr/local/sbin/aryaos-radio
+require_path /etc/systemd/system/aryaos-radio-silence.service
+# AP/PAN isolation: the default zone must NOT enable intra-zone forwarding, or a
+# hotspot/Bluetooth client could be routed onto the wired ethernet.
+require_path /etc/firewalld/zones/public.xml
+if grep -qsE '<forward\s*/?>' "${MNT}/etc/firewalld/zones/public.xml"; then
+	fail "public zone has <forward/> — hotspot/PAN could gateway to ethernet"
+else
+	ok "public zone has no intra-zone forwarding (AP/PAN isolated from eth)"
+fi
+
 # Media longevity: zram swap config + periodic TRIM
 require_path /etc/systemd/zram-generator.conf
 require_grep '^\[zram0\]' /etc/systemd/zram-generator.conf "zram swap configured"

@@ -138,6 +138,11 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-factory-reset.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-zeroize.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-zeroize.service"
 
+## Radios: WiFi hotspot control + EMCON/radio-silence (Cockpit-driven)
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-radio" "${ROOTFS_DIR}/usr/local/sbin/aryaos-radio"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-radio-silence.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-radio-silence.service"
+
 ## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
 ## the packaged charontak.ini default (source of truth for factory reset).
 install -v -m 0644 "${SHARED_FILES}/aryaos/zram-generator.conf" "${ROOTFS_DIR}/etc/systemd/zram-generator.conf"

@@ -6,7 +6,16 @@ while comitup runs its onboarding hotspot (dnsmasq is not otherwise active);
 Bluetooth PAN (pan0) clients also get their lease through dhcp here.
 Loopback traffic is implicitly accepted by firewalld.
 Managed in Cockpit: Networking -> Firewall.
+
+NO forward element: this is an appliance, not a router. Intra-zone forwarding is
+deliberately OFF so a client on the WiFi onboarding hotspot (wlan0) or the
+Bluetooth PAN (pan0) can reach the box's own services but is NEVER routed or
+bridged onto the wired ethernet/upstream. This holds even when something else
+(Docker, Tailscale) turns on net.ipv4.ip_forward: with no intra-zone forward
+rule, wlan0->eth0 / pan0->eth0 forwarding falls through to the zone's reject.
+Docker's own container forwarding is unaffected (it lives in the docker zone).
 -->
+<!-- deliberately NO forward element — see note above (AP/PAN must not gateway to eth) -->
 <zone>
   <short>AryaOS</short>
   <description>AryaOS field appliance: web portal/Cockpit, SSH, sensor dashboards, TAK Mesh SA, and WiFi/Bluetooth onboarding.</description>
@@ -21,5 +30,4 @@ Managed in Cockpit: Networking -> Firewall.
   <service name="aryaos-node-red"/>
   <service name="aryaos-ais-catcher"/>
   <service name="aryaos-comitup"/>
-  <forward/>
 </zone>

@@ -39,6 +39,8 @@ systemctl enable fail2ban
 systemctl enable aryaos-gps-time-sync.service
 systemctl enable aryaos-tak-dp-importd.service
 systemctl enable aryaos-neighbord.service
+# EMCON: re-applies WiFi/Bluetooth rfkill at boot when /etc/aryaos/emcon is set.
+systemctl enable aryaos-radio-silence.service
 
 getent group gpsd >/dev/null || groupadd --system gpsd
 systemctl enable gpsd
