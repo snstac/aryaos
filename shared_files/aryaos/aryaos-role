@@ -82,7 +82,13 @@ all_managed_units() {
 }
 
 unit_exists() {
-	systemctl list-unit-files --no-legend "$1.service" 2>/dev/null | grep -q .
+	# Capture and test rather than `systemctl ... | grep -q .`: under
+	# `set -o pipefail`, grep -q closes the pipe on its first match, systemctl
+	# gets SIGPIPE, and the pipeline reports failure — which would make this
+	# return false for units that exist, so `set` would enable nothing.
+	local out
+	out="$(systemctl list-unit-files --no-legend "$1.service" 2>/dev/null || true)"
+	[[ -n "${out}" ]]
 }
 
 list_json() {
