@@ -112,6 +112,7 @@
     - aryaos-config-backup
     - aryaos-factory-reset
     - aryaos-zeroize
+    - aryaos-radio
 
 - name: Install lifecycle oneshot units
   ansible.builtin.copy:
@@ -121,6 +122,7 @@
   loop:
     - aryaos-factory-reset.service
     - aryaos-zeroize.service
+    - aryaos-radio-silence.service
 
 - name: Install zram swap config (compressed RAM swap, spares the install media)
   ansible.builtin.copy:
@@ -146,3 +148,5 @@
   loop:
     - firewalld
     - fail2ban
+    # EMCON boot service: re-applies WiFi/Bluetooth rfkill when /etc/aryaos/emcon is set.
+    - aryaos-radio-silence.service

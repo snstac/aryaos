@@ -39,6 +39,22 @@ implicitly accepted by firewalld.
     listens in hotspot mode. Opening the port in the zone doesn't mean a service
     is always behind it.
 
+## Onboarding radios are isolated from the wired network
+
+The `AryaOS` zone deliberately ships with **no intra-zone forwarding** (no
+`forward` element). This is an appliance, not a router: a client on the
+`aryaos-xxxx` Wi-Fi hotspot or the [Bluetooth PAN](../bluetooth-pan.md) can reach
+the box's own services (the allowlist above) but is **never routed or bridged
+onto `eth0` or the upstream network.**
+
+Because the rule is enforced in the firewall's `FORWARD` path, it holds **even
+when `net.ipv4.ip_forward` is enabled** on the host — which happens whenever
+Docker is running. Without this, a hotspot client could otherwise be routed
+straight onto the wired LAN. Docker's own container networking is unaffected (it
+lives in a separate `docker` zone with its own forwarding rules).
+
+To silence the radios entirely, see [EMCON & radio control](emcon.md).
+
 For the canonical port/protocol reference across the whole system, see
 [Ports & protocols](../reference/ports.md).
 

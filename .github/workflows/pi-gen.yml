@@ -68,6 +68,7 @@ jobs:
             shared_files/aryaos/aryaos-config-backup \
             shared_files/aryaos/aryaos-factory-reset \
             shared_files/aryaos/aryaos-zeroize \
+            shared_files/aryaos/aryaos-radio \
             scripts/*.sh \
             scripts/aryaos-test/run.sh \
             scripts/aryaos-test/lib.sh \

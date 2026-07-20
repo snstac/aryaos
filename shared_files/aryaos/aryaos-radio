@@ -1,0 +1,121 @@
+#!/bin/bash
+# aryaos-radio — control the box's radios: the WiFi onboarding hotspot and
+# EMCON (emissions control / radio silence) for low-probability-of-intercept
+# and low-probability-of-detection (LPI/LPD) operation.
+#
+# Usage:
+#   aryaos-radio ap {on|off|status}
+#       Enable/disable the WiFi onboarding hotspot (comitup). "off" stops the
+#       aryaos-xxxx broadcast and keeps it off across reboots.
+#
+#   aryaos-radio silence {on|off|status}
+#       EMCON: rfkill-block WiFi *and* Bluetooth so the box emits no RF from its
+#       onboard radios. Persists across reboots via /etc/aryaos/emcon (re-applied
+#       at boot by aryaos-radio-silence.service). SDR receivers are NOT touched
+#       here — they are receive-only and do not emit; stop their services if you
+#       need them off. Ethernet (wired) is unaffected.
+#
+#   aryaos-radio status        Show hotspot + EMCON + rfkill state.
+#   aryaos-radio --boot        (internal) re-apply EMCON at boot if the flag is set.
+#
+# Backs the "Radios" controls in Cockpit -> AryaOS Site. rfkill blocking makes
+# wlan0 "unavailable" so NetworkManager/comitup cannot bring the radio up;
+# testing confirms the block is not fought back by NM.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+EMCON_FLAG="/etc/aryaos/emcon"
+
+require_root() {
+	if [[ "$(id -u)" != "0" ]]; then
+		echo "aryaos-radio: must run as root (try sudo)" >&2
+		exit 2
+	fi
+}
+
+ap_on() {
+	require_root
+	systemctl unmask comitup.service >/dev/null 2>&1 || true
+	systemctl enable --now comitup.service >/dev/null 2>&1 || true
+	logger "aryaos-radio: WiFi onboarding hotspot enabled"
+	echo "WiFi onboarding hotspot enabled."
+}
+
+ap_off() {
+	require_root
+	# Disable + stop so the hotspot does not broadcast now or after a reboot.
+	systemctl disable --now comitup.service >/dev/null 2>&1 || true
+	logger "aryaos-radio: WiFi onboarding hotspot disabled"
+	echo "WiFi onboarding hotspot disabled (no aryaos-xxxx broadcast)."
+}
+
+ap_status() {
+	local act en
+	act="$(systemctl is-active comitup.service 2>/dev/null || echo inactive)"
+	en="$(systemctl is-enabled comitup.service 2>/dev/null || echo disabled)"
+	echo "ap: ${act} (${en})"
+}
+
+_rfkill() { command -v rfkill >/dev/null 2>&1 && rfkill "$@" 2>/dev/null || true; }
+
+silence_on() {
+	require_root
+	install -d -m 0755 /etc/aryaos
+	: > "${EMCON_FLAG}"
+	# Drop the hotspot first so it is not fighting the radio, then block.
+	systemctl stop comitup.service >/dev/null 2>&1 || true
+	_rfkill block wifi
+	_rfkill block bluetooth
+	logger "aryaos-radio: EMCON ON (WiFi + Bluetooth rfkill-blocked)"
+	echo "EMCON on: WiFi + Bluetooth radios blocked (persists across reboot)."
+	echo "SDR receivers are receive-only and left running; stop their services to silence them."
+}
+
+silence_off() {
+	require_root
+	rm -f "${EMCON_FLAG}"
+	_rfkill unblock wifi
+	_rfkill unblock bluetooth
+	# Bring the hotspot back only if it is still enabled.
+	if systemctl is-enabled comitup.service >/dev/null 2>&1; then
+		systemctl start comitup.service >/dev/null 2>&1 || true
+	fi
+	logger "aryaos-radio: EMCON OFF (radios unblocked)"
+	echo "EMCON off: WiFi + Bluetooth radios unblocked."
+}
+
+silence_status() {
+	if [[ -f "${EMCON_FLAG}" ]]; then echo "emcon: ON"; else echo "emcon: off"; fi
+	_rfkill list wifi bluetooth | grep -iE 'Wireless LAN|Bluetooth|Soft blocked' | sed 's/^/  /' || true
+}
+
+boot_apply() {
+	# aryaos-radio-silence.service at boot: re-assert the block if EMCON is set.
+	[[ -f "${EMCON_FLAG}" ]] || exit 0
+	_rfkill block wifi
+	_rfkill block bluetooth
+	logger "aryaos-radio: EMCON re-applied at boot"
+}
+
+case "${1:-}" in
+	ap)
+		case "${2:-status}" in
+			on) ap_on ;;
+			off) ap_off ;;
+			status) ap_status ;;
+			*) echo "usage: aryaos-radio ap {on|off|status}" >&2; exit 2 ;;
+		esac ;;
+	silence|emcon)
+		case "${2:-status}" in
+			on) silence_on ;;
+			off) silence_off ;;
+			status) silence_status ;;
+			*) echo "usage: aryaos-radio silence {on|off|status}" >&2; exit 2 ;;
+		esac ;;
+	status) ap_status; silence_status ;;
+	--boot) boot_apply ;;
+	*) echo "usage: aryaos-radio {ap {on|off|status} | silence {on|off|status} | status}" >&2; exit 2 ;;
+esac

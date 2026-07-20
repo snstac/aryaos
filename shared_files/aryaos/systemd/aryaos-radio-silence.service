@@ -1,0 +1,17 @@
+[Unit]
+Description=AryaOS EMCON — re-apply WiFi/Bluetooth radio silence at boot
+Documentation=https://github.com/snstac/aryaos
+# Run before the network/radio stack comes up so an EMCON box never emits RF
+# on boot. rfkill state is not assumed to persist on the media-hardened image,
+# so this re-asserts the block from the /etc/aryaos/emcon flag each boot.
+Wants=network-pre.target
+Before=network-pre.target NetworkManager.service bluetooth.service comitup.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/aryaos-radio --boot
+
+[Install]
+WantedBy=multi-user.target
