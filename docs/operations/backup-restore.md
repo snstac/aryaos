@@ -95,6 +95,13 @@ permissions and ownership, runs `systemctl daemon-reload`, and does a
 `try-restart` of the CoT fleet (`charontak`, `gpstak`, `aiscot`, `lincot`,
 `adsbcot`, `dronecot`) plus `lighttpd`.
 
+!!! warning "Restore is additive"
+    Restore *overlays* the backed-up files onto the device — it brings back
+    everything in the archive but does **not** remove files created since the
+    backup (for example, a TAK certificate uploaded afterwards stays in place).
+    If you need an exact return to the backed-up state, do a
+    [factory reset](factory-reset.md) first, then restore.
+
 !!! note "Reboot after a restore"
     The restore finishes with:
 
