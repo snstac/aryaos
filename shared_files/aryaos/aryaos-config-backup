@@ -155,8 +155,14 @@ do_restore() {
 		echo "aryaos-config-backup: restore needs an existing archive path" >&2
 		exit 2
 	fi
-	# Validate it is one of our archives.
-	if ! tar -tzf "${file}" 2>/dev/null | grep -q '/MANIFEST.txt$'; then
+	# Validate it is one of our archives. Read the listing into a variable and
+	# match with a here-string rather than `tar ... | grep -q`: under
+	# `set -o pipefail`, grep -q closes the pipe on its first match, tar gets
+	# SIGPIPE, and the pipeline reports failure — which rejected every valid
+	# backup.
+	local listing
+	listing="$(tar -tzf "${file}" 2>/dev/null || true)"
+	if ! grep -q '/MANIFEST.txt$' <<<"${listing}"; then
 		echo "aryaos-config-backup: ${file} is not an AryaOS config backup" >&2
 		exit 1
 	fi
