@@ -142,6 +142,16 @@ require_path /var/www/html/index.html
 require_path /usr/lib/cgi-bin/aryaos-portal-status
 require_path /usr/lib/cgi-bin/aryaos-neighbors
 require_path /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
+# The mutating TAK data-package import must NOT be an unauthenticated portal CGI:
+# it moved to the authenticated Cockpit backend. Fail the build if the CGI ships
+# or the lighttpd config re-exposes it.
+forbid_path /usr/lib/cgi-bin/aryaos-tak-dp-upload
+require_path /usr/local/sbin/aryaos-tak-dp-import
+if grep -qsE 'alias\.url.*aryaos-tak-dp-upload' "${MNT}/etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf"; then
+	fail "lighttpd re-exposes the aryaos-tak-dp-upload CGI (unauth TAK takeover)"
+else
+	ok "TAK data-package import is not exposed as an unauthenticated CGI"
+fi
 
 # Offline documentation bundled into the portal (served at /docs/), plus the
 # portal link + QR to the online docs.

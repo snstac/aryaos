@@ -55,6 +55,9 @@ install_file 0644 "${SHARED}/charontak/charontak.ini" "/usr/share/aryaos/default
 
 install_file 0755 "${SHARED}/aryaos/aryaos-import-tak-dp" "/usr/local/sbin/aryaos-import-tak-dp"
 install_file 0755 "${SHARED}/aryaos/aryaos-tak-dp-importd" "/usr/local/sbin/aryaos-tak-dp-importd"
+# Authenticated Cockpit backend for TAK data-package/enrollment import (replaces
+# the retired unauthenticated portal CGI aryaos-tak-dp-upload).
+install_file 0755 "${SHARED}/aryaos/aryaos-tak-dp-import" "/usr/local/sbin/aryaos-tak-dp-import"
 install_file 0755 "${SHARED}/aryaos/patch-cockpit-aryaos-dp" "/usr/local/sbin/patch-cockpit-aryaos-dp"
 install_file 0755 "${SHARED}/aryaos/aryaos-device-suffix.sh" "/usr/local/sbin/aryaos-device-suffix.sh"
 install_file 0755 "${SHARED}/aryaos/aryaos-firstboot.sh" "/usr/local/sbin/aryaos-firstboot.sh"
@@ -109,7 +112,8 @@ fi
 
 install_tree "${SHARED}/aryaos/html" "/var/www/html"
 install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-portal-status" "/usr/lib/cgi-bin/aryaos-portal-status"
-install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-tak-dp-upload" "/usr/lib/cgi-bin/aryaos-tak-dp-upload"
+# NOTE: aryaos-tak-dp-upload CGI intentionally NOT installed — the mutating TAK
+# import moved to the authenticated Cockpit backend aryaos-tak-dp-import.
 install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-neighbors" "/usr/lib/cgi-bin/aryaos-neighbors"
 
 install_file 0644 "${SHARED}/aryaos/cockpit.conf" "/etc/cockpit/cockpit.conf"

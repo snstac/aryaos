@@ -1,0 +1,199 @@
+#!/usr/bin/python3
+"""AryaOS TAK connection-package / enrollment import — authenticated Cockpit backend.
+
+This replaces the old unauthenticated portal CGI (aryaos-tak-dp-upload). It is
+invoked ONLY by the authenticated "AryaOS Site" Cockpit page, as root (via
+cockpit.spawn superuser). It never listens on HTTP, so importing a TAK data
+package — which installs TLS material and repoints the Charontak TAK egress — now
+requires an authenticated admin session instead of being reachable pre-auth from
+the onboarding Wi-Fi hotspot or the LAN.
+
+Modes:
+  aryaos-tak-dp-import --status          print enrollment status JSON
+  aryaos-tak-dp-import --enroll <url>    import a tak:// one-time enrollment URL
+  aryaos-tak-dp-import [--package]       read a .zip/.dpk package from stdin, import it
+
+It forwards to the same root import daemon (aryaos-tak-dp-importd) over
+/run/aryaos/tak-dp-import.sock and prints the daemon's JSON result on stdout;
+exit status is 0 on success, 1 on a handled error.
+
+Copyright Sensors & Signals LLC https://www.snstac.com/
+SPDX-License-Identifier: Apache-2.0
+"""
+
+import configparser
+import json
+import os
+import socket
+import stat
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+SOCKET_PATH = "/run/aryaos/tak-dp-import.sock"
+MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+MAX_ENROLLMENT_URL_BYTES = 8192
+TLS_DIR = Path("/etc/aryaos/tls")
+ARYAOS_CONFIG = Path("/etc/aryaos/aryaos-config.txt")
+CHARONTAK_INI = Path("/etc/charontak.ini")
+
+
+def emit(payload, code):
+    sys.stdout.write(json.dumps(payload, sort_keys=True) + "\n")
+    raise SystemExit(code)
+
+
+def fail(message):
+    emit({"ok": False, "error": message}, 1)
+
+
+def _read_kv(path):
+    values = {}
+    try:
+        for raw in path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            values[key.strip()] = value.strip().strip("\"'")
+    except OSError:
+        pass
+    return values
+
+
+def _charontak_lane():
+    cfg = configparser.RawConfigParser()
+    cfg.optionxform = str
+    try:
+        cfg.read(CHARONTAK_INI)
+    except configparser.Error:
+        return {}
+    section = "lane:local-to-takserver"
+    if not cfg.has_section(section):
+        section = "lane:mesh-to-takserver"
+    if not cfg.has_section(section):
+        return {}
+    return {key: value for key, value in cfg.items(section)}
+
+
+def _service_active(unit):
+    try:
+        run = subprocess.run(
+            ["/usr/bin/systemctl", "is-active", unit],
+            check=False, capture_output=True, text=True, timeout=3,
+        )
+        return (run.stdout or "").strip()
+    except (OSError, subprocess.TimeoutExpired):
+        return "unknown"
+
+
+def _mtime_iso(paths):
+    mtimes = []
+    for path in paths:
+        try:
+            mtimes.append(path.stat().st_mtime)
+        except OSError:
+            continue
+    if not mtimes:
+        return ""
+    return datetime.fromtimestamp(max(mtimes), tz=timezone.utc).isoformat(timespec="seconds")
+
+
+def _socket_ready():
+    try:
+        return stat.S_ISSOCK(os.stat(SOCKET_PATH).st_mode)
+    except OSError:
+        return False
+
+
+def enrollment_status():
+    kv = _read_kv(ARYAOS_CONFIG)
+    lane = _charontak_lane()
+    cert = TLS_DIR / "client.pem"
+    key = TLS_DIR / "client.key"
+    ca = TLS_DIR / "ca.pem"
+    service_state = _service_active("aryaos-tak-dp-importd.service")
+    cot_url = lane.get("egress_cot_url") or kv.get("COT_URL") or ""
+    lane_enabled = lane.get("enabled", "").lower() == "true"
+    tls_ready = cert.exists() and key.exists() and ca.exists()
+    takserver_target = cot_url.startswith(("tls://", "ssl://", "tcp://"))
+    configured = bool(lane_enabled and takserver_target and (tls_ready or cot_url.startswith("tcp://")))
+    detail = ""
+    if configured:
+        detail = "Charontak local-to-TAK Server lane is enabled."
+    elif not lane_enabled:
+        detail = "Charontak local-to-TAK Server lane is not enabled."
+    elif not takserver_target:
+        detail = "No TAK Server target is configured."
+    elif not tls_ready:
+        detail = "TAK Server TLS material is incomplete."
+    return {
+        "ok": True,
+        "accept": [".zip", ".dpk"],
+        "accept_enrollment_url": True,
+        "max_bytes": MAX_UPLOAD_BYTES,
+        "max_enrollment_url_bytes": MAX_ENROLLMENT_URL_BYTES,
+        "enrollment_status": {
+            "configured": configured,
+            "import_service_ready": _socket_ready(),
+            "import_service_state": service_state,
+            "cot_url": cot_url,
+            "detail": detail,
+            "tls": {"client_cert": cert.exists(), "client_key": key.exists(), "ca": ca.exists()},
+            "last_updated": _mtime_iso([CHARONTAK_INI, ARYAOS_CONFIG, cert, key, ca]),
+        },
+    }
+
+
+def send_to_daemon(payload_bytes):
+    try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+            sock.settimeout(120)
+            sock.connect(SOCKET_PATH)
+            sock.sendall(payload_bytes)
+            sock.shutdown(socket.SHUT_WR)
+            chunks = []
+            while True:
+                chunk = sock.recv(65536)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+    except FileNotFoundError:
+        fail("Import service is not running")
+    except (OSError, TimeoutError):
+        fail("Import timed out")
+    raw = b"".join(chunks).decode("utf-8", errors="replace")
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        fail("Importer returned invalid response")
+    emit(payload, 0 if payload.get("ok") else 1)
+
+
+def main():
+    args = sys.argv[1:]
+    mode = args[0] if args else "--package"
+    if mode == "--status":
+        emit(enrollment_status(), 0)
+    if mode == "--enroll":
+        url = (args[1] if len(args) > 1 else "").strip()
+        if not url:
+            fail("Missing enrollment URL")
+        if len(url.encode("utf-8")) > MAX_ENROLLMENT_URL_BYTES:
+            fail("Enrollment URL is too large")
+        send_to_daemon(json.dumps(
+            {"type": "enrollment_url", "enrollment_url": url}, separators=(",", ":")
+        ).encode("utf-8"))
+    if mode in ("--package", "-"):
+        payload = sys.stdin.buffer.read(MAX_UPLOAD_BYTES + 1)
+        if not payload:
+            fail("No package on stdin")
+        if len(payload) > MAX_UPLOAD_BYTES:
+            fail("Connection package is too large")
+        send_to_daemon(payload)
+    fail(f"Unknown mode: {mode}")
+
+
+if __name__ == "__main__":
+    main()

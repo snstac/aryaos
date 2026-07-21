@@ -93,13 +93,13 @@ def main():
         pass
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as srv:
         srv.bind(SOCKET_PATH)
-        os.chmod(SOCKET_PATH, 0o660)
+        # Root-only: the import path is now driven exclusively by the authenticated
+        # Cockpit backend (aryaos-tak-dp-import), which runs as root. The old
+        # www-data portal CGI is retired, so no non-root peer needs this socket.
+        os.chmod(SOCKET_PATH, 0o600)
         try:
-            import grp
-
-            gid = grp.getgrnam("www-data").gr_gid
-            os.chown(SOCKET_PATH, 0, gid)
-        except (KeyError, PermissionError):
+            os.chown(SOCKET_PATH, 0, 0)
+        except PermissionError:
             pass
         srv.listen(8)
         while True:
