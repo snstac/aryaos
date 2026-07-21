@@ -1,4 +1,4 @@
-# Agent handoff — state as of 2026-07-18
+# Agent handoff — state as of 2026-07-21
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
@@ -6,6 +6,69 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
+
+## 2026-07-19→21 sweep — HIL hardening + landing-page features (SHIPPED)
+
+Two arcs, both merged and in a green image: **`v2026.07.21.211313-4e5923568c11-dev`**
+(`verify-image`: 135 ok, 0 failed). User is flashing it now for HIL testing —
+**resume by testing this release on the box.**
+
+### Arc 1 — HIL security hardening (radios / EMCON / isolation)
+Hardware-in-the-loop pentest of the appliance. Landed (aryaos, all asserted in
+`verify-image.sh`):
+- **Wi-Fi/AP isolation**: `public.xml` dropped `<forward/>` so the onboarding AP/PAN
+  can't gateway to wired ethernet; new **`aryaos-hotspot` firewalld zone** withholds
+  ssh/node-red/mesh from onboarding clients; NM owns the zone via `connection.zone`
+  (`comitup-callback.sh` uses `nmcli connection modify … + device reapply`, NOT
+  `firewall-cmd --change-interface`, which NM reverts). `pan0` statically bound.
+- **EMCON / radio silence** (`aryaos-radio`): `ap {on|off}`, `silence {on|off}` does
+  `nmcli radio wifi off` + `rfkill block wifi bluetooth`; `--boot` re-applies from
+  `/etc/aryaos/emcon` flag; comitup/bt-pan/bt-ready gated off via
+  `ConditionPathExists=!/etc/aryaos/emcon` drop-ins. Ethernet + SDR RX unaffected.
+- **Node-RED unauth-root closed**: drop-in runs it `User=node-red` (was root); default
+  publicly-known password (`aryaos415`) rotated on first boot; cockpit-aryaos card to reset.
+- **XXE/billion-laughs guards** + systemd sandboxing on `aryaos-neighbord` (score 9→3),
+  socket `0600`; TAK data-package import moved off CGI to a root CLI over an AF_UNIX
+  socket with SSRF host-blocking. **Zeroize stays best-effort sanitize (usable box), NOT
+  scorched-earth.** SSH password auth intentionally STAYS ON (don't lock users out).
+- **chrony NTP server** (`local stratum 10`, gpsd SHM refclock, `allow`) served on the LAN zone.
+
+### Arc 2 — landing-page features + style fix (cockpit-aryaos v1.5.0 + plugin patches)
+- **Unstyled plugins fixed**: React/esbuild plugins bundle SCSS to `dist/index.css` but
+  `index.html` never linked it → completely unstyled in Cockpit. Added
+  `<link rel="stylesheet" href="index.css">` + shared `branding.css` (matching
+  cockpit-gps/aiscatcher) to **cockpit-charontak/adsbcot/dronecot/aiscot/sdrconnect**.
+- **Landing-page location chip** (cockpit-aryaos): offline **North America** base map +
+  live position. Geometry ships in `aryaos-basemap.js` (`window.ARYAOS_BASEMAP`,
+  public-domain Natural Earth 110m, ~29KB) rendered client-side as SVG with a Web-Mercator
+  projection so the marker aligns; **no tiles fetched** (works in EMCON). Position from
+  `gpspipe --json` best 2D/3D TPV, falls back to config `STATIC_LAT/LON`. NA-only by design
+  (primary sales region); off-map positions are labelled, not mis-plotted.
+- Also this batch: **OS image backup card** (`aryaos-image-download` pulls the box's own
+  `.img.xz`), **NTP time-server** exposure, **bundled cloudtak removed**.
+
+### Build/release gotchas learned this sweep (IMPORTANT)
+- **image-commit stamp**: pi-gen runs inside a **Docker container** (`usimd/pi-gen-action`).
+  `GITHUB_ENV` vars do NOT cross into it — `ARYAOS_BUILD_SHA` must be passed via
+  `docker-opts: -e` (fixed #164). A prior "fix" using GITHUB_ENV silently left the stamp
+  `unknown` and failed the gate. Same rule for any new build-time env a stage needs.
+- **Plugin debs publish on TAGS ONLY** (`build.yml` steps are `if: startsWith(github.ref,
+  'refs/tags/')`). Merging a plugin PR to `main` only runs validation — it does NOT
+  produce a new deb. To ship a plugin change: **push a `vX.Y.Z` git tag** (git push, not
+  `gh release create` — the workflow triggers on `push: tags`, not the `release` event) →
+  build.yml packages the deb + creates the release → then publish the apt repo.
+- **apt repo path** is `https://snstac.github.io/packages/apt` (note the `/apt` subpath),
+  suite `stable`, component `main`, index at `…/apt/dists/stable/main/binary-arm64/Packages`.
+  Ingest new debs by dispatching **`snstac/packages` `publish.yml`** (`gh workflow run
+  publish.yml --repo snstac/packages`; also runs daily 06:17 UTC) — it pulls each product's
+  *latest* GitHub Release assets. THEN rebuild the aryaos image so apt pulls the new versions.
+- Correct order to land a plugin change in an image: merge PR → tag release → publish.yml →
+  image build. Skipping any step ships the old deb (and `verify-image` now catches the
+  cockpit-aryaos case: `card-location` + `aryaos-basemap.js`).
+
+This sweep's plugin releases: cockpit-aryaos **v1.5.0**, cockpit-charontak **v1.2.1**,
+cockpit-aiscot **v1.2.2**, cockpit-dronecot **v1.1.2**, cockpit-adsbcot **v1.2.2**.
+(cockpit-sdrconnect CSS fix merged but unreleased — not in the image manifest / apt index.)
 
 ## 2026-07-15/17 sweep — "never SSH" + fleet dedup (SHIPPED)
 
