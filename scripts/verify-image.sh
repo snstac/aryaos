@@ -302,6 +302,8 @@ fi
 # aryaos-neighbord parses untrusted multicast CoT — it must reject DTD/entity
 # (billion-laughs) payloads before ElementTree parsing.
 require_grep '<!DOCTYPE' /usr/local/sbin/aryaos-neighbord "neighbord rejects DTD/entity CoT (billion-laughs guard)"
+# aryaos-neighbord parses untrusted network input as root — it must be sandboxed.
+require_grep '^NoNewPrivileges=yes' /etc/systemd/system/aryaos-neighbord.service "neighbord is systemd-sandboxed"
 
 # Onboarding hotspot zone: tight INPUT (assigned to wlan0 in AP mode by
 # comitup-callback). Must exist, must NOT expose ssh / Node-RED / mesh, and
