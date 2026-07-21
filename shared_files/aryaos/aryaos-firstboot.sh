@@ -138,6 +138,22 @@ if [[ ! -f /etc/sudoers.d/aryaos-lab && ! -f "$PASS_EXPIRED_MARKER" ]] \
 	fi
 fi
 
+# Node-RED ships a publicly known default admin password, and the editor runs
+# arbitrary code as the node-red user. Randomize it once at first boot so the
+# admin API on :1880 is not reachable with the published credential; the operator
+# sets their own via Cockpit -> AryaOS Site. Skipped on lab builds (known creds
+# for dev), matching the pi-password gate above.
+NR_PASS_MARKER="/etc/aryaos/.nodered-pass-randomized"
+if [[ ! -f /etc/sudoers.d/aryaos-lab && ! -f "$NR_PASS_MARKER" ]] \
+	&& [[ -f /home/node-red/.node-red/settings.js ]] \
+	&& [[ -x /usr/local/sbin/aryaos-set-nodered-password ]]; then
+	if head -c 18 /dev/urandom | base64 | /usr/local/sbin/aryaos-set-nodered-password >/dev/null 2>&1; then
+		touch "$NR_PASS_MARKER"
+		echo "Node-RED admin password randomized; set your own in Cockpit -> AryaOS Site."
+		CHANGED=1
+	fi
+fi
+
 if [[ "$CHANGED" -eq 0 ]]; then
 	echo "AryaOS firstboot: no changes needed."
 	exit 0

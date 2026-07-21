@@ -85,6 +85,9 @@ install_file 0644 "${SHARED}/aryaos/systemd/aryaos-update.service" "/etc/systemd
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-factory-reset.service" "/etc/systemd/system/aryaos-factory-reset.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-zeroize.service" "/etc/systemd/system/aryaos-zeroize.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-radio-silence.service" "/etc/systemd/system/aryaos-radio-silence.service"
+# Pin nodered.service to the node-red user (upstream unit runs as root out of
+# /root/.node-red with no adminAuth = unauthenticated root-privileged admin API).
+install_file 0644 "${SHARED}/aryaos/systemd/nodered.service.d/aryaos.conf" "/etc/systemd/system/nodered.service.d/aryaos.conf"
 install_file 0644 "${SHARED}/aryaos/zram-generator.conf" "/etc/systemd/zram-generator.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/gpsd.socket.d/socket-group.conf" "/etc/systemd/system/gpsd.socket.d/socket-group.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf" "/etc/systemd/system/lighttpd.service.d/aryaos-netlink.conf"
