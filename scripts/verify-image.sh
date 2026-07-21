@@ -165,6 +165,9 @@ require_path /usr/share/cockpit/aryaos/aryaos.js
 require_grep 'id="card-neighbors"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos neighbor card"
 require_grep 'refreshNeighbors' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos neighbor refresh"
 require_grep 'id="card-updates"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos software updates card"
+require_grep 'id="card-location"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos location chip card"
+require_path /usr/share/cockpit/aryaos/aryaos-basemap.js
+require_grep 'ARYAOS_BASEMAP' /usr/share/cockpit/aryaos/aryaos-basemap.js "cockpit-aryaos offline base map data"
 
 # GPSTAK network GPS (package from stage-pytak)
 require_pkg gpstak
