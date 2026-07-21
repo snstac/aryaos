@@ -144,6 +144,12 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-zeroize.service" \
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-radio" "${ROOTFS_DIR}/usr/local/sbin/aryaos-radio"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-radio-silence.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-radio-silence.service"
+# EMCON gate: comitup/bt-pan/bt-ready must not start (and un-block the radios)
+# while /etc/aryaos/emcon exists.
+for svc in comitup aryaos-bt-pan aryaos-bt-ready; do
+	install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/${svc}.service.d/emcon.conf" \
+		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/emcon.conf"
+done
 
 ## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
 ## the packaged charontak.ini default (source of truth for factory reset).
