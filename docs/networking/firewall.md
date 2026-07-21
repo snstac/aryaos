@@ -68,7 +68,7 @@ sensor link, not a general network — treat the `trusted` zone as reserved for
 it.
 
 !!! info "Docker-published ports are separate"
-    Ports published by Docker containers (for example CloudTAK or a UAS broker)
+    Ports published by Docker containers (for example a UAS broker)
     are governed by Docker's own firewalld integration, not the `AryaOS` zone.
     Manage those where the container is defined.
 

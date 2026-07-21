@@ -2,12 +2,6 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: /shared_files/cloudtak/shim
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: npm
     directory: /shared_files/node-red
     schedule:
       interval: weekly

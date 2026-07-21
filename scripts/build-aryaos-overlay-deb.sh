@@ -121,7 +121,6 @@ install_file 0644 "${SHARED}/aryaos/cockpit.socket-listen.conf" "/etc/systemd/sy
 install_file 0644 "${SHARED}/aryaos/cockpit/branding.css" "/usr/share/aryaos/cockpit/branding.css"
 install_file 0644 "${SHARED}/aryaos/94-aryaos-setenv-module.conf" "/etc/lighttpd/conf-available/94-aryaos-setenv-module.conf"
 install_file 0644 "${SHARED}/aryaos/95-aryaos-cockpit-https.conf" "/etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf"
-install_file 0644 "${SHARED}/aryaos/96-aryaos-cloudtak-proxy.conf" "/etc/lighttpd/conf-available/96-aryaos-cloudtak-proxy.conf"
 install_file 0644 "${SHARED}/aryaos/99-aryaos-recorder.conf" "/etc/lighttpd/conf-available/99-aryaos-recorder.conf"
 
 install_file 0600 "${SHARED}/aryaos/NetworkManager/system-connections/aryaos-antsdr.nmconnection" "/etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection"
