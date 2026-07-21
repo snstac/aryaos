@@ -30,7 +30,7 @@ case "$1" in
       fi
     done
 
-    for conf in 94-aryaos-setenv-module.conf 95-aryaos-cockpit-https.conf 96-aryaos-cloudtak-proxy.conf 99-aryaos-recorder.conf; do
+    for conf in 94-aryaos-setenv-module.conf 95-aryaos-cockpit-https.conf 99-aryaos-recorder.conf; do
       if [ -f "/etc/lighttpd/conf-available/$conf" ]; then
         ln -sf "/etc/lighttpd/conf-available/$conf" "/etc/lighttpd/conf-enabled/$conf"
       fi

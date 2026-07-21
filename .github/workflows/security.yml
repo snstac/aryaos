@@ -11,20 +11,6 @@ permissions:
   contents: read
 
 jobs:
-  npm-cloudtak:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-
-      - name: npm audit (CloudTAK shim)
-        working-directory: shared_files/cloudtak/shim
-        run: |
-          npm ci
-          npm audit --audit-level=high
 
   npm-node-red:
     runs-on: ubuntu-latest
