@@ -10,5 +10,29 @@ ExecStart=/usr/local/sbin/aryaos-neighbord
 Restart=on-failure
 RestartSec=3s
 
+# Sandboxing: aryaos-neighbord parses UNTRUSTED multicast CoT from the LAN, so
+# contain a hypothetical parser bug. It only needs the network and /run/aryaos
+# (no system-dir writes), so it can be locked down hard while still receiving
+# adverts and running the beacon helper (ip/systemctl/gpspipe reads).
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/run/aryaos
+RuntimeDirectory=aryaos
+RuntimeDirectoryPreserve=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+SystemCallArchitectures=native
+
 [Install]
 WantedBy=multi-user.target
