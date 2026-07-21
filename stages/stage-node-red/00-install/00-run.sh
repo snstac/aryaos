@@ -42,3 +42,9 @@ install -v -m 644 "${SHARED_FILES}/node-red/package.json" "${ROOTFS_DIR}/home/no
 install -v -m 644 "${SHARED_FILES}/node-red/package-lock.json" "${ROOTFS_DIR}/home/node-red/.node-red/package-lock.json"
 install -v -m 644 "${SHARED_FILES}/node-red/aryaos_flows.json" "${ROOTFS_DIR}/home/node-red/.node-red/"
 cat "${ROOTFS_DIR}/home/node-red/.node-red/aryaos_flows.json" > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"
+
+# Pin nodered.service to the node-red user + /home/node-red (the upstream unit runs
+# as root out of /root/.node-red, whose stock settings.js has no adminAuth — that
+# would expose an unauthenticated, root-privileged Node-RED admin API on :1880).
+install -v -D -m 644 "${SHARED_FILES}/aryaos/systemd/nodered.service.d/aryaos.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/nodered.service.d/aryaos.conf"

@@ -216,6 +216,13 @@ require_grep '^EnvironmentFile=/etc/default/sikw00fcot$' /lib/systemd/system/sik
 
 # Node-RED (stage-node-red)
 require_path /home/node-red/.node-red/flows.json
+# Node-RED must NOT run as root: the upstream unit ships User=root out of
+# /root/.node-red (no adminAuth = unauthenticated root-privileged admin API).
+# AryaOS pins it to the node-red user via a drop-in.
+require_path /etc/systemd/system/nodered.service.d/aryaos.conf
+require_grep '^[[:space:]]*User=node-red' /etc/systemd/system/nodered.service.d/aryaos.conf "nodered runs as node-red (not root)"
+# The hardened settings.js (the one node-red now uses) must carry adminAuth.
+require_grep 'adminAuth' /home/node-red/.node-red/settings.js "node-red adminAuth configured"
 
 # Hardening (stage-aryaos): firewall, brute-force protection, auto security
 # updates, per-device web TLS, sysctl/sshd tightening
