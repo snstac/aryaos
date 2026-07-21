@@ -120,6 +120,8 @@ done
 for zone_xml in "${SHARED_FILES}/aryaos/firewalld/zones/"*.xml; do
 	install -v -m 0644 "${zone_xml}" "${ROOTFS_DIR}/etc/firewalld/zones/"
 done
+# chrony drop-in: GPS-disciplined NTP + serve time to the local networks.
+install -v -D -m 0644 "${SHARED_FILES}/aryaos/chrony/aryaos.conf" "${ROOTFS_DIR}/etc/chrony/conf.d/aryaos.conf"
 
 ## One-click updates: helper + oneshot unit (driven by Cockpit -> AryaOS Site)
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-update" "${ROOTFS_DIR}/usr/local/sbin/aryaos-update"

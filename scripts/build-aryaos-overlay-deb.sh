@@ -136,6 +136,8 @@ done
 for zone_xml in "${SHARED}/aryaos/firewalld/zones/"*.xml; do
 	install_file 0644 "${zone_xml}" "/etc/firewalld/zones/$(basename "${zone_xml}")"
 done
+# chrony drop-in: GPS-disciplined NTP + serve time to the local networks.
+install_file 0644 "${SHARED}/aryaos/chrony/aryaos.conf" "/etc/chrony/conf.d/aryaos.conf"
 install_file 0755 "${SHARED}/aryaos/99-aryaos-dispatcher" "/etc/NetworkManager/dispatcher.d/99-aryaos-dispatcher"
 
 

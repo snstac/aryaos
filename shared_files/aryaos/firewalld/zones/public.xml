@@ -33,4 +33,5 @@ Docker's own container forwarding is unaffected (it lives in the docker zone).
        on the wired LAN: it is only needed on the onboarding radios (Wi-Fi hotspot +
        Bluetooth PAN), which get it via the aryaos-hotspot zone. comitup-web binds
        0.0.0.0, so the firewall is what scopes it; LAN admin is via Cockpit. -->
+  <service name="ntp"/>
 </zone>
