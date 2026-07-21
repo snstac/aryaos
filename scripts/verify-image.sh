@@ -320,6 +320,11 @@ require_grep '(aryaos-hotspot|--change-interface)' /usr/local/sbin/comitup-callb
 require_grep '<interface name="pan0"/>' /etc/firewalld/zones/aryaos-hotspot.xml "pan0 statically bound to hotspot zone"
 require_grep 'aryaos-hotspot' /usr/local/sbin/aryaos-bt-pan-nap "bt-pan confines pan0 to the hotspot zone"
 
+# Time service: chrony (GPS-disciplined NTP server for the local networks)
+require_pkg chrony
+require_path /etc/chrony/conf.d/aryaos.conf
+require_grep '<service name="ntp"' /etc/firewalld/zones/public.xml "NTP served on the AryaOS (LAN) zone"
+
 # Media longevity: zram swap config + periodic TRIM
 require_path /etc/systemd/zram-generator.conf
 require_grep '^\[zram0\]' /etc/systemd/zram-generator.conf "zram swap configured"

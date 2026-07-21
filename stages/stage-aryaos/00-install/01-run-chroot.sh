@@ -37,6 +37,10 @@ systemctl enable lighttpd
 systemctl enable firewalld
 systemctl enable fail2ban
 systemctl enable aryaos-gps-time-sync.service
+# Time service: chrony (GPS-disciplined + serves the local network) instead of the
+# client-only systemd-timesyncd.
+systemctl disable systemd-timesyncd.service 2>/dev/null || true
+systemctl enable chrony.service
 systemctl enable aryaos-tak-dp-importd.service
 systemctl enable aryaos-neighbord.service
 # EMCON: re-applies WiFi/Bluetooth rfkill at boot when /etc/aryaos/emcon is set.

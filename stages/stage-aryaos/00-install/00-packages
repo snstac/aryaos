@@ -2,3 +2,4 @@ fail2ban
 python3-systemd
 firewalld
 unattended-upgrades
+chrony

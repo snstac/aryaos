@@ -59,6 +59,10 @@ case "$1" in
     if command -v systemctl >/dev/null 2>&1; then
       systemctl daemon-reload || true
       systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-neighbord.service aryaos-radio-silence.service NetworkManager-dispatcher.service 2>/dev/null || true
+      # Time service: chrony (GPS-disciplined + serves the local network) replaces
+      # the client-only systemd-timesyncd.
+      systemctl disable --now systemd-timesyncd.service 2>/dev/null || true
+      systemctl enable chrony.service 2>/dev/null || true
       # Hardening: activate sysctl/sshd/fail2ban/firewalld config shipped by
       # this package (no-ops in image-build chroots where nothing is running).
       systemctl enable firewalld.service fail2ban.service 2>/dev/null || true

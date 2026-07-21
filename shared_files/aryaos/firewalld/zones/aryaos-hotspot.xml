@@ -29,4 +29,5 @@ onto the wired ethernet regardless of net.ipv4.ip_forward (see public.xml).
        between this zone (AP mode) and public (client uplink) via connection.zone
        in comitup-callback.sh, so a static binding would fight NM. -->
   <interface name="pan0"/>
+  <service name="ntp"/>
 </zone>
