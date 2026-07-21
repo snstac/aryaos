@@ -26,5 +26,20 @@ fi
 # FIXME: https://github.com/snstac/aryaos/issues/48
 logger "AryaOS comitup callback: $*"
 
+# Move wlan0 between firewalld zones based on comitup state. While it is the
+# onboarding access point (HOTSPOT), pin it to the tight "aryaos-hotspot" zone so
+# a walk-up client can reach only DHCP/DNS/portal/web-admin — not ssh, Node-RED,
+# or the mesh feed. Once wlan0 becomes a trusted client uplink (CONNECTED),
+# restore the normal default zone so the operator is not locked out.
+WIFI_DEV="wlan0"
+case "${1:-}" in
+	HOTSPOT)
+		firewall-cmd --zone=aryaos-hotspot --change-interface="${WIFI_DEV}" >/dev/null 2>&1 || true
+		;;
+	CONNECTED)
+		firewall-cmd --zone=public --change-interface="${WIFI_DEV}" >/dev/null 2>&1 || true
+		;;
+esac
+
 # Ping a callback on Node-RED:
 wget -a http://127.0.0.1:1880/comitup_callback/$*

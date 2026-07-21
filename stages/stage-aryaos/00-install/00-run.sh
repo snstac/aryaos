@@ -116,7 +116,9 @@ install -d -m 0755 "${ROOTFS_DIR}/etc/firewalld/services" "${ROOTFS_DIR}/etc/fir
 for svc_xml in "${SHARED_FILES}/aryaos/firewalld/services/"*.xml; do
 	install -v -m 0644 "${svc_xml}" "${ROOTFS_DIR}/etc/firewalld/services/"
 done
-install -v -m 0644 "${SHARED_FILES}/aryaos/firewalld/zones/public.xml" "${ROOTFS_DIR}/etc/firewalld/zones/public.xml"
+for zone_xml in "${SHARED_FILES}/aryaos/firewalld/zones/"*.xml; do
+	install -v -m 0644 "${zone_xml}" "${ROOTFS_DIR}/etc/firewalld/zones/"
+done
 
 ## One-click updates: helper + oneshot unit (driven by Cockpit -> AryaOS Site)
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-update" "${ROOTFS_DIR}/usr/local/sbin/aryaos-update"

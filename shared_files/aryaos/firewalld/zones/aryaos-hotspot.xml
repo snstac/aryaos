@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+AryaOS onboarding-hotspot zone. Applied to wlan0 ONLY while it is the aryaos-xxxx
+access point (assigned by comitup-callback.sh on the HOTSPOT state, and moved back
+to the public zone on CONNECTED so a Wi-Fi *client* uplink keeps normal access).
+
+An onboarding client is an untrusted walk-up device, so this zone exposes only
+what onboarding and web administration need — DHCP/DNS/mDNS, the comitup captive
+portal (9080), and the web portal + Cockpit (80/443, "all config from the web
+UI") — and NOTHING else. In particular it does NOT expose ssh, the Node-RED
+editor (1880), the TAK Mesh SA feed (6969), or the AIS-catcher dashboard, which
+the default (public) zone allows for wired/trusted clients.
+
+Like public, this zone has NO forward element: a hotspot client is never routed
+onto the wired ethernet regardless of net.ipv4.ip_forward (see public.xml).
+-->
+<zone>
+  <short>AryaOS Hotspot</short>
+  <description>Onboarding Wi-Fi hotspot: DHCP/DNS, captive portal, and web admin only — no SSH, Node-RED, or mesh.</description>
+  <service name="dhcp"/>
+  <service name="dhcpv6-client"/>
+  <service name="dns"/>
+  <service name="mdns"/>
+  <service name="http"/>
+  <service name="https"/>
+  <service name="aryaos-comitup"/>
+</zone>

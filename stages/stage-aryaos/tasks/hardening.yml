@@ -61,11 +61,13 @@
   with_fileglob:
     - "{{ shared_files }}/aryaos/firewalld/services/*.xml"
 
-- name: Install firewalld default zone
+- name: Install firewalld zones (default + onboarding hotspot)
   ansible.builtin.copy:
-    src: "{{ shared_files }}/aryaos/firewalld/zones/public.xml"
-    dest: /etc/firewalld/zones/public.xml
+    src: "{{ item }}"
+    dest: /etc/firewalld/zones/
     mode: "0644"
+  with_fileglob:
+    - "{{ shared_files }}/aryaos/firewalld/zones/*.xml"
 
 - name: Install aryaos-update helper
   ansible.builtin.copy:

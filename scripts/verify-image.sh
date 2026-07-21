@@ -276,6 +276,17 @@ else
 	ok "public zone has no intra-zone forwarding (AP/PAN isolated from eth)"
 fi
 
+# Onboarding hotspot zone: tight INPUT (assigned to wlan0 in AP mode by
+# comitup-callback). Must exist, must NOT expose ssh / Node-RED / mesh, and
+# must have no intra-zone forwarding.
+require_path /etc/firewalld/zones/aryaos-hotspot.xml
+if grep -qsE '<service name="(ssh|aryaos-node-red|aryaos-mesh-sa)"' "${MNT}/etc/firewalld/zones/aryaos-hotspot.xml"; then
+	fail "aryaos-hotspot zone exposes ssh/node-red/mesh to onboarding clients"
+else
+	ok "aryaos-hotspot zone withholds ssh/node-red/mesh from onboarding clients"
+fi
+require_grep '(aryaos-hotspot|--change-interface)' /usr/local/sbin/comitup-callback.sh "comitup-callback assigns wlan0 to the hotspot zone"
+
 # Media longevity: zram swap config + periodic TRIM
 require_path /etc/systemd/zram-generator.conf
 require_grep '^\[zram0\]' /etc/systemd/zram-generator.conf "zram swap configured"
