@@ -162,6 +162,16 @@ install -v -D -m 0644 "${SHARED_FILES}/charontak/charontak.ini" "${ROOTFS_DIR}/u
 ## gpsd: USB GNSS defaults (see shared_files/aryaos/gpsd.default)
 install -v -m 0644 "${SHARED_FILES}/aryaos/gpsd.default" "${ROOTFS_DIR}/etc/default/gpsd"
 
+## Stamp the build commit so the box can fetch its own release image for an
+## offline backup (aryaos-image-download matches the release tag by this SHA).
+## The release tag is generated post-build, but it embeds this short SHA.
+BUILD_SHA="$(git -C "$(dirname "${SHARED_FILES}")" rev-parse HEAD 2>/dev/null || echo "${GITHUB_SHA:-unknown}")"
+install -v -d -m 0755 "${ROOTFS_DIR}/etc/aryaos"
+printf '%s %s\n' "${BUILD_SHA}" "${GITHUB_REF_NAME:-main}" > "${ROOTFS_DIR}/etc/aryaos/image-commit"
+
+## Helper: pull down this box's own image (.img.xz) for an offline backup copy.
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-image-download" "${ROOTFS_DIR}/usr/local/sbin/aryaos-image-download"
+
 
 # UUID
 

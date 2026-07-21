@@ -75,6 +75,8 @@ install_file 0755 "${SHARED}/aryaos/aryaos-config-backup" "/usr/local/sbin/aryao
 install_file 0755 "${SHARED}/aryaos/aryaos-factory-reset" "/usr/local/sbin/aryaos-factory-reset"
 install_file 0755 "${SHARED}/aryaos/aryaos-zeroize" "/usr/local/sbin/aryaos-zeroize"
 install_file 0755 "${SHARED}/aryaos/aryaos-radio" "/usr/local/sbin/aryaos-radio"
+# Offline image backup: pull down this box's own release .img.xz.
+install_file 0755 "${SHARED}/aryaos/aryaos-image-download" "/usr/local/sbin/aryaos-image-download"
 install_file 0755 "${SHARED}/aryaos/run_comitup.sh" "/usr/local/sbin/run_comitup.sh"
 install_file 0755 "${SHARED}/aryaos/comitup-callback.sh" "/usr/local/sbin/comitup-callback.sh"
 install_file 0755 "${SHARED}/aryaos/wifi-nuke.py" "/usr/local/sbin/wifi-nuke.py"
