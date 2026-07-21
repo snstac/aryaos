@@ -168,6 +168,11 @@ jobs:
       - name: Set SHARED_FILES dir
         run: echo "SHARED_FILES=$(pwd)/shared_files" >> "$GITHUB_ENV"
 
+      - name: Stamp build commit for aryaos-image-download
+        run: |
+          echo "ARYAOS_BUILD_SHA=${{ github.sha }}" >> "$GITHUB_ENV"
+          echo "ARYAOS_BUILD_REF=${{ github.ref_name }}" >> "$GITHUB_ENV"
+
       - name: Build offline documentation into the portal
         # Renders the MkDocs site into shared_files/aryaos/html/docs so the
         # overlay deb (install_tree html -> /var/www/html) ships it on the

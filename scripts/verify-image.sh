@@ -323,6 +323,7 @@ require_grep 'aryaos-hotspot' /usr/local/sbin/aryaos-bt-pan-nap "bt-pan confines
 # Offline image self-backup: helper + the build-commit stamp it resolves against.
 require_path /usr/local/sbin/aryaos-image-download
 require_path /etc/aryaos/image-commit
+require_grep '^[0-9a-f]{7,}' /etc/aryaos/image-commit "image-commit stamped with a real SHA (not 'unknown')"
 
 # Time service: chrony (GPS-disciplined NTP server for the local networks)
 require_pkg chrony
