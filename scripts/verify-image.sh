@@ -286,6 +286,10 @@ else
 	ok "aryaos-hotspot zone withholds ssh/node-red/mesh from onboarding clients"
 fi
 require_grep '(aryaos-hotspot|--change-interface)' /usr/local/sbin/comitup-callback.sh "comitup-callback assigns wlan0 to the hotspot zone"
+# Bluetooth PAN (pan0) is the other onboarding radio — it must be confined to the
+# hotspot zone too (statically in the zone XML + at bridge-up in the bt-pan NAP).
+require_grep '<interface name="pan0"/>' /etc/firewalld/zones/aryaos-hotspot.xml "pan0 statically bound to hotspot zone"
+require_grep 'aryaos-hotspot' /usr/local/sbin/aryaos-bt-pan-nap "bt-pan confines pan0 to the hotspot zone"
 
 # Media longevity: zram swap config + periodic TRIM
 require_path /etc/systemd/zram-generator.conf

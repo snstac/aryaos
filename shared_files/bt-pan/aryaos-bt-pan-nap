@@ -43,6 +43,14 @@ def ensure_bridge():
     run("ip", "addr", "replace", f"{ADDRESS}/{PREFIX}", "dev", BRIDGE)
     run("ip", "link", "set", BRIDGE, "up")
 
+    # Confine Bluetooth PAN clients to the onboarding zone: they get DHCP/DNS and
+    # the web portal/Cockpit, but NOT ssh, the Node-RED editor, or the mesh feed
+    # (an onboarding radio is an untrusted walk-up path — same posture as the
+    # WiFi hotspot). The zone XML statically binds pan0 too, for firewalld
+    # reloads; this call covers the case where firewalld started before the
+    # bridge existed. Forwarding to ethernet is already denied by the public zone.
+    run("firewall-cmd", "--zone=aryaos-hotspot", f"--change-interface={BRIDGE}", check=False)
+
 
 def register_nap():
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)

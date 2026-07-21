@@ -16,7 +16,7 @@ onto the wired ethernet regardless of net.ipv4.ip_forward (see public.xml).
 -->
 <zone>
   <short>AryaOS Hotspot</short>
-  <description>Onboarding Wi-Fi hotspot: DHCP/DNS, captive portal, and web admin only — no SSH, Node-RED, or mesh.</description>
+  <description>Onboarding radios (Wi-Fi hotspot + Bluetooth PAN): DHCP/DNS, captive portal, and web admin only — no SSH, Node-RED, or mesh.</description>
   <service name="dhcp"/>
   <service name="dhcpv6-client"/>
   <service name="dns"/>
@@ -24,4 +24,9 @@ onto the wired ethernet regardless of net.ipv4.ip_forward (see public.xml).
   <service name="http"/>
   <service name="https"/>
   <service name="aryaos-comitup"/>
+  <!-- Bluetooth PAN (10.44.0.1) is the other onboarding radio; bind it here
+       statically. wlan0 is NOT listed: it is NetworkManager-managed and switches
+       between this zone (AP mode) and public (client uplink) via connection.zone
+       in comitup-callback.sh, so a static binding would fight NM. -->
+  <interface name="pan0"/>
 </zone>
