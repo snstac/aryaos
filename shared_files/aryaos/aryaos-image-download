@@ -1,0 +1,176 @@
+#!/usr/bin/python3
+"""Download this box's own AryaOS image (.img.xz) for an offline backup copy.
+
+A fielded unit may be reachable (e.g. over the onboarding hotspot) by an operator
+whose laptop can't reach GitHub. This lets the box pull down the exact image it
+was built from so the operator can copy it off for a cold backup / re-flash.
+
+The image is resolved from the git commit stamped into /etc/aryaos/image-commit at
+build time (the release tag embeds that short SHA). Modes:
+
+  aryaos-image-download --status        resolve the release + asset, print JSON (no download)
+  aryaos-image-download [--tag TAG]     download the .img.xz to /var/lib/aryaos/image/
+  aryaos-image-download --check         verify the downloaded image's sha256
+
+Prints a JSON object on stdout for the Cockpit "AryaOS Site" backend; exit 0 ok, 1 error.
+
+Copyright Sensors & Signals LLC https://www.snstac.com/
+SPDX-License-Identifier: Apache-2.0
+"""
+
+import hashlib
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+
+REPO = "snstac/aryaos"
+COMMIT_FILE = "/etc/aryaos/image-commit"
+DEST_DIR = "/var/lib/aryaos/image"
+API = f"https://api.github.com/repos/{REPO}/releases"
+UA = {"User-Agent": "aryaos-image-download", "Accept": "application/vnd.github+json"}
+
+
+def emit(payload, code):
+    sys.stdout.write(json.dumps(payload) + "\n")
+    raise SystemExit(code)
+
+
+def fail(message):
+    emit({"ok": False, "error": message}, 1)
+
+
+def _api(url):
+    try:
+        req = urllib.request.Request(url, headers=UA)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.load(resp)
+    except (urllib.error.URLError, OSError, ValueError) as exc:
+        fail(f"GitHub API unreachable: {exc}")
+
+
+def stamped_sha():
+    try:
+        first = open(COMMIT_FILE, encoding="utf-8").read().strip().split()
+        return first[0][:12] if first else ""
+    except OSError:
+        return ""
+
+
+def resolve_release(tag=None):
+    releases = _api(f"{API}?per_page=60")
+    if not releases:
+        fail("No releases found")
+    if tag:
+        for rel in releases:
+            if rel.get("tag_name") == tag:
+                return rel
+        fail(f"Release {tag} not found")
+    sha = stamped_sha()
+    if sha:
+        for rel in releases:
+            if sha in rel.get("tag_name", ""):
+                return rel
+    # No stamp / no match: newest release, flagged so the UI can warn.
+    rel = releases[0]
+    rel["_fallback"] = True
+    return rel
+
+
+def pick_asset(rel):
+    for asset in rel.get("assets", []):
+        if asset.get("name", "").endswith(".img.xz"):
+            return asset
+    fail("Release has no .img.xz asset")
+
+
+def do_status(tag=None):
+    rel = resolve_release(tag)
+    asset = pick_asset(rel)
+    dest = os.path.join(DEST_DIR, asset["name"])
+    emit({
+        "ok": True,
+        "tag": rel["tag_name"],
+        "asset": asset["name"],
+        "size": asset["size"],
+        "url": asset["browser_download_url"],
+        "fallback": bool(rel.get("_fallback")),
+        "stamped_commit": stamped_sha(),
+        "already_downloaded": os.path.exists(dest) and os.path.getsize(dest) == asset["size"],
+        "dest": dest,
+    }, 0)
+
+
+def do_download(tag=None):
+    rel = resolve_release(tag)
+    asset = pick_asset(rel)
+    os.makedirs(DEST_DIR, mode=0o755, exist_ok=True)
+    dest = os.path.join(DEST_DIR, asset["name"])
+    if os.path.exists(dest) and os.path.getsize(dest) == asset["size"]:
+        emit({"ok": True, "tag": rel["tag_name"], "path": dest,
+              "size": os.path.getsize(dest), "cached": True}, 0)
+    tmp = dest + ".part"
+    try:
+        req = urllib.request.Request(asset["browser_download_url"], headers=UA)
+        with urllib.request.urlopen(req, timeout=60) as resp, open(tmp, "wb") as out:
+            total = asset["size"] or 0
+            done = 0
+            last = -1
+            while True:
+                chunk = resp.read(1024 * 256)
+                if not chunk:
+                    break
+                out.write(chunk)
+                done += len(chunk)
+                if total:
+                    pct = done * 100 // total
+                    if pct != last and pct % 5 == 0:
+                        sys.stderr.write(f"downloaded {pct}% ({done}/{total})\n")
+                        sys.stderr.flush()
+                        last = pct
+        os.replace(tmp, dest)
+    except (urllib.error.URLError, OSError) as exc:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        fail(f"Download failed: {exc}")
+    emit({"ok": True, "tag": rel["tag_name"], "path": dest,
+          "size": os.path.getsize(dest), "cached": False}, 0)
+
+
+def do_check():
+    # sha256 of the newest downloaded image (for the operator to verify off-box).
+    if not os.path.isdir(DEST_DIR):
+        fail("No image downloaded")
+    imgs = [f for f in os.listdir(DEST_DIR) if f.endswith(".img.xz")]
+    if not imgs:
+        fail("No image downloaded")
+    path = os.path.join(DEST_DIR, sorted(imgs)[-1])
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(block)
+    emit({"ok": True, "path": path, "sha256": h.hexdigest(), "size": os.path.getsize(path)}, 0)
+
+
+def main():
+    args = sys.argv[1:]
+    tag = None
+    if "--tag" in args:
+        i = args.index("--tag")
+        tag = args[i + 1] if i + 1 < len(args) else None
+        args = args[:i] + args[i + 2:]
+    mode = args[0] if args else "--download"
+    if mode == "--status":
+        do_status(tag)
+    if mode == "--check":
+        do_check()
+    if mode in ("--download", "-"):
+        do_download(tag)
+    fail(f"Unknown mode: {mode}")
+
+
+if __name__ == "__main__":
+    main()

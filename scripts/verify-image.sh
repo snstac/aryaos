@@ -320,6 +320,10 @@ require_grep '(aryaos-hotspot|--change-interface)' /usr/local/sbin/comitup-callb
 require_grep '<interface name="pan0"/>' /etc/firewalld/zones/aryaos-hotspot.xml "pan0 statically bound to hotspot zone"
 require_grep 'aryaos-hotspot' /usr/local/sbin/aryaos-bt-pan-nap "bt-pan confines pan0 to the hotspot zone"
 
+# Offline image self-backup: helper + the build-commit stamp it resolves against.
+require_path /usr/local/sbin/aryaos-image-download
+require_path /etc/aryaos/image-commit
+
 # Time service: chrony (GPS-disciplined NTP server for the local networks)
 require_pkg chrony
 require_path /etc/chrony/conf.d/aryaos.conf
