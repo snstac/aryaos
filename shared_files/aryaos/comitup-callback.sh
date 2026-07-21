@@ -31,13 +31,29 @@ logger "AryaOS comitup callback: $*"
 # a walk-up client can reach only DHCP/DNS/portal/web-admin — not ssh, Node-RED,
 # or the mesh feed. Once wlan0 becomes a trusted client uplink (CONNECTED),
 # restore the normal default zone so the operator is not locked out.
+#
+# The zone MUST be set via the NetworkManager connection, not a runtime
+# `firewall-cmd --change-interface`: NM owns an managed interface's zone through
+# the connection's `connection.zone` property and reverts any manual runtime
+# binding on the next connection event (which left wlan0 in the default `public`
+# zone despite this callback firing). `nmcli device reapply` applies the change
+# without dropping the AP.
 WIFI_DEV="wlan0"
+set_wlan_zone() {
+	local zone="$1" conn
+	conn="$(nmcli -t -f GENERAL.CONNECTION device show "${WIFI_DEV}" 2>/dev/null | sed 's/^GENERAL.CONNECTION://')"
+	[ -n "${conn}" ] || return 0
+	nmcli connection modify "${conn}" connection.zone "${zone}" >/dev/null 2>&1 || true
+	nmcli device reapply "${WIFI_DEV}" >/dev/null 2>&1 \
+		|| firewall-cmd --zone="${zone:-public}" --change-interface="${WIFI_DEV}" >/dev/null 2>&1 || true
+}
 case "${1:-}" in
 	HOTSPOT)
-		firewall-cmd --zone=aryaos-hotspot --change-interface="${WIFI_DEV}" >/dev/null 2>&1 || true
+		set_wlan_zone aryaos-hotspot
 		;;
 	CONNECTED)
-		firewall-cmd --zone=public --change-interface="${WIFI_DEV}" >/dev/null 2>&1 || true
+		# Empty zone => the connection uses the default (public) zone.
+		set_wlan_zone ""
 		;;
 esac
 
