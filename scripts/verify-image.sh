@@ -292,6 +292,16 @@ if grep -qsE '<forward\s*/?>' "${MNT}/etc/firewalld/zones/public.xml"; then
 else
 	ok "public zone has no intra-zone forwarding (AP/PAN isolated from eth)"
 fi
+# The comitup onboarding portal (9080) must NOT be open on the wired LAN — only the
+# onboarding radios (aryaos-hotspot zone) need it.
+if grep -qsE '<service name="aryaos-comitup"' "${MNT}/etc/firewalld/zones/public.xml"; then
+	fail "public zone opens the comitup portal (9080) to the wired LAN"
+else
+	ok "comitup onboarding portal not exposed on the wired LAN"
+fi
+# aryaos-neighbord parses untrusted multicast CoT — it must reject DTD/entity
+# (billion-laughs) payloads before ElementTree parsing.
+require_grep '<!DOCTYPE' /usr/local/sbin/aryaos-neighbord "neighbord rejects DTD/entity CoT (billion-laughs guard)"
 
 # Onboarding hotspot zone: tight INPUT (assigned to wlan0 in AP mode by
 # comitup-callback). Must exist, must NOT expose ssh / Node-RED / mesh, and

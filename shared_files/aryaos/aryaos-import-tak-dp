@@ -108,6 +108,10 @@ def parse_enrollment_url(value):
 
 
 def parse_preferences(pref_bytes):
+    # Defense-in-depth: reject a DTD/entity block (billion-laughs) even though this
+    # path is admin-gated (root-only socket) and size-capped. config.pref has no DTD.
+    if b"<!DOCTYPE" in pref_bytes or b"<!ENTITY" in pref_bytes:
+        fail("config.pref must not contain a DTD or entity declaration")
     try:
         root = ET.fromstring(pref_bytes)
     except ET.ParseError as exc:
