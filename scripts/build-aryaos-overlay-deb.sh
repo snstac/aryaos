@@ -125,7 +125,9 @@ install_file 0644 "${SHARED}/aryaos/apt/52unattended-upgrades-aryaos" "/etc/apt/
 for svc_xml in "${SHARED}/aryaos/firewalld/services/"*.xml; do
 	install_file 0644 "${svc_xml}" "/etc/firewalld/services/$(basename "${svc_xml}")"
 done
-install_file 0644 "${SHARED}/aryaos/firewalld/zones/public.xml" "/etc/firewalld/zones/public.xml"
+for zone_xml in "${SHARED}/aryaos/firewalld/zones/"*.xml; do
+	install_file 0644 "${zone_xml}" "/etc/firewalld/zones/$(basename "${zone_xml}")"
+done
 install_file 0755 "${SHARED}/aryaos/99-aryaos-dispatcher" "/etc/NetworkManager/dispatcher.d/99-aryaos-dispatcher"
 
 
