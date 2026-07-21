@@ -230,6 +230,8 @@ jobs:
             -e GITHUB_WORKSPACE=${{ github.workspace }}
             -e ARYAOS_CI_TRIM_WORK=1
             -e ARYAOS_LAB_ACCESS=${{ env.ARYAOS_LAB_ACCESS }}
+            -e ARYAOS_BUILD_SHA=${{ github.sha }}
+            -e ARYAOS_BUILD_REF=${{ github.ref_name }}
 
       - name: Show deploy output
         if: success()

@@ -165,8 +165,9 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/gpsd.default" "${ROOTFS_DIR}/etc/defa
 ## Stamp the build commit so the box can fetch its own release image for an
 ## offline backup (aryaos-image-download matches the release tag by this SHA).
 ## The release tag is generated post-build, but it embeds this short SHA.
-# ARYAOS_BUILD_SHA is exported into the build env by the workflow (via GITHUB_ENV,
-# the same mechanism as SHARED_FILES); fall back to git only for local builds.
+# ARYAOS_BUILD_SHA is passed into the pi-gen Docker container by the workflow
+# via `docker-opts: -e ARYAOS_BUILD_SHA=...` (GITHUB_ENV does NOT cross into the
+# container). Fall back to git only for local (non-container) builds.
 BUILD_SHA="${ARYAOS_BUILD_SHA:-$(git -C "$(dirname "${SHARED_FILES}")" rev-parse HEAD 2>/dev/null || echo unknown)}"
 install -v -d -m 0755 "${ROOTFS_DIR}/etc/aryaos"
 printf '%s %s\n' "${BUILD_SHA}" "${ARYAOS_BUILD_REF:-${GITHUB_REF_NAME:-main}}" > "${ROOTFS_DIR}/etc/aryaos/image-commit"
