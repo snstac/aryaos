@@ -191,6 +191,13 @@ def _should_beacon(cache: dict[str, dict]) -> bool:
 
 
 def _parse_event(data: bytes, source_ip: str) -> tuple[str, dict] | None:
+    # This datagram is UNTRUSTED — any LAN host can send to the mesh group. CoT is
+    # plain XML with no DTD, so reject a DOCTYPE/ENTITY declaration outright: it
+    # blocks internal entity-expansion (billion-laughs) DoS, which stdlib
+    # ElementTree is vulnerable to (defusedxml is not on the image). ElementTree
+    # does not resolve external entities, so there is no XXE/file-read vector here.
+    if b"<!DOCTYPE" in data or b"<!ENTITY" in data:
+        return None
     try:
         root = ET.fromstring(data.strip())
     except ET.ParseError:

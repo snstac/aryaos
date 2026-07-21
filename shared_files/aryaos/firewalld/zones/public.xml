@@ -29,5 +29,8 @@ Docker's own container forwarding is unaffected (it lives in the docker zone).
   <service name="aryaos-mesh-sa"/>
   <service name="aryaos-node-red"/>
   <service name="aryaos-ais-catcher"/>
-  <service name="aryaos-comitup"/>
+  <!-- aryaos-comitup (9080 onboarding captive portal) is intentionally NOT opened
+       on the wired LAN: it is only needed on the onboarding radios (Wi-Fi hotspot +
+       Bluetooth PAN), which get it via the aryaos-hotspot zone. comitup-web binds
+       0.0.0.0, so the firewall is what scopes it; LAN admin is via Cockpit. -->
 </zone>
