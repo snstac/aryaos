@@ -59,6 +59,7 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/etc
 install -d -m 0755 "${ROOTFS_DIR}/usr/local/sbin"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-import-tak-dp" "${ROOTFS_DIR}/usr/local/sbin/aryaos-import-tak-dp"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tak-dp-importd" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tak-dp-importd"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tak-dp-import" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tak-dp-import"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-gps-time-sync" "${ROOTFS_DIR}/usr/local/sbin/aryaos-gps-time-sync"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-lincot-remarks" "${ROOTFS_DIR}/usr/local/sbin/aryaos-lincot-remarks"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-cot-detail" "${ROOTFS_DIR}/usr/local/sbin/aryaos-cot-detail"
@@ -179,7 +180,8 @@ chmod 0655 "${ROOTFS_DIR}/var/www/html"
 ## Portal status CGI (JSON) for the landing page — no Node-RED
 install -d -m 0755 "${ROOTFS_DIR}/usr/lib/cgi-bin"
 install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-portal-status" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-portal-status"
-install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-tak-dp-upload" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-tak-dp-upload"
+# aryaos-tak-dp-upload CGI intentionally NOT installed — mutating TAK import moved
+# to the authenticated Cockpit backend aryaos-tak-dp-import (see /usr/local/sbin).
 install -v -m 0755 "${SHARED_FILES}/aryaos/cgi-bin/aryaos-neighbors" "${ROOTFS_DIR}/usr/lib/cgi-bin/aryaos-neighbors"
 
 ## Lab access (ARYAOS_LAB_ACCESS=1 only): trust aryaos-dev-lab.pub for user pi and

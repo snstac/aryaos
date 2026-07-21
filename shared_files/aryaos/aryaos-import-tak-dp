@@ -3,9 +3,11 @@
 
 import configparser
 import asyncio
+import ipaddress
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -64,6 +66,26 @@ def parse_connect_string(value):
     return host, port, proto
 
 
+def reject_ssrf_host(host):
+    """Defense-in-depth against SSRF: refuse enrollment to the box's own loopback,
+    link-local (e.g. cloud/metadata 169.254.x), or other non-routable targets.
+    Private LAN addresses ARE allowed — a field TAK server commonly lives on the
+    local network."""
+    addrs = set()
+    try:
+        for info in socket.getaddrinfo(host, None):
+            addrs.add(info[4][0])
+    except socket.gaierror:
+        addrs.add(host)
+    for addr in addrs or {host}:
+        try:
+            ip = ipaddress.ip_address(addr.split("%")[0])
+        except ValueError:
+            continue
+        if ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or ip.is_unspecified:
+            fail("Enrollment host is not a routable TAK server address")
+
+
 def parse_enrollment_url(value):
     value = (value or "").strip()
     if not value:
@@ -81,6 +103,7 @@ def parse_enrollment_url(value):
     token = (qs.get("token") or [""])[0].strip()
     if not host or not username or not token:
         fail("Enrollment URL must include host, username, and token")
+    reject_ssrf_host(host)
     return value, host, username
 
 
