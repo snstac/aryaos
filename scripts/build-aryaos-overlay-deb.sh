@@ -85,6 +85,11 @@ install_file 0644 "${SHARED}/aryaos/systemd/aryaos-update.service" "/etc/systemd
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-factory-reset.service" "/etc/systemd/system/aryaos-factory-reset.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-zeroize.service" "/etc/systemd/system/aryaos-zeroize.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-radio-silence.service" "/etc/systemd/system/aryaos-radio-silence.service"
+# EMCON gate: keep the radio users from starting (and un-blocking the radios)
+# while /etc/aryaos/emcon exists.
+install_file 0644 "${SHARED}/aryaos/systemd/comitup.service.d/emcon.conf" "/etc/systemd/system/comitup.service.d/emcon.conf"
+install_file 0644 "${SHARED}/aryaos/systemd/aryaos-bt-pan.service.d/emcon.conf" "/etc/systemd/system/aryaos-bt-pan.service.d/emcon.conf"
+install_file 0644 "${SHARED}/aryaos/systemd/aryaos-bt-ready.service.d/emcon.conf" "/etc/systemd/system/aryaos-bt-ready.service.d/emcon.conf"
 # Pin nodered.service to the node-red user (upstream unit runs as root out of
 # /root/.node-red with no adminAuth = unauthenticated root-privileged admin API).
 install_file 0644 "${SHARED}/aryaos/systemd/nodered.service.d/aryaos.conf" "/etc/systemd/system/nodered.service.d/aryaos.conf"

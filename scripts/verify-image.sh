@@ -267,6 +267,13 @@ require_path /usr/share/aryaos/defaults/charontak.ini
 # Radios: WiFi hotspot control + EMCON/radio-silence (Cockpit -> AryaOS Site)
 require_path /usr/local/sbin/aryaos-radio
 require_path /etc/systemd/system/aryaos-radio-silence.service
+# EMCON must survive a reboot: aryaos-radio disables WiFi at the NM level (rfkill
+# alone gets re-enabled by NetworkManager), and comitup/bt-pan/bt-ready are gated
+# off while the flag exists so they don't un-block the radios on boot.
+require_grep 'nmcli radio wifi off' /usr/local/sbin/aryaos-radio "aryaos-radio disables WiFi via NetworkManager for EMCON"
+for svc in comitup aryaos-bt-pan aryaos-bt-ready; do
+	require_grep 'ConditionPathExists=!/etc/aryaos/emcon' "/etc/systemd/system/${svc}.service.d/emcon.conf" "${svc} gated off during EMCON"
+done
 # AP/PAN isolation: the default zone must NOT enable intra-zone forwarding, or a
 # hotspot/Bluetooth client could be routed onto the wired ethernet.
 require_path /etc/firewalld/zones/public.xml

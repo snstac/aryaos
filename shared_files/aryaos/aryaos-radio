@@ -65,11 +65,14 @@ silence_on() {
 	require_root
 	install -d -m 0755 /etc/aryaos
 	: > "${EMCON_FLAG}"
-	# Drop the hotspot first so it is not fighting the radio, then block.
-	systemctl stop comitup.service >/dev/null 2>&1 || true
+	# Stop the radio users so they do not fight the block, disable the WiFi radio
+	# at the NetworkManager level (NM re-enables a merely rfkill-blocked radio on
+	# its own), then rfkill-block both radios.
+	systemctl stop comitup.service aryaos-bt-pan.service >/dev/null 2>&1 || true
+	command -v nmcli >/dev/null 2>&1 && nmcli radio wifi off >/dev/null 2>&1 || true
 	_rfkill block wifi
 	_rfkill block bluetooth
-	logger "aryaos-radio: EMCON ON (WiFi + Bluetooth rfkill-blocked)"
+	logger "aryaos-radio: EMCON ON (WiFi + Bluetooth radios disabled)"
 	echo "EMCON on: WiFi + Bluetooth radios blocked (persists across reboot)."
 	echo "SDR receivers are receive-only and left running; stop their services to silence them."
 }
@@ -77,13 +80,16 @@ silence_on() {
 silence_off() {
 	require_root
 	rm -f "${EMCON_FLAG}"
+	command -v nmcli >/dev/null 2>&1 && nmcli radio wifi on >/dev/null 2>&1 || true
 	_rfkill unblock wifi
 	_rfkill unblock bluetooth
-	# Bring the hotspot back only if it is still enabled.
+	# Bring the onboarding radios back (their units are ConditionPathExists-gated
+	# on the EMCON flag, which is now removed).
+	systemctl start aryaos-bt-ready.service aryaos-bt-pan.service >/dev/null 2>&1 || true
 	if systemctl is-enabled comitup.service >/dev/null 2>&1; then
 		systemctl start comitup.service >/dev/null 2>&1 || true
 	fi
-	logger "aryaos-radio: EMCON OFF (radios unblocked)"
+	logger "aryaos-radio: EMCON OFF (radios re-enabled)"
 	echo "EMCON off: WiFi + Bluetooth radios unblocked."
 }
 
@@ -94,7 +100,11 @@ silence_status() {
 
 boot_apply() {
 	# aryaos-radio-silence.service at boot: re-assert the block if EMCON is set.
+	# The comitup / bt-pan / bt-ready units are ConditionPathExists-gated on the
+	# flag so they do not start and un-block the radios; disabling WiFi via nmcli
+	# keeps NetworkManager from re-enabling it.
 	[[ -f "${EMCON_FLAG}" ]] || exit 0
+	command -v nmcli >/dev/null 2>&1 && nmcli radio wifi off >/dev/null 2>&1 || true
 	_rfkill block wifi
 	_rfkill block bluetooth
 	logger "aryaos-radio: EMCON re-applied at boot"
