@@ -587,6 +587,70 @@
     });
   }
 
+  /* --- Command-deck hero: big colorblind-safe status pills + online + host --- */
+  function setStat(id, state, value) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove("aos-stat--ok", "aos-stat--warn", "aos-stat--bad", "aos-stat--pending");
+    el.classList.add("aos-stat--" + (state || "pending"));
+    var v = document.getElementById(id + "-v");
+    if (v) v.textContent = value;
+  }
+  function setOnline(ok) {
+    var el = document.getElementById("aos-online");
+    if (!el) return;
+    el.classList.toggle("aos-online--off", !ok);
+    el.innerHTML = '<span class="aos-online-dot" aria-hidden="true"></span> ' + (ok ? "ONLINE" : "OFFLINE");
+  }
+  function fillHero(d) {
+    var host = document.getElementById("aos-appbar-host");
+    if (host) host.textContent = d && d.hostname ? d.hostname : "";
+    var g = d && d.gps;
+    if (g && g.ok && g.mode >= 2 && g.lat != null) setStat("aos-hero-gps", "ok", (g.fix_type || g.mode + "D") + " FIX");
+    else if (g && g.ok) setStat("aos-hero-gps", "warn", "NO FIX");
+    else setStat("aos-hero-gps", d ? "bad" : "pending", d ? "OFFLINE" : "…");
+    var thr = d && d.system && d.system.throttle;
+    if (thr && thr.state === "bad") setStat("aos-hero-power", "bad", "UNDER-VOLT");
+    else if (thr && thr.state === "warn") setStat("aos-hero-power", "warn", "WARN");
+    else if (thr) setStat("aos-hero-power", "ok", "OK");
+    else setStat("aos-hero-power", "pending", "…");
+    var tg = d && d.tak_gateways;
+    if (tg && tg.items && tg.items.length) {
+      var total = tg.items.length, up = 0;
+      tg.items.forEach(function (it) { if (it && it.state === "up") up++; });
+      setStat("aos-hero-sensors", up === total ? "ok" : up === 0 ? "bad" : "warn", up + "/" + total);
+    } else {
+      setStat("aos-hero-sensors", "pending", "—");
+    }
+  }
+
+  /* --- Day / night theme toggle (auto → day → night); persisted --- */
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("aos-theme-toggle");
+    if (!btn) return;
+    var txt = document.getElementById("aos-theme-txt");
+    var ico = btn.querySelector(".aos-theme-ico");
+    var ORDER = ["auto", "day", "night"];
+    var ICON = { auto: "◐", day: "☀", night: "☾" };
+    var LABEL = { auto: "Auto", day: "Day", night: "Night" };
+    function current() {
+      try { var t = localStorage.getItem("aos-theme"); return t === "day" || t === "night" ? t : "auto"; }
+      catch (e) { return "auto"; }
+    }
+    function apply(mode) {
+      if (mode === "day" || mode === "night") root.setAttribute("data-theme", mode);
+      else root.removeAttribute("data-theme");
+      try { mode === "auto" ? localStorage.removeItem("aos-theme") : localStorage.setItem("aos-theme", mode); } catch (e) {}
+      if (txt) txt.textContent = LABEL[mode];
+      if (ico) ico.textContent = ICON[mode];
+    }
+    apply(current());
+    btn.addEventListener("click", function () {
+      apply(ORDER[(ORDER.indexOf(current()) + 1) % ORDER.length]);
+    });
+  })();
+
   var api = "/cgi-bin/aryaos-portal-status";
   var neighborsApi = "/cgi-bin/aryaos-neighbors";
   function loadStatus() {
@@ -597,6 +661,8 @@
       })
       .then(function (d) {
         errEl && errEl.classList.add("uk-hidden");
+        setOnline(true);
+        fillHero(d);
         fillHost(d);
         fillGps(d.gps || null);
         fillRadios(d.radios != null ? d.radios : { ok: true, devices: [], error: null });
@@ -605,6 +671,8 @@
       })
       .catch(function (e) {
         showErr("Could not load status from " + api + ". " + (e && e.message ? e.message : ""));
+        setOnline(false);
+        fillHero(null);
         fillRadios(null);
         fillGps(null);
         fillTakGateways(null);

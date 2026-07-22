@@ -1,44 +1,114 @@
-/* AryaOS portal — restrained operations theme (UIKit overrides) */
+/* AryaOS portal — field command deck. Day/night (auto) + colorblind-safe status.
+ * Built for USFS-style outdoor use: big glove targets, high contrast, sunlight-
+ * legible day theme. Status never rides on color alone — every state also carries
+ * an icon + text label. Colorblind-safe hues are an Okabe-Ito-derived set
+ * (bluish-green / orange / vermillion), not red-vs-green. */
 
-.aos-theme-sigint {
-  --aos-bg0: #0b0f0e;
-  --aos-bg1: #111816;
-  --aos-panel: rgba(19, 27, 24, 0.94);
-  --aos-panel-border: rgba(126, 178, 151, 0.22);
-  --aos-text: #e0e7e3;
-  --aos-muted: #91a59b;
-  --aos-phosphor: #7edc9f;
-  --aos-phosphor-dim: #4c8d68;
-  --aos-amber: #d8aa4a;
-  --aos-magenta: #bd6c88;
-  --aos-danger: #dc5f67;
+:root {
   --aos-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Monaco, Consolas, monospace;
+  --aos-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Colorblind-safe status aliases (resolve per-theme --aos-ok/warn/bad below). */
+  --aos-phosphor: var(--aos-ok);
+  --aos-phosphor-dim: var(--aos-ok);
+  --aos-amber: var(--aos-warn);
+  --aos-danger: var(--aos-bad);
 }
 
-.aos-page.aos-theme-sigint {
+/* ---- DAY (light, sunlight-legible) — the default first paint ---- */
+:root,
+:root[data-theme="day"] {
+  --aos-bg0: #e7ebeb;
+  --aos-bg1: #f4f6f6;
+  --aos-page-grad: linear-gradient(180deg, #f4f6f6 0%, #e7ebeb 60%, #dde3e2 100%);
+  --aos-panel: #ffffff;
+  --aos-panel-2: #eef2f1;
+  --aos-panel-border: rgba(16, 46, 39, 0.18);
+  --aos-text: #0d1a16;
+  --aos-muted: #47574f;
+  --aos-accent: #0a6b57;
+  --aos-accent-ink: #ffffff;
+  --aos-magenta: #9c3d78;
+  --aos-ok: #0b7a4f;
+  --aos-warn: #8f5400;
+  --aos-bad: #bf2a1a;
+  --aos-elev: 0 8px 22px rgba(6, 20, 16, 0.10);
+  --aos-scan: rgba(0, 0, 0, 0.28);
+  color-scheme: light;
+}
+
+/* ---- NIGHT (dark, low-glare) — auto when the device prefers dark ---- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="day"]) {
+    --aos-bg0: #0b0f0e;
+    --aos-bg1: #111816;
+    --aos-page-grad:
+      radial-gradient(ellipse 120% 80% at 50% -20%, rgba(126, 220, 159, 0.06), transparent 55%),
+      linear-gradient(180deg, #111816 0%, #0b0f0e 48%, #080b0a 100%);
+    --aos-panel: #131b18;
+    --aos-panel-2: #172420;
+    --aos-panel-border: rgba(126, 178, 151, 0.24);
+    --aos-text: #e6ede9;
+    --aos-muted: #93a89e;
+    --aos-accent: #6ed4be;
+    --aos-accent-ink: #071211;
+    --aos-magenta: #cf8fae;
+    --aos-ok: #3ddc97;
+    --aos-warn: #f2a93b;
+    --aos-bad: #ff6f5e;
+    --aos-elev: 0 10px 30px rgba(0, 0, 0, 0.42);
+    --aos-scan: rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+}
+
+/* ---- NIGHT forced via the toggle ---- */
+:root[data-theme="night"] {
+  --aos-bg0: #0b0f0e;
+  --aos-bg1: #111816;
+  --aos-page-grad:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(126, 220, 159, 0.06), transparent 55%),
+    linear-gradient(180deg, #111816 0%, #0b0f0e 48%, #080b0a 100%);
+  --aos-panel: #131b18;
+  --aos-panel-2: #172420;
+  --aos-panel-border: rgba(126, 178, 151, 0.24);
+  --aos-text: #e6ede9;
+  --aos-muted: #93a89e;
+  --aos-accent: #6ed4be;
+  --aos-accent-ink: #071211;
+  --aos-magenta: #cf8fae;
+  --aos-ok: #3ddc97;
+  --aos-warn: #f2a93b;
+  --aos-bad: #ff6f5e;
+  --aos-elev: 0 10px 30px rgba(0, 0, 0, 0.42);
+  --aos-scan: rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+.aos-page {
   min-height: 100vh;
+  margin: 0;
   color: var(--aos-text);
   background-color: var(--aos-bg0);
-  background-image:
-    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(126, 220, 159, 0.055), transparent 55%),
-    linear-gradient(180deg, var(--aos-bg1) 0%, var(--aos-bg0) 48%, #080b0a 100%);
+  background-image: var(--aos-page-grad);
+  background-attachment: fixed;
   position: relative;
+  font-family: var(--aos-sans);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .aos-page.aos-theme-sigint::after {
+  .aos-page::after {
     content: "";
     pointer-events: none;
     position: fixed;
     inset: 0;
     z-index: 9999;
-    opacity: 0.018;
+    opacity: 0.02;
     background: repeating-linear-gradient(
       0deg,
       transparent,
       transparent 2px,
-      rgba(0, 0, 0, 0.35) 2px,
-      rgba(0, 0, 0, 0.35) 3px
+      var(--aos-scan) 2px,
+      var(--aos-scan) 3px
     );
   }
 }
@@ -817,4 +887,297 @@
   padding: 4px;
   border-radius: 6px;
   flex: 0 0 auto;
+}
+
+/* ============================================================================
+ * Command deck — field-first landing (big targets, day/night, colorblind-safe)
+ * ==========================================================================*/
+
+* { box-sizing: border-box; }
+
+/* --- App bar --- */
+.aos-appbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem clamp(0.9rem, 3vw, 1.6rem);
+  background: color-mix(in srgb, var(--aos-panel) 92%, transparent);
+  border-bottom: 2px solid var(--aos-panel-border);
+  backdrop-filter: blur(6px);
+}
+.aos-appbar-brand { display: flex; align-items: baseline; gap: 0.5rem; min-width: 0; }
+.aos-appbar-logo { color: var(--aos-accent); font-size: 1.15rem; }
+.aos-appbar-name {
+  font-family: var(--aos-mono);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  font-size: 1.05rem;
+  color: var(--aos-text);
+}
+.aos-appbar-host {
+  font-family: var(--aos-mono);
+  color: var(--aos-muted);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.aos-appbar-right { display: flex; align-items: center; gap: 0.6rem; flex: none; }
+.aos-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--aos-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--aos-ok);
+}
+.aos-online-dot {
+  width: 0.6rem; height: 0.6rem; border-radius: 50%;
+  background: var(--aos-ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--aos-ok) 24%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .aos-online-dot { animation: aos-blink 1.6s ease-in-out infinite; }
+}
+@keyframes aos-blink { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+.aos-online--off { color: var(--aos-bad); }
+.aos-online--off .aos-online-dot { background: var(--aos-bad); box-shadow: 0 0 0 3px color-mix(in srgb, var(--aos-bad) 24%, transparent); animation: none; }
+
+/* Day/night toggle — a real glove target */
+.aos-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  border: 2px solid var(--aos-panel-border);
+  border-radius: 8px;
+  background: var(--aos-panel-2);
+  color: var(--aos-text);
+  font-family: var(--aos-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.aos-theme-toggle:hover { border-color: var(--aos-accent); }
+.aos-theme-ico { font-size: 1.1rem; color: var(--aos-accent); }
+
+/* --- Deck container --- */
+.aos-deck {
+  width: min(100%, 68rem);
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 1.75rem) clamp(0.9rem, 3vw, 1.6rem) 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.9rem, 2.2vw, 1.4rem);
+}
+
+/* --- Big status pills --- */
+.aos-statusrow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+}
+.aos-stat {
+  --sc: var(--aos-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 4.25rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--aos-panel);
+  border: 1px solid var(--aos-panel-border);
+  border-left: 7px solid var(--sc);
+  border-radius: 10px;
+  box-shadow: var(--aos-elev);
+}
+.aos-stat-ico { font-size: 1.5rem; color: var(--sc); line-height: 1; }
+.aos-stat-body { display: flex; flex-direction: column; min-width: 0; }
+.aos-stat-k { font-family: var(--aos-mono); font-size: 0.7rem; letter-spacing: 0.12em; color: var(--aos-muted); }
+.aos-stat-v { font-size: 1.15rem; font-weight: 800; color: var(--sc); line-height: 1.15; overflow-wrap: anywhere; }
+.aos-stat--ok { --sc: var(--aos-ok); }
+.aos-stat--warn { --sc: var(--aos-warn); }
+.aos-stat--bad { --sc: var(--aos-bad); }
+.aos-stat--pending { --sc: var(--aos-muted); }
+
+/* --- Banners --- */
+.aos-banner {
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid var(--aos-bad);
+  background: color-mix(in srgb, var(--aos-bad) 14%, var(--aos-panel));
+  color: var(--aos-text);
+}
+.aos-banner--warn { border-color: var(--aos-warn); background: color-mix(in srgb, var(--aos-warn) 15%, var(--aos-panel)); }
+.aos-banner[hidden] { display: none; }
+
+/* --- Big action tiles --- */
+.aos-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+}
+.aos-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 8rem;
+  padding: 1.1rem 1rem;
+  background: var(--aos-panel);
+  border: 2px solid var(--aos-panel-border);
+  border-radius: 12px;
+  box-shadow: var(--aos-elev);
+  color: var(--aos-text);
+  text-decoration: none;
+  transition: transform 0.08s ease, border-color 0.12s ease;
+}
+.aos-tile:hover, .aos-tile:focus-visible {
+  border-color: var(--aos-accent);
+  transform: translateY(-2px);
+  outline: none;
+}
+.aos-tile--primary {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--aos-accent) 22%, var(--aos-panel)), var(--aos-panel));
+  border-color: var(--aos-accent);
+}
+.aos-tile-ico { font-size: 2rem; line-height: 1; color: var(--aos-accent); }
+.aos-tile-title { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.01em; }
+.aos-tile-sub { font-size: 0.82rem; color: var(--aos-muted); }
+
+/* --- TAK gateway chips (colorblind-safe: color + glyph + label) --- */
+.aos-takrow { display: flex; flex-direction: column; gap: 0.5rem; }
+.aos-tak-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+.aos-tak-chip {
+  --sc: var(--aos-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0 0.8rem;
+  border: 2px solid var(--sc);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sc) 12%, var(--aos-panel));
+  font-family: var(--aos-mono);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--aos-text);
+}
+.aos-tak-chip-label { letter-spacing: 0.04em; }
+.aos-tak-dot {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.15rem; height: 1.15rem; border-radius: 50%;
+  background: var(--sc); color: var(--aos-panel);
+  font-size: 0.8rem; font-weight: 900;
+}
+.aos-tak--up { --sc: var(--aos-ok); }
+.aos-tak--down { --sc: var(--aos-bad); }
+.aos-tak--degraded { --sc: var(--aos-warn); }
+.aos-tak--pending, .aos-tak--absent, .aos-tak--disabled, .aos-tak--unavailable { --sc: var(--aos-muted); }
+.aos-tak--up .aos-tak-dot::before { content: "\2713"; }
+.aos-tak--down .aos-tak-dot::before { content: "\2717"; }
+.aos-tak--degraded .aos-tak-dot::before { content: "\0021"; }
+.aos-tak--pending .aos-tak-dot::before,
+.aos-tak--absent .aos-tak-dot::before,
+.aos-tak--disabled .aos-tak-dot::before,
+.aos-tak--unavailable .aos-tak-dot::before { content: "\2026"; }
+.aos-tak-hint { color: var(--aos-muted); font-size: 0.8rem; }
+.aos-tak-hint a { color: var(--aos-accent); }
+
+/* --- Small status pill (GNSS) — colorblind glyph prefix --- */
+.aos-pill {
+  display: inline-flex; align-items: center;
+  padding: 0.15rem 0.55rem; border-radius: 999px;
+  font-family: var(--aos-mono); font-size: 0.75rem; font-weight: 700;
+  border: 1px solid var(--aos-muted); color: var(--aos-text);
+  background: color-mix(in srgb, var(--aos-muted) 14%, var(--aos-panel));
+}
+.aos-pill--ok { border-color: var(--aos-ok); background: color-mix(in srgb, var(--aos-ok) 16%, var(--aos-panel)); }
+.aos-pill--warn { border-color: var(--aos-warn); background: color-mix(in srgb, var(--aos-warn) 16%, var(--aos-panel)); }
+.aos-pill--bad { border-color: var(--aos-bad); background: color-mix(in srgb, var(--aos-bad) 16%, var(--aos-panel)); }
+.aos-pill--ok::before { content: "\2713\00a0"; color: var(--aos-ok); font-weight: 900; }
+.aos-pill--warn::before { content: "\0021\00a0"; color: var(--aos-warn); font-weight: 900; }
+.aos-pill--bad::before { content: "\2717\00a0"; color: var(--aos-bad); font-weight: 900; }
+.aos-pill--pending::before { content: "\2026\00a0"; color: var(--aos-muted); }
+
+/* --- Collapsible telemetry drawers --- */
+.aos-drawer {
+  background: var(--aos-panel);
+  border: 1px solid var(--aos-panel-border);
+  border-radius: 10px;
+  box-shadow: var(--aos-elev);
+  overflow: hidden;
+}
+.aos-drawer-sum {
+  display: flex; align-items: center; gap: 0.6rem;
+  min-height: 3.25rem;
+  padding: 0 1rem;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 1.05rem;
+  list-style: none;
+  color: var(--aos-text);
+}
+.aos-drawer-sum::-webkit-details-marker { display: none; }
+.aos-drawer-sum::before {
+  content: "\203A";
+  font-size: 1.3rem; color: var(--aos-accent);
+  transition: transform 0.12s ease;
+  transform: rotate(0deg);
+}
+.aos-drawer[open] > .aos-drawer-sum::before { transform: rotate(90deg); }
+.aos-drawer-hint { font-weight: 500; font-size: 0.82rem; color: var(--aos-muted); margin-left: auto; }
+.aos-drawer-body { padding: 0 1rem 1rem; }
+.aos-drawer-note { color: var(--aos-muted); font-size: 0.9rem; }
+
+/* --- Footer / legal --- */
+.aos-foot {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  margin-top: 0.6rem;
+  padding: 1.2rem;
+  background: var(--aos-panel);
+  border: 1px solid var(--aos-panel-border);
+  border-radius: 10px;
+}
+.aos-foot-h { font-size: 1rem; margin: 0 0 0.4rem; }
+.aos-foot p { color: var(--aos-muted); font-size: 0.88rem; margin: 0 0 0.6rem; }
+.aos-foot a { color: var(--aos-accent); }
+.aos-foot-list { list-style: none; padding: 0; margin: 0; font-size: 0.9rem; line-height: 1.9; }
+.aos-docs-qr { display: flex; align-items: center; gap: 0.6rem; color: var(--aos-muted); font-size: 0.8rem; }
+.aos-docs-qr img { background: #fff; padding: 4px; border-radius: 6px; }
+.aos-legal { text-align: center; color: var(--aos-muted); font-size: 0.78rem; margin: 0.4rem 0 0; }
+.aos-legal a { color: var(--aos-accent); }
+
+/* --- Telemetry internals adapt to theme (override UIKit) --- */
+.aos-drawer-body .uk-description-list dt { color: var(--aos-text); }
+.aos-drawer-body .uk-table { color: var(--aos-text); }
+.aos-drawer-body .uk-table th { color: var(--aos-muted); }
+
+/* --- Responsive --- */
+@media (max-width: 900px) {
+  .aos-tiles { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .aos-statusrow { grid-template-columns: 1fr; }
+  .aos-tiles { grid-template-columns: 1fr; }
+  .aos-appbar-host { display: none; }
+  .aos-drawer-hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aos-online-dot { animation: none; }
+  .aos-tile { transition: none; }
 }
