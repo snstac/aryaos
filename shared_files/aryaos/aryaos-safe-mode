@@ -54,34 +54,36 @@ require_root() {
 _log() { logger -t aryaos-safe-mode "$*" 2>/dev/null || true; }
 
 # --- USB peripheral power (best-effort; never fail the caller) ---
-usb_off() {
-	# Prefer a true VBUS cut via uhubctl; fall back to de-authorizing downstream
-	# USB devices so their drivers detach and the SDRs stop sampling.
-	if command -v uhubctl >/dev/null 2>&1; then
-		uhubctl -a off >/dev/null 2>&1 || true
-	fi
-	local a dev
+# uhubctl needs a per-hub location (-l); "changing multiple hubs at once is not
+# supported". Enumerate the ppps-capable hubs and switch each. On the Pi 5 this
+# is a true VBUS cut (SDRs drop from lsusb) and restores cleanly.
+_uhub_locations() { uhubctl 2>/dev/null | sed -n 's/^Current status for hub \([^ ]*\).*/\1/p'; }
+
+_uhub_set() {
+	local action="$1" l
+	command -v uhubctl >/dev/null 2>&1 || return 1
+	local any=1
+	for l in $(_uhub_locations); do
+		uhubctl -l "$l" -a "$action" >/dev/null 2>&1 || true
+		any=0
+	done
+	return "$any"
+}
+
+# De-authorize fallback (no uhubctl): detaches drivers so SDRs stop sampling.
+# Does not cut VBUS and is less reliable to restore — a reboot always recovers.
+_usb_authorize() {
+	local want="$1" a dev
 	for a in /sys/bus/usb/devices/*/authorized; do
 		[[ -w "$a" ]] || continue
 		dev="$(basename "$(dirname "$a")")"
-		# only downstream devices (e.g. 3-1), not root hubs (usb1/usb2)
-		[[ "$dev" == *-* ]] || continue
-		echo 0 > "$a" 2>/dev/null || true
+		[[ "$dev" == *-* ]] || continue   # downstream devices only, not root hubs
+		echo "$want" > "$a" 2>/dev/null || true
 	done
 }
 
-usb_on() {
-	if command -v uhubctl >/dev/null 2>&1; then
-		uhubctl -a on >/dev/null 2>&1 || true
-	fi
-	local a dev
-	for a in /sys/bus/usb/devices/*/authorized; do
-		[[ -w "$a" ]] || continue
-		dev="$(basename "$(dirname "$a")")"
-		[[ "$dev" == *-* ]] || continue
-		echo 1 > "$a" 2>/dev/null || true
-	done
-}
+usb_off() { _uhub_set off || _usb_authorize 0; }
+usb_on()  { _uhub_set on  || _usb_authorize 1; }
 
 configured_role() {
 	local role="multi"
