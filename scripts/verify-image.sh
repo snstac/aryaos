@@ -270,6 +270,11 @@ require_path /usr/local/sbin/aryaos-set-nodered-password
 require_path /usr/local/sbin/aryaos-sdr
 require_path /usr/local/sbin/aryaos-role
 require_pkg rtl-sdr
+# LimeSDR (dragonegg: AryaOS + LimeSDR Mini + GPS) — SoapySDR lms7 driver + tools
+# + SoapyRemote for network SIGINT access (scripts/readsb-use-lime.sh drives ADS-B off it).
+require_pkg soapysdr-module-lms7
+require_pkg limesuite
+require_pkg soapysdr-module-remote
 
 # Lifecycle helpers (Cockpit -> AryaOS Site: backup/restore, factory reset, zeroize)
 require_path /usr/local/sbin/aryaos-config-backup

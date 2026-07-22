@@ -35,6 +35,9 @@ python3-setuptools
 python3-yaml
 rtl-sdr
 soapysdr-module-rtlsdr
+soapysdr-module-lms7
+soapysdr-module-remote
+limesuite
 socat
 sudo
 ssl-cert

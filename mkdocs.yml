@@ -64,6 +64,7 @@ nav:
       - Aircraft (ADS-B): deploy/air-adsb.md
       - Maritime vessels (AIS): deploy/maritime-ais.md
       - Counter-UAS (drones): deploy/counter-uas.md
+      - SIGINT / wideband (LimeSDR): deploy/sigint-limesdr.md
       - Own position (GPS): deploy/own-position-gps.md
       - Multi-sensor COP: deploy/multi-sensor.md
       - Relay & routing: deploy/relay-routing.md
@@ -94,6 +95,7 @@ nav:
       - SBOM & supply chain: operations/sbom.md
       - Nearby nodes: operations/neighbors.md
       - Media longevity: operations/media-longevity.md
+      - Boot from NVMe: operations/nvme-boot.md
       - Back up & restore: operations/backup-restore.md
       - Factory reset: operations/factory-reset.md
       - Zeroize: operations/zeroize.md
