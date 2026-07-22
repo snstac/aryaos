@@ -45,6 +45,10 @@ systemctl enable aryaos-tak-dp-importd.service
 systemctl enable aryaos-neighbord.service
 # EMCON: re-applies WiFi/Bluetooth rfkill at boot when /etc/aryaos/emcon is set.
 systemctl enable aryaos-radio-silence.service
+# Safe mode: crash-loop guard (early), USB-off applier (late), boot-stable timer.
+systemctl enable aryaos-crash-guard.service
+systemctl enable aryaos-safe-mode.service
+systemctl enable aryaos-boot-stable.timer
 
 getent group gpsd >/dev/null || groupadd --system gpsd
 systemctl enable gpsd

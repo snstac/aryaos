@@ -1,0 +1,7 @@
+[Unit]
+Description=AryaOS boot-stable marker — reset the crash counter once the box stays up
+Documentation=https://github.com/snstac/aryaos
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/aryaos-safe-mode boot-ok

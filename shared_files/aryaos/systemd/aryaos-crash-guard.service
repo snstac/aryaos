@@ -1,0 +1,19 @@
+[Unit]
+Description=AryaOS crash-loop guard — latch safe mode after repeated short boots
+Documentation=https://github.com/snstac/aryaos
+# Run very early so the /etc/aryaos/safe-mode flag is set before any sensor
+# service evaluates its ConditionPathExists gate. Only touches files + best-effort
+# USB power, so it is safe this early (no dbus/systemctl needed).
+DefaultDependencies=no
+After=local-fs.target
+Before=sysinit.target
+Conflicts=shutdown.target
+Before=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/aryaos-safe-mode check-boot
+
+[Install]
+WantedBy=sysinit.target

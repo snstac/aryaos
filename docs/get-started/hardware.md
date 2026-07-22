@@ -105,12 +105,27 @@ A USB GNSS puck gives the gateway its own position, which AryaOS publishes to TA
 ## Power & battery for backpack ops
 
 AryaOS is designed for disconnected, dismounted use — no LTE, no Wi-Fi backhaul required.
+Power is the most common field failure, so size it correctly:
 
-- Power the Pi from a good-quality USB power bank; use one that meets the Pi model's current draw (a Pi 4/5 wants a solid 5V/3A source).
-- SDRs draw additional current — size the battery for the Pi **plus** every attached radio.
+- **Raspberry Pi 5: use a 5V/5A (27&nbsp;W) USB-C PD supply** — the official Raspberry Pi 27&nbsp;W supply, or a charger that *explicitly* lists a `5V/5A` output. (Earlier Pis: a Pi 4 wants a solid 5V/3A source.)
+    - **A high-wattage GaN charger is not a substitute.** Multi-port GaN bricks (e.g. Anker Prime 100&nbsp;W, UGREEN Nexode) deliver 5A only at 9–20&nbsp;V; at 5&nbsp;V they cap at **3A (15&nbsp;W)**, so a Pi 5 runs starved and browns out under load. Verify the `5V/5A` line item, not the total wattage.
+- **SDRs draw additional current.** AryaOS ships `usb_max_current_enable=1`, so the Pi 5 feeds the full USB budget to the radios — but only if the supply can actually deliver it. Size the battery/supply for the Pi **plus** every attached radio.
+- **PoE:** the Waveshare PoE M.2 HAT+ (and similar) output **5V/4.5A (~22.5&nbsp;W) on 802.3at (PoE+)** — enough for a Pi 5 with an NVMe SSD and a couple of SDRs, but **only from a true PoE+ (802.3at) source**. A plain **802.3af** switch or injector (~13&nbsp;W) will brown the box out; use PoE+ (802.3at) or PoE++ (802.3bt).
 - A powered USB hub can help when running multiple SDRs on a Pi 3/4.
 
+If the supply still can't keep up, AryaOS does not just crash-loop: after repeated short boots it drops into **[safe mode](#safe-mode)** — USB peripherals off, sensors stopped, box still reachable — until you fit an adequate supply and restore it. The AryaOS Site page in Cockpit also shows a live **power-health** warning (from `vcgencmd get_throttled`) whenever it detects under-voltage or throttling.
+
 See [Disconnected / backpack ops](../deploy/offline-backpack.md) for the full field loadout.
+
+### Safe mode
+
+If the box reboots repeatedly without staying up — the classic symptom of an under-spec'd supply browning out under load — AryaOS latches **safe mode** after 3 consecutive short boots (each under 3 minutes):
+
+- USB peripherals are **powered off** and the sensor/SDR services are **withheld**, so the box idles at minimal draw and boots cleanly.
+- **Ethernet, SSH and Cockpit stay up**, so you can always get in and diagnose.
+- It is **sticky** — clear it from **Cockpit → AryaOS Site → Safe mode** ("Restore now" or "Restore &amp; reboot"), or on the command line with `sudo aryaos-safe-mode off`. Check state any time with `aryaos-safe-mode status`.
+
+The usual fix is a better power supply (above). Safe mode buys you a reachable box to fix instead of a dark one in a crash loop.
 
 ## The pre-built AirTAK go-kit
 

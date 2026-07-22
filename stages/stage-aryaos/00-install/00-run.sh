@@ -154,6 +154,23 @@ for svc in comitup aryaos-bt-pan aryaos-bt-ready; do
 		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/emcon.conf"
 done
 
+## Fail-safe: brownout / crash-loop "safe mode". If the box reboots repeatedly
+## without staying up (weak PSU / PoE brown-out under load), it powers off USB
+## peripherals and withholds the sensor services so it boots clean and stays
+## reachable for an admin. Cockpit-driven exit; auto-latches via crash-guard.
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-safe-mode" "${ROOTFS_DIR}/usr/local/sbin/aryaos-safe-mode"
+install -v -d -m 0755 "${ROOTFS_DIR}/var/lib/aryaos"
+for unit in aryaos-crash-guard.service aryaos-safe-mode.service aryaos-boot-stable.service aryaos-boot-stable.timer; do
+	install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/${unit}" \
+		"${ROOTFS_DIR}/etc/systemd/system/${unit}"
+done
+# Safe-mode gate: sensor/SDR services must not start while /etc/aryaos/safe-mode
+# exists (kept in sync with aryaos-safe-mode MANAGED_UNITS / aryaos-role).
+for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot dronecot sikw00fcot; do
+	install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/safe-mode.conf" \
+		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/safe-mode.conf"
+done
+
 ## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
 ## the packaged charontak.ini default (source of truth for factory reset).
 install -v -m 0644 "${SHARED_FILES}/aryaos/zram-generator.conf" "${ROOTFS_DIR}/etc/systemd/zram-generator.conf"

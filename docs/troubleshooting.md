@@ -52,6 +52,15 @@ A radio is plugged in but the decoder sees nothing.
 3. **Power.** Multiple SDRs can exceed the Pi's USB budget — use a powered hub and a stronger power supply. See [Hardware & requirements](get-started/hardware.md).
 4. **Antenna.** No detections despite a working dongle usually means an antenna/placement problem — check the connector and line of sight.
 
+## Box keeps rebooting, or all sensors are stopped (safe mode) {#safe-mode}
+
+If the box reboots in a loop, or comes up with every sensor stopped and USB peripherals dead, it has almost certainly **browned out under load on an under-spec'd power supply** — and AryaOS has latched **safe mode** to keep it reachable instead of crash-looping.
+
+1. **Confirm.** Run `aryaos-safe-mode status`, or look for the red banner on the **AryaOS Site** Cockpit page. `safe-mode: ON` with a `crash-loop` reason means it tripped after 3 consecutive short boots.
+2. **Fix the power** — nearly always the cause. See [Power & battery](get-started/hardware.md#power--battery-for-backpack-ops): a Pi 5 needs a **5V/5A (27&nbsp;W)** supply; a big GaN charger that only does 5V/3A, or a PoE HAT on plain 802.3af, will not sustain it.
+3. **Restore.** On a good supply, clear safe mode from **Cockpit → AryaOS Site → Safe mode** ("Restore now" or "Restore &amp; reboot"), or `sudo aryaos-safe-mode off` — this re-powers USB and restarts the sensors.
+4. **Check under-voltage** any time with `vcgencmd get_throttled` (`0x0` is clean); the AryaOS Site page also shows this as a live power-health warning.
+
 ## A service won't start
 
 A gateway shows as failed or keeps restarting.
