@@ -1,0 +1,198 @@
+#!/bin/bash
+# aryaos-safe-mode — brownout / crash-loop fail-safe.
+#
+# If the box repeatedly reboots without staying up (the classic symptom of an
+# under-spec'd power supply browning out under SDR + CPU load — e.g. a weak USB
+# charger, or a PoE HAT fed from an 802.3af source), AryaOS drops into SAFE MODE:
+# it powers off USB peripherals and does not start the sensor/SDR services, so
+# the box idles at minimal draw and boots cleanly — leaving ethernet, SSH and
+# Cockpit up so an admin can get in and diagnose. Safe mode is sticky: it stays
+# until an admin clears it (Cockpit "Exit safe mode", or `aryaos-safe-mode off`).
+#
+# Detection: an early-boot oneshot (aryaos-crash-guard.service) increments a
+# counter each boot; a +180s timer (aryaos-boot-stable.timer) resets it once the
+# box has proven it can stay up. So only boots that fail to survive 3 minutes
+# accumulate; after THRESHOLD of them in a row, safe mode latches.
+#
+# Usage:
+#   aryaos-safe-mode status            Show safe-mode + crash-counter state (no root).
+#   aryaos-safe-mode on [reason]       Manually enter safe mode now.
+#   aryaos-safe-mode off [--reboot]    Exit: re-power USB, restart sensors (or reboot).
+#   aryaos-safe-mode check-boot        (internal) early-boot crash-loop check.
+#   aryaos-safe-mode boot-ok           (internal) +180s: mark boot healthy, reset counter.
+#   aryaos-safe-mode --boot            (internal) re-assert USB-off if latched.
+#
+# Backs the safe-mode banner in Cockpit -> AryaOS Site. USB current caps are
+# separately relaxed via /boot/firmware/config.txt (usb_max_current_enable=1),
+# which the Pi 5 + PoE HAT needs to feed SDRs; safe mode is the fail-safe for
+# when the supply still can't keep up. SDR receivers are receive-only; powering
+# their USB off in safe mode is about shedding current draw, not emissions.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+SAFE_FLAG="/etc/aryaos/safe-mode"
+STATE_DIR="/var/lib/aryaos"
+BOOT_COUNT="${STATE_DIR}/boot-attempts"
+REASON_FILE="${STATE_DIR}/safe-mode-reason"
+CONFIG="/etc/aryaos/aryaos-config.txt"
+THRESHOLD=3
+
+# Sensor/SDR services whose USB peripherals draw the current that browns the box
+# out. Keep in sync with aryaos-role's all_managed_units.
+MANAGED_UNITS="readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot dronecot sikw00fcot"
+
+require_root() {
+	if [[ "$(id -u)" != "0" ]]; then
+		echo "aryaos-safe-mode: must run as root (try sudo)" >&2
+		exit 2
+	fi
+}
+
+_log() { logger -t aryaos-safe-mode "$*" 2>/dev/null || true; }
+
+# --- USB peripheral power (best-effort; never fail the caller) ---
+usb_off() {
+	# Prefer a true VBUS cut via uhubctl; fall back to de-authorizing downstream
+	# USB devices so their drivers detach and the SDRs stop sampling.
+	if command -v uhubctl >/dev/null 2>&1; then
+		uhubctl -a off >/dev/null 2>&1 || true
+	fi
+	local a dev
+	for a in /sys/bus/usb/devices/*/authorized; do
+		[[ -w "$a" ]] || continue
+		dev="$(basename "$(dirname "$a")")"
+		# only downstream devices (e.g. 3-1), not root hubs (usb1/usb2)
+		[[ "$dev" == *-* ]] || continue
+		echo 0 > "$a" 2>/dev/null || true
+	done
+}
+
+usb_on() {
+	if command -v uhubctl >/dev/null 2>&1; then
+		uhubctl -a on >/dev/null 2>&1 || true
+	fi
+	local a dev
+	for a in /sys/bus/usb/devices/*/authorized; do
+		[[ -w "$a" ]] || continue
+		dev="$(basename "$(dirname "$a")")"
+		[[ "$dev" == *-* ]] || continue
+		echo 1 > "$a" 2>/dev/null || true
+	done
+}
+
+configured_role() {
+	local role="multi"
+	if [[ -f "$CONFIG" ]]; then
+		role="$(sed -n 's/^ARYAOS_ROLE=//p' "$CONFIG" | tr -d '"' | head -1)"
+	fi
+	[[ -n "$role" ]] && echo "$role" || echo "multi"
+}
+
+stop_sensors() { systemctl stop ${MANAGED_UNITS} >/dev/null 2>&1 || true; }
+
+start_sensors() {
+	# Flag is already cleared; re-apply the configured role so the right pipelines
+	# come back (their ConditionPathExists gate now passes).
+	if [[ -x /usr/local/sbin/aryaos-role ]]; then
+		/usr/local/sbin/aryaos-role set "$(configured_role)" >/dev/null 2>&1 || true
+	else
+		systemctl start ${MANAGED_UNITS} >/dev/null 2>&1 || true
+	fi
+}
+
+latch_safe_mode() {
+	local reason="${1:-manual}"
+	install -d -m 0755 /etc/aryaos "$STATE_DIR"
+	echo "$reason" > "$REASON_FILE" 2>/dev/null || true
+	: > "$SAFE_FLAG"
+	_log "SAFE MODE engaged: ${reason}"
+}
+
+read_count() {
+	local n=0
+	[[ -f "$BOOT_COUNT" ]] && n="$(cat "$BOOT_COUNT" 2>/dev/null || echo 0)"
+	[[ "$n" =~ ^[0-9]+$ ]] || n=0
+	echo "$n"
+}
+
+cmd_on() {
+	require_root
+	latch_safe_mode "${1:-manual (admin)}"
+	stop_sensors
+	usb_off
+	echo "Safe mode ON — USB peripherals powered off, sensor services stopped."
+	echo "Clear with: aryaos-safe-mode off"
+}
+
+cmd_off() {
+	require_root
+	local do_reboot=0
+	[[ "${1:-}" == "--reboot" ]] && do_reboot=1
+	rm -f "$SAFE_FLAG" "$REASON_FILE"
+	echo 0 > "$BOOT_COUNT" 2>/dev/null || true
+	usb_on
+	if [[ "$do_reboot" == "1" ]]; then
+		_log "SAFE MODE cleared by admin — rebooting"
+		echo "Safe mode cleared. Rebooting for a clean start…"
+		systemctl reboot
+	else
+		start_sensors
+		_log "SAFE MODE cleared by admin — hot-restored"
+		echo "Safe mode cleared — USB re-powered, sensors restored (role: $(configured_role))."
+	fi
+}
+
+cmd_check_boot() {
+	require_root
+	install -d -m 0755 /etc/aryaos "$STATE_DIR"
+	if [[ -f "$SAFE_FLAG" ]]; then
+		# Already latched — keep USB off, do not accumulate.
+		usb_off
+		_log "boot: safe mode already active — USB kept off"
+		exit 0
+	fi
+	local n; n="$(read_count)"; n=$((n + 1))
+	echo "$n" > "$BOOT_COUNT"
+	if (( n >= THRESHOLD )); then
+		latch_safe_mode "crash-loop: ${n} consecutive short boots (<180s)"
+		usb_off
+		_log "boot: crash-loop threshold reached (${n}/${THRESHOLD}) — entered SAFE MODE"
+	else
+		_log "boot: attempt ${n}/${THRESHOLD} (counter resets after 180s uptime)"
+	fi
+}
+
+cmd_boot_ok() {
+	require_root
+	install -d -m 0755 "$STATE_DIR"
+	echo 0 > "$BOOT_COUNT" 2>/dev/null || true
+	_log "boot marked stable (uptime>180s) — crash counter reset"
+}
+
+cmd_boot_apply() {
+	[[ -f "$SAFE_FLAG" ]] || exit 0
+	usb_off
+}
+
+cmd_status() {
+	if [[ -f "$SAFE_FLAG" ]]; then
+		echo "safe-mode: ON"
+		echo "reason: $(cat "$REASON_FILE" 2>/dev/null || echo unknown)"
+	else
+		echo "safe-mode: off"
+	fi
+	echo "boot-attempts: $(read_count)/${THRESHOLD}"
+}
+
+case "${1:-status}" in
+	status) cmd_status ;;
+	on) cmd_on "${2:-}" ;;
+	off) cmd_off "${2:-}" ;;
+	check-boot) cmd_check_boot ;;
+	boot-ok) cmd_boot_ok ;;
+	--boot) cmd_boot_apply ;;
+	*) echo "usage: aryaos-safe-mode {status|on [reason]|off [--reboot]}" >&2; exit 2 ;;
+esac

@@ -1,0 +1,12 @@
+[Unit]
+Description=AryaOS boot-stable timer — mark this boot healthy 180s after boot
+Documentation=https://github.com/snstac/aryaos
+
+[Timer]
+# If the box survives 180s, the boot "counts" — reset the crash-loop counter.
+# A brownout under load trips well before this, so only healthy boots reset it.
+OnBootSec=180
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target

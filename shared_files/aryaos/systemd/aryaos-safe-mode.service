@@ -1,0 +1,16 @@
+[Unit]
+Description=AryaOS safe mode — power off USB peripherals while latched
+Documentation=https://github.com/snstac/aryaos
+# Runs late (USB enumerated) to actually cut VBUS to peripherals once the box is
+# up in safe mode. The sensor services are already withheld by their
+# ConditionPathExists gate; this sheds the residual USB current draw.
+After=multi-user.target
+ConditionPathExists=/etc/aryaos/safe-mode
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/aryaos-safe-mode --boot
+
+[Install]
+WantedBy=multi-user.target

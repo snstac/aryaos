@@ -168,6 +168,8 @@ require_grep 'id="card-updates"' /usr/share/cockpit/aryaos/index.html "cockpit-a
 require_grep 'id="card-location"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos location chip card"
 require_path /usr/share/cockpit/aryaos/aryaos-basemap.js
 require_grep 'ARYAOS_BASEMAP' /usr/share/cockpit/aryaos/aryaos-basemap.js "cockpit-aryaos offline base map data"
+require_grep 'get_throttled' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos power-health indicator"
+require_grep 'id="safe-mode-banner"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos safe-mode banner"
 
 # GPSTAK network GPS (package from stage-pytak)
 require_pkg gpstak
@@ -287,6 +289,18 @@ require_grep 'nmcli radio wifi off' /usr/local/sbin/aryaos-radio "aryaos-radio d
 for svc in comitup aryaos-bt-pan aryaos-bt-ready; do
 	require_grep 'ConditionPathExists=!/etc/aryaos/emcon' "/etc/systemd/system/${svc}.service.d/emcon.conf" "${svc} gated off during EMCON"
 done
+
+# Safe mode: brownout / crash-loop fail-safe (powers off USB, withholds sensors).
+require_path /usr/local/sbin/aryaos-safe-mode
+require_unit aryaos-crash-guard.service
+require_unit aryaos-safe-mode.service
+require_unit aryaos-boot-stable.timer
+require_pkg uhubctl
+for svc in readsb adsbcot ais-catcher; do
+	require_grep 'ConditionPathExists=!/etc/aryaos/safe-mode' "/etc/systemd/system/${svc}.service.d/safe-mode.conf" "${svc} withheld in safe mode"
+done
+# USB current cap relaxed so the Pi 5 can feed SDRs on a 5A / PoE+ supply.
+require_grep 'usb_max_current_enable=1' /boot/firmware/config.txt "USB current cap relaxed for SDRs (Pi 5)"
 # AP/PAN isolation: the default zone must NOT enable intra-zone forwarding, or a
 # hotspot/Bluetooth client could be routed onto the wired ethernet.
 require_path /etc/firewalld/zones/public.xml
