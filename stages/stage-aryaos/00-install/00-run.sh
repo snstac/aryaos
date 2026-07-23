@@ -189,6 +189,9 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-soapyremote.service" \
 ## persisted per-dongle jobs (/etc/aryaos/sdr-tasks).
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/ais-catcher-rtl@.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/ais-catcher-rtl@.service"
+# Generic AIS decoder for any SDR (RTL/Airspy/HackRF/Lime) via aryaos-sdr task ais.
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-ais-sdr.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-ais-sdr.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-sdr-tasks.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-sdr-tasks.service"
 

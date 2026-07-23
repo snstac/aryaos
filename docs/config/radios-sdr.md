@@ -108,24 +108,33 @@ swapping the GPS puck or dAISy for a different make. Re-run by hand with
 `sudo aryaos-serial-assign`. To pin a device manually instead, set `DEVICES`/`SERIAL_PORT`
 yourself and disable `aryaos-serial-assign.service`.
 
-## Re-tasking a dongle
+## Re-tasking an SDR
 
-An RTL-SDR is just a wideband receiver — the same dongle can decode ADS-B, UAT,
-or AIS depending on how it's tuned. **Re-task** a dongle to a different job on the
-fly, without a re-serialize or replug:
+An SDR is just a wideband receiver — the same radio can decode ADS-B, UAT, AIS,
+or APRS depending on how it's tuned. **Re-task** it to a different job on the fly,
+without a re-serialize or replug:
 
 ```bash
-aryaos-sdr list                     # find the dongle index
-sudo aryaos-sdr task 1 ais          # dongle 1 -> AIS over-the-air (162 MHz)
-sudo aryaos-sdr task 1 aprs         # dongle 1 -> APRS over-the-air (144.39 MHz)
+aryaos-sdr list                     # find the SDR index (shows driver + serial)
+sudo aryaos-sdr task 1 ais          # SDR 1 -> AIS over-the-air (162 MHz)
+sudo aryaos-sdr task 1 aprs         # SDR 1 -> APRS over-the-air (144.39 MHz)
 sudo aryaos-sdr task 1 adsb         # back to ADS-B 1090
 sudo aryaos-sdr task 1 uat          # UAT 978
-sudo aryaos-sdr task 1 off          # idle the dongle
+sudo aryaos-sdr task 1 off          # idle the SDR
 ```
 
-- **`ais`** runs `ais-catcher` in **RTL mode** (a dedicated `ais-catcher-rtl@`
-  unit — the serial dAISy path is untouched) and feeds the same `aiscot →
-  charontak → TAK` chain. It needs a **VHF marine antenna** to hear vessels.
+!!! info "Any SDR, not just RTL-SDR (DragonEgg)"
+    `aryaos-sdr` enumerates and tasks **any SoapySDR device** — RTL-SDR, **Airspy**,
+    HackRF, LimeSDR — via `SoapySDRUtil`, not only RTL dongles. `list` reports each
+    device's **driver** and **serial**; tasking builds the right decoder invocation
+    (native `rtlsdr`, or `--device-type soapy driver=<drv>` for the rest).
+    Current coverage: **ADS-B** and **AIS** work on any SDR; **UAT** and **APRS**
+    are RTL-SDR only for now (UAT needs `dump978-fa`; APRS needs an FM demod —
+    `rx_tools` for non-RTL is a roadmap item).
+
+- **`ais`** runs `ais-catcher` on the tasked SDR (`aryaos-ais-sdr` for any device;
+  the serial dAISy path is untouched) and feeds the same `aiscot → charontak → TAK`
+  chain. It needs a **VHF marine antenna** to hear vessels.
 - **`aprs`** decodes 1200-baud packet **APRS on 144.39 MHz** (North America):
   `rtl_fm` → **Dire Wolf** (`aryaos-direwolf@N`, KISS TNC on `:8001`, receive-only)
   → **aprscot** (KISS input, ≥ 8.2.0) → `charontak → TAK`. Fully **offline** — no

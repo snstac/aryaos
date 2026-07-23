@@ -1,0 +1,19 @@
+[Unit]
+Description=AryaOS ais-catcher (any SDR) — decode AIS from the tasked SDR
+Documentation=https://github.com/jvde-github/AIS-catcher
+# Started by `aryaos-sdr task <index> ais` for ANY SDR (RTL-SDR, Airspy, HackRF,
+# LimeSDR, ...). The device selector is written to /etc/default/aryaos-ais-sdr by
+# aryaos-sdr (`-d <serial>` for RTL/Airspy, `-gu SOAPYSDR ...` for other Soapy
+# drivers). Feeds aiscot on UDP 5050 (the aiscot -> charontak -> TAK chain is
+# identical to the serial dAISy / RTL paths). Generalizes ais-catcher-rtl@.
+After=local-fs.target
+ConditionPathExists=/etc/default/aryaos-ais-sdr
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/aryaos-ais-sdr
+# Root for reliable USB access (admin-tasked service). Device args are
+# word-split intentionally (may be "-d <serial>" or "-gu SOAPYSDR ...").
+ExecStart=/bin/sh -c 'exec /usr/bin/AIS-catcher ${AIS_CATCHER_DEVICE_ARGS} -u 127.0.0.1 5050 -N 8100'
+Restart=on-failure
+RestartSec=3
