@@ -1,0 +1,16 @@
+[Unit]
+Description=AryaOS serial assignment — wire gpsd/ais-catcher to the right NMEA device
+Documentation=https://github.com/snstac/aryaos
+# Identify GPS vs AIS/dAISy by the NMEA they emit and write the by-id device into
+# /etc/default/{gpsd,ais-catcher} before those services read it. It also
+# try-restarts them afterward, so it is correct even if they started first.
+After=local-fs.target
+Before=ais-catcher.service gpsd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/aryaos-serial-assign
+
+[Install]
+WantedBy=multi-user.target

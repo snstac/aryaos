@@ -171,6 +171,13 @@ for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot drone
 		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done
 
+## Serial assignment: identify GPS vs AIS/dAISy by the NMEA they emit and wire
+## gpsd/ais-catcher to the right by-id device at boot (robust to adapter/enum
+## changes) — the NMEA-serial analogue of aryaos-sdr's EEPROM-serial pinning.
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-serial-assign" "${ROOTFS_DIR}/usr/local/sbin/aryaos-serial-assign"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-serial-assign.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-serial-assign.service"
+
 ## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
 ## the packaged charontak.ini default (source of truth for factory reset).
 install -v -m 0644 "${SHARED_FILES}/aryaos/zram-generator.conf" "${ROOTFS_DIR}/etc/systemd/zram-generator.conf"
