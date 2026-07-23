@@ -71,3 +71,17 @@ grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/ap
 sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" /lib/systemd/system/aprscot.service
 # Task-driven only: do not start aprscot at boot (would hit APRS-IS with no KISS peer).
 systemctl disable aprscot >/dev/null 2>&1 || true
+
+# SAPIENT C-UAS gateway (sapientcot): SAPIENT (BSI Flex 335) DetectionReports -> CoT.
+# sapientcot deb Depends only on pytak (apt); its sapient-msg protobuf binding is
+# NOT in Debian, so pip-install it (pure-python; pulls a matching protobuf).
+SAPIENTCOT_DEB_URL='https://github.com/snstac/sapientcot/releases/download/v0.1.0/sapientcot_0.1.0-1_all.deb'
+curl -fsSL -o /usr/src/sapientcot.deb "${SAPIENTCOT_DEB_URL}"
+dpkg -i /usr/src/sapientcot.deb || apt-get install -f -y
+pip3 install --break-system-packages --no-input sapient-msg || \
+	python3 -m pip install --break-system-packages --no-input sapient-msg
+install -v -m 0644 /usr/share/aryaos/sapientcot.default /etc/default/sapientcot
+grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/sapientcot.service || \
+sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" /lib/systemd/system/sapientcot.service
+# Off at boot; the cuas/multi role (or the operator) starts it once a SAPIENT node is set.
+systemctl disable sapientcot >/dev/null 2>&1 || true
