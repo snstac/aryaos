@@ -233,7 +233,9 @@ f=pathlib.Path(sys.argv[1]); driver=sys.argv[2]; serial=sys.argv[3]; t=f.read_te
 if driver == "rtlsdr":
     dev=f'--device-type rtlsdr --device {serial}'
 else:
-    dev=f'--device-type soapy --device driver={driver},serial={serial}'
+    # readsb's SoapySDR backend is "soapysdr" (not "soapy"); device string is
+    # the Soapy args (driver=airspy,serial=...).
+    dev=f'--device-type soapysdr --device driver={driver},serial={serial}'
 line=f'RECEIVER_OPTIONS="{dev}"'
 t=re.sub(r'^RECEIVER_OPTIONS=.*$',line,t,count=1,flags=re.M) if re.search(r'^RECEIVER_OPTIONS=',t,re.M) else t.rstrip()+"\n"+line+"\n"
 f.write_text(t)
@@ -241,13 +243,18 @@ PY
 }
 _set_dump978_device() { [[ -f /etc/default/dump978-fa ]] && sed -i "s|serial=[^, \"']*|serial=$1|" /etc/default/dump978-fa || true; }
 
-# ais-catcher device args: rtl/airspy select by serial (native); other Soapy
-# drivers via the generic SOAPYSDR backend. Read by aryaos-ais-sdr.service.
+# ais-catcher device args, per driver (ais-catcher selects by serial, natively):
+#   rtlsdr : serial matches SoapySDR's rtlsdr serial as-is.
+#   airspy : ais-catcher's native Airspy serial is UPPERCASE; SoapySDR reports it
+#            lowercase and the `-d` search is case-sensitive — so upper-case it.
+#   other  : the generic SOAPYSDR backend (HackRF/Lime — validated on Airspy/RTL;
+#            other Soapy drivers are best-effort until hardware-tested).
 _set_ais_device() {  # driver serial
 	local driver="$1" serial="$2" args
 	case "${driver}" in
-		rtlsdr|airspy) args="-d ${serial}" ;;
-		*) args="-gu SOAPYSDR device driver=${driver},serial=${serial}" ;;
+		rtlsdr) args="-d ${serial}" ;;
+		airspy) args="-d ${serial^^}" ;;
+		*) args="-d SOAPYSDR -gs SOAPYSDR device:driver=${driver},serial=${serial}" ;;
 	esac
 	mkdir -p /etc/default
 	printf 'AIS_CATCHER_DEVICE_ARGS="%s"\n' "${args}" > /etc/default/aryaos-ais-sdr
