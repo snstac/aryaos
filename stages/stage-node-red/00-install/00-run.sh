@@ -40,8 +40,11 @@ mkdir -p "${ROOTFS_DIR}/home/node-red/.node-red"
 install -v -m 644 "${SHARED_FILES}/node-red/settings.js" "${ROOTFS_DIR}/home/node-red/.node-red/settings.js"
 install -v -m 644 "${SHARED_FILES}/node-red/package.json" "${ROOTFS_DIR}/home/node-red/.node-red/package.json"
 install -v -m 644 "${SHARED_FILES}/node-red/package-lock.json" "${ROOTFS_DIR}/home/node-red/.node-red/package-lock.json"
+# Ship the legacy AryaOS flow bundle as an OPTIONAL import (not auto-loaded); the
+# box now boots with EMPTY flows. Node-RED is no longer required for functionality
+# and is tucked behind the HTTPS /nr proxy. Import aryaos_flows.json by hand if wanted.
 install -v -m 644 "${SHARED_FILES}/node-red/aryaos_flows.json" "${ROOTFS_DIR}/home/node-red/.node-red/"
-cat "${ROOTFS_DIR}/home/node-red/.node-red/aryaos_flows.json" > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"
+printf '[]\n' > "${ROOTFS_DIR}/home/node-red/.node-red/flows.json"
 
 # Pin nodered.service to the node-red user + /home/node-red (the upstream unit runs
 # as root out of /root/.node-red, whose stock settings.js has no adminAuth — that

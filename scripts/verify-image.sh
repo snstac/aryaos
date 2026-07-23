@@ -238,6 +238,17 @@ require_path /etc/systemd/system/nodered.service.d/aryaos.conf
 require_grep '^[[:space:]]*User=node-red' /etc/systemd/system/nodered.service.d/aryaos.conf "nodered runs as node-red (not root)"
 # The hardened settings.js (the one node-red now uses) must carry adminAuth.
 require_grep 'adminAuth' /home/node-red/.node-red/settings.js "node-red adminAuth configured"
+# Node-RED is optional + tucked away: empty flows, bound to loopback, served under
+# /nr behind the lighttpd HTTPS proxy, and NOT exposed on :1880 on the LAN.
+require_grep '^\[\]' /home/node-red/.node-red/flows.json "node-red ships empty flows"
+require_grep 'uiHost:[[:space:]]*"127.0.0.1"' /home/node-red/.node-red/settings.js "node-red binds loopback only"
+require_grep 'httpAdminRoot:[[:space:]]*"/nr"' /home/node-red/.node-red/settings.js "node-red served under /nr"
+require_grep 'port"[[:space:]]*=>[[:space:]]*1880' /etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf "lighttpd reverse-proxies /nr to Node-RED"
+if grep -qsE '<service name="aryaos-node-red"' "${MNT}/etc/firewalld/zones/public.xml"; then
+	fail "public (LAN) zone still exposes Node-RED :1880 — should be proxied via /nr only"
+else
+	ok "Node-RED not exposed on the public (LAN) zone (reachable via /nr only)"
+fi
 
 # Hardening (stage-aryaos): firewall, brute-force protection, auto security
 # updates, per-device web TLS, sysctl/sshd tightening

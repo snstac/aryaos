@@ -150,7 +150,9 @@ module.exports = {
      * The following property can be used to listen on a specific interface. For
      * example, the following would only allow connections from the local machine.
      */
-    //uiHost: "127.0.0.1",
+    // AryaOS: bind loopback only — Node-RED is reached via the lighttpd HTTPS
+    // reverse proxy at /nr/, never directly on :1880 over the LAN.
+    uiHost: "127.0.0.1",
 
     /** The maximum size of HTTP request that will be accepted by the runtime api.
      * Default: 5mb
@@ -167,7 +169,9 @@ module.exports = {
      * The following property can be used to specify a different root path.
      * If set to false, this is disabled.
      */
-    //httpAdminRoot: '/admin',
+    // AryaOS: serve the editor under /nr so it works behind the lighttpd proxy
+    // (https://<host>/nr/). The proxy preserves this path prefix.
+    httpAdminRoot: "/nr",
 
     /** The following property can be used to add a custom middleware function
      * in front of all admin http routes. For example, to set custom http
@@ -191,7 +195,8 @@ module.exports = {
      * can be used to specify a different root path. If set to false, this is
      * disabled.
      */
-    //httpNodeRoot: '/red-nodes',
+    // AryaOS: http-in nodes under /nr too, so any flow endpoints sit behind the proxy.
+    httpNodeRoot: "/nr",
 
     /** The following property can be used to configure cross-origin resource sharing
      * in the HTTP nodes.
