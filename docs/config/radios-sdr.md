@@ -117,6 +117,7 @@ fly, without a re-serialize or replug:
 ```bash
 aryaos-sdr list                     # find the dongle index
 sudo aryaos-sdr task 1 ais          # dongle 1 -> AIS over-the-air (162 MHz)
+sudo aryaos-sdr task 1 aprs         # dongle 1 -> APRS over-the-air (144.39 MHz)
 sudo aryaos-sdr task 1 adsb         # back to ADS-B 1090
 sudo aryaos-sdr task 1 uat          # UAT 978
 sudo aryaos-sdr task 1 off          # idle the dongle
@@ -125,6 +126,11 @@ sudo aryaos-sdr task 1 off          # idle the dongle
 - **`ais`** runs `ais-catcher` in **RTL mode** (a dedicated `ais-catcher-rtl@`
   unit — the serial dAISy path is untouched) and feeds the same `aiscot →
   charontak → TAK` chain. It needs a **VHF marine antenna** to hear vessels.
+- **`aprs`** decodes 1200-baud packet **APRS on 144.39 MHz** (North America):
+  `rtl_fm` → **Dire Wolf** (`aryaos-direwolf@N`, KISS TNC on `:8001`, receive-only)
+  → **aprscot** (KISS input, ≥ 8.2.0) → `charontak → TAK`. Fully **offline** — no
+  APRS-IS internet. Needs a **2 m (VHF) antenna**. Single dongle at a time (one
+  APRS channel).
 - The job is **persisted** (`/etc/aryaos/sdr-tasks`) and re-applied at boot,
   mapping the dongle by serial so it survives enumeration changes.
 - A **role apply** (`aryaos-role set …`) is authoritative and **clears** per-dongle

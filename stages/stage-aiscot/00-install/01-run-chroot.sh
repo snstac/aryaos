@@ -34,7 +34,7 @@ dpkg -i /usr/src/cockpit-aiscot_1.1.0_all.deb
 # N spyserver`, shipped by the AryaOS overlay). Installed here — the last heavy
 # dpkg stage before export — alongside the other Cockpit plugins. Sourced from
 # the plugin's GitHub release (nfpm-built _all.deb), same idiom as cockpit-aiscot.
-COCKPIT_SPYSERVER_DEB_URL='https://github.com/ampledata/cockpit-spyserver/releases/download/v0.1.0/cockpit-spyserver_0.1.0-1_all.deb'
+COCKPIT_SPYSERVER_DEB_URL='https://github.com/snstac/cockpit-spyserver/releases/download/v0.1.0/cockpit-spyserver_0.1.0-1_all.deb'
 curl -fsSL -o /usr/src/cockpit-spyserver.deb "${COCKPIT_SPYSERVER_DEB_URL}"
 dpkg -i /usr/src/cockpit-spyserver.deb || apt-get install -f -y
 
@@ -52,3 +52,17 @@ systemctl enable cockpit.socket
 grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service || \
 grep -qxF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aiscot.service || \
 sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" /lib/systemd/system/aiscot.service
+
+# APRS over RF (aryaos-sdr task N aprs): Dire Wolf decodes 144.39 MHz APRS to a
+# KISS TNC; aprscot (>= 8.2.0, KISS input) forwards it to charontak as CoT.
+# direwolf from Debian; aprscot from the snstac apt repo. Both are OFF by default
+# (task-driven) — aprscot must NOT auto-connect to APRS-IS over the internet.
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends direwolf aprscot
+# aprscot reads the local Dire Wolf KISS TNC (offline), not APRS-IS.
+install -v -m 0644 /aryaos/shared_files/aryaos/aprscot.default /etc/default/aprscot 2>/dev/null || \
+	install -v -m 0644 "${SHARED_FILES:-/aryaos/shared_files}/aryaos/aprscot.default" /etc/default/aprscot
+# Inherit COT_URL (charontak) from the site config, like aiscot.
+grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aprscot.service || \
+sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" /lib/systemd/system/aprscot.service
+# Task-driven only: do not start aprscot at boot (would hit APRS-IS with no KISS peer).
+systemctl disable aprscot >/dev/null 2>&1 || true

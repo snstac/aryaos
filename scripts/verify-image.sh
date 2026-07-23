@@ -301,6 +301,13 @@ require_path /etc/firewalld/services/aryaos-soapyremote.xml
 require_grep 'task INDEX' /usr/local/sbin/aryaos-sdr "aryaos-sdr task subcommand"
 require_unit ais-catcher-rtl@.service
 require_unit aryaos-sdr-tasks.service
+# APRS over RF (aryaos-sdr task N aprs): rtl_fm + Dire Wolf -> KISS -> aprscot -> CoT.
+require_grep 'aprs' /usr/local/sbin/aryaos-sdr "aryaos-sdr aprs task job"
+require_pkg direwolf
+require_pkg aprscot
+require_unit aryaos-direwolf@.service
+require_path /etc/aryaos/direwolf.conf
+require_grep 'KISS_HOST=127.0.0.1' /etc/default/aprscot "aprscot reads local KISS TNC (offline, not APRS-IS)"
 # SpyServer (Airspy) sharing (aryaos-sdr share N spyserver): runtime always ships;
 # config never lists in the public directory. The proprietary binary is a
 # best-effort build-time download, so its presence is NOT asserted here.

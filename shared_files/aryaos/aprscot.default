@@ -1,0 +1,14 @@
+# AryaOS aprscot config — /etc/default/aprscot
+#
+# aprscot reads APRS from the local Dire Wolf KISS TNC (started by
+# `aryaos-sdr task <index> aprs` on 144.39 MHz) and forwards it to the charontak
+# hub as CoT. KISS_HOST set => aprscot uses the offline RF path, NOT APRS-IS
+# (no internet; EMCON-friendly). COT_URL is inherited from aryaos-config.txt via
+# the service's EnvironmentFile; charontak fans out to Mesh SA / TAK Server.
+#
+# aprscot is NOT enabled at boot — it is started/stopped by aryaos-sdr task aprs
+# (and re-applied at boot by aryaos-sdr-tasks when an APRS re-task is persisted).
+
+# Read from the local Dire Wolf KISS-over-TCP TNC (aryaos-direwolf@N serves :8001).
+KISS_HOST=127.0.0.1
+KISS_PORT=8001
