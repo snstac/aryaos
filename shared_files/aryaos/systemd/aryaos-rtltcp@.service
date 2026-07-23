@@ -1,0 +1,18 @@
+[Unit]
+Description=AryaOS rtl_tcp — share RTL-SDR %i over the network (port 1234+index)
+Documentation=https://github.com/snstac/aryaos
+# OFF by default. rtl_tcp is UNAUTHENTICATED — anyone who can reach the port gets
+# the raw IQ stream and full control of the dongle's tuning. Enable only on a
+# trusted / VPN network and open the firewall (aryaos-rtltcp) deliberately, or
+# bind to the VPN address via AOS_RTLTCP_BIND. A dongle cannot decode and be
+# shared at once — stop its decoder first (`aryaos-sdr share <index> rtltcp`).
+
+[Service]
+Type=simple
+# %i = RTL device index; port = 1234 + index (0->1234, 1->1235, ...).
+ExecStart=/bin/sh -c 'exec /usr/bin/rtl_tcp -d %i -a "${AOS_RTLTCP_BIND:-0.0.0.0}" -p $((1234 + %i))'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

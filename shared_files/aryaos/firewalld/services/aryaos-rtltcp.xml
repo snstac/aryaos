@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>AryaOS rtl_tcp SDR share</short>
+  <description>Raw RTL-SDR network servers (rtl_tcp), one per dongle at 1234+index. UNAUTHENTICATED — not opened on any zone by default; add to a zone only on a trusted/VPN network.</description>
+  <port protocol="tcp" port="1234-1237"/>
+</service>

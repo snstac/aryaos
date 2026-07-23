@@ -287,6 +287,21 @@ require_pkg soapysdr-module-lms7
 require_pkg limesuite
 require_pkg soapysdr-module-remote
 
+# Network SDR sharing (aryaos-sdr share): rtl_tcp per-dongle + SoapyRemote, both
+# on-demand and NOT firewalled by default (raw unauthenticated SDR = opt-in).
+require_grep 'share INDEX' /usr/local/sbin/aryaos-sdr "aryaos-sdr share subcommand"
+require_unit aryaos-rtltcp@.service
+require_unit aryaos-soapyremote.service
+require_path /etc/firewalld/services/aryaos-rtltcp.xml
+require_path /etc/firewalld/services/aryaos-soapyremote.xml
+for z in public aryaos-hotspot; do
+	if grep -qsE '<service name="aryaos-(rtltcp|soapyremote)"' "${MNT}/etc/firewalld/zones/${z}.xml"; then
+		fail "${z} zone exposes a raw SDR share server by default (must be opt-in)"
+	else
+		ok "${z} zone does not open SDR-share servers by default"
+	fi
+done
+
 # Robust NMEA-serial assignment (GPS vs AIS/dAISy by sentence sniffing) — no
 # hardcoded ttyUSB*/single-make by-id, which broke on differing adapters.
 require_path /usr/local/sbin/aryaos-serial-assign

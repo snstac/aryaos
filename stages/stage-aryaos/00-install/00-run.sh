@@ -178,6 +178,14 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-serial-assign" "${ROOTFS_DIR}/
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-serial-assign.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-serial-assign.service"
 
+## Network SDR sharing (on-demand via `aryaos-sdr share`; NOT enabled by default,
+## firewall NOT opened — see the network-SDR docs). rtl_tcp per-dongle template +
+## SoapyRemote (all SoapySDR devices); firewalld service defs auto-install above.
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-rtltcp@.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-rtltcp@.service"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-soapyremote.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-soapyremote.service"
+
 ## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
 ## the packaged charontak.ini default (source of truth for factory reset).
 install -v -m 0644 "${SHARED_FILES}/aryaos/zram-generator.conf" "${ROOTFS_DIR}/etc/systemd/zram-generator.conf"
