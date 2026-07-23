@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>AryaOS SoapyRemote SDR share</short>
+  <description>SoapyRemote server (all onboard SoapySDR devices). UNAUTHENTICATED — not opened on any zone by default; add to a zone only on a trusted/VPN network. UDP is device discovery.</description>
+  <port protocol="tcp" port="55132"/>
+  <port protocol="udp" port="55132"/>
+</service>

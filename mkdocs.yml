@@ -82,6 +82,7 @@ nav:
       - Site configuration: config/site-config.md
       - Device roles: config/device-roles.md
       - Radios & SDRs: config/radios-sdr.md
+      - Network SDR sharing: config/network-sdr.md
   - Network:
       - Wi-Fi & onboarding hotspot: networking/wifi-hotspot.md
       - Bluetooth PAN: bluetooth-pan.md

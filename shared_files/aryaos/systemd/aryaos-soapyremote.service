@@ -1,0 +1,18 @@
+[Unit]
+Description=AryaOS SoapyRemote server — share all onboard SoapySDR devices over the network
+Documentation=https://github.com/pothosware/SoapyRemote
+# OFF by default. SoapyRemote is UNAUTHENTICATED — serves every local SoapySDR
+# device (RTL / LimeSDR / Airspy / HackRF) to any client that can reach it
+# (SDR++/SDRangel/GQRX via driver=remote). Enable only on a trusted / VPN network
+# and open the firewall (aryaos-soapyremote) deliberately, or bind to the VPN
+# address via AOS_SOAPY_BIND. Decoders holding a dongle keep it from the server —
+# stop them first (`aryaos-sdr share <index> soapy`).
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c 'exec /usr/bin/SoapySDRServer --bind="${AOS_SOAPY_BIND:-0.0.0.0:55132}"'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -21,7 +21,7 @@ SDR_UNITS="readsb dump1090-fa dump978-fa ais-catcher"
 SERIAL_RE='^[A-Za-z0-9:._-]{1,32}$'
 
 usage() {
-	echo "usage: aryaos-sdr {list | set-serial INDEX SERIAL}" >&2
+	echo "usage: aryaos-sdr {list | set-serial INDEX SERIAL | share INDEX {rtltcp|soapy|off} | share-status}" >&2
 	exit 2
 }
 
@@ -104,6 +104,45 @@ set_serial() {
 	fi
 }
 
+# Share a dongle over the network (rtl_tcp / SoapyRemote). A dongle can only do
+# one job, so decoders holding an RTL device are stopped first. Both servers are
+# UNAUTHENTICATED and OFF by default; the firewall is NOT opened for them — the
+# operator opens aryaos-rtltcp/aryaos-soapyremote on a trusted zone or binds to a
+# VPN (AOS_RTLTCP_BIND / AOS_SOAPY_BIND). See docs/reference network-sdr page.
+share_sdr() {
+	local index="$1" mode="$2"
+	if [[ ! "${index}" =~ ^[0-9]+$ ]]; then
+		echo "aryaos-sdr: INDEX must be a number" >&2
+		exit 2
+	fi
+	local unit
+	for unit in ${SDR_UNITS}; do
+		systemctl is-active --quiet "${unit}" 2>/dev/null && systemctl stop "${unit}"
+	done
+	case "${mode}" in
+		rtltcp)
+			systemctl start "aryaos-rtltcp@${index}.service"
+			echo "Sharing RTL-SDR ${index} via rtl_tcp on port $((1234 + index))."
+			echo "UNAUTHENTICATED — open the firewall (aryaos-rtltcp) or set AOS_RTLTCP_BIND to a VPN address." ;;
+		soapy)
+			systemctl start aryaos-soapyremote.service
+			echo "Sharing SoapySDR devices via SoapyRemote on :55132 (client: driver=remote)."
+			echo "UNAUTHENTICATED — open the firewall (aryaos-soapyremote) or set AOS_SOAPY_BIND to a VPN address." ;;
+		off)
+			systemctl stop "aryaos-rtltcp@${index}.service" aryaos-soapyremote.service >/dev/null 2>&1 || true
+			echo "Network sharing stopped. Resume decoding with: aryaos-role set <role>." ;;
+		*)
+			echo "usage: aryaos-sdr share INDEX {rtltcp|soapy|off}" >&2; exit 2 ;;
+	esac
+}
+
+share_status() {
+	local rtltcp soapy
+	rtltcp="$(systemctl list-units 'aryaos-rtltcp@*' --state=active --no-legend 2>/dev/null | awk '{print $1}' | paste -sd, - )"
+	soapy="$(systemctl is-active aryaos-soapyremote 2>/dev/null || echo inactive)"
+	printf '{"rtltcp":"%s","soapyremote":"%s"}\n' "${rtltcp}" "${soapy}"
+}
+
 cmd="${1:-}"
 case "${cmd}" in
 	list)
@@ -115,6 +154,14 @@ case "${cmd}" in
 		require_tools
 		[[ $# -eq 3 ]] || usage
 		set_serial "$2" "$3"
+		;;
+	share)
+		require_root
+		[[ $# -eq 3 ]] || usage
+		share_sdr "$2" "$3"
+		;;
+	share-status)
+		share_status
 		;;
 	*)
 		usage
