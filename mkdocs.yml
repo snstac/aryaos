@@ -101,6 +101,7 @@ nav:
       - Factory reset: operations/factory-reset.md
       - Zeroize: operations/zeroize.md
       - Security posture: security.md
+      - FIPS & STIG roadmap: security/fips-stig.md
   - Reference:
       - Software suite: reference/software-suite.md
       - Glossary: reference/glossary.md
