@@ -30,6 +30,14 @@ COCKPIT_AISCOT_DEB_URL='https://github.com/snstac/cockpit-aiscot/releases/downlo
 curl -fsSL -o /usr/src/cockpit-aiscot_1.1.0_all.deb "${COCKPIT_AISCOT_DEB_URL}"
 dpkg -i /usr/src/cockpit-aiscot_1.1.0_all.deb
 
+# cockpit-spyserver: SpyServer SDR-share admin page (drives `aryaos-sdr share
+# N spyserver`, shipped by the AryaOS overlay). Installed here — the last heavy
+# dpkg stage before export — alongside the other Cockpit plugins. Sourced from
+# the plugin's GitHub release (nfpm-built _all.deb), same idiom as cockpit-aiscot.
+COCKPIT_SPYSERVER_DEB_URL='https://github.com/ampledata/cockpit-spyserver/releases/download/v0.1.0/cockpit-spyserver_0.1.0-1_all.deb'
+curl -fsSL -o /usr/src/cockpit-spyserver.deb "${COCKPIT_SPYSERVER_DEB_URL}"
+dpkg -i /usr/src/cockpit-spyserver.deb || apt-get install -f -y
+
 # Ensure apt-listchanges stays off before export-image finalise (see stage-base note).
 if dpkg -s apt-listchanges >/dev/null 2>&1; then
 	echo 'apt-listchanges apt-listchanges/frontend select none' | debconf-set-selections

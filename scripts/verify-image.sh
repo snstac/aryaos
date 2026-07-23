@@ -213,6 +213,8 @@ require_pkg cockpit-dronecot
 require_pkg cockpit-charontak
 require_pkg cockpit-gpstak
 require_pkg cockpit-aryaos
+require_pkg cockpit-spyserver
+require_path /usr/share/cockpit/spyserver/manifest.json
 require_pkg readsb
 require_pkg python3-gps
 require_pkg ais-catcher
