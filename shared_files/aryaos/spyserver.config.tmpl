@@ -1,0 +1,23 @@
+# AryaOS SpyServer config — rendered per-dongle at start by aryaos-spyserver-run.
+# @BIND@/@PORT@/@SERIAL@ are substituted (bind host, TCP port, RTL device index).
+# Clients: SDR# / SDRangel / SDRPlusPlus via  spyserver://<host>:<port>
+bind_host = @BIND@
+bind_port = @PORT@
+
+# OPSEC: never advertise this receiver to the public SpyServer directory.
+list_in_directory = 0
+owner_name =
+owner_email =
+antenna_type =
+antenna_location =
+general_description =
+
+# RTL-SDR selected by device index (matches `aryaos-sdr list` / rtl_tcp -d N).
+device_type = RTL-SDR
+device_serial = @SERIAL@
+
+# Single controlling client; allow it to set gain/frequency.
+maximum_clients = 1
+allow_control = 1
+
+fft_fps = 15

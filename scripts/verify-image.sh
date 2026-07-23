@@ -299,8 +299,17 @@ require_path /etc/firewalld/services/aryaos-soapyremote.xml
 require_grep 'task INDEX' /usr/local/sbin/aryaos-sdr "aryaos-sdr task subcommand"
 require_unit ais-catcher-rtl@.service
 require_unit aryaos-sdr-tasks.service
+# SpyServer (Airspy) sharing (aryaos-sdr share N spyserver): runtime always ships;
+# config never lists in the public directory. The proprietary binary is a
+# best-effort build-time download, so its presence is NOT asserted here.
+require_grep 'spyserver' /usr/local/sbin/aryaos-sdr "aryaos-sdr spyserver share mode"
+require_unit aryaos-spyserver@.service
+require_path /usr/local/sbin/aryaos-spyserver-run
+require_path /usr/share/aryaos/spyserver.config.tmpl
+require_path /etc/firewalld/services/aryaos-spyserver.xml
+require_grep 'list_in_directory = 0' /usr/share/aryaos/spyserver.config.tmpl "SpyServer OPSEC (no public directory listing)"
 for z in public aryaos-hotspot; do
-	if grep -qsE '<service name="aryaos-(rtltcp|soapyremote)"' "${MNT}/etc/firewalld/zones/${z}.xml"; then
+	if grep -qsE '<service name="aryaos-(rtltcp|soapyremote|spyserver)"' "${MNT}/etc/firewalld/zones/${z}.xml"; then
 		fail "${z} zone exposes a raw SDR share server by default (must be opt-in)"
 	else
 		ok "${z} zone does not open SDR-share servers by default"
