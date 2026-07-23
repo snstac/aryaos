@@ -49,6 +49,8 @@ systemctl enable aryaos-radio-silence.service
 systemctl enable aryaos-crash-guard.service
 # Serial assignment: wire gpsd/ais-catcher to the right NMEA device before they start.
 systemctl enable aryaos-serial-assign.service
+# SDR re-task: re-apply persisted per-dongle jobs at boot.
+systemctl enable aryaos-sdr-tasks.service
 systemctl enable aryaos-safe-mode.service
 systemctl enable aryaos-boot-stable.timer
 

@@ -135,6 +135,10 @@ set_role() {
 
 	config_set ARYAOS_ROLE "${role}"
 
+	# A role apply is the authoritative decoder layout — clear any per-dongle SDR
+	# re-tasks (aryaos-sdr task) so they don't fight the role at the next boot.
+	rm -f /etc/aryaos/sdr-tasks 2>/dev/null || true
+
 	# aryaos-serial-assign only wires the dAISy when ais-catcher is enabled (its
 	# elimination guard). It runs at boot before the role is known, so re-run it
 	# after enabling a role that uses AIS — otherwise selecting maritime/multi

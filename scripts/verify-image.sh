@@ -294,6 +294,11 @@ require_unit aryaos-rtltcp@.service
 require_unit aryaos-soapyremote.service
 require_path /etc/firewalld/services/aryaos-rtltcp.xml
 require_path /etc/firewalld/services/aryaos-soapyremote.xml
+# SDR re-tasking (aryaos-sdr task): move a dongle between adsb/uat/ais; RTL-mode
+# AIS via a dedicated unit; persisted jobs re-applied at boot.
+require_grep 'task INDEX' /usr/local/sbin/aryaos-sdr "aryaos-sdr task subcommand"
+require_unit ais-catcher-rtl@.service
+require_unit aryaos-sdr-tasks.service
 for z in public aryaos-hotspot; do
 	if grep -qsE '<service name="aryaos-(rtltcp|soapyremote)"' "${MNT}/etc/firewalld/zones/${z}.xml"; then
 		fail "${z} zone exposes a raw SDR share server by default (must be opt-in)"

@@ -1,0 +1,17 @@
+[Unit]
+Description=AryaOS SDR re-task apply — restore per-dongle jobs at boot
+Documentation=https://github.com/snstac/aryaos
+# Re-applies /etc/aryaos/sdr-tasks (serial=job) after the role's decoders have
+# started, so a persisted re-task (e.g. an ADS-B dongle moved to AIS) wins. Maps
+# each persisted serial to its current index (enumeration-order-proof). No-op if
+# the file is empty. `aryaos-role set` clears this file (a role apply wins).
+After=local-fs.target readsb.service dump978-fa.service ais-catcher.service
+ConditionPathExists=/etc/aryaos/sdr-tasks
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/aryaos-sdr apply-tasks
+
+[Install]
+WantedBy=multi-user.target

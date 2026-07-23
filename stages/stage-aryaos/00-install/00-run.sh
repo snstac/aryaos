@@ -185,6 +185,12 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-rtltcp@.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-rtltcp@.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-soapyremote.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-soapyremote.service"
+## SDR re-tasking (aryaos-sdr task): RTL-mode AIS unit + boot re-apply of
+## persisted per-dongle jobs (/etc/aryaos/sdr-tasks).
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/ais-catcher-rtl@.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/ais-catcher-rtl@.service"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-sdr-tasks.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-sdr-tasks.service"
 
 ## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
 ## the packaged charontak.ini default (source of truth for factory reset).
