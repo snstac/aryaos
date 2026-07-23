@@ -12,7 +12,7 @@ Open any of them from Cockpit's left menu.
 | aiscot | `aiscot` | `/etc/default/aiscot` | AIS vessels → CoT |
 | dronecot | `dronecot` | `/etc/default/dronecot` | Remote ID drones → CoT |
 | aprscot | `aprscot` | `/etc/default/aprscot` | APRS (KISS TNC / APRS-IS) → CoT |
-| — *(roadmap)* | `sapientcot` | `/etc/default/sapientcot` | SAPIENT (BSI Flex 335) C-UAS → CoT |
+| sapientcot | `sapientcot` | `/etc/default/sapientcot` | SAPIENT (BSI Flex 335) C-UAS / ISR → CoT |
 | lincot | `lincot` | `/etc/default/lincot` | This host's position/beacon → CoT |
 | gps | *(gpsd)* | — | On-board GNSS receiver |
 | gpstak | `gpstak` | `/etc/default/gpstak` | Network GPS to ATAK/WinTAK |

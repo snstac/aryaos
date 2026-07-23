@@ -313,6 +313,8 @@ require_grep 'KISS_HOST=127.0.0.1' /etc/default/aprscot "aprscot reads local KIS
 # SAPIENT C-UAS gateway (sapientcot): BSI Flex 335 DetectionReports -> CoT; the
 # sapient-msg protobuf binding is pip-installed (not in Debian apt).
 require_pkg sapientcot
+require_pkg cockpit-sapientcot
+require_path /usr/share/cockpit/sapientcot/manifest.json
 require_path /etc/default/sapientcot
 require_grep 'SAPIENT_HOST' /etc/default/sapientcot "sapientcot SAPIENT node config"
 if compgen -G "${MNT}/usr/local/lib/python3*/dist-packages/sapient_msg" >/dev/null 2>&1 || \

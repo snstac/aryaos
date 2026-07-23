@@ -44,6 +44,12 @@ COCKPIT_APRSCOT_DEB_URL='https://github.com/snstac/cockpit-aprscot/releases/down
 curl -fsSL -o /usr/src/cockpit-aprscot.deb "${COCKPIT_APRSCOT_DEB_URL}"
 dpkg -i /usr/src/cockpit-aprscot.deb || apt-get install -f -y
 
+# cockpit-sapientcot: SAPIENT (BSI Flex 335) C-UAS/ISR gateway admin page
+# (manages the sapientcot service). Same install idiom as the other plugins.
+COCKPIT_SAPIENTCOT_DEB_URL='https://github.com/snstac/cockpit-sapientcot/releases/download/v0.1.0/cockpit-sapientcot_0.1.0-1_all.deb'
+curl -fsSL -o /usr/src/cockpit-sapientcot.deb "${COCKPIT_SAPIENTCOT_DEB_URL}"
+dpkg -i /usr/src/cockpit-sapientcot.deb || apt-get install -f -y
+
 # Ensure apt-listchanges stays off before export-image finalise (see stage-base note).
 if dpkg -s apt-listchanges >/dev/null 2>&1; then
 	echo 'apt-listchanges apt-listchanges/frontend select none' | debconf-set-selections
@@ -75,7 +81,7 @@ systemctl disable aprscot >/dev/null 2>&1 || true
 # SAPIENT C-UAS gateway (sapientcot): SAPIENT (BSI Flex 335) DetectionReports -> CoT.
 # sapientcot deb Depends only on pytak (apt); its sapient-msg protobuf binding is
 # NOT in Debian, so pip-install it (pure-python; pulls a matching protobuf).
-SAPIENTCOT_DEB_URL='https://github.com/snstac/sapientcot/releases/download/v0.1.1/sapientcot_0.1.1-1_all.deb'
+SAPIENTCOT_DEB_URL='https://github.com/snstac/sapientcot/releases/download/v0.1.2/sapientcot_0.1.2-1_all.deb'
 curl -fsSL -o /usr/src/sapientcot.deb "${SAPIENTCOT_DEB_URL}"
 dpkg -i /usr/src/sapientcot.deb || apt-get install -f -y
 pip3 install --break-system-packages --no-input sapient-msg || \
