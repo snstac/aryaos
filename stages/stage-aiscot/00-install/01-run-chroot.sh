@@ -81,7 +81,7 @@ systemctl disable aprscot >/dev/null 2>&1 || true
 # SAPIENT C-UAS gateway (sapientcot): SAPIENT (BSI Flex 335) DetectionReports -> CoT.
 # sapientcot deb Depends only on pytak (apt); its sapient-msg protobuf binding is
 # NOT in Debian, so pip-install it (pure-python; pulls a matching protobuf).
-SAPIENTCOT_DEB_URL='https://github.com/snstac/sapientcot/releases/download/v0.1.2/sapientcot_0.1.2-1_all.deb'
+SAPIENTCOT_DEB_URL='https://github.com/snstac/sapientcot/releases/download/v0.1.3/sapientcot_0.1.3-1_all.deb'
 curl -fsSL -o /usr/src/sapientcot.deb "${SAPIENTCOT_DEB_URL}"
 dpkg -i /usr/src/sapientcot.deb || apt-get install -f -y
 pip3 install --break-system-packages --no-input sapient-msg || \
