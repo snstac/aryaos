@@ -166,7 +166,7 @@ for unit in aryaos-crash-guard.service aryaos-safe-mode.service aryaos-boot-stab
 done
 # Safe-mode gate: sensor/SDR services must not start while /etc/aryaos/safe-mode
 # exists (kept in sync with aryaos-safe-mode MANAGED_UNITS / aryaos-role).
-for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot dronecot sikw00fcot; do
+for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot aprscot dronecot sikw00fcot; do
 	install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/safe-mode.conf" \
 		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done
@@ -191,6 +191,16 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/ais-catcher-rtl@.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/ais-catcher-rtl@.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-sdr-tasks.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-sdr-tasks.service"
+
+## APRS over RF (aryaos-sdr task <index> aprs): rtl_fm + Dire Wolf decode 144.39
+## MHz to a KISS TNC, which aprscot reads and forwards to charontak as CoT. The
+## direwolf + aprscot packages are installed in stage-aiscot (apt). Off by default
+## (task-driven). aprscot.default points aprscot at the local KISS TNC (offline,
+## not APRS-IS). aprscot's own service/config come from its deb; the KISS drop-in
+## and COT_URL inheritance are wired in stage-aiscot.
+install -v -m 0644 "${SHARED_FILES}/aryaos/direwolf.conf" "${ROOTFS_DIR}/etc/aryaos/direwolf.conf"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-direwolf@.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-direwolf@.service"
 
 ## SpyServer (Airspy) network sharing (aryaos-sdr share <n> spyserver). Runtime
 ## (config template, per-dongle wrapper, unit) always ships; the proprietary

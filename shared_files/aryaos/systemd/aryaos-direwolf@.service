@@ -1,0 +1,22 @@
+[Unit]
+Description=AryaOS APRS receiver — rtl_fm + Dire Wolf on RTL-SDR %i (KISS :8001)
+Documentation=https://github.com/wb2osz/direwolf
+# Started on demand by `aryaos-sdr task %i aprs`. Tunes RTL-SDR %i to 144.39 MHz
+# (North America VHF APRS), FM-demodulates with rtl_fm, and hands 24 kHz audio to
+# Dire Wolf which decodes 1200-baud AFSK APRS and serves it as KISS over TCP :8001.
+# aprscot (aprscot.service, KISS_HOST=127.0.0.1 KISS_PORT=8001) turns that into CoT
+# for charontak -> TAK. Receive-only; nothing is transmitted. Off by default.
+After=local-fs.target
+ConditionPathExists=/usr/bin/direwolf
+
+[Service]
+Type=simple
+# %i = RTL device index (matches `aryaos-sdr list`). rtl_fm emits 24 kHz s16 mono on
+# stdout; direwolf reads it from stdin (`-`) and matches with -r 24000. -t 0 disables
+# color codes so journald stays clean. APRS RX frequency is 144.390 MHz (US/NA).
+ExecStart=/bin/sh -c 'exec /usr/bin/rtl_fm -d %i -f 144.39M -s 24000 -o 4 - | /usr/bin/direwolf -c /etc/aryaos/direwolf.conf -r 24000 -D 1 -t 0 -'
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

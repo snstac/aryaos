@@ -42,7 +42,7 @@ THRESHOLD=3
 
 # Sensor/SDR services whose USB peripherals draw the current that browns the box
 # out. Keep in sync with aryaos-role's all_managed_units.
-MANAGED_UNITS="readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot dronecot sikw00fcot"
+MANAGED_UNITS="readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot aprscot dronecot sikw00fcot"
 
 require_root() {
 	if [[ "$(id -u)" != "0" ]]; then
