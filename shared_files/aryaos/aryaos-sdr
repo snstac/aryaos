@@ -21,7 +21,7 @@ SDR_UNITS="readsb dump1090-fa dump978-fa ais-catcher"
 SERIAL_RE='^[A-Za-z0-9:._-]{1,32}$'
 
 usage() {
-	echo "usage: aryaos-sdr {list | set-serial INDEX SERIAL | task INDEX {adsb|uat|ais|off} | apply-tasks | share INDEX {rtltcp|soapy|off} | share-status}" >&2
+	echo "usage: aryaos-sdr {list | set-serial INDEX SERIAL | task INDEX {adsb|uat|ais|off} | apply-tasks | share INDEX {rtltcp|soapy|spyserver|off} | share-status}" >&2
 	exit 2
 }
 
@@ -128,19 +128,32 @@ share_sdr() {
 			systemctl start aryaos-soapyremote.service
 			echo "Sharing SoapySDR devices via SoapyRemote on :55132 (client: driver=remote)."
 			echo "UNAUTHENTICATED — open the firewall (aryaos-soapyremote) or set AOS_SOAPY_BIND to a VPN address." ;;
+		spyserver)
+			if [[ ! -x /usr/bin/spyserver ]]; then
+				echo "aryaos-sdr: SpyServer is not installed on this image (build could not fetch the Airspy binary)." >&2
+				exit 1
+			fi
+			# rtl_tcp on the same dongle would fight for it; SpyServer takes over.
+			systemctl stop "aryaos-rtltcp@${index}.service" >/dev/null 2>&1 || true
+			systemctl start "aryaos-spyserver@${index}.service"
+			echo "Sharing RTL-SDR ${index} via SpyServer on port $((5555 + index)) (client: spyserver://<host>:$((5555 + index)) in SDR#/SDRangel)."
+			echo "UNAUTHENTICATED — open the firewall (aryaos-spyserver) or set AOS_SPYSERVER_BIND to a VPN address." ;;
 		off)
-			systemctl stop "aryaos-rtltcp@${index}.service" aryaos-soapyremote.service >/dev/null 2>&1 || true
+			systemctl stop "aryaos-rtltcp@${index}.service" "aryaos-spyserver@${index}.service" aryaos-soapyremote.service >/dev/null 2>&1 || true
 			echo "Network sharing stopped. Resume decoding with: aryaos-role set <role>." ;;
 		*)
-			echo "usage: aryaos-sdr share INDEX {rtltcp|soapy|off}" >&2; exit 2 ;;
+			echo "usage: aryaos-sdr share INDEX {rtltcp|soapy|spyserver|off}" >&2; exit 2 ;;
 	esac
 }
 
 share_status() {
-	local rtltcp soapy
+	local rtltcp soapy spyserver spyserver_avail
 	rtltcp="$(systemctl list-units 'aryaos-rtltcp@*' --state=active --no-legend 2>/dev/null | awk '{print $1}' | paste -sd, - )"
 	soapy="$(systemctl is-active aryaos-soapyremote 2>/dev/null || echo inactive)"
-	printf '{"rtltcp":"%s","soapyremote":"%s"}\n' "${rtltcp}" "${soapy}"
+	spyserver="$(systemctl list-units 'aryaos-spyserver@*' --state=active --no-legend 2>/dev/null | awk '{print $1}' | paste -sd, - )"
+	[[ -x /usr/bin/spyserver ]] && spyserver_avail=true || spyserver_avail=false
+	printf '{"rtltcp":"%s","soapyremote":"%s","spyserver":"%s","spyserver_available":%s}\n' \
+		"${rtltcp}" "${soapy}" "${spyserver}" "${spyserver_avail}"
 }
 
 # --- Decoder re-tasking: point a dongle at a different job (adsb/uat/ais). ---
