@@ -127,7 +127,7 @@ sudo aryaos-sdr task 1 off          # idle the SDR
     `aryaos-sdr` enumerates and tasks **any SoapySDR device** — RTL-SDR, **Airspy**,
     HackRF, LimeSDR — via `SoapySDRUtil`, not only RTL dongles. `list` reports each
     device's **driver** and **serial**; tasking builds the right decoder invocation
-    (native `rtlsdr`, or `--device-type soapy driver=<drv>` for the rest).
+    (native `rtlsdr`, or `--device-type soapysdr driver=<drv>` for the rest).
     Current coverage: **ADS-B** and **AIS** work on any SDR; **UAT** and **APRS**
     are RTL-SDR only for now (UAT needs `dump978-fa`; APRS needs an FM demod —
     `rx_tools` for non-RTL is a roadmap item).
