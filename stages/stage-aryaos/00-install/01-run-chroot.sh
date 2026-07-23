@@ -47,6 +47,8 @@ systemctl enable aryaos-neighbord.service
 systemctl enable aryaos-radio-silence.service
 # Safe mode: crash-loop guard (early), USB-off applier (late), boot-stable timer.
 systemctl enable aryaos-crash-guard.service
+# Serial assignment: wire gpsd/ais-catcher to the right NMEA device before they start.
+systemctl enable aryaos-serial-assign.service
 systemctl enable aryaos-safe-mode.service
 systemctl enable aryaos-boot-stable.timer
 

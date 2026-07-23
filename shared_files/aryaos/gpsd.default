@@ -17,5 +17,9 @@
 
 START_DAEMON="true"
 GPSD_OPTIONS="-n"
-DEVICES="/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0"
+# DEVICES is set at boot by aryaos-serial-assign, which identifies the GPS by the
+# $GPxxx/$GNxxx NMEA it emits (any adapter chipset) — do not hardcode a specific
+# puck's by-id here; it breaks on any unit whose GNSS is a different make.
+# USBAUTO stays on as a fallback for udev-recognised GNSS receivers.
+DEVICES=""
 USBAUTO="true"

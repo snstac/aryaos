@@ -1,0 +1,117 @@
+#!/bin/bash
+# aryaos-serial-assign — identify GPS vs AIS (dAISy) USB-serial receivers by the
+# NMEA they emit and wire gpsd / ais-catcher to the right device. Robust to the
+# adapter chipset and USB enumeration order, so a laydown survives swapping the
+# GPS puck or the dAISy for a different make — the analogue of aryaos-sdr's
+# EEPROM-serial pinning, but for NMEA serial.
+#
+# GPS emits $GPxxx/$GNxxx; a dAISy emits !AIVDM/!AIVDO. A dAISy with no vessels
+# in range is silent, so when AIS is intended (ais-catcher enabled) and exactly
+# one non-GPS serial is left, it is assigned as the dAISy by elimination.
+#
+# Runs at boot before gpsd/ais-catcher (and re-runnable by hand: `sudo
+# aryaos-serial-assign`). Writes /etc/default/gpsd and /etc/default/ais-catcher
+# with stable by-id device paths, then restarts those services if already up.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -uo pipefail
+
+GPSD_DEF="/etc/default/gpsd"
+AIS_DEF="/etc/default/ais-catcher"
+AIS_BAUD_DEFAULT=38400
+BAUDS=(9600 38400 4800 115200)
+PROBE_SECS=3
+
+log() { logger -t aryaos-serial-assign "$*" 2>/dev/null || true; echo "aryaos-serial-assign: $*"; }
+
+require_root() {
+	[[ "$(id -u)" == 0 ]] || { echo "aryaos-serial-assign: must run as root" >&2; exit 2; }
+}
+
+# Wait briefly for USB-serial devices to enumerate at boot.
+wait_for_serial() {
+	local i
+	for i in $(seq 1 10); do
+		compgen -G "/dev/serial/by-id/*" >/dev/null 2>&1 && return 0
+		sleep 1
+	done
+	return 0
+}
+
+# Classify one device: prints "gps:<baud>", "ais:<baud>", "busy", or "" (silent).
+classify() {
+	local dev="$1" b data
+	if fuser "$dev" >/dev/null 2>&1; then echo "busy"; return; fi
+	for b in "${BAUDS[@]}"; do
+		stty -F "$dev" "$b" raw -echo >/dev/null 2>&1 || continue
+		# Stream via cat|head so a timeout-killed read still yields its partial
+		# data (head -c under timeout drops its buffer when killed).
+		data="$(timeout "$PROBE_SECS" cat "$dev" 2>/dev/null | head -c 512 | tr -c '[:print:]\n' ' ')"
+		if grep -qE '!AI(VDM|VDO)' <<<"$data"; then echo "ais:$b"; return; fi
+		if grep -qE '\$G[PNLA](GGA|RMC|GLL|VTG|GSV|ZDA)' <<<"$data"; then echo "gps:$b"; return; fi
+	done
+	echo ""
+}
+
+set_kv() {  # set_kv <file> <KEY> <value-unquoted>
+	local f="$1" k="$2" v="$3"
+	[[ -f "$f" ]] || return 0
+	if grep -qE "^${k}=" "$f"; then
+		sed -i "s|^${k}=.*|${k}=\"${v}\"|" "$f"
+	else
+		printf '%s="%s"\n' "$k" "$v" >>"$f"
+	fi
+}
+
+main() {
+	require_root
+	wait_for_serial
+	local gps_dev="" ais_dev="" ais_baud="$AIS_BAUD_DEFAULT" cls dev
+	local -a leftover=()
+
+	shopt -s nullglob
+	for dev in /dev/serial/by-id/*; do
+		cls="$(classify "$dev")"
+		case "$cls" in
+			busy)  log "skip $dev (held by a running service)";;
+			gps:*) [[ -z "$gps_dev" ]] && { gps_dev="$dev"; log "GPS on $dev (${cls#gps:} baud)"; };;
+			ais:*) [[ -z "$ais_dev" ]] && { ais_dev="$dev"; ais_baud="${cls#ais:}"; log "AIS/dAISy on $dev (${cls#ais:} baud)"; };;
+			"")    leftover+=("$dev"); log "silent/unknown serial: $dev";;
+		esac
+	done
+	shopt -u nullglob
+
+	# Silent dAISy: if AIS is intended and exactly one non-GPS serial is left,
+	# assign it by elimination at the dAISy default baud.
+	if [[ -z "$ais_dev" && ${#leftover[@]} -eq 1 ]] \
+		&& systemctl is-enabled ais-catcher.service >/dev/null 2>&1; then
+		ais_dev="${leftover[0]}"; ais_baud="$AIS_BAUD_DEFAULT"
+		log "AIS/dAISy assumed on $ais_dev by elimination (silent; ${ais_baud} baud)"
+	fi
+
+	local changed=0
+	if [[ -n "$gps_dev" ]]; then
+		set_kv "$GPSD_DEF" DEVICES "$gps_dev"; changed=1
+		log "gpsd DEVICES -> $gps_dev"
+	fi
+	if [[ -n "$ais_dev" ]]; then
+		set_kv "$AIS_DEF" SERIAL_PORT "$ais_dev"
+		# baud key is written bare (no quotes) to match the shipped default
+		if grep -qE '^SERIAL_BAUDRATE=' "$AIS_DEF" 2>/dev/null; then
+			sed -i "s|^SERIAL_BAUDRATE=.*|SERIAL_BAUDRATE=${ais_baud}|" "$AIS_DEF"
+		fi
+		changed=1
+		log "ais-catcher SERIAL_PORT -> $ais_dev @ ${ais_baud}"
+	fi
+	[[ -z "$gps_dev$ais_dev" ]] && log "no GPS or AIS serial identified"
+
+	# Pick up new assignments if the consumers are already running.
+	if [[ "$changed" == 1 ]]; then
+		systemctl try-restart gpsd.service >/dev/null 2>&1 || true
+		systemctl try-restart ais-catcher.service >/dev/null 2>&1 || true
+	fi
+}
+
+main "$@"

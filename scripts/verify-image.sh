@@ -276,6 +276,13 @@ require_pkg soapysdr-module-lms7
 require_pkg limesuite
 require_pkg soapysdr-module-remote
 
+# Robust NMEA-serial assignment (GPS vs AIS/dAISy by sentence sniffing) — no
+# hardcoded ttyUSB*/single-make by-id, which broke on differing adapters.
+require_path /usr/local/sbin/aryaos-serial-assign
+require_unit aryaos-serial-assign.service
+require_grep '^DEVICES=""' /etc/default/gpsd "gpsd device not hardcoded (aryaos-serial-assign owns it)"
+require_grep '^SERIAL_PORT=$' /etc/default/ais-catcher "ais-catcher serial not hardcoded (aryaos-serial-assign owns it)"
+
 # Lifecycle helpers (Cockpit -> AryaOS Site: backup/restore, factory reset, zeroize)
 require_path /usr/local/sbin/aryaos-config-backup
 require_path /usr/local/sbin/aryaos-factory-reset
