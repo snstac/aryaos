@@ -16,8 +16,8 @@
 
 set -euo pipefail
 
-# Units that claim RTL-SDR devices; stopped/restarted around EEPROM writes.
-SDR_UNITS="readsb dump1090-fa dump978-fa ais-catcher"
+# Units that claim SDR devices; stopped/restarted around EEPROM writes / shares.
+SDR_UNITS="readsb dump1090-fa dump978-fa ais-catcher aryaos-ais-sdr"
 SERIAL_RE='^[A-Za-z0-9:._-]{1,32}$'
 
 usage() {
@@ -33,19 +33,52 @@ require_root() {
 }
 
 require_tools() {
-	if ! command -v rtl_test >/dev/null 2>&1 || ! command -v rtl_eeprom >/dev/null 2>&1; then
-		echo "aryaos-sdr: rtl-sdr tools not installed (apt install rtl-sdr)" >&2
+	# Enumeration/tasking needs a Soapy enumerator or (legacy) rtl_test.
+	if ! command -v SoapySDRUtil >/dev/null 2>&1 && ! command -v rtl_test >/dev/null 2>&1; then
+		echo "aryaos-sdr: no SDR enumerator (apt install soapysdr-tools or rtl-sdr)" >&2
 		exit 1
 	fi
 }
 
-# rtl_test with an out-of-range index prints the enumeration to stderr and
-# exits without claiming any device:
-#   Found 2 device(s):
-#     0:  Realtek, RTL2838UHIDIR, SN: stx:1090:0
-#     1:  Realtek, RTL2838UHIDIR, SN: stx:978:0
+require_rtl_eeprom() {
+	if ! command -v rtl_eeprom >/dev/null 2>&1; then
+		echo "aryaos-sdr: rtl_eeprom not installed (apt install rtl-sdr) — RTL-SDR only" >&2
+		exit 1
+	fi
+}
+
+# Universal SDR enumeration via SoapySDR — covers every driver with a Soapy
+# module installed (rtlsdr, airspy, hackrf, lms7/LimeSDR, ...), not just RTL, so
+# a DragonEgg with an Airspy/HackRF/Lime is listed too. Each `Found device N`
+# block yields driver + serial + label. Falls back to rtl_test on hosts without
+# SoapySDRUtil. `product`/`vendor` kept (from label) for backward compatibility.
 list_devices() {
-	rtl_test -d 99 2>&1 | python3 -c '
+	if command -v SoapySDRUtil >/dev/null 2>&1; then
+		SoapySDRUtil --find 2>/dev/null | python3 -c '
+import json
+import re
+import sys
+
+devices = []
+cur = None
+for line in sys.stdin:
+    m = re.match(r"\s*Found device (\d+)", line)
+    if m:
+        cur = {"index": int(m.group(1)), "driver": "", "serial": "",
+               "label": "", "product": "", "vendor": ""}
+        devices.append(cur)
+        continue
+    if cur is None:
+        continue
+    km = re.match(r"\s*(driver|serial|label|product|manufacturer)\s*=\s*(.*)$", line.rstrip())
+    if km:
+        key = "vendor" if km.group(1) == "manufacturer" else km.group(1)
+        cur[key] = km.group(2).strip()
+print(json.dumps({"devices": devices}))
+'
+	else
+		# Legacy RTL-only fallback: rtl_test -d 99 lists dongles on stderr.
+		rtl_test -d 99 2>&1 | python3 -c '
 import json
 import re
 import sys
@@ -56,16 +89,19 @@ for line in sys.stdin:
     if m:
         devices.append({
             "index": int(m.group(1)),
+            "driver": "rtlsdr",
             "vendor": m.group(2).strip(),
             "product": m.group(3).strip(),
             "serial": m.group(4).strip(),
         })
 print(json.dumps({"devices": devices}))
 '
+	fi
 }
 
 set_serial() {
 	local index="$1" serial="$2"
+	require_rtl_eeprom  # EEPROM serials are an RTL-SDR concept only.
 	if [[ ! "${index}" =~ ^[0-9]+$ ]]; then
 		echo "aryaos-sdr: INDEX must be a number" >&2
 		exit 2
@@ -125,8 +161,10 @@ share_sdr() {
 			echo "Sharing RTL-SDR ${index} via rtl_tcp on port $((1234 + index))."
 			echo "UNAUTHENTICATED — open the firewall (aryaos-rtltcp) or set AOS_RTLTCP_BIND to a VPN address." ;;
 		soapy)
+			# SoapyRemote exposes ALL local SoapySDR devices (RTL-SDR, Airspy,
+			# HackRF, LimeSDR, ...) — the universal network-share for any SDR.
 			systemctl start aryaos-soapyremote.service
-			echo "Sharing SoapySDR devices via SoapyRemote on :55132 (client: driver=remote)."
+			echo "Sharing all SoapySDR devices (RTL/Airspy/HackRF/Lime) via SoapyRemote on :55132 (client: driver=remote,remote=<host>)."
 			echo "UNAUTHENTICATED — open the firewall (aryaos-soapyremote) or set AOS_SOAPY_BIND to a VPN address." ;;
 		spyserver)
 			if [[ ! -x /usr/bin/spyserver ]]; then
@@ -164,70 +202,113 @@ TASKS_FILE="/etc/aryaos/sdr-tasks"
 
 # rtl_test -d 99 exits non-zero (enumeration-only invocation); capture with a
 # guard so `set -e`/pipefail doesn't abort the caller.
-_serial_for_index() {
+# Look up a field (serial / driver / index) from the enumeration by another.
+_field_for_index() {  # index field
 	local js; js="$(list_devices 2>/dev/null)" || true
 	printf '%s' "${js}" | python3 -c 'import json,sys
-d=json.load(sys.stdin).get("devices",[]); i=int(sys.argv[1])
-print(next((x["serial"] for x in d if x["index"]==i), ""))' "$1"
+d=json.load(sys.stdin).get("devices",[]); i=int(sys.argv[1]); f=sys.argv[2]
+print(next((str(x.get(f,"")) for x in d if x["index"]==i), ""))' "$1" "$2"
 }
+_serial_for_index() { _field_for_index "$1" serial; }
+_driver_for_index() { _field_for_index "$1" driver; }
 _index_for_serial() {
 	local js; js="$(list_devices 2>/dev/null)" || true
 	printf '%s' "${js}" | python3 -c 'import json,sys
 d=json.load(sys.stdin).get("devices",[]); s=sys.argv[1]
 print(next((str(x["index"]) for x in d if x["serial"]==s), ""))' "$1"
 }
-_set_readsb_device() {
+_driver_for_serial() {
+	local js; js="$(list_devices 2>/dev/null)" || true
+	printf '%s' "${js}" | python3 -c 'import json,sys
+d=json.load(sys.stdin).get("devices",[]); s=sys.argv[1]
+print(next((x.get("driver","") for x in d if x["serial"]==s), ""))' "$1"
+}
+
+# readsb device string: native rtlsdr for RTL, else SoapySDR (airspy/hackrf/lime).
+_set_readsb_device() {  # driver serial
 	[[ -f /etc/default/readsb ]] || return 0
-	python3 - /etc/default/readsb "$1" <<'PY'
+	python3 - /etc/default/readsb "$1" "$2" <<'PY'
 import re,sys,pathlib
-f=pathlib.Path(sys.argv[1]); s=sys.argv[2]; t=f.read_text()
-line=f'RECEIVER_OPTIONS="--device-type rtlsdr --device {s}"'
+f=pathlib.Path(sys.argv[1]); driver=sys.argv[2]; serial=sys.argv[3]; t=f.read_text()
+if driver == "rtlsdr":
+    dev=f'--device-type rtlsdr --device {serial}'
+else:
+    dev=f'--device-type soapy --device driver={driver},serial={serial}'
+line=f'RECEIVER_OPTIONS="{dev}"'
 t=re.sub(r'^RECEIVER_OPTIONS=.*$',line,t,count=1,flags=re.M) if re.search(r'^RECEIVER_OPTIONS=',t,re.M) else t.rstrip()+"\n"+line+"\n"
 f.write_text(t)
 PY
 }
 _set_dump978_device() { [[ -f /etc/default/dump978-fa ]] && sed -i "s|serial=[^, \"']*|serial=$1|" /etc/default/dump978-fa || true; }
 
-_start_job() {  # index serial job
-	local index="$1" serial="$2" job="$3"
-	systemctl stop readsb dump1090-fa dump978-fa "ais-catcher-rtl@${index}.service" "aryaos-rtltcp@${index}.service" "aryaos-direwolf@${index}.service" aprscot >/dev/null 2>&1 || true
+# ais-catcher device args: rtl/airspy select by serial (native); other Soapy
+# drivers via the generic SOAPYSDR backend. Read by aryaos-ais-sdr.service.
+_set_ais_device() {  # driver serial
+	local driver="$1" serial="$2" args
+	case "${driver}" in
+		rtlsdr|airspy) args="-d ${serial}" ;;
+		*) args="-gu SOAPYSDR device driver=${driver},serial=${serial}" ;;
+	esac
+	mkdir -p /etc/default
+	printf 'AIS_CATCHER_DEVICE_ARGS="%s"\n' "${args}" > /etc/default/aryaos-ais-sdr
+}
+
+_start_job() {  # driver serial index job
+	local driver="$1" serial="$2" index="$3" job="$4"
+	systemctl stop readsb dump1090-fa dump978-fa aryaos-ais-sdr "ais-catcher-rtl@${index}.service" "aryaos-rtltcp@${index}.service" "aryaos-direwolf@${index}.service" aprscot >/dev/null 2>&1 || true
 	case "${job}" in
-		adsb) _set_readsb_device "${serial}"; systemctl start readsb ;;
-		uat)  _set_dump978_device "${serial}"; systemctl start dump978-fa ;;
-		ais)  systemctl start "ais-catcher-rtl@${index}.service"; systemctl start aiscot >/dev/null 2>&1 || true ;;
-		aprs) systemctl start "aryaos-direwolf@${index}.service"; systemctl start aprscot >/dev/null 2>&1 || true ;;
+		adsb) _set_readsb_device "${driver}" "${serial}"; systemctl start readsb ;;
+		uat)
+			if [[ "${driver}" == "rtlsdr" ]]; then
+				_set_dump978_device "${serial}"; systemctl start dump978-fa
+			else
+				echo "aryaos-sdr: UAT (978 MHz) currently supports RTL-SDR only (device is ${driver})." >&2; return 1
+			fi ;;
+		ais)  _set_ais_device "${driver}" "${serial}"; systemctl start aryaos-ais-sdr; systemctl start aiscot >/dev/null 2>&1 || true ;;
+		aprs)
+			if [[ "${driver}" == "rtlsdr" ]]; then
+				systemctl start "aryaos-direwolf@${index}.service"; systemctl start aprscot >/dev/null 2>&1 || true
+			else
+				echo "aryaos-sdr: APRS on ${driver} needs an FM demod (rx_tools rx_fm); RTL-SDR only for now." >&2; return 1
+			fi ;;
 	esac
 }
 
 task_sdr() {
-	local index="$1" job="$2" serial
+	local index="$1" job="$2" serial driver
 	[[ "${index}" =~ ^[0-9]+$ ]] || { echo "aryaos-sdr: INDEX must be a number" >&2; exit 2; }
 	serial="$(_serial_for_index "${index}")"
-	[[ -n "${serial}" ]] || { echo "aryaos-sdr: no RTL-SDR at index ${index}" >&2; exit 1; }
+	driver="$(_driver_for_index "${index}")"
+	[[ -n "${serial}" ]] || { echo "aryaos-sdr: no SDR at index ${index} (see: aryaos-sdr list)" >&2; exit 1; }
 	case "${job}" in adsb|uat|ais|aprs|off) : ;; *) echo "usage: aryaos-sdr task INDEX {adsb|uat|ais|aprs|off}" >&2; exit 2 ;; esac
 	mkdir -p /etc/aryaos; touch "${TASKS_FILE}"
 	grep -v "^${serial}=" "${TASKS_FILE}" > "${TASKS_FILE}.tmp" 2>/dev/null || true; mv "${TASKS_FILE}.tmp" "${TASKS_FILE}"
 	if [[ "${job}" == "off" ]]; then
-		systemctl stop readsb dump978-fa "ais-catcher-rtl@${index}.service" "aryaos-direwolf@${index}.service" aprscot >/dev/null 2>&1 || true
-		echo "RTL-SDR ${index} (${serial}) idle."
+		systemctl stop readsb dump978-fa aryaos-ais-sdr "ais-catcher-rtl@${index}.service" "aryaos-direwolf@${index}.service" aprscot >/dev/null 2>&1 || true
+		echo "SDR ${index} (${driver}:${serial}) idle."
 		return
 	fi
+	if ! _start_job "${driver}" "${serial}" "${index}" "${job}"; then
+		# Job not supported on this device — do not persist a failing task.
+		grep -v "^${serial}=" "${TASKS_FILE}" > "${TASKS_FILE}.tmp" 2>/dev/null || true; mv "${TASKS_FILE}.tmp" "${TASKS_FILE}"
+		exit 1
+	fi
 	echo "${serial}=${job}" >> "${TASKS_FILE}"
-	_start_job "${index}" "${serial}" "${job}"
 	local note=""
 	[[ ${job} == ais ]] && note=' (162 MHz over-the-air; aiscot -> charontak -> TAK)'
 	[[ ${job} == aprs ]] && note=' (144.39 MHz over-the-air; direwolf -> aprscot -> charontak -> TAK)'
-	echo "RTL-SDR ${index} (${serial}) -> ${job}${note}."
+	echo "SDR ${index} (${driver}:${serial}) -> ${job}${note}."
 }
 
-apply_tasks() {  # boot re-apply: map each persisted serial->current index, start its job
+apply_tasks() {  # boot re-apply: map each persisted serial->current index+driver, start its job
 	[[ -f "${TASKS_FILE}" ]] || return 0
-	local line serial job index
+	local line serial job index driver
 	while IFS='=' read -r serial job; do
 		[[ -n "${serial}" && -n "${job}" ]] || continue
 		index="$(_index_for_serial "${serial}")"
-		[[ -n "${index}" ]] || { echo "aryaos-sdr: tasked dongle ${serial} not present" >&2; continue; }
-		_start_job "${index}" "${serial}" "${job}"
+		driver="$(_driver_for_serial "${serial}")"
+		[[ -n "${index}" ]] || { echo "aryaos-sdr: tasked SDR ${serial} not present" >&2; continue; }
+		_start_job "${driver}" "${serial}" "${index}" "${job}" || true
 	done < "${TASKS_FILE}"
 }
 
