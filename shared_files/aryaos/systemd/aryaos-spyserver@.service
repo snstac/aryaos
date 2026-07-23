@@ -1,0 +1,17 @@
+[Unit]
+Description=AryaOS SpyServer (Airspy) — share RTL-SDR %i over the network
+Documentation=https://airspy.com/quickstart/
+# Started on demand by `aryaos-sdr share %i spyserver`. NOT enabled at boot and the
+# firewall is NOT opened by default (opt-in like aryaos-rtltcp / aryaos-soapyremote) —
+# the SpyServer protocol is UNAUTHENTICATED. The rendered config never lists the box in
+# the public SpyServer directory. Absent unless the proprietary binary was fetched at
+# build (ConditionPathExists guards a no-binary image).
+After=local-fs.target
+ConditionPathExists=/usr/bin/spyserver
+
+[Service]
+Type=simple
+# %i = RTL device index (matches `aryaos-sdr list`). Root for reliable RTL USB access.
+ExecStart=/usr/local/sbin/aryaos-spyserver-run %i
+Restart=on-failure
+RestartSec=3

@@ -192,6 +192,29 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/ais-catcher-rtl@.service" \
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-sdr-tasks.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-sdr-tasks.service"
 
+## SpyServer (Airspy) network sharing (aryaos-sdr share <n> spyserver). Runtime
+## (config template, per-dongle wrapper, unit) always ships; the proprietary
+## spyserver binary is fetched at build (not in apt) and is best-effort — a
+## no-binary image simply reports the mode unavailable (unit ConditionPathExists).
+install -v -D -m 0644 "${SHARED_FILES}/aryaos/spyserver.config.tmpl" \
+	"${ROOTFS_DIR}/usr/share/aryaos/spyserver.config.tmpl"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-spyserver-run" \
+	"${ROOTFS_DIR}/usr/local/sbin/aryaos-spyserver-run"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-spyserver@.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-spyserver@.service"
+# Proprietary binary: aarch64 only. Non-fatal on fetch failure (offline builder,
+# airspy.com down) — the share mode is then unavailable, not a broken build.
+SPYSERVER_URL="${ARYAOS_SPYSERVER_URL:-https://airspy.com/downloads/spyserver-arm64.tgz}"
+SPYSERVER_TMP="$(mktemp -d)"
+if curl -fsSL -m 120 "${SPYSERVER_URL}" -o "${SPYSERVER_TMP}/ss.tgz" 2>/dev/null \
+	&& tar xzf "${SPYSERVER_TMP}/ss.tgz" -C "${SPYSERVER_TMP}" spyserver 2>/dev/null; then
+	install -v -m 0755 "${SPYSERVER_TMP}/spyserver" "${ROOTFS_DIR}/usr/bin/spyserver"
+	echo "AryaOS: installed SpyServer binary from ${SPYSERVER_URL}"
+else
+	echo "AryaOS: WARNING — could not fetch SpyServer (${SPYSERVER_URL}); 'aryaos-sdr share N spyserver' will be unavailable on this image." >&2
+fi
+rm -rf "${SPYSERVER_TMP}"
+
 ## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
 ## the packaged charontak.ini default (source of truth for factory reset).
 install -v -m 0644 "${SHARED_FILES}/aryaos/zram-generator.conf" "${ROOTFS_DIR}/etc/systemd/zram-generator.conf"

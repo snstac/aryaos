@@ -1,0 +1,27 @@
+#!/bin/sh
+# aryaos-spyserver-run INDEX — render a per-dongle SpyServer config and exec spyserver.
+#
+# Invoked by aryaos-spyserver@INDEX.service (started via `aryaos-sdr share N spyserver`).
+# Binds the Airspy SpyServer to RTL-SDR device INDEX on TCP port 5555+INDEX. Bind host
+# defaults to all interfaces; set AOS_SPYSERVER_BIND to pin to a VPN/loopback address.
+# Config is rendered to a tmpfs path each start so a re-task can't leave a stale file.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+set -eu
+
+index="${1:?usage: aryaos-spyserver-run INDEX}"
+case "${index}" in
+	''|*[!0-9]*) echo "aryaos-spyserver-run: INDEX must be a number" >&2; exit 2 ;;
+esac
+
+tmpl="/usr/share/aryaos/spyserver.config.tmpl"
+[ -r "${tmpl}" ] || { echo "aryaos-spyserver-run: missing ${tmpl}" >&2; exit 1; }
+[ -x /usr/bin/spyserver ] || { echo "aryaos-spyserver-run: SpyServer not installed" >&2; exit 1; }
+
+conf="/run/aryaos-spyserver-${index}.config"
+port=$((5555 + index))
+bind="${AOS_SPYSERVER_BIND:-0.0.0.0}"
+
+sed -e "s|@BIND@|${bind}|" -e "s|@PORT@|${port}|" -e "s|@SERIAL@|${index}|" "${tmpl}" > "${conf}"
+exec /usr/bin/spyserver "${conf}"

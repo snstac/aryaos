@@ -11,7 +11,7 @@ a time, so sharing a dongle **stops its decoder** first.
     does **not** open their ports on any zone. Enable a share only on a **trusted
     or VPN** network — open the firewall service deliberately, or bind the server
     to your [VPN](../networking/vpn-tailscale.md) address (`AOS_RTLTCP_BIND` /
-    `AOS_SOAPY_BIND`). Turn it back off when you're done.
+    `AOS_SOAPY_BIND` / `AOS_SPYSERVER_BIND`). Turn it back off when you're done.
 
 ## Servers
 
@@ -19,6 +19,15 @@ a time, so sharing a dongle **stops its decoder** first.
 |---|---|---|---|
 | **rtl_tcp** | RTL-SDR only (per dongle) | `rtl_tcp` host:port (SDR#, GQRX, dump1090…) | `1234 + index` |
 | **SoapyRemote** | any SoapySDR device (RTL / LimeSDR / Airspy / HackRF) | `driver=remote,remote=<host>` (SDR++, SDRangel) | `55132` |
+| **SpyServer** | RTL-SDR (per dongle) | `spyserver://<host>:<port>` (SDR#, SDRangel, SDR++) | `5555 + index` |
+
+!!! note "SpyServer is an optional proprietary component"
+    The Airspy `spyserver` binary is not in Debian; AryaOS fetches it at **build
+    time** from airspy.com. If the builder was offline the mode is unavailable and
+    `aryaos-sdr share N spyserver` reports so (check `share-status` →
+    `"spyserver_available"`). SpyServer streams a *compressed, decimated* slice —
+    lighter on the network than `rtl_tcp`'s raw IQ, and it never advertises the box
+    in the public SpyServer directory (`list_in_directory = 0`).
 
 ## Sharing a dongle
 
@@ -26,6 +35,7 @@ a time, so sharing a dongle **stops its decoder** first.
 aryaos-sdr list                         # find the dongle index
 sudo aryaos-sdr share 0 rtltcp          # RTL-SDR 0 over rtl_tcp on :1234
 sudo aryaos-sdr share 0 soapy           # all SoapySDR devices over SoapyRemote :55132
+sudo aryaos-sdr share 0 spyserver       # RTL-SDR 0 over SpyServer on :5555
 sudo aryaos-sdr share 0 off             # stop sharing (then re-apply a role to decode)
 aryaos-sdr share-status                 # JSON: which share servers are running
 ```
@@ -45,7 +55,7 @@ sudo systemctl edit aryaos-rtltcp@0     # add: [Service]\nEnvironment=AOS_RTLTCP
 attached to no zone):
 
 ```bash
-sudo firewall-cmd --zone=public --add-service=aryaos-rtltcp        # or aryaos-soapyremote
+sudo firewall-cmd --zone=public --add-service=aryaos-rtltcp        # or aryaos-soapyremote / aryaos-spyserver
 # make permanent only if you really want it always-on:
 sudo firewall-cmd --permanent --zone=public --add-service=aryaos-rtltcp
 ```
