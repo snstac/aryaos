@@ -1,0 +1,17 @@
+[Unit]
+Description=AryaOS ais-catcher (RTL mode) — decode AIS from RTL-SDR %i
+Documentation=https://github.com/jvde-github/AIS-catcher
+# Started by `aryaos-sdr task <index> ais` when re-tasking an RTL dongle to AIS.
+# This is the RTL/over-the-air path (ais-catcher auto-tunes the 161.975/162.025
+# MHz AIS channels); the serial dAISy path is unchanged on ais-catcher.service —
+# the two never run on the same input. Feeds aiscot on UDP 5050 (as the serial
+# path does), so the aiscot -> charontak -> TAK chain is identical.
+After=local-fs.target
+
+[Service]
+Type=simple
+# %i = RTL device index. AIS-catcher uses -d:<index> (a bare -d <n> means serial).
+# Root for reliable RTL USB access (admin-tasked service).
+ExecStart=/usr/bin/AIS-catcher -d:%i -u 127.0.0.1 5050 -N 8100
+Restart=on-failure
+RestartSec=3

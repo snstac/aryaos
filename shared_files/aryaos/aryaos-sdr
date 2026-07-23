@@ -21,7 +21,7 @@ SDR_UNITS="readsb dump1090-fa dump978-fa ais-catcher"
 SERIAL_RE='^[A-Za-z0-9:._-]{1,32}$'
 
 usage() {
-	echo "usage: aryaos-sdr {list | set-serial INDEX SERIAL | share INDEX {rtltcp|soapy|off} | share-status}" >&2
+	echo "usage: aryaos-sdr {list | set-serial INDEX SERIAL | task INDEX {adsb|uat|ais|off} | apply-tasks | share INDEX {rtltcp|soapy|off} | share-status}" >&2
 	exit 2
 }
 
@@ -143,11 +143,92 @@ share_status() {
 	printf '{"rtltcp":"%s","soapyremote":"%s"}\n' "${rtltcp}" "${soapy}"
 }
 
+# --- Decoder re-tasking: point a dongle at a different job (adsb/uat/ais). ---
+# Live (takes effect now) + persisted to /etc/aryaos/sdr-tasks (serial=job) so a
+# boot re-apply restores it. Decoders bind the dongle by its current EEPROM
+# serial — no re-serialize/replug. `aryaos-role set` clears tasks (role wins).
+TASKS_FILE="/etc/aryaos/sdr-tasks"
+
+# rtl_test -d 99 exits non-zero (enumeration-only invocation); capture with a
+# guard so `set -e`/pipefail doesn't abort the caller.
+_serial_for_index() {
+	local js; js="$(list_devices 2>/dev/null)" || true
+	printf '%s' "${js}" | python3 -c 'import json,sys
+d=json.load(sys.stdin).get("devices",[]); i=int(sys.argv[1])
+print(next((x["serial"] for x in d if x["index"]==i), ""))' "$1"
+}
+_index_for_serial() {
+	local js; js="$(list_devices 2>/dev/null)" || true
+	printf '%s' "${js}" | python3 -c 'import json,sys
+d=json.load(sys.stdin).get("devices",[]); s=sys.argv[1]
+print(next((str(x["index"]) for x in d if x["serial"]==s), ""))' "$1"
+}
+_set_readsb_device() {
+	[[ -f /etc/default/readsb ]] || return 0
+	python3 - /etc/default/readsb "$1" <<'PY'
+import re,sys,pathlib
+f=pathlib.Path(sys.argv[1]); s=sys.argv[2]; t=f.read_text()
+line=f'RECEIVER_OPTIONS="--device-type rtlsdr --device {s}"'
+t=re.sub(r'^RECEIVER_OPTIONS=.*$',line,t,count=1,flags=re.M) if re.search(r'^RECEIVER_OPTIONS=',t,re.M) else t.rstrip()+"\n"+line+"\n"
+f.write_text(t)
+PY
+}
+_set_dump978_device() { [[ -f /etc/default/dump978-fa ]] && sed -i "s|serial=[^, \"']*|serial=$1|" /etc/default/dump978-fa || true; }
+
+_start_job() {  # index serial job
+	local index="$1" serial="$2" job="$3"
+	systemctl stop readsb dump1090-fa dump978-fa "ais-catcher-rtl@${index}.service" "aryaos-rtltcp@${index}.service" >/dev/null 2>&1 || true
+	case "${job}" in
+		adsb) _set_readsb_device "${serial}"; systemctl start readsb ;;
+		uat)  _set_dump978_device "${serial}"; systemctl start dump978-fa ;;
+		ais)  systemctl start "ais-catcher-rtl@${index}.service"; systemctl start aiscot >/dev/null 2>&1 || true ;;
+	esac
+}
+
+task_sdr() {
+	local index="$1" job="$2" serial
+	[[ "${index}" =~ ^[0-9]+$ ]] || { echo "aryaos-sdr: INDEX must be a number" >&2; exit 2; }
+	serial="$(_serial_for_index "${index}")"
+	[[ -n "${serial}" ]] || { echo "aryaos-sdr: no RTL-SDR at index ${index}" >&2; exit 1; }
+	case "${job}" in adsb|uat|ais|off) : ;; *) echo "usage: aryaos-sdr task INDEX {adsb|uat|ais|off}" >&2; exit 2 ;; esac
+	mkdir -p /etc/aryaos; touch "${TASKS_FILE}"
+	grep -v "^${serial}=" "${TASKS_FILE}" > "${TASKS_FILE}.tmp" 2>/dev/null || true; mv "${TASKS_FILE}.tmp" "${TASKS_FILE}"
+	if [[ "${job}" == "off" ]]; then
+		systemctl stop readsb dump978-fa "ais-catcher-rtl@${index}.service" >/dev/null 2>&1 || true
+		echo "RTL-SDR ${index} (${serial}) idle."
+		return
+	fi
+	echo "${serial}=${job}" >> "${TASKS_FILE}"
+	_start_job "${index}" "${serial}" "${job}"
+	echo "RTL-SDR ${index} (${serial}) -> ${job}$( [[ ${job} == ais ]] && echo ' (162 MHz over-the-air; aiscot -> charontak -> TAK)' )."
+}
+
+apply_tasks() {  # boot re-apply: map each persisted serial->current index, start its job
+	[[ -f "${TASKS_FILE}" ]] || return 0
+	local line serial job index
+	while IFS='=' read -r serial job; do
+		[[ -n "${serial}" && -n "${job}" ]] || continue
+		index="$(_index_for_serial "${serial}")"
+		[[ -n "${index}" ]] || { echo "aryaos-sdr: tasked dongle ${serial} not present" >&2; continue; }
+		_start_job "${index}" "${serial}" "${job}"
+	done < "${TASKS_FILE}"
+}
+
 cmd="${1:-}"
 case "${cmd}" in
 	list)
 		require_tools
 		list_devices
+		;;
+	task)
+		require_root
+		require_tools
+		[[ $# -eq 3 ]] || usage
+		task_sdr "$2" "$3"
+		;;
+	apply-tasks)
+		require_root
+		apply_tasks
 		;;
 	set-serial)
 		require_root

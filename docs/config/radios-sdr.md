@@ -108,9 +108,35 @@ swapping the GPS puck or dAISy for a different make. Re-run by hand with
 `sudo aryaos-serial-assign`. To pin a device manually instead, set `DEVICES`/`SERIAL_PORT`
 yourself and disable `aryaos-serial-assign.service`.
 
+## Re-tasking a dongle
+
+An RTL-SDR is just a wideband receiver — the same dongle can decode ADS-B, UAT,
+or AIS depending on how it's tuned. **Re-task** a dongle to a different job on the
+fly, without a re-serialize or replug:
+
+```bash
+aryaos-sdr list                     # find the dongle index
+sudo aryaos-sdr task 1 ais          # dongle 1 -> AIS over-the-air (162 MHz)
+sudo aryaos-sdr task 1 adsb         # back to ADS-B 1090
+sudo aryaos-sdr task 1 uat          # UAT 978
+sudo aryaos-sdr task 1 off          # idle the dongle
+```
+
+- **`ais`** runs `ais-catcher` in **RTL mode** (a dedicated `ais-catcher-rtl@`
+  unit — the serial dAISy path is untouched) and feeds the same `aiscot →
+  charontak → TAK` chain. It needs a **VHF marine antenna** to hear vessels.
+- The job is **persisted** (`/etc/aryaos/sdr-tasks`) and re-applied at boot,
+  mapping the dongle by serial so it survives enumeration changes.
+- A **role apply** (`aryaos-role set …`) is authoritative and **clears** per-dongle
+  re-tasks.
+
+To hand the dongle to a remote operator instead of decoding locally, see
+[Network SDR sharing](network-sdr.md).
+
 ## See also
 
 - [Device roles](./device-roles.md) — how a role apply switches decoders
 - [Aircraft (ADS-B)](../deploy/air-adsb.md) — deploying the aircraft pipeline
 - [Maritime vessels (AIS)](../deploy/maritime-ais.md) — the AIS pipeline
+- [Network SDR sharing](network-sdr.md) — serve a dongle over the net
 - [CLI helpers](../reference/cli-helpers.md) — `aryaos-sdr`
