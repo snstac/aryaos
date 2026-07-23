@@ -201,6 +201,11 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-sdr-tasks.service" \
 install -v -m 0644 "${SHARED_FILES}/aryaos/direwolf.conf" "${ROOTFS_DIR}/etc/aryaos/direwolf.conf"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-direwolf@.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-direwolf@.service"
+# Stage the aprscot KISS drop-in into the rootfs; stage-aiscot (chroot, where
+# shared_files is not mounted) copies it over /etc/default/aprscot AFTER the
+# aprscot deb lands (so it wins over the deb's APRS-IS default).
+install -v -D -m 0644 "${SHARED_FILES}/aryaos/aprscot.default" \
+	"${ROOTFS_DIR}/usr/share/aryaos/aprscot.default"
 
 ## SpyServer (Airspy) network sharing (aryaos-sdr share <n> spyserver). Runtime
 ## (config template, per-dongle wrapper, unit) always ships; the proprietary

@@ -65,8 +65,7 @@ sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/ar
 # (task-driven) — aprscot must NOT auto-connect to APRS-IS over the internet.
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends direwolf aprscot
 # aprscot reads the local Dire Wolf KISS TNC (offline), not APRS-IS.
-install -v -m 0644 /aryaos/shared_files/aryaos/aprscot.default /etc/default/aprscot 2>/dev/null || \
-	install -v -m 0644 "${SHARED_FILES:-/aryaos/shared_files}/aryaos/aprscot.default" /etc/default/aprscot
+install -v -m 0644 /usr/share/aryaos/aprscot.default /etc/default/aprscot
 # Inherit COT_URL (charontak) from the site config, like aiscot.
 grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aprscot.service || \
 sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" /lib/systemd/system/aprscot.service
