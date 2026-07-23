@@ -166,7 +166,7 @@ for unit in aryaos-crash-guard.service aryaos-safe-mode.service aryaos-boot-stab
 done
 # Safe-mode gate: sensor/SDR services must not start while /etc/aryaos/safe-mode
 # exists (kept in sync with aryaos-safe-mode MANAGED_UNITS / aryaos-role).
-for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot aprscot dronecot sikw00fcot; do
+for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot aprscot dronecot sikw00fcot sapientcot; do
 	install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/safe-mode.conf" \
 		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done
@@ -206,6 +206,13 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-direwolf@.service" \
 # aprscot deb lands (so it wins over the deb's APRS-IS default).
 install -v -D -m 0644 "${SHARED_FILES}/aryaos/aprscot.default" \
 	"${ROOTFS_DIR}/usr/share/aryaos/aprscot.default"
+
+## SAPIENT C-UAS (sapientcot): SAPIENT (BSI Flex 335) DetectionReports -> CoT.
+## sapientcot + its sapient-msg python dep are installed in stage-aiscot (apt +
+## pip). Stage the config into the rootfs; the chroot copies it over
+## /etc/default/sapientcot after the deb lands (same pattern as aprscot.default).
+install -v -D -m 0644 "${SHARED_FILES}/aryaos/sapientcot.default" \
+	"${ROOTFS_DIR}/usr/share/aryaos/sapientcot.default"
 
 ## SpyServer (Airspy) network sharing (aryaos-sdr share <n> spyserver). Runtime
 ## (config template, per-dongle wrapper, unit) always ships; the proprietary

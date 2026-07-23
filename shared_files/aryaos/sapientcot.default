@@ -1,0 +1,15 @@
+# AryaOS sapientcot config — /etc/default/sapientcot
+#
+# sapientcot reads SAPIENT (BSI Flex 335) DetectionReports from a C-UAS Fusion /
+# HLDMM node and forwards them to charontak as CoT. COT_URL is inherited from
+# aryaos-config.txt via the service's EnvironmentFile (charontak -> Mesh SA / TAK).
+#
+# Point SAPIENT_HOST/PORT at your SAPIENT fusion node before enabling. Part of the
+# cuas / multi roles; with no reachable node it simply retries (harmless).
+
+# SAPIENT Fusion/HLDMM node to read from (set this to your C-UAS network).
+SAPIENT_HOST=127.0.0.1
+SAPIENT_PORT=5010
+
+# SAPIENT standard version: v2 (BSI Flex 335 v2.0) or v1.
+SAPIENT_VERSION=v2

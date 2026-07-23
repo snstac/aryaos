@@ -310,6 +310,17 @@ require_path /usr/share/cockpit/aprscot/manifest.json
 require_unit aryaos-direwolf@.service
 require_path /etc/aryaos/direwolf.conf
 require_grep 'KISS_HOST=127.0.0.1' /etc/default/aprscot "aprscot reads local KISS TNC (offline, not APRS-IS)"
+# SAPIENT C-UAS gateway (sapientcot): BSI Flex 335 DetectionReports -> CoT; the
+# sapient-msg protobuf binding is pip-installed (not in Debian apt).
+require_pkg sapientcot
+require_path /etc/default/sapientcot
+require_grep 'SAPIENT_HOST' /etc/default/sapientcot "sapientcot SAPIENT node config"
+if compgen -G "${MNT}/usr/local/lib/python3*/dist-packages/sapient_msg" >/dev/null 2>&1 || \
+   compgen -G "${MNT}/usr/lib/python3*/dist-packages/sapient_msg" >/dev/null 2>&1; then
+	ok "sapient-msg protobuf bindings installed"
+else
+	fail "sapient-msg python bindings not found (pip install in stage-aiscot)"
+fi
 # SpyServer (Airspy) sharing (aryaos-sdr share N spyserver): runtime always ships;
 # config never lists in the public directory. The proprietary binary is a
 # best-effort build-time download, so its presence is NOT asserted here.

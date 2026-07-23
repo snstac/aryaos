@@ -20,7 +20,7 @@ Roles only toggle the **sensor** units on top of that core. This means a unit al
 | `multi` | All pipelines (default) | ADS-B + AIS + drones |
 | `air` | Aircraft only (ADS-B 1090/978) | `<decoder>`, `dump978-fa`, `adsbcot`, `gdltak` |
 | `maritime` | Vessels only (AIS) | `ais-catcher`, `aiscot` |
-| `cuas` | Counter-UAS (drones) | `dronecot`, `sikw00fcot` |
+| `cuas` | Counter-UAS (drones) | `dronecot`, `sikw00fcot`, `sapientcot` |
 | `relay` | CoT routing only | *(none)* |
 
 `<decoder>` is the 1090 MHz decoder chosen by [`ARYAOS_ADSB_DECODER`](./site-config.md#ads-b-radios): `readsb` (default) or `dump1090-fa`.
@@ -31,10 +31,12 @@ The exact unit sets, from `aryaos-role`:
 |-------|-------|
 | ADS-B (`air`, `multi`) | `readsb` **or** `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdltak` |
 | AIS (`maritime`, `multi`) | `ais-catcher`, `aiscot` |
-| Drones (`cuas`, `multi`) | `dronecot`, `sikw00fcot` |
+| Drones / C-UAS (`cuas`, `multi`) | `dronecot`, `sikw00fcot`, `sapientcot` |
 
 !!! note "Units missing from your image are skipped"
-    Applying a role enables the role's units and disables all other managed units. Optional units that are not installed on your image (for example a decoder you did not build) are simply skipped — not errors. The full managed set the helper touches is: `readsb`, `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdltak`, `ais-catcher`, `aiscot`, `dronecot`, `sikw00fcot`.
+    Applying a role enables the role's units and disables all other managed units. Optional units that are not installed on your image (for example a decoder you did not build) are simply skipped — not errors. The full managed set the helper touches is: `readsb`, `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdltak`, `ais-catcher`, `aiscot`, `dronecot`, `sikw00fcot`, `sapientcot`.
+
+    `sapientcot` bridges a [SAPIENT (BSI Flex 335)](https://github.com/snstac/sapientcot) C-UAS sensor/fusion network into TAK. Point `SAPIENT_HOST`/`SAPIENT_PORT` in `/etc/default/sapientcot` at your SAPIENT node; with no reachable node it simply retries.
 
 !!! tip "The unused ADS-B decoder is always disabled"
     Applying a role also disables whichever 1090 MHz decoder you are *not* using. That is why re-applying the role is the way to make a decoder change in the site config take effect — see [Radios & SDRs](./radios-sdr.md).
