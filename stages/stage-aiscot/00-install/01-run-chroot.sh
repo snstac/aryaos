@@ -38,6 +38,12 @@ COCKPIT_SPYSERVER_DEB_URL='https://github.com/snstac/cockpit-spyserver/releases/
 curl -fsSL -o /usr/src/cockpit-spyserver.deb "${COCKPIT_SPYSERVER_DEB_URL}"
 dpkg -i /usr/src/cockpit-spyserver.deb || apt-get install -f -y
 
+# cockpit-aprscot: APRS-to-TAK gateway admin page (manages the aprscot service
+# used by `aryaos-sdr task N aprs`). Same install idiom as the other plugins.
+COCKPIT_APRSCOT_DEB_URL='https://github.com/snstac/cockpit-aprscot/releases/download/v0.1.0/cockpit-aprscot_0.1.0-1_all.deb'
+curl -fsSL -o /usr/src/cockpit-aprscot.deb "${COCKPIT_APRSCOT_DEB_URL}"
+dpkg -i /usr/src/cockpit-aprscot.deb || apt-get install -f -y
+
 # Ensure apt-listchanges stays off before export-image finalise (see stage-base note).
 if dpkg -s apt-listchanges >/dev/null 2>&1; then
 	echo 'apt-listchanges apt-listchanges/frontend select none' | debconf-set-selections

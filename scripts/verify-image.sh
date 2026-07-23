@@ -305,6 +305,8 @@ require_unit aryaos-sdr-tasks.service
 require_grep 'aprs' /usr/local/sbin/aryaos-sdr "aryaos-sdr aprs task job"
 require_pkg direwolf
 require_pkg aprscot
+require_pkg cockpit-aprscot
+require_path /usr/share/cockpit/aprscot/manifest.json
 require_unit aryaos-direwolf@.service
 require_path /etc/aryaos/direwolf.conf
 require_grep 'KISS_HOST=127.0.0.1' /etc/default/aprscot "aprscot reads local KISS TNC (offline, not APRS-IS)"
