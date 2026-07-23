@@ -134,6 +134,15 @@ set_role() {
 	done
 
 	config_set ARYAOS_ROLE "${role}"
+
+	# aryaos-serial-assign only wires the dAISy when ais-catcher is enabled (its
+	# elimination guard). It runs at boot before the role is known, so re-run it
+	# after enabling a role that uses AIS — otherwise selecting maritime/multi
+	# leaves ais-catcher with an empty SERIAL_PORT until the next boot.
+	if [[ " ${wanted} " == *" ais-catcher "* ]] && [[ -x /usr/local/sbin/aryaos-serial-assign ]]; then
+		/usr/local/sbin/aryaos-serial-assign || true
+	fi
+
 	echo "Device role set to '${role}'."
 }
 
