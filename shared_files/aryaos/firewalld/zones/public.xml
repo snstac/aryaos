@@ -27,7 +27,10 @@ Docker's own container forwarding is unaffected (it lives in the docker zone).
   <service name="dhcpv6-client"/>
   <service name="dns"/>
   <service name="aryaos-mesh-sa"/>
-  <service name="aryaos-node-red"/>
+  <!-- Node-RED (:1880) is NOT opened on the LAN: it binds loopback and is reached
+       only via the authenticated HTTPS reverse proxy at /nr (lighttpd). Exposing
+       the flow editor (arbitrary code execution) on the wired LAN is unnecessary
+       attack surface for a field appliance. -->
   <service name="aryaos-ais-catcher"/>
   <!-- aryaos-comitup (9080 onboarding captive portal) is intentionally NOT opened
        on the wired LAN: it is only needed on the onboarding radios (Wi-Fi hotspot +
