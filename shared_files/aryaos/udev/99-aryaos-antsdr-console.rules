@@ -1,0 +1,15 @@
+# AryaOS — AntSDR E200 (alphafox02 DJI DroneID firmware) serial console.
+#
+# The AntSDR's DroneID DATA flows over Ethernet (TCP :52002 -> dronecot). Its
+# USB-serial is the Zynq CONFIG/RECOVERY console, exposed via a CH340 USB-UART
+# (1a86:7523): login root/analog, fw_setenv. This rule pins a stable
+# /dev/antsdr-console symlink for `aryaos-antsdr-console`.
+#
+# GATED (opt-in): 1a86:7523 is a GENERIC CH340, indistinguishable from a
+# CH340-based GPS/dAISy by USB id (these units carry no serial number). To avoid
+# mis-symlinking a GPS on a non-AntSDR box, the rule fires ONLY when the operator
+# has created the marker:
+#     sudo touch /etc/aryaos/antsdr-console.enabled && sudo udevadm trigger
+# On a box with BOTH an AntSDR console and a CH340 GPS, don't use this — pass the
+# device to aryaos-antsdr-console explicitly instead.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", TEST=="/etc/aryaos/antsdr-console.enabled", SYMLINK+="antsdr-console", ENV{ID_MM_DEVICE_IGNORE}="1"

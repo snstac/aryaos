@@ -50,6 +50,19 @@ is_rid_device() {
 	[[ "$vid" == "303a" ]]  # Espressif
 }
 
+# True if this port is the AntSDR's serial console (pinned to /dev/antsdr-console
+# by udev when the operator opts in). The AntSDR console echoes but never emits
+# NMEA, so it must not be swept up as a silent "leftover" and mis-assigned as a
+# dAISy by elimination. Match by resolved device node so the by-id symlink and
+# /dev/antsdr-console are compared fairly.
+is_antsdr_console() {
+	local dev="$1" a b
+	[[ -e /dev/antsdr-console ]] || return 1
+	a="$(readlink -f "$dev" 2>/dev/null)"
+	b="$(readlink -f /dev/antsdr-console 2>/dev/null)"
+	[[ -n "$a" && "$a" == "$b" ]]
+}
+
 # Classify one device: prints "gps:<baud>", "ais:<baud>", "busy", or "" (silent).
 classify() {
 	local dev="$1" b data
@@ -85,6 +98,10 @@ main() {
 	for dev in /dev/serial/by-id/*; do
 		if is_rid_device "$dev"; then
 			log "skip $dev (ESP32 Remote ID receiver — MAVLink, handled by dronecot, not GPS/AIS)"
+			continue
+		fi
+		if is_antsdr_console "$dev"; then
+			log "skip $dev (AntSDR serial console — not a GPS/AIS receiver)"
 			continue
 		fi
 		cls="$(classify "$dev")"

@@ -230,6 +230,12 @@ require_unit sikw00fcot.service
 require_path /etc/systemd/system/dronecot-dronescout.service
 require_grep '/dev/dronescout' /etc/default/dronecot-dronescout "dronecot-dronescout reads the DS101 ESP32-S3 (/dev/dronescout)"
 require_grep '303a' /etc/udev/rules.d/99-aryaos-dronescout.rules "DS101 udev symlink rule present"
+# AntSDR E200 management: console access + DroneID feed health watchdog.
+require_path /usr/local/sbin/aryaos-antsdr-console
+require_path /usr/local/sbin/aryaos-antsdr-health
+require_path /etc/systemd/system/aryaos-antsdr-health.timer
+require_grep '1a86' /etc/udev/rules.d/99-aryaos-antsdr-console.rules "AntSDR console udev rule present"
+require_path /usr/bin/tio
 require_unit gdltak.service
 require_unit lincot.service
 require_unit charontak.service

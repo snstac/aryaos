@@ -75,3 +75,21 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/dronecot-dronescout.default" \
 # the ESP32-S3 CDC port (303a:1001), NOT a CH340 — verified live 2026-07-24.
 install -v -m 0644 "${SHARED_FILES}/aryaos/udev/99-aryaos-dronescout.rules" \
 	"${ROOTFS_DIR}/etc/udev/rules.d/99-aryaos-dronescout.rules"
+
+# AntSDR E200 management: the AntSDR pushes DJI DroneID over Ethernet (:52002 ->
+# dronecot); its CH340 USB-serial is the Zynq config/recovery console (root/analog).
+#  - aryaos-antsdr-console: `tio` wrapper to reach that console from the Pi.
+#  - aryaos-antsdr-health:  observe the DroneID feed (reachable + socket ESTAB),
+#    write /run/aryaos/antsdr-health.json for Cockpit + syslog. Timer-driven.
+#  - 99-aryaos-antsdr-console.rules: opt-in /dev/antsdr-console symlink (gated on
+#    /etc/aryaos/antsdr-console.enabled since 1a86:7523 is a generic CH340).
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-antsdr-console" \
+	"${ROOTFS_DIR}/usr/local/sbin/aryaos-antsdr-console"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-antsdr-health" \
+	"${ROOTFS_DIR}/usr/local/sbin/aryaos-antsdr-health"
+install -v -m 0644 "${SHARED_FILES}/aryaos/udev/99-aryaos-antsdr-console.rules" \
+	"${ROOTFS_DIR}/etc/udev/rules.d/99-aryaos-antsdr-console.rules"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-antsdr-health.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-antsdr-health.service"
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-antsdr-health.timer" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-antsdr-health.timer"
