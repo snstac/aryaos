@@ -224,6 +224,9 @@ require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
 require_unit sikw00fcot.service
+# DroneScout DS101: 2nd dronecot instance (MAVLink Remote ID over serial), opt-in.
+require_path /etc/systemd/system/dronecot-dronescout.service
+require_grep 'serial://' /etc/default/dronecot-dronescout "dronecot-dronescout reads MAVLink serial"
 require_unit gdltak.service
 require_unit lincot.service
 require_unit charontak.service

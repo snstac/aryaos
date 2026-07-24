@@ -1,0 +1,13 @@
+# AryaOS dronecot (DroneScout DS101) config — /etc/default/dronecot-dronescout
+#
+# A BlueMark DroneScout Bridge (DS101) emits detected Remote ID as MAVLink over
+# its USB-serial. dronecot's SerialWorker reads it (OPEN_DRONE_ID_MESSAGE_PACK
+# and, as of dronecot 2.2.3, ADSB_VEHICLE) and forwards to charontak as CoT.
+# COT_URL is inherited from aryaos-config.txt via the service EnvironmentFile.
+#
+# Enable on a box with a DS101:  sudo systemctl enable --now dronecot-dronescout
+# The by-id path is stable for a single CH340; if you have more than one CH340,
+# pin the correct one (ls -l /dev/serial/by-id/).
+
+FEED_URL=serial:///dev/serial/by-id/usb-1a86_USB_Serial-if00-port0:115200
+SENSOR_ID=dronescout
