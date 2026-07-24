@@ -6,10 +6,13 @@ Detect and track drones for counter-UAS (C-UAS) awareness. Select the **`cuas`**
 
 AryaOS builds a C-UAS picture from two complementary detection sources:
 
-- **Remote ID / Open Drone ID** — the FAA-mandated broadcast that compliant drones emit over Wi-Fi/Bluetooth. Decoded by **`dronecot`**.
+- **Remote ID / Open Drone ID** — the FAA-mandated broadcast that compliant drones emit over Wi-Fi/Bluetooth. Decoded by **`dronecot`** (on-board Wi-Fi/BLE, or a dedicated receiver — see below).
 - **DJI DroneID** — DJI's proprietary telemetry, received over the air with an SDR (for example an **AntSDR**) and decoded by **DJICOT**.
 
 `sikw00fcot` additionally converts SiK-radio MAVLink drone telemetry to CoT when you have that link.
+
+!!! info "Dedicated Remote ID receiver: DroneScout DS101"
+    A **BlueMark DroneScout Bridge (DS101)** — a standards-based Remote ID receiver — plugs in over USB-serial and emits detected Remote ID as **MAVLink** (`OPEN_DRONE_ID_MESSAGE_PACK` or `ADSB_VEHICLE`). AryaOS ships a second, opt-in dronecot instance for it, **`dronecot-dronescout`**, that reads the MAVLink serial and feeds the same Charontak hub. Enable it on a DS101 box with `sudo systemctl enable --now dronecot-dronescout` (requires `dronecot` ≥ 2.2.3). This runs alongside the AntSDR/DJI and SiKW00F sources for a multi-source Remote ID picture.
 
 !!! tip "Plug & play by design"
     AirTAK C-UAS is designed to work out of the box: power the device, connect a TAK EUD (ATAK, WinTAK, iTAK) to its Wi-Fi hotspot, and drone tracks flow with no extra configuration. *When in doubt, reboot.*

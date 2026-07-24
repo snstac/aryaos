@@ -1,0 +1,28 @@
+[Unit]
+Description=DroneCOT (DroneScout DS101) — MAVLink Remote ID over serial to TAK
+Documentation=https://github.com/snstac/dronecot
+# A SECOND dronecot instance dedicated to a BlueMark DroneScout Bridge (DS101),
+# which emits detected Remote ID as MAVLink (OPEN_DRONE_ID_MESSAGE_PACK or
+# ADSB_VEHICLE) over its USB-serial (CH340). Runs alongside the AntSDR/DJI
+# dronecot.service and sikw00fcot; all feed the same charontak hub. Off by
+# default (opt-in for a DS101 laydown) — enable with:
+#   sudo systemctl enable --now dronecot-dronescout
+# The ConditionPathExists guards against starting with no serial device present.
+Wants=network.target
+After=network.target local-fs.target
+ConditionPathExists=/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
+
+[Service]
+User=dronecot
+ExecStart=/usr/bin/dronecot
+RuntimeDirectory=dronecot-dronescout
+SyslogIdentifier=dronecot-dronescout
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+EnvironmentFile=/etc/default/dronecot-dronescout
+Type=simple
+Restart=always
+RestartSec=20
+Nice=-1
+
+[Install]
+WantedBy=multi-user.target

@@ -61,3 +61,12 @@ if [[ -f "${ROOTFS_DIR}/lib/systemd/system/dronecot.service" ]]; then
 	grep -qF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/lib/systemd/system/dronecot.service" || \
 		sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=-/etc/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/lib/systemd/system/dronecot.service"
 fi
+
+# DroneScout DS101: a SECOND dronecot instance reading MAVLink Remote ID from the
+# DS101's USB-serial (dronecot >= 2.2.3 handles OpenDroneID packs + ADSB_VEHICLE).
+# Off by default (opt-in for a DS101 laydown; guarded by ConditionPathExists on
+# the serial device). Feeds the same charontak hub as the AntSDR/DJI dronecot.
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/dronecot-dronescout.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/dronecot-dronescout.service"
+install -v -m 0644 "${SHARED_FILES}/aryaos/dronecot-dronescout.default" \
+	"${ROOTFS_DIR}/etc/default/dronecot-dronescout"

@@ -52,5 +52,9 @@ for svc in adsbcot aiscot dronecot sikw00fcot lincot aircot; do
 	install_after_charontak "${svc}"
 done
 
+# The dronecot-dronescout instance (DroneScout DS101) runs as user dronecot and
+# reads MAVLink Remote ID from a USB-serial device — grant serial access.
+usermod -aG dialout dronecot 2>/dev/null || true
+
 systemctl daemon-reload || true
 systemctl enable charontak.service 2>/dev/null || true
