@@ -18,6 +18,11 @@ ConditionPathExists=/sys/class/net/wlan1
 
 [Service]
 User=root
+# Put the adapter into monitor mode BEFORE dronecot starts: dronecot's own
+# set_monitor_mode() doesn't down the iface first (so `iw set type monitor`
+# no-ops on an up iface) nor release it from NetworkManager (which then flaps it
+# down under the sniffer). This helper does the full sequence. Non-fatal.
+ExecStartPre=/usr/local/sbin/aryaos-wifi-monitor ${WIFI_INTERFACE}
 ExecStart=/usr/bin/dronecot
 RuntimeDirectory=dronecot-wifi
 SyslogIdentifier=dronecot-wifi

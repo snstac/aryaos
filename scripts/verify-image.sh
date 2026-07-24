@@ -241,6 +241,8 @@ require_path /usr/bin/tio
 require_path /etc/systemd/system/dronecot-wifi.service
 require_grep 'wifi://' /etc/default/dronecot-wifi "dronecot-wifi captures 802.11 Remote ID"
 require_path /usr/lib/python3/dist-packages/scapy/all.py
+require_path /usr/local/sbin/aryaos-wifi-monitor
+require_grep 'aryaos-wifi-monitor' /etc/systemd/system/dronecot-wifi.service "dronecot-wifi preps monitor mode via ExecStartPre"
 require_unit gdltak.service
 require_unit lincot.service
 require_unit charontak.service
