@@ -70,6 +70,15 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/dronecot-dronescout.service" 
 	"${ROOTFS_DIR}/etc/systemd/system/dronecot-dronescout.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/dronecot-dronescout.default" \
 	"${ROOTFS_DIR}/etc/default/dronecot-dronescout"
+
+# Wi-Fi Remote ID: an opt-in dronecot instance that decodes Open Drone ID from
+# 802.11 (ASTM Beacon + Wi-Fi Alliance NAN) via a monitor-mode adapter (ath9k_htc
+# / Realtek 8821CU). Needs python3-scapy (installed via 00-packages). Off by
+# default — enable on a box with an external monitor-capable Wi-Fi adapter.
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/dronecot-wifi.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/dronecot-wifi.service"
+install -v -m 0644 "${SHARED_FILES}/aryaos/dronecot-wifi.default" \
+	"${ROOTFS_DIR}/etc/default/dronecot-wifi"
 # Pin a stable /dev/dronescout symlink for the DS101's ESP32-S3 USB-serial (its
 # by-id path embeds the per-unit MAC, so it can't be hard-coded). The DS101 is
 # the ESP32-S3 CDC port (303a:1001), NOT a CH340 — verified live 2026-07-24.

@@ -236,6 +236,11 @@ require_path /usr/local/sbin/aryaos-antsdr-health
 require_path /etc/systemd/system/aryaos-antsdr-health.timer
 require_grep '1a86' /etc/udev/rules.d/99-aryaos-antsdr-console.rules "AntSDR console udev rule present"
 require_path /usr/bin/tio
+# Wi-Fi Remote ID: opt-in dronecot instance (802.11 monitor-mode ODID capture).
+# Needs python3-scapy for dronecot's WifiWorker.
+require_path /etc/systemd/system/dronecot-wifi.service
+require_grep 'wifi://' /etc/default/dronecot-wifi "dronecot-wifi captures 802.11 Remote ID"
+require_path /usr/lib/python3/dist-packages/scapy/all.py
 require_unit gdltak.service
 require_unit lincot.service
 require_unit charontak.service

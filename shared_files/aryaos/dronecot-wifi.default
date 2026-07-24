@@ -1,0 +1,21 @@
+# AryaOS dronecot (Wi-Fi Remote ID) config — /etc/default/dronecot-wifi
+#
+# Captures Open Drone ID broadcast over Wi-Fi (ASTM F3411 Beacon + Wi-Fi Alliance
+# NAN) from a MONITOR-MODE adapter and forwards it to charontak as CoT. COT_URL
+# is inherited from aryaos-config.txt via the service EnvironmentFile.
+#
+# Enable on a box with a monitor-capable external Wi-Fi adapter:
+#   sudo systemctl enable --now dronecot-wifi
+#
+# WIFI_INTERFACE: the EXTERNAL adapter (wlan0 is the on-board AP/client radio —
+# do not use it). An Atheros AR9271/ath9k_htc or Realtek 8821CU is ideal. If your
+# adapter enumerates as wlan2, set both WIFI_INTERFACE and FEED_URL accordingly.
+# Use FEED_URL=wireless://wlan1 to also run the BLE (Sniffle) path in one instance.
+# Live-verified 2026-07-24: ath9k_htc (AR9271) decoded a BlueMark DroneBeacon
+# Wi-Fi squawk (ASTM Beacon, ch-hop 1/6/11).
+
+FEED_URL=wifi://wlan1
+WIFI_INTERFACE=wlan1
+WIFI_HOP_CHANNELS=1,6,11
+WIFI_HOP_DWELL=3,1
+SENSOR_ID=wifi-rid

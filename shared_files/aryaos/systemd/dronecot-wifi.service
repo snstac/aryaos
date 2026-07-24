@@ -1,0 +1,32 @@
+[Unit]
+Description=DroneCOT (Wi-Fi Remote ID) — Open Drone ID over 802.11 monitor mode to TAK
+Documentation=https://github.com/snstac/dronecot
+# A dronecot instance that captures Open Drone ID from Wi-Fi (ASTM F3411 Beacon
+# vendor IE + Wi-Fi Alliance NAN) using a MONITOR-MODE adapter — e.g. an Atheros
+# AR9271 (ath9k_htc) or a Realtek 8821CU. Decodes with dronecot's WifiWorker
+# (needs python3-scapy) and feeds the same charontak hub as the AntSDR/DJI and
+# DS101 sources. Off by default (opt-in) — enable on a box with a monitor-capable
+# external Wi-Fi adapter:
+#   sudo systemctl enable --now dronecot-wifi
+# Runs as root: monitor-mode setup (iw) and L2 capture need CAP_NET_ADMIN/RAW.
+# Targets wlan1 by default (wlan0 is the on-board AP/client radio) — override
+# WIFI_INTERFACE + FEED_URL in /etc/default/dronecot-wifi if it enumerates
+# differently. ConditionPathExists guards against starting with no adapter.
+Wants=network.target
+After=network.target
+ConditionPathExists=/sys/class/net/wlan1
+
+[Service]
+User=root
+ExecStart=/usr/bin/dronecot
+RuntimeDirectory=dronecot-wifi
+SyslogIdentifier=dronecot-wifi
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+EnvironmentFile=/etc/default/dronecot-wifi
+Type=simple
+Restart=always
+RestartSec=20
+Nice=-1
+
+[Install]
+WantedBy=multi-user.target
