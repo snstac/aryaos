@@ -40,6 +40,16 @@ wait_for_serial() {
 	return 0
 }
 
+# True for an ESP32-based Remote ID receiver (BlueMark DroneScout DS101 /
+# DroneBeacon, SiKW00F) — these speak binary MAVLink, never NMEA, so they must
+# NOT be probed or assigned as a GPS/dAISy (they'd otherwise be swept up as a
+# silent "leftover" and mis-assigned by elimination). dronecot handles them.
+is_rid_device() {
+	local dev="$1" vid
+	vid="$(udevadm info -q property -n "$dev" 2>/dev/null | sed -n 's/^ID_VENDOR_ID=//p')"
+	[[ "$vid" == "303a" ]]  # Espressif
+}
+
 # Classify one device: prints "gps:<baud>", "ais:<baud>", "busy", or "" (silent).
 classify() {
 	local dev="$1" b data
@@ -73,6 +83,10 @@ main() {
 
 	shopt -s nullglob
 	for dev in /dev/serial/by-id/*; do
+		if is_rid_device "$dev"; then
+			log "skip $dev (ESP32 Remote ID receiver — MAVLink, handled by dronecot, not GPS/AIS)"
+			continue
+		fi
 		cls="$(classify "$dev")"
 		case "$cls" in
 			busy)  log "skip $dev (held by a running service)";;

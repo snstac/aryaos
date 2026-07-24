@@ -225,8 +225,11 @@ require_unit aiscot.service
 require_unit dronecot.service
 require_unit sikw00fcot.service
 # DroneScout DS101: 2nd dronecot instance (MAVLink Remote ID over serial), opt-in.
+# The DS101 is an ESP32-S3 (303a:1001) pinned to /dev/dronescout by udev, NOT a
+# CH340 — verified live 2026-07-24 against a DroneBeacon DB120.
 require_path /etc/systemd/system/dronecot-dronescout.service
-require_grep 'serial://' /etc/default/dronecot-dronescout "dronecot-dronescout reads MAVLink serial"
+require_grep '/dev/dronescout' /etc/default/dronecot-dronescout "dronecot-dronescout reads the DS101 ESP32-S3 (/dev/dronescout)"
+require_grep '303a' /etc/udev/rules.d/99-aryaos-dronescout.rules "DS101 udev symlink rule present"
 require_unit gdltak.service
 require_unit lincot.service
 require_unit charontak.service
