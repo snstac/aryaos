@@ -82,7 +82,13 @@ ts="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo unknown)"
 json="{\"status\":\"${status}\",\"antsdr_ip\":\"${ANTSDR_IP}\",\"feed_port\":${PORT},\"reachable\":${reachable},\"feed_established\":${feed},\"ts\":\"${ts}\"}"
 
 mkdir -p "${RUN_DIR}" 2>/dev/null
-printf '%s\n' "${json}" > "${STATE_FILE}" 2>/dev/null
+# Best-effort state file for Cockpit. Guard the write so a NON-root invocation
+# (e.g. Cockpit's superuser:"try" falling back to the session user) can't emit a
+# shell redirection error — the root-run timer keeps this file fresh regardless,
+# and the JSON is still returned on stdout for the caller either way.
+if [ -w "${RUN_DIR}" ] || [ -w "${STATE_FILE}" ]; then
+	printf '%s\n' "${json}" > "${STATE_FILE}" 2>/dev/null || true
+fi
 
 if [[ "${quiet}" != 1 && "${status}" != "${prev}" ]]; then
 	case "${status}" in
