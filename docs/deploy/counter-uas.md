@@ -12,7 +12,7 @@ AryaOS builds a C-UAS picture from two complementary detection sources:
 `sikw00fcot` additionally converts SiK-radio MAVLink drone telemetry to CoT when you have that link.
 
 !!! info "Dedicated Remote ID receiver: DroneScout DS101"
-    A **BlueMark DroneScout Bridge (DS101)** — a standards-based Remote ID receiver — plugs in over USB-serial and emits detected Remote ID as **MAVLink** (`OPEN_DRONE_ID_MESSAGE_PACK` or `ADSB_VEHICLE`). AryaOS ships a second, opt-in dronecot instance for it, **`dronecot-dronescout`**, that reads the MAVLink serial and feeds the same Charontak hub. Enable it on a DS101 box with `sudo systemctl enable --now dronecot-dronescout` (requires `dronecot` ≥ 2.2.3). This runs alongside the AntSDR/DJI and SiKW00F sources for a multi-source Remote ID picture.
+    A **BlueMark DroneScout DS101 / DroneBeacon** — a standards-based Remote ID receiver — plugs in over USB-serial and emits detected Remote ID as **MAVLink** (`OPEN_DRONE_ID_MESSAGE_PACK` or `ADSB_VEHICLE`). It is an **ESP32-S3** device; AryaOS pins it to a stable `/dev/dronescout` symlink (its per-unit serial path is not portable) and ships a second, opt-in dronecot instance, **`dronecot-dronescout`**, that reads it and feeds the same Charontak hub. Enable it on a DS101 box with `sudo systemctl enable --now dronecot-dronescout` (requires `dronecot` ≥ 2.2.3). It runs alongside the AntSDR/DJI source for a multi-source Remote ID picture. *(Live-verified against a DroneBeacon DB120.)*
 
 !!! tip "Plug & play by design"
     AirTAK C-UAS is designed to work out of the box: power the device, connect a TAK EUD (ATAK, WinTAK, iTAK) to its Wi-Fi hotspot, and drone tracks flow with no extra configuration. *When in doubt, reboot.*
@@ -65,6 +65,24 @@ flowchart LR
 ```
 
 Each detector emits CoT to the Charontak hub at `udp+wo://127.0.0.1:28087`; Charontak forwards to Mesh SA and any [TAK Server lanes](./connect-tak-server.md).
+
+## Manage the AntSDR
+
+An **AntSDR E200** running the [alphafox02 DJI DroneID firmware](https://github.com/alphafox02/antsdr_dji_droneid) detects DJI OcuSync DroneID and **pushes it to `dronecot` over point-to-point Ethernet** (TCP `172.31.100.1:52002`). That Ethernet link is the data path; the AntSDR's **USB-serial is its Zynq config/recovery console, not a data feed**.
+
+- **Health at a glance.** AryaOS polls the feed every 30 s (`aryaos-antsdr-health`) and, when an AntSDR is present, shows an **AntSDR (DJI DroneID)** card in Cockpit: green when the feed socket is established, amber when the SDR is reachable but silent (normal with no DJI drone in range; otherwise the firmware may have stalled). The card is hidden on boxes with no AntSDR. Check it by hand any time:
+
+    ```bash
+    aryaos-antsdr-health --json
+    ```
+
+- **Console access.** To configure the SDR (e.g. `fw_setenv` to change its IP) or recover a wedged unit without a second computer, open its console from the Pi:
+
+    ```bash
+    aryaos-antsdr-console          # login: root / analog — quit tio with Ctrl-t q
+    ```
+
+    On an AntSDR box, pin a stable `/dev/antsdr-console` first with `sudo touch /etc/aryaos/antsdr-console.enabled && sudo udevadm trigger` (the console adapter is a generic CH340, so this symlink is opt-in to avoid clashing with a CH340-based GPS).
 
 ## Verify tracks
 

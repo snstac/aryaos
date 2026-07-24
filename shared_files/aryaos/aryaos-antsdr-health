@@ -1,0 +1,99 @@
+#!/bin/bash
+# aryaos-antsdr-health — observe the AntSDR E200 DJI DroneID feed and report health.
+#
+# An AntSDR running the alphafox02 antsdr_dji_droneid firmware detects DJI
+# OcuSync DroneID and PUSHES it over point-to-point Ethernet to dronecot's DJI
+# listener (TCP, default 172.31.100.1:52002). This tool checks that path is
+# healthy — the SDR is reachable and the feed socket is ESTABLISHED — and writes
+# a small JSON status for Cockpit plus a syslog line. It is OBSERVABILITY ONLY:
+# it never restarts or reconfigures anything, so it cannot disrupt a live feed.
+#
+# Usage:
+#   aryaos-antsdr-health            # evaluate, write /run/aryaos/antsdr-health.json, log
+#   aryaos-antsdr-health --json     # same, also print the JSON to stdout
+#   aryaos-antsdr-health --quiet    # no syslog line (for tight Cockpit polling)
+#
+# Config (optional, via /etc/default/dronecot): DJI_BIND_ADDRESS (Pi side),
+# DJI_TCP_PORT (feed port). The AntSDR peer is derived as the .2 host on the Pi's
+# point-to-point /24 unless ANTSDR_IP is set in /etc/default/aryaos-antsdr.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -uo pipefail
+
+RUN_DIR="/run/aryaos"
+STATE_FILE="${RUN_DIR}/antsdr-health.json"
+
+PORT=52002
+BIND="172.31.100.1"
+[[ -r /etc/default/dronecot ]] && . <(grep -E '^(DJI_TCP_PORT|DJI_BIND_ADDRESS)=' /etc/default/dronecot 2>/dev/null | sed 's/^/export /') 2>/dev/null || true
+[[ -n "${DJI_TCP_PORT:-}" ]] && PORT="${DJI_TCP_PORT}"
+[[ -n "${DJI_BIND_ADDRESS:-}" ]] && BIND="${DJI_BIND_ADDRESS}"
+
+# AntSDR peer: explicit override, else the .2 host of the Pi's /24 link net.
+ANTSDR_IP="${ANTSDR_IP:-}"
+[[ -r /etc/default/aryaos-antsdr ]] && . <(grep -E '^ANTSDR_IP=' /etc/default/aryaos-antsdr 2>/dev/null | sed 's/^/export /') 2>/dev/null || true
+if [[ -z "${ANTSDR_IP}" ]]; then
+	ANTSDR_IP="${BIND%.*}.2"
+fi
+
+quiet=0; want_json=0
+for a in "$@"; do
+	case "$a" in
+		--quiet) quiet=1;;
+		--json)  want_json=1;;
+	esac
+done
+
+# 1) Is the AntSDR reachable on the link? (neigh cache first — no traffic; then a
+#    single short ping as a fallback probe.)
+reachable=false
+neigh="$(ip neigh show "${ANTSDR_IP}" 2>/dev/null)"
+if grep -qiE 'REACHABLE|STALE|DELAY|PROBE' <<<"${neigh}"; then
+	reachable=true
+elif ping -c1 -W1 "${ANTSDR_IP}" >/dev/null 2>&1; then
+	reachable=true
+fi
+
+# 2) Is the DroneID feed socket ESTABLISHED (dronecot <- AntSDR on PORT)?
+feed=false
+if ss -tnH state established "( sport = :${PORT} )" 2>/dev/null | grep -q "${ANTSDR_IP}:"; then
+	feed=true
+elif ss -tnH state established "( dport = :${PORT} )" 2>/dev/null | grep -q "${ANTSDR_IP}:"; then
+	feed=true
+fi
+
+if $feed; then
+	status="ok"
+elif $reachable; then
+	status="degraded"   # SDR is up but not pushing DroneID (idle if no DJI drone, or app stalled)
+else
+	status="down"       # SDR not reachable on the link
+fi
+
+# Log only on a state CHANGE so the 30s timer never spams syslog — a box with no
+# AntSDR logs "down" once, not every cycle. (Read the prior status before we
+# overwrite the state file.)
+prev=""
+[[ -r "${STATE_FILE}" ]] && prev="$(sed -n 's/.*"status":"\([a-z]*\)".*/\1/p' "${STATE_FILE}" 2>/dev/null)"
+
+ts="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo unknown)"
+json="{\"status\":\"${status}\",\"antsdr_ip\":\"${ANTSDR_IP}\",\"feed_port\":${PORT},\"reachable\":${reachable},\"feed_established\":${feed},\"ts\":\"${ts}\"}"
+
+mkdir -p "${RUN_DIR}" 2>/dev/null
+printf '%s\n' "${json}" > "${STATE_FILE}" 2>/dev/null
+
+if [[ "${quiet}" != 1 && "${status}" != "${prev}" ]]; then
+	case "${status}" in
+		ok)       logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} OK — DroneID feed established on :${PORT}" 2>/dev/null || true;;
+		degraded) logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} reachable but NO DroneID feed on :${PORT} (idle if no DJI drone, or firmware stalled)" 2>/dev/null || true;;
+		down)     logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} not present on the link (${BIND%.*}.0/24) — expected if this box has no AntSDR" 2>/dev/null || true;;
+	esac
+fi
+
+[[ "${want_json}" == 1 ]] && printf '%s\n' "${json}"
+
+# Always succeed: this is a status reporter, not a fault. Callers read "status"
+# from the JSON (ok | degraded | down); Cockpit surfaces it.
+exit 0

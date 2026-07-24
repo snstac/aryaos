@@ -1,0 +1,57 @@
+#!/bin/bash
+# aryaos-antsdr-console — open the AntSDR E200 serial console from the Pi.
+#
+# The AntSDR (alphafox02 antsdr_dji_droneid firmware) pushes DJI DroneID over
+# Ethernet (TCP :52002 -> dronecot). Its USB-serial (a CH340) is NOT a data feed
+# — it is the Zynq config/recovery CONSOLE: login "root" / "analog", used to set
+# U-Boot env with fw_setenv (e.g. the SDR's IP) or to recover a wedged unit.
+#
+# Usage:
+#   aryaos-antsdr-console [DEVICE] [BAUD]
+# DEVICE defaults to /dev/antsdr-console (the udev symlink, present when the
+# AntSDR-console opt-in marker exists — see /etc/aryaos/antsdr-console.enabled),
+# falling back to autodetect of a CH340 that is not emitting NMEA. BAUD=115200.
+#
+# Quit tio with Ctrl-t q.  Copyright Sensors & Signals LLC — Apache-2.0
+
+set -uo pipefail
+BAUD="${2:-115200}"
+DEV="${1:-}"
+
+is_nmea() {  # true if the port streams NMEA (a GPS/dAISy, NOT the AntSDR console)
+	local d="$1" data
+	stty -F "$d" 9600 raw -echo >/dev/null 2>&1 || return 1
+	data="$(timeout 2 cat "$d" 2>/dev/null | head -c 256)"
+	grep -qE '\$G[PNLA]|!AI(VDM|VDO)' <<<"${data}"
+}
+
+if [[ -z "${DEV}" ]]; then
+	if [[ -e /dev/antsdr-console ]]; then
+		DEV="/dev/antsdr-console"
+	else
+		# Autodetect: a CH340 (1a86:7523) that is not spewing NMEA.
+		for cand in /dev/ttyUSB*; do
+			[[ -e "$cand" ]] || continue
+			vid="$(udevadm info -q property -n "$cand" 2>/dev/null | sed -n 's/^ID_VENDOR_ID=//p')"
+			[[ "$vid" == "1a86" ]] || continue
+			if ! is_nmea "$cand"; then DEV="$cand"; break; fi
+		done
+	fi
+fi
+
+if [[ -z "${DEV}" || ! -e "${DEV}" ]]; then
+	echo "aryaos-antsdr-console: no AntSDR console found." >&2
+	echo "  Pass the device explicitly (see: ls -l /dev/serial/by-id/), e.g.:" >&2
+	echo "    aryaos-antsdr-console /dev/ttyUSB0" >&2
+	echo "  To pin a stable /dev/antsdr-console symlink on an AntSDR box:" >&2
+	echo "    sudo touch /etc/aryaos/antsdr-console.enabled && sudo udevadm trigger" >&2
+	exit 1
+fi
+
+if ! command -v tio >/dev/null 2>&1; then
+	echo "aryaos-antsdr-console: 'tio' not installed; try: picocom -b ${BAUD} ${DEV}" >&2
+	exit 1
+fi
+
+echo "aryaos-antsdr-console: ${DEV} @ ${BAUD}  (login: root / analog — quit tio: Ctrl-t q)" >&2
+exec tio -b "${BAUD}" "${DEV}"

@@ -1,0 +1,12 @@
+[Unit]
+Description=AryaOS AntSDR DroneID feed health check (observability only)
+Documentation=https://github.com/alphafox02/antsdr_dji_droneid
+# Evaluates AntSDR reachability + the dronecot DroneID feed socket, writes
+# /run/aryaos/antsdr-health.json for Cockpit, and logs to syslog. Does NOT
+# restart or reconfigure anything. Driven by aryaos-antsdr-health.timer.
+ConditionPathExists=/usr/local/sbin/aryaos-antsdr-health
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/aryaos-antsdr-health
+Nice=5

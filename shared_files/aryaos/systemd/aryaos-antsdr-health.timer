@@ -1,0 +1,13 @@
+[Unit]
+Description=Periodic AryaOS AntSDR DroneID feed health check
+Documentation=https://github.com/alphafox02/antsdr_dji_droneid
+
+[Timer]
+# First check shortly after boot, then every 30s. Cheap: a neigh-cache lookup and
+# an ss socket query; a ping only as a reachability fallback.
+OnBootSec=45
+OnUnitActiveSec=30
+AccuracySec=5
+
+[Install]
+WantedBy=timers.target
