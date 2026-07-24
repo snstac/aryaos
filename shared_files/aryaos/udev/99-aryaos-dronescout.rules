@@ -1,0 +1,15 @@
+# AryaOS — BlueMark DroneScout DS101 / DroneBeacon Remote ID receiver.
+#
+# These present as an ESP32-S3 native USB CDC-ACM device — udev names it
+# "Espressif USB JTAG/serial debug unit" (VID:PID 303a:1001). The stable
+# /dev/serial/by-id/ path embeds the module's per-unit MAC, so it cannot be
+# hard-coded in a shipped image. This rule pins a stable /dev/dronescout symlink
+# for the (opt-in) dronecot-dronescout instance to consume, and keeps
+# ModemManager off the port.
+#
+# CAVEAT: 303a:1001 is the GENERIC ESP32-S3 native-USB id, shared by ANY ESP32-S3
+# board (including a SiKW00F). On a box carrying more than one ESP32-S3, this
+# symlink is ambiguous — disambiguate by the per-unit serial and point
+# dronecot-dronescout's FEED_URL at the specific /dev/serial/by-id/... path
+# instead (see `ls -l /dev/serial/by-id/`).
+SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="1001", SYMLINK+="dronescout", ENV{ID_MM_DEVICE_IGNORE}="1"
