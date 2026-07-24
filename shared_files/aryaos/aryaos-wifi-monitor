@@ -1,0 +1,42 @@
+#!/bin/bash
+# aryaos-wifi-monitor — put a Wi-Fi adapter into monitor mode for dronecot-wifi.
+#
+# dronecot's WifiSniffer.set_monitor_mode() runs `iw set type monitor` WITHOUT
+# bringing the interface down first (so it silently no-ops on an up interface)
+# and does NOT release the adapter from NetworkManager (so NM flaps it down under
+# the scapy sniffer → "[Errno 100] Network is down"). This helper does the full,
+# correct sequence as an ExecStartPre so the packaged WifiWorker starts on a
+# stable monitor interface. Idempotent and non-fatal (never blocks startup).
+#
+# Live-verified 2026-07-24 on an Atheros AR9271 (ath9k_htc): after this prep a
+# raw capture saw 821 frames / 10 ODID frames from a live squawk.
+#
+# Usage: aryaos-wifi-monitor <iface> [channel]
+# Copyright Sensors & Signals LLC https://www.snstac.com/  — Apache-2.0
+
+set -u
+IF="${1:-wlan1}"
+CH="${2:-6}"
+
+[ -e "/sys/class/net/${IF}" ] || { echo "aryaos-wifi-monitor: ${IF} not present" >&2; exit 0; }
+
+# 1) Release from NetworkManager so it stops managing/flapping the adapter.
+if command -v nmcli >/dev/null 2>&1; then
+	nmcli dev set "${IF}" managed no 2>/dev/null || true
+fi
+# 2) Kill any wpa_supplicant holding the iface (managed-mode client).
+pkill -f "wpa_supplicant.*${IF}" 2>/dev/null || true
+
+# 3) down -> monitor -> up -> channel. `set monitor none` works on ath9k_htc and
+#    most drivers; fall back to `set type monitor`. Interface MUST be down first.
+ip link set "${IF}" down 2>/dev/null || true
+iw dev "${IF}" set monitor none 2>/dev/null || iw dev "${IF}" set type monitor 2>/dev/null || true
+ip link set "${IF}" up 2>/dev/null || true
+iw dev "${IF}" set channel "${CH}" 2>/dev/null || true
+
+if iw dev "${IF}" info 2>/dev/null | grep -qi "type monitor"; then
+	echo "aryaos-wifi-monitor: ${IF} in monitor mode (ch ${CH})"
+else
+	echo "aryaos-wifi-monitor: ${IF} monitor-mode prep attempted (driver may not support monitor)" >&2
+fi
+exit 0

@@ -79,6 +79,10 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/dronecot-wifi.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/dronecot-wifi.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/dronecot-wifi.default" \
 	"${ROOTFS_DIR}/etc/default/dronecot-wifi"
+# Monitor-mode prep helper (dronecot's own set_monitor_mode doesn't down the
+# iface first nor release it from NetworkManager) — used as ExecStartPre.
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-wifi-monitor" \
+	"${ROOTFS_DIR}/usr/local/sbin/aryaos-wifi-monitor"
 # Pin a stable /dev/dronescout symlink for the DS101's ESP32-S3 USB-serial (its
 # by-id path embeds the per-unit MAC, so it can't be hard-coded). The DS101 is
 # the ESP32-S3 CDC port (303a:1001), NOT a CH340 — verified live 2026-07-24.
