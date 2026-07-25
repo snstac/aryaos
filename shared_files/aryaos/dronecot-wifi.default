@@ -19,3 +19,10 @@ WIFI_INTERFACE=wlan1
 WIFI_HOP_CHANNELS=1,6,11
 WIFI_HOP_DWELL=3,1
 SENSOR_ID=wifi-rid
+
+# SIGINT / receiver detail carried in the CoT payload (dronecot >= 2.2.5):
+# SENSOR_TYPE = detection method/capability; SENSOR_MODEL = receiver hardware.
+# SENSOR_MODEL is auto-updated by aryaos-wifi-monitor (ExecStartPre) to the
+# detected adapter (e.g. "Atheros AR9271"); the value below is the fallback.
+SENSOR_TYPE=Wi-Fi Open Drone ID
+SENSOR_MODEL=Wi-Fi monitor adapter

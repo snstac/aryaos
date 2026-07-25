@@ -10,7 +10,31 @@ import time
 import xml.etree.ElementTree as ET
 
 
-SERVICES = ("charontak", "lincot", "adsbcot", "aiscot", "dronecot")
+SERVICES = (
+    "charontak",
+    "lincot",
+    "adsbcot",
+    "aiscot",
+    "dronecot",
+    "dronecot-wifi",
+    "dronecot-dronescout",
+    "sapientcot",
+)
+
+SITE_CONFIG = "/etc/aryaos/aryaos-config.txt"
+DEFAULT_PRODUCT = "DragonEgg"
+
+# Capability key -> (human label, capability unit, default sensor description).
+# Mirrors the capability registry in aryaos-role.
+CAPABILITIES = {
+    "adsb": ("ADS-B / UAT", "adsbcot", "RTL-SDR / SoapySDR receiver"),
+    "ais": ("AIS", "aiscot", "AIS receiver"),
+    "dji": ("DJI DroneID", "dronecot", "AntSDR (DJI OcuSync)"),
+    "wifi-rid": ("Wi-Fi Remote ID", "dronecot-wifi", "Wi-Fi monitor-mode adapter"),
+    "ds101": ("DroneScout DS101", "dronecot-dronescout", "BlueMark DS101 (OpenDroneID)"),
+    "sik": ("SiK Telemetry", "sikw00fcot", "SiK radio"),
+    "sapient": ("SAPIENT C-UAS", "sapientcot", "SAPIENT sensor (BSI Flex 335)"),
+}
 
 
 def _read(path: str) -> str:
@@ -107,15 +131,64 @@ def _roles() -> dict[str, str]:
     return {
         "adsb": str(_service_state("adsbcot") == "active").lower(),
         "ais": str(_service_state("aiscot") == "active").lower(),
-        "uas": str(_service_state("dronecot") == "active").lower(),
+        "uas": str(
+            _service_state("dronecot") == "active"
+            or _service_state("dronecot-wifi") == "active"
+            or _service_state("dronecot-dronescout") == "active"
+        ).lower(),
     }
+
+
+def _config(key: str) -> str:
+    """Read a KEY="value" from the AryaOS site config."""
+    for line in _read(SITE_CONFIG).splitlines():
+        line = line.strip()
+        if line.startswith(f"{key}="):
+            return line.split("=", 1)[1].strip().strip("\"'")
+    return ""
+
+
+def _wifi_adapter() -> str:
+    """Best-effort model of the attached Wi-Fi monitor adapter (for wifi-rid)."""
+    lsusb = _run(["/usr/bin/lsusb"], timeout=1.0)
+    for line in lsusb.splitlines():
+        low = line.lower()
+        if "ar9271" in low or ("atheros" in low and "802.11" in low):
+            return "Atheros AR9271"
+        if "8812" in low or "8814" in low or "8821" in low or "realtek" in low and "wlan" in low:
+            return "Realtek Wi-Fi adapter"
+    return ""
+
+
+def _capabilities() -> list[dict[str, str]]:
+    """Active capabilities from site config, with label + live state + sensor."""
+    caps = _config("ARYAOS_CAPABILITIES").replace(",", " ").split()
+    out: list[dict[str, str]] = []
+    for key in caps:
+        label, unit, sensor = CAPABILITIES.get(key, (key, "", ""))
+        if key == "wifi-rid":
+            sensor = _wifi_adapter() or sensor
+        out.append(
+            {
+                "key": key,
+                "label": label,
+                "active": str(bool(unit) and _service_state(unit) == "active").lower(),
+                "sensor": sensor,
+            }
+        )
+    return out
 
 
 def main() -> int:
     hostname = socket.gethostname().split(".", 1)[0]
     load1, load5, load15 = _loadavg()
 
-    root = ET.Element("__aryaos", {"version": "1"})
+    root = ET.Element("__aryaos", {"version": "2"})
+    ET.SubElement(
+        root,
+        "product",
+        {"line": _config("ARYAOS_PRODUCT") or DEFAULT_PRODUCT},
+    )
     ET.SubElement(
         root,
         "host",
@@ -144,7 +217,13 @@ def main() -> int:
     )
     services = ET.SubElement(root, "services")
     for svc in SERVICES:
-        services.set(svc, _service_state(svc))
+        # XML attribute names can't contain '-'; normalize for the services map.
+        services.set(svc.replace("-", "_"), _service_state(svc))
+    # Advertised capabilities (what this box can receive), plus the legacy
+    # <roles> block for older neighbor caches.
+    caps_el = ET.SubElement(root, "capabilities")
+    for cap in _capabilities():
+        ET.SubElement(caps_el, "capability", cap)
     ET.SubElement(root, "roles", _roles())
     print(ET.tostring(root, encoding="unicode", short_empty_elements=True))
     return 0

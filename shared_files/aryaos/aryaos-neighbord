@@ -37,6 +37,14 @@ def _child_attrs(parent: ET.Element, name: str) -> dict[str, str]:
     return {}
 
 
+def _capabilities(parent: ET.Element) -> list[dict[str, str]]:
+    """Parse the <capabilities><capability .../></capabilities> block (beacon v2)."""
+    for child in parent:
+        if _strip_ns(child.tag) == "capabilities":
+            return [dict(c.attrib) for c in child if _strip_ns(c.tag) == "capability"]
+    return []
+
+
 def _aryaos_detail(root: ET.Element) -> ET.Element | None:
     detail = None
     for child in root:
@@ -211,6 +219,8 @@ def _parse_event(data: bytes, source_ip: str) -> tuple[str, dict] | None:
     system = _child_attrs(aryaos, "system")
     services = _child_attrs(aryaos, "services")
     roles = _child_attrs(aryaos, "roles")
+    product = _child_attrs(aryaos, "product")
+    capabilities = _capabilities(aryaos)
     point = _point(root)
     name = host.get("name") or root.attrib.get("uid") or source_ip
     now = int(time.time())
@@ -225,6 +235,8 @@ def _parse_event(data: bytes, source_ip: str) -> tuple[str, dict] | None:
         "system": system,
         "services": services,
         "roles": roles,
+        "product": product,
+        "capabilities": capabilities,
         "point": point,
     }
     return name, item

@@ -34,6 +34,27 @@ iw dev "${IF}" set monitor none 2>/dev/null || iw dev "${IF}" set type monitor 2
 ip link set "${IF}" up 2>/dev/null || true
 iw dev "${IF}" set channel "${CH}" 2>/dev/null || true
 
+# 4) Record the detected adapter model in the dronecot-wifi env so the CoT
+#    payload's SIGINT/sensor detail reflects the real receiver hardware.
+DEF="/etc/default/dronecot-wifi"
+if [ -w "${DEF}" ] || [ -w "$(dirname "${DEF}")" ]; then
+	drv="$(basename "$(readlink -f "/sys/class/net/${IF}/device/driver" 2>/dev/null)" 2>/dev/null)"
+	model=""
+	case "${drv}" in
+		ath9k_htc) model="Atheros AR9271 (ath9k_htc)" ;;
+		*8821*|*8812*|*8814*|rtw*|rtl8*) model="Realtek ${drv}" ;;
+		"" ) : ;;
+		*) model="${drv}" ;;
+	esac
+	if [ -n "${model}" ]; then
+		if grep -q '^SENSOR_MODEL=' "${DEF}" 2>/dev/null; then
+			sed -i "s|^SENSOR_MODEL=.*|SENSOR_MODEL=${model}|" "${DEF}"
+		else
+			printf 'SENSOR_MODEL=%s\n' "${model}" >> "${DEF}"
+		fi
+	fi
+fi
+
 if iw dev "${IF}" info 2>/dev/null | grep -qi "type monitor"; then
 	echo "aryaos-wifi-monitor: ${IF} in monitor mode (ch ${CH})"
 else
