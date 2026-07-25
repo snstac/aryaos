@@ -1,15 +1,25 @@
 #!/bin/bash
-# aryaos-role — switch the device's sensor role at runtime.
+# aryaos-role — set the device's product line + sensor capabilities at runtime.
+#
+# AryaOS boxes are modeled as a PRODUCT LINE (identity/branding) carrying a set
+# of CAPABILITIES (what receivers are attached and active):
+#   - AryaAir   — airspace SA (ADS-B/UAT, Wi-Fi/DJI drone Remote ID)
+#   - AryaSea   — maritime SA (AIS)
+#   - DragonEgg — general-purpose SIGINT + TAK gateway (any capability)
+#
+# Capabilities map to sensor systemd units; a capability set enables the union of
+# those units and disables the rest. The CoT core (charontak, lincot, gpstak,
+# gpsd) is never touched — it always runs.
 #
 # Subcommands:
-#   list        JSON: available roles, their units, and the current role.
-#   set ROLE    Enable/start the role's sensor units, disable/stop the rest,
-#               and persist ARYAOS_ROLE in /etc/aryaos/aryaos-config.txt.
+#   list                 JSON: product, capabilities, available caps/units, roles.
+#   product LINE         Set the product line and apply its default capabilities.
+#   caps CAP...          Set the active capability set (space/comma separated).
+#   set ROLE             Back-compat: apply a legacy role as a capability preset.
 #
-# Roles select which *sensor* pipelines run; the CoT core (charontak, lincot,
-# gpstak, gpsd) is never touched. The ADS-B decoder unit follows
-# ARYAOS_ADSB_DECODER (readsb | dump1090_fa). Units missing from the image
-# (e.g. optional decoders) are skipped, not errors.
+# Capability keys: adsb ais dji wifi-rid ds101 sik sapient
+# The ADS-B decoder unit follows ARYAOS_ADSB_DECODER (readsb | dump1090_fa).
+# Units missing from the image are skipped, not errors.
 #
 # Backend for the "Device role" card in Cockpit -> AryaOS Site.
 #
@@ -19,11 +29,16 @@
 set -euo pipefail
 
 SITE_CONFIG="/etc/aryaos/aryaos-config.txt"
-ROLES="multi air maritime cuas relay"
-DEFAULT_ROLE="multi"
+PRODUCTS="AryaAir AryaSea DragonEgg"
+CAPS="adsb ais dji wifi-rid ds101 sik sapient"
+LEGACY_ROLES="multi air maritime cuas relay"
+DEFAULT_PRODUCT="DragonEgg"
 
 usage() {
-	echo "usage: aryaos-role {list | set ROLE}  (roles: ${ROLES})" >&2
+	echo "usage: aryaos-role {list | product LINE | caps CAP... | set ROLE}" >&2
+	echo "  products: ${PRODUCTS}" >&2
+	echo "  caps:     ${CAPS}" >&2
+	echo "  roles:    ${LEGACY_ROLES}  (legacy presets)" >&2
 	exit 2
 }
 
@@ -43,9 +58,9 @@ config_get() {
 config_set() {
 	local key="$1" value="$2"
 	if grep -qE "^#?\s*${key}=" "${SITE_CONFIG}"; then
-		sed -i "s|^#\?\s*${key}=.*|${key}=${value}|" "${SITE_CONFIG}"
+		sed -i "s|^#\?\s*${key}=.*|${key}=\"${value}\"|" "${SITE_CONFIG}"
 	else
-		printf '%s=%s\n' "${key}" "${value}" >> "${SITE_CONFIG}"
+		printf '%s="%s"\n' "${key}" "${value}" >> "${SITE_CONFIG}"
 	fi
 }
 
@@ -59,68 +74,108 @@ adsb_decoder_unit() {
 	fi
 }
 
-# Sensor unit sets per role. The unused ADS-B decoder is always disabled so a
-# decoder switch in site config takes effect on the next role apply.
-role_units() {
-	local role="$1"
-	local adsb_units ais_units drone_units
-	adsb_units="$(adsb_decoder_unit) dump978-fa adsbcot gdltak"
-	ais_units="ais-catcher aiscot"
-	drone_units="dronecot sikw00fcot sapientcot"
-	case "${role}" in
-		multi)    echo "${adsb_units} ${ais_units} ${drone_units}" ;;
-		air)      echo "${adsb_units}" ;;
-		maritime) echo "${ais_units}" ;;
-		cuas)     echo "${drone_units}" ;;
+# Capability -> systemd sensor units.
+cap_units() {
+	case "$1" in
+		adsb)     echo "$(adsb_decoder_unit) dump978-fa adsbcot gdltak" ;;
+		ais)      echo "ais-catcher aiscot" ;;
+		dji)      echo "dronecot" ;;
+		wifi-rid) echo "dronecot-wifi" ;;
+		ds101)    echo "dronecot-dronescout" ;;
+		sik)      echo "sikw00fcot" ;;
+		sapient)  echo "sapientcot" ;;
+		*)        return 1 ;;
+	esac
+}
+
+# Capability -> human-readable label (used by the beacon and Cockpit).
+cap_label() {
+	case "$1" in
+		adsb)     echo "ADS-B / UAT" ;;
+		ais)      echo "AIS" ;;
+		dji)      echo "DJI DroneID" ;;
+		wifi-rid) echo "Wi-Fi Remote ID" ;;
+		ds101)    echo "DroneScout DS101" ;;
+		sik)      echo "SiK Telemetry" ;;
+		sapient)  echo "SAPIENT C-UAS" ;;
+		*)        echo "$1" ;;
+	esac
+}
+
+# Product line -> default capability set applied by `product`.
+product_default_caps() {
+	case "$1" in
+		AryaAir)   echo "adsb" ;;
+		AryaSea)   echo "ais" ;;
+		DragonEgg) echo "" ;;
+		*)         return 1 ;;
+	esac
+}
+
+# Legacy role -> capability set (back-compat for `set` and Cockpit's role card).
+role_caps() {
+	case "$1" in
+		multi)    echo "adsb ais dji sik sapient" ;;
+		air)      echo "adsb" ;;
+		maritime) echo "ais" ;;
+		cuas)     echo "dji sik sapient" ;;
 		relay)    echo "" ;;
 		*)        return 1 ;;
 	esac
 }
 
 all_managed_units() {
-	echo "readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot dronecot sikw00fcot sapientcot"
+	echo "readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot \
+		dronecot dronecot-wifi dronecot-dronescout sikw00fcot sapientcot"
+}
+
+# Expand a capability list to the (deduplicated) union of its units.
+units_for_caps() {
+	local cap u seen=" "
+	for cap in $1; do
+		for u in $(cap_units "${cap}" 2>/dev/null || true); do
+			[[ "${seen}" == *" ${u} "* ]] || { printf '%s ' "${u}"; seen="${seen}${u} "; }
+		done
+	done
+}
+
+NM_UNMANAGE_CONF="/etc/NetworkManager/conf.d/99-aryaos-wifi-rid-unmanaged.conf"
+
+# The Wi-Fi Remote ID monitor adapter must not be managed by NetworkManager /
+# wpa_supplicant: on an ath9k_htc monitor interface wpa_supplicant logs
+# "Registration to specific type not supported", and NM flaps the link out from
+# under the dronecot-wifi sniffer. Persist an unmanaged marker while the wifi-rid
+# capability is active; remove it otherwise. Gated on the capability so boxes
+# that use the adapter as a normal client are unaffected.
+wifi_rid_nm_unmanage() {
+	local active="$1" iface="wlan1"
+	if [[ -r /etc/default/dronecot-wifi ]]; then
+		iface="$(sed -n 's/^WIFI_INTERFACE=//p' /etc/default/dronecot-wifi | tail -1 | tr -d '"' | xargs || true)"
+	fi
+	iface="${iface:-wlan1}"
+	if [[ "${active}" == 1 ]]; then
+		install -d -m 0755 /etc/NetworkManager/conf.d 2>/dev/null || true
+		printf '# Managed by aryaos-role (wifi-rid capability). Do not edit.\n[keyfile]\nunmanaged-devices=interface-name:%s\n' \
+			"${iface}" > "${NM_UNMANAGE_CONF}"
+	else
+		rm -f "${NM_UNMANAGE_CONF}" 2>/dev/null || true
+	fi
+	systemctl reload NetworkManager 2>/dev/null || nmcli general reload 2>/dev/null || true
 }
 
 unit_exists() {
 	# Capture and test rather than `systemctl ... | grep -q .`: under
 	# `set -o pipefail`, grep -q closes the pipe on its first match, systemctl
 	# gets SIGPIPE, and the pipeline reports failure — which would make this
-	# return false for units that exist, so `set` would enable nothing.
+	# return false for units that exist, so `apply` would enable nothing.
 	local out
 	out="$(systemctl list-unit-files --no-legend "$1.service" 2>/dev/null || true)"
 	[[ -n "${out}" ]]
 }
 
-list_json() {
-	local current
-	current="$(config_get ARYAOS_ROLE)"
-	[[ -n "${current}" ]] || current="${DEFAULT_ROLE}"
-	local role units first=1
-	printf '{"current": "%s", "roles": {' "${current}"
-	for role in ${ROLES}; do
-		units="$(role_units "${role}")"
-		[[ "${first}" == "1" ]] || printf ', '
-		first=0
-		printf '"%s": {"units": [' "${role}"
-		local u sep=""
-		for u in ${units}; do
-			printf '%s"%s"' "${sep}" "${u}"
-			sep=", "
-		done
-		printf ']}'
-	done
-	printf '}}\n'
-}
-
-set_role() {
-	local role="$1"
-	local wanted
-	if ! wanted="$(role_units "${role}")"; then
-		echo "aryaos-role: unknown role '${role}' (roles: ${ROLES})" >&2
-		exit 2
-	fi
-
-	local unit
+# Enable the wanted units, disable every other managed unit.
+apply_units() {
+	local wanted="$1" unit
 	for unit in $(all_managed_units); do
 		unit_exists "${unit}" || continue
 		if [[ " ${wanted} " == *" ${unit} "* ]]; then
@@ -132,28 +187,106 @@ set_role() {
 			systemctl disable --now "${unit}" >/dev/null 2>&1 || true
 		fi
 	done
+}
 
-	config_set ARYAOS_ROLE "${role}"
-
-	# A role apply is the authoritative decoder layout — clear any per-dongle SDR
-	# re-tasks (aryaos-sdr task) so they don't fight the role at the next boot.
+# Persist caps + a nearest-legacy-role alias, clear SDR re-tasks, re-run
+# serial-assign when AIS is now active (its dAISy elimination guard runs at boot
+# before the capability set is known).
+persist_and_settle() {
+	local caps="$1" wanted="$2"
+	config_set ARYAOS_CAPABILITIES "${caps}"
+	local r
+	for r in ${LEGACY_ROLES}; do
+		[[ "$(role_caps "${r}")" == "${caps}" ]] && { config_set ARYAOS_ROLE "${r}"; break; }
+	done
 	rm -f /etc/aryaos/sdr-tasks 2>/dev/null || true
-
-	# aryaos-serial-assign only wires the dAISy when ais-catcher is enabled (its
-	# elimination guard). It runs at boot before the role is known, so re-run it
-	# after enabling a role that uses AIS — otherwise selecting maritime/multi
-	# leaves ais-catcher with an empty SERIAL_PORT until the next boot.
 	if [[ " ${wanted} " == *" ais-catcher "* ]] && [[ -x /usr/local/sbin/aryaos-serial-assign ]]; then
 		/usr/local/sbin/aryaos-serial-assign || true
 	fi
+}
 
+set_caps() {
+	local caps
+	caps="$(echo "$1" | tr ',' ' ' | xargs || true)"
+	local cap
+	for cap in ${caps}; do
+		cap_units "${cap}" >/dev/null 2>&1 || { echo "aryaos-role: unknown capability '${cap}' (caps: ${CAPS})" >&2; exit 2; }
+	done
+	local wanted
+	wanted="$(units_for_caps "${caps}" | xargs || true)"
+	apply_units "${wanted}"
+	if [[ " ${caps} " == *" wifi-rid "* ]]; then wifi_rid_nm_unmanage 1; else wifi_rid_nm_unmanage 0; fi
+	persist_and_settle "${caps}" "${wanted}"
+	echo "Capabilities set to: ${caps:-<none>}"
+}
+
+set_product() {
+	local product="$1" defaults
+	if ! defaults="$(product_default_caps "${product}")"; then
+		echo "aryaos-role: unknown product '${product}' (products: ${PRODUCTS})" >&2
+		exit 2
+	fi
+	config_set ARYAOS_PRODUCT "${product}"
+	set_caps "${defaults}"
+	echo "Product line set to '${product}'."
+}
+
+set_role() {
+	local role="$1" caps
+	if ! caps="$(role_caps "${role}")"; then
+		echo "aryaos-role: unknown role '${role}' (roles: ${LEGACY_ROLES})" >&2
+		exit 2
+	fi
+	set_caps "${caps}"
 	echo "Device role set to '${role}'."
+}
+
+list_json() {
+	local product caps
+	product="$(config_get ARYAOS_PRODUCT)"; [[ -n "${product}" ]] || product="${DEFAULT_PRODUCT}"
+	caps="$(config_get ARYAOS_CAPABILITIES)"
+	printf '{"product": "%s", "products": [' "${product}"
+	local p sep=""
+	for p in ${PRODUCTS}; do printf '%s"%s"' "${sep}" "${p}"; sep=", "; done
+	printf '], "capabilities": "%s", "caps": {' "${caps}"
+	local c first=1
+	for c in ${CAPS}; do
+		[[ "${first}" == "1" ]] || printf ', '
+		first=0
+		printf '"%s": {"label": "%s", "units": [' "${c}" "$(cap_label "${c}")"
+		local u csep=""
+		for u in $(cap_units "${c}"); do printf '%s"%s"' "${csep}" "${u}"; csep=", "; done
+		printf ']}'
+	done
+	# Legacy roles block so the existing Cockpit role card keeps working.
+	printf '}, "current": "%s", "roles": {' "$(config_get ARYAOS_ROLE)"
+	local rfirst=1
+	for p in ${LEGACY_ROLES}; do
+		[[ "${rfirst}" == "1" ]] || printf ', '
+		rfirst=0
+		printf '"%s": {"units": [' "${p}"
+		local u rsep=""
+		for u in $(units_for_caps "$(role_caps "${p}")"); do printf '%s"%s"' "${rsep}" "${u}"; rsep=", "; done
+		printf ']}'
+	done
+	printf '}}\n'
 }
 
 cmd="${1:-}"
 case "${cmd}" in
 	list)
 		list_json
+		;;
+	product)
+		require_root
+		[[ $# -eq 2 ]] || usage
+		set_product "$2"
+		;;
+	caps)
+		require_root
+		[[ $# -ge 2 ]] || usage
+		shift
+		set_caps "$*"
 		;;
 	set)
 		require_root
