@@ -5,12 +5,12 @@ Documentation=https://github.com/snstac/aryaos
 # /etc/default/{gpsd,ais-catcher} before those services read it. It also
 # try-restarts them afterward, so it is correct even if they started first.
 After=local-fs.target
-# Order before gpsd.socket too: gpsd is socket-activated, so a client (portal
-# CGI, Cockpit, gpstak) connecting to the socket triggers gpsd to open the GPS
-# tty WHILE this service is still probing it for NMEA — which logs a spurious
-# "Device or resource busy" error. Holding the socket until assignment is done
-# eliminates that race.
-Before=ais-catcher.service gpsd.service gpsd.socket
+# NOTE: do NOT order gpsd.socket after this unit. gpsd.socket belongs to
+# sockets.target, which basic.target requires, while this unit is
+# WantedBy=multi-user.target — ordering the socket after us forms a cycle that
+# systemd breaks by deleting jobs, leaving gpsd.socket failed. The open-while-
+# probing race is handled inside the script instead (it pauses gpsd).
+Before=ais-catcher.service gpsd.service
 
 [Service]
 Type=oneshot
