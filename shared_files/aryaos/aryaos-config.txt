@@ -31,6 +31,21 @@ PYTAK_MULTICAST_LOCAL_ADDR=10.41.0.1
 # DEPRECATED: Legacy setting.
 WIFI_AP_IP=10.41.0.1
 
+# Product line: AryaAir (airspace SA) | AryaSea (maritime SA) | DragonEgg (general SIGINT).
+ARYAOS_PRODUCT="DragonEgg"
+
+# Active sensor capabilities: adsb ais dji wifi-rid ds101 sik sapient
+#
+# EMPTY BY DEFAULT — the image ships with every sensor gateway disabled. A box
+# with no radios attached should be quiet, not crash-looping decoders it has no
+# hardware for. The CoT core (charontak, lincot, gpsd) always runs regardless,
+# so an out-of-box unit is still a working TAK node.
+#
+# Turn capabilities on with:
+#   sudo aryaos-role product AryaAir     # applies that line's defaults
+#   sudo aryaos-role caps adsb wifi-rid  # or pick them explicitly
+ARYAOS_CAPABILITIES=""
+
 # 1090 MHz ADS-B decoder: readsb or dump1090_fa (only one may be enabled). Must match image build
 # (vars.yml aryaos_adsb_decoder). Changing this alone does not reconfigure systemd — see docs/config.md.
 ARYAOS_ADSB_DECODER=readsb

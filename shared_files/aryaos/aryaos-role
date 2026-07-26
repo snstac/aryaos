@@ -15,6 +15,7 @@
 #   list                 JSON: product, capabilities, available caps/units, roles.
 #   product LINE         Set the product line and apply its default capabilities.
 #   caps CAP...          Set the active capability set (space/comma separated).
+#                        Use "none" to disable every sensor (bare CoT node).
 #   set ROLE             Back-compat: apply a legacy role as a capability preset.
 #
 # Capability keys: adsb ais dji wifi-rid ds101 sik sapient
@@ -37,7 +38,7 @@ DEFAULT_PRODUCT="DragonEgg"
 usage() {
 	echo "usage: aryaos-role {list | product LINE | caps CAP... | set ROLE}" >&2
 	echo "  products: ${PRODUCTS}" >&2
-	echo "  caps:     ${CAPS}" >&2
+	echo "  caps:     ${CAPS}  (or 'none' for a bare CoT node)" >&2
 	echo "  roles:    ${LEGACY_ROLES}  (legacy presets)" >&2
 	exit 2
 }
@@ -208,6 +209,11 @@ persist_and_settle() {
 set_caps() {
 	local caps
 	caps="$(echo "$1" | tr ',' ' ' | xargs || true)"
+	# "none"/"off" is the explicit way to run a bare CoT node — clearer than
+	# passing a quoted empty string, and it is what the image ships as.
+	case "${caps}" in
+		none | off) caps="" ;;
+	esac
 	local cap
 	for cap in ${caps}; do
 		cap_units "${cap}" >/dev/null 2>&1 || { echo "aryaos-role: unknown capability '${cap}' (caps: ${CAPS})" >&2; exit 2; }
