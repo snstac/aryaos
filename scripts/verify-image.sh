@@ -296,6 +296,35 @@ require_path /etc/systemd/system/multi-user.target.wants/fail2ban.service
 require_grep 'zone=trusted' /etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection "AntSDR link in trusted firewall zone"
 require_grep 'web-tls-regenerated' /usr/local/sbin/aryaos-firstboot.sh "firstboot mints per-device web TLS cert"
 
+# Sensors OFF by default: capability drives what runs. The sensor debs enable
+# themselves in postinst, so this regresses the moment a package is added or
+# reordered — assert the enablement symlinks are genuinely absent.
+forbid_enabled() {
+	local unit="$1" found=""
+	local d
+	for d in etc/systemd/system/multi-user.target.wants \
+		etc/systemd/system/default.target.wants \
+		usr/lib/systemd/system/multi-user.target.wants; do
+		if [[ -e "${MNT}/${d}/${unit}" || -L "${MNT}/${d}/${unit}" ]]; then
+			found="${d}"
+			break
+		fi
+	done
+	if [[ -z "${found}" ]]; then
+		ok "${unit} not enabled by default"
+	else
+		fail "${unit} is enabled by default (${found}) — sensors must be capability-gated"
+	fi
+}
+for _u in readsb.service dump978-fa.service adsbcot.service aiscot.service \
+	dronecot.service sikw00fcot.service ais-catcher.service sapientcot.service \
+	dronecot-wifi.service dronecot-dronescout.service; do
+	forbid_enabled "${_u}"
+done
+require_grep '^ARYAOS_CAPABILITIES=""$' /etc/aryaos/aryaos-config.txt "no sensor capabilities enabled out of the box"
+# ...while the CoT core still runs unconditionally.
+require_path /etc/systemd/system/multi-user.target.wants/charontak.service
+
 # One-click updates (Cockpit -> AryaOS Site drives aryaos-update)
 require_path /usr/local/sbin/aryaos-update
 require_path /etc/systemd/system/aryaos-update.service
