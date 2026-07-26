@@ -245,8 +245,7 @@ require_path /usr/lib/python3/dist-packages/scapy/all.py
 require_path /usr/local/sbin/aryaos-wifi-monitor
 require_grep 'aryaos-wifi-monitor' /etc/systemd/system/dronecot-wifi.service "dronecot-wifi preps monitor mode via ExecStartPre"
 require_grep 'SENSOR_TYPE' /etc/default/dronecot-wifi "dronecot-wifi carries SIGINT sensor detail"
-# Capability model + zero-warnings: gpsd race ordering drop-in.
-require_path /etc/systemd/system/gpsd.socket.d/after-serial-assign.conf
+# Capability model.
 require_grep 'ARYAOS_CAPABILITIES' /usr/local/sbin/aryaos-role "aryaos-role has the capability model"
 require_unit gdltak.service
 require_unit lincot.service

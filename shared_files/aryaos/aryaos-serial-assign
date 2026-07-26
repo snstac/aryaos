@@ -40,6 +40,30 @@ wait_for_serial() {
 	return 0
 }
 
+# gpsd can grab the GPS tty while we are probing it, and then logs
+# "Device or resource busy" — it recovers, but it is a scary boot error for
+# something that is working fine. gpsd is both socket-activated AND hotplug
+# started (udev calls gpsdctl on add), so unit ordering cannot close this race:
+# ordering gpsd.socket after this unit forms a sockets.target/basic.target cycle
+# that systemd breaks by failing the socket. Instead, hold gpsd off for the few
+# seconds we need the port, and ALWAYS put it back.
+GPSD_PAUSED=0
+
+pause_gpsd() {
+	command -v systemctl >/dev/null 2>&1 || return 0
+	GPSD_PAUSED=1
+	systemctl stop gpsd.service gpsd.socket >/dev/null 2>&1 || true
+}
+
+resume_gpsd() {
+	[[ "${GPSD_PAUSED}" == 1 ]] || return 0
+	GPSD_PAUSED=0
+	# Start the socket (it is enabled; this is just early) and let anything that
+	# was already using gpsd pick the new device up.
+	systemctl start gpsd.socket >/dev/null 2>&1 || true
+	systemctl try-restart gpsd.service >/dev/null 2>&1 || true
+}
+
 # True for an ESP32-based Remote ID receiver (BlueMark DroneScout DS101 /
 # DroneBeacon, SiKW00F) — these speak binary MAVLink, never NMEA, so they must
 # NOT be probed or assigned as a GPS/dAISy (they'd otherwise be swept up as a
@@ -94,6 +118,11 @@ main() {
 	local gps_dev="" ais_dev="" ais_baud="$AIS_BAUD_DEFAULT" cls dev
 	local -a leftover=()
 
+	# Keep gpsd off the ports while we probe, and restore it no matter how we
+	# leave (error, signal, or success) — a half-run must never strand gpsd.
+	trap resume_gpsd EXIT INT TERM
+	pause_gpsd
+
 	shopt -s nullglob
 	for dev in /dev/serial/by-id/*; do
 		if is_rid_device "$dev"; then
@@ -138,9 +167,12 @@ main() {
 	fi
 	[[ -z "$gps_dev$ais_dev" ]] && log "no GPS or AIS serial identified"
 
+	# Devices are free again: let gpsd back in (with the new DEVICES) before
+	# touching the other consumers.
+	resume_gpsd
+
 	# Pick up new assignments if the consumers are already running.
 	if [[ "$changed" == 1 ]]; then
-		systemctl try-restart gpsd.service >/dev/null 2>&1 || true
 		systemctl try-restart ais-catcher.service >/dev/null 2>&1 || true
 	fi
 }

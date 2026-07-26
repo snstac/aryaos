@@ -376,10 +376,6 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/lighttpd.service.d/aryaos-net
 install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system/gpsd.socket.d"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/gpsd.socket.d/socket-group.conf" \
 	"${ROOTFS_DIR}/etc/systemd/system/gpsd.socket.d/socket-group.conf"
-# Order gpsd.socket after aryaos-serial-assign so socket-activation can't open the
-# GPS tty while it's still being probed ("Device or resource busy" boot warning).
-install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/gpsd.socket.d/after-serial-assign.conf" \
-	"${ROOTFS_DIR}/etc/systemd/system/gpsd.socket.d/after-serial-assign.conf"
 
 
 # WiFi
