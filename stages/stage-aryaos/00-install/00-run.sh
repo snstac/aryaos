@@ -133,6 +133,7 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-support-bundle" "${ROOTFS_DIR}
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-set-nodered-password" "${ROOTFS_DIR}/usr/local/sbin/aryaos-set-nodered-password"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-sdr" "${ROOTFS_DIR}/usr/local/sbin/aryaos-sdr"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-role" "${ROOTFS_DIR}/usr/local/sbin/aryaos-role"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-capability-scan" "${ROOTFS_DIR}/usr/local/sbin/aryaos-capability-scan"
 
 ## Lifecycle helpers: backup/restore, factory reset, zeroize (Cockpit-driven)
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-config-backup" "${ROOTFS_DIR}/usr/local/sbin/aryaos-config-backup"

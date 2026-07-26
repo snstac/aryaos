@@ -154,6 +154,29 @@ if [[ ! -f /etc/sudoers.d/aryaos-lab && ! -f "$NR_PASS_MARKER" ]] \
 	fi
 fi
 
+# Auto-configure sensor capabilities from attached hardware.
+#
+# The image ships every sensor gateway disabled, because a box with no radios
+# should be quiet rather than crash-looping decoders. On first boot we look at
+# what is actually plugged in and turn on what it supports, so a kitted unit is
+# plug-and-play while a bare one stays silent. Runs ONCE (marker file) so a
+# later deliberate `aryaos-role caps ...` is never overwritten.
+CAP_MARKER="/etc/aryaos/.capabilities-autodetected"
+if [[ ! -f "$CAP_MARKER" ]] \
+	&& [[ -x /usr/local/sbin/aryaos-role ]] \
+	&& [[ -x /usr/local/sbin/aryaos-capability-scan ]]; then
+	DETECTED="$(/usr/local/sbin/aryaos-capability-scan --caps 2>/dev/null | xargs || true)"
+	if [[ -n "$DETECTED" ]]; then
+		if /usr/local/sbin/aryaos-role caps $DETECTED >/dev/null 2>&1; then
+			echo "AryaOS firstboot: detected hardware -> capabilities: $DETECTED"
+			CHANGED=1
+		fi
+	else
+		echo "AryaOS firstboot: no sensor hardware detected; staying a bare CoT node."
+	fi
+	touch "$CAP_MARKER"
+fi
+
 if [[ "$CHANGED" -eq 0 ]]; then
 	echo "AryaOS firstboot: no changes needed."
 	exit 0

@@ -247,6 +247,9 @@ require_grep 'aryaos-wifi-monitor' /etc/systemd/system/dronecot-wifi.service "dr
 require_grep 'SENSOR_TYPE' /etc/default/dronecot-wifi "dronecot-wifi carries SIGINT sensor detail"
 # Capability model.
 require_grep 'ARYAOS_CAPABILITIES' /usr/local/sbin/aryaos-role "aryaos-role has the capability model"
+require_path /usr/local/sbin/aryaos-capability-scan
+require_grep 'discover' /usr/local/sbin/aryaos-role "aryaos-role can discover hardware capabilities"
+require_grep 'capability-scan' /usr/local/sbin/aryaos-firstboot.sh "firstboot auto-detects capabilities"
 require_unit gdltak.service
 require_unit lincot.service
 require_unit charontak.service
