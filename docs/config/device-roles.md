@@ -67,6 +67,55 @@ Because the units are *disabled*, the role sticks across reboots.
 !!! warning "Applying a role disables other sensors"
     Switching to `air` stops and disables the AIS and drone units; switching to `relay` stops **all** sensor units. This is intentional — pick the role that matches the mission. The CoT core keeps running regardless.
 
+## Capability discovery
+
+A box can work out what it is. `aryaos-capability-scan` probes the attached
+hardware and maps it to capabilities:
+
+```sh
+sudo aryaos-role discover           # report what's present, change nothing
+sudo aryaos-role discover --apply   # enable what the hardware supports
+```
+
+Example on a single-SDR node:
+
+```
+Detected hardware capabilities: adsb
+  adsb      yes        1 SDR(s): LimeSDR Mini [USB 3.0] 1DBB4189078E3F
+  ais       yes*       1 SDR(s) could run AIS
+                       * shares a radio with 'adsb'; enable manually with
+                         `aryaos-role caps ais` (or add a second receiver)
+  wifi-rid  no         no external Wi-Fi adapter
+  sapient   manual     network sensor — configure deliberately, never auto-detected
+```
+
+**This runs automatically once, at first boot.** The image ships every sensor
+disabled, so a bare unit stays quiet while a kitted one comes up configured. The
+marker `/etc/aryaos/.capabilities-autodetected` makes it a one-shot: a later
+deliberate `aryaos-role caps ...` is never overwritten.
+
+### What it will not guess
+
+Auto-apply is deliberately conservative, because enabling the wrong thing is
+worse than enabling nothing:
+
+- **Contended radios.** One SDR cannot serve ADS-B *and* AIS at once, so only
+  the higher-priority capability (`adsb`) is auto-enabled; the other is reported
+  as available with the reason it was held back.
+- **DS101 vs SiKW00F.** Both are ESP32-S3 (`303a:1001`) — the USB id cannot tell
+  them apart. The scanner probes the port for MAVLink framing (a DS101 speaks
+  it); if the port is silent or in use it reports `AMBIGUOUS` rather than
+  guessing.
+- **SAPIENT.** A network sensor with no local hardware signature; never
+  auto-detected.
+
+### Beacons advertise availability
+
+Each capability in the AryaOS beacon carries `active` (running now),
+`enabled` (in the capability set) and `available` (hardware detected). A fleet
+view can therefore spot a node with a Wi-Fi Remote ID adapter that is switched
+off, or a service running that nobody declared.
+
 ## Persistence and precedence
 
 - The current role lives in `ARYAOS_ROLE` in the site config. When unset, the effective role is `multi`.

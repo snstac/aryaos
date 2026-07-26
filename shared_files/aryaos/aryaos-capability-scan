@@ -1,0 +1,342 @@
+#!/usr/bin/env python3
+"""Detect which AryaOS sensor capabilities this box's hardware can support.
+
+Reports what is PRESENT, not what is running. `aryaos-role discover` maps this
+onto the capability set; the beacon advertises it so the fleet can see "that box
+has a Wi-Fi Remote ID adapter but it's switched off".
+
+Honesty rules, because guessing wrong is worse than saying "I don't know":
+  * An RTL-SDR can serve ADS-B *or* AIS *or* APRS — one dongle cannot do all
+    three at once. Capabilities that share a scarce radio are reported with the
+    number of radios available so the caller can decide.
+  * A DroneScout DS101 and a SiKW00F are BOTH ESP32-S3 (303a:1001) — the USB id
+    alone cannot tell them apart. We probe the port for MAVLink framing (the
+    DS101 speaks it, and that is what dronecot consumes) and mark the capability
+    ambiguous when the port is silent.
+  * SAPIENT is a network sensor with no local hardware signature; it is never
+    auto-detected and must be configured deliberately.
+
+Usage:
+  aryaos-capability-scan            # full JSON report
+  aryaos-capability-scan --caps     # conflict-free set safe to auto-enable
+  aryaos-capability-scan --detected # everything the hardware supports
+  aryaos-capability-scan --report   # human-readable table
+
+Copyright Sensors & Signals LLC https://www.snstac.com/
+SPDX-License-Identifier: Apache-2.0
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import subprocess
+import sys
+import glob
+
+CONFIG = "/etc/aryaos/aryaos-config.txt"
+ESP32_VID_PID = ("303a", "1001")  # Espressif native USB (DS101 *and* SiKW00F)
+ONBOARD_WIFI_DRIVERS = {"brcmfmac"}  # the Pi's own radio: never a RID sniffer
+
+# When capabilities contend for one scarce radio, this is the order auto-apply
+# prefers. ADS-B first: it is the common air-picture case and the AryaAir
+# default. The loser stays "available" and can be enabled by hand.
+CONTENTION_PRIORITY = ("adsb", "ais")
+
+
+def _run(args, timeout=6.0):
+    try:
+        proc = subprocess.run(
+            args, check=False, capture_output=True, text=True, timeout=timeout
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    return (proc.stdout or "").strip()
+
+
+def _read(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fp:
+            return fp.read()
+    except OSError:
+        return ""
+
+
+def _config(key):
+    for line in _read(CONFIG).splitlines():
+        line = line.strip()
+        if line.startswith(f"{key}="):
+            return line.split("=", 1)[1].strip().strip("\"'")
+    return ""
+
+
+# --- individual probes ------------------------------------------------------
+
+
+def probe_sdrs():
+    """Enumerate SDRs via aryaos-sdr (SoapySDR/rtl_test under the hood)."""
+    out = _run(["/usr/local/sbin/aryaos-sdr", "list"], timeout=15)
+    try:
+        return json.loads(out).get("devices", []) if out else []
+    except ValueError:
+        return []
+
+
+def probe_wifi_monitor():
+    """Find an external Wi-Fi adapter that could run monitor mode."""
+    found = []
+    for path in sorted(glob.glob("/sys/class/net/wlan*")):
+        iface = os.path.basename(path)
+        driver = ""
+        try:
+            driver = os.path.basename(os.path.realpath(f"{path}/device/driver"))
+        except OSError:
+            pass
+        if not driver or driver in ONBOARD_WIFI_DRIVERS:
+            continue
+        found.append({"interface": iface, "driver": driver})
+    return found
+
+
+def probe_esp32_serial():
+    """Locate ESP32-S3 USB-serial ports (DS101 and/or SiKW00F)."""
+    ports = []
+    for path in sorted(glob.glob("/dev/serial/by-id/*")):
+        props = _run(["/usr/bin/udevadm", "info", "-q", "property", "-n", path])
+        vid = re.search(r"^ID_VENDOR_ID=(\S+)$", props, re.M)
+        pid = re.search(r"^ID_MODEL_ID=(\S+)$", props, re.M)
+        if vid and pid and (vid.group(1), pid.group(1)) == ESP32_VID_PID:
+            ports.append(path)
+    return ports
+
+
+def probe_mavlink(port, seconds=3):
+    """Does this port emit MAVLink? Distinguishes a DS101 from a bare ESP32.
+
+    Read-only and non-destructive: if something else holds the port we simply
+    report unknown rather than fighting for it.
+    """
+    if not port or not os.path.exists(port):
+        return None
+    if _run(["/usr/bin/fuser", port], timeout=3):
+        return None  # in use — don't disturb a running dronecot
+    try:
+        import selectors
+
+        fd = os.open(port, os.O_RDONLY | os.O_NONBLOCK)
+    except OSError:
+        return None
+    try:
+        sel = selectors.DefaultSelector()
+        sel.register(fd, selectors.EVENT_READ)
+        import time
+
+        end = time.time() + seconds
+        buf = b""
+        while time.time() < end and len(buf) < 4096:
+            if sel.select(timeout=0.5):
+                try:
+                    chunk = os.read(fd, 1024)
+                except OSError:
+                    break
+                if not chunk:
+                    break
+                buf += chunk
+        # MAVLink v1 starts 0xFE, v2 starts 0xFD.
+        return bool(buf) and (b"\xfd" in buf or b"\xfe" in buf)
+    finally:
+        os.close(fd)
+
+
+def probe_antsdr():
+    """Is an AntSDR present on the point-to-point link?"""
+    bind = ""
+    for line in _read("/etc/default/dronecot").splitlines():
+        if line.startswith("DJI_BIND_ADDRESS="):
+            bind = line.split("=", 1)[1].strip().strip("\"'")
+    bind = bind or "172.31.100.1"
+    peer = bind.rsplit(".", 1)[0] + ".2"
+    neigh = _run(["/usr/sbin/ip", "neigh", "show", peer], timeout=3)
+    if re.search(r"REACHABLE|STALE|DELAY|PROBE", neigh):
+        return peer
+    if subprocess.call(
+        ["/usr/bin/ping", "-c1", "-W1", peer],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    ) == 0:
+        return peer
+    return None
+
+
+def probe_ais_serial():
+    """A dAISy (or similar) NMEA AIS receiver wired up by aryaos-serial-assign."""
+    for line in _read("/etc/default/ais-catcher").splitlines():
+        if line.startswith("SERIAL_PORT="):
+            port = line.split("=", 1)[1].strip().strip("\"'")
+            if port and os.path.exists(port):
+                return port
+    return None
+
+
+# --- capability mapping -----------------------------------------------------
+
+
+def scan():
+    sdrs = probe_sdrs()
+    wifi = probe_wifi_monitor()
+    esp32 = probe_esp32_serial()
+    antsdr = probe_antsdr()
+    ais_serial = probe_ais_serial()
+
+    caps = {}
+
+    # ADS-B/UAT: needs at least one SDR.
+    caps["adsb"] = {
+        "available": bool(sdrs),
+        "evidence": (
+            f"{len(sdrs)} SDR(s): "
+            + ", ".join(d.get("label") or d.get("driver", "?") for d in sdrs)
+            if sdrs
+            else "no SDR detected"
+        ),
+    }
+
+    # AIS: a dedicated NMEA receiver, or a spare SDR. Flag the contention: with
+    # a single SDR, enabling both adsb and ais fights over one radio.
+    ais_available = bool(ais_serial) or bool(sdrs)
+    ais_ev = []
+    if ais_serial:
+        ais_ev.append(f"NMEA AIS receiver at {ais_serial}")
+    if sdrs and not ais_serial:
+        ais_ev.append(f"{len(sdrs)} SDR(s) could run AIS")
+    caps["ais"] = {
+        "available": ais_available,
+        "evidence": "; ".join(ais_ev) or "no AIS receiver detected",
+    }
+    if sdrs and not ais_serial and len(sdrs) < 2:
+        caps["ais"]["contended_with"] = ["adsb"]
+        caps["adsb"]["contended_with"] = ["ais"]
+
+    # DJI DroneID: AntSDR on the point-to-point Ethernet link.
+    caps["dji"] = {
+        "available": bool(antsdr),
+        "evidence": f"AntSDR reachable at {antsdr}" if antsdr else "no AntSDR on link",
+    }
+
+    # Wi-Fi Remote ID: an external (non-onboard) Wi-Fi adapter.
+    caps["wifi-rid"] = {
+        "available": bool(wifi),
+        "evidence": (
+            "; ".join(f"{w['interface']} ({w['driver']})" for w in wifi)
+            if wifi
+            else "no external Wi-Fi adapter"
+        ),
+    }
+
+    # DroneScout DS101 vs SiKW00F: same USB id, so probe for MAVLink.
+    ds101 = {"available": False, "evidence": "no ESP32-S3 serial device"}
+    sik = {"available": False, "evidence": "no ESP32-S3 serial device"}
+    if esp32:
+        mav = None
+        for port in esp32:
+            mav = probe_mavlink(port)
+            if mav:
+                break
+        if mav:
+            ds101 = {"available": True, "evidence": f"MAVLink on {esp32[0]}"}
+            sik = {
+                "available": False,
+                "evidence": "ESP32-S3 present but speaking MAVLink (DS101)",
+            }
+        else:
+            note = (
+                f"{len(esp32)} ESP32-S3 serial device(s) found, but a DS101 and a "
+                "SiKW00F share the same USB id and the port was silent or busy — "
+                "cannot tell them apart"
+            )
+            ds101 = {"available": False, "ambiguous": True, "evidence": note}
+            sik = {"available": False, "ambiguous": True, "evidence": note}
+    caps["ds101"] = ds101
+    caps["sik"] = sik
+
+    # SAPIENT: network sensor, no local signature.
+    caps["sapient"] = {
+        "available": False,
+        "evidence": "network sensor — configure deliberately, never auto-detected",
+        "manual_only": True,
+    }
+
+    # Auto-apply must be conflict-free. Two capabilities that share one radio
+    # would otherwise both be switched on and fight over it — on a single-SDR
+    # box that means adsbcot and aiscot each grabbing the same dongle. Keep the
+    # higher-priority one and say plainly why the other was held back; the JSON
+    # still reports both as available so an operator can choose differently.
+    for key, cap in caps.items():
+        cap["auto_apply"] = bool(cap.get("available"))
+    for key in CONTENTION_PRIORITY:
+        cap = caps.get(key)
+        if not cap or not cap.get("auto_apply"):
+            continue
+        for loser in cap.get("contended_with") or []:
+            other = caps.get(loser)
+            if other and other.get("auto_apply"):
+                other["auto_apply"] = False
+                other["deferred_reason"] = (
+                    f"shares a radio with '{key}'; enable manually with "
+                    f"`aryaos-role caps {loser}` (or add a second receiver)"
+                )
+
+    return {
+        "ok": True,
+        "hardware": {
+            "sdrs": sdrs,
+            "wifi_monitor": wifi,
+            "esp32_serial": esp32,
+            "antsdr": antsdr,
+            "ais_serial": ais_serial,
+        },
+        "capabilities": caps,
+        "detected": sorted(k for k, v in caps.items() if v.get("available")),
+        "auto_apply": sorted(k for k, v in caps.items() if v.get("auto_apply")),
+    }
+
+
+def report_text(report):
+    """Human-readable table for `aryaos-role discover`."""
+    lines = []
+    auto = report.get("auto_apply") or []
+    for key, cap in sorted(report.get("capabilities", {}).items()):
+        if cap.get("manual_only"):
+            mark = "manual"
+        elif cap.get("ambiguous"):
+            mark = "AMBIGUOUS"
+        elif cap.get("available"):
+            mark = "yes" if key in auto else "yes*"
+        else:
+            mark = "no"
+        lines.append("  {:<9} {:<10} {}".format(key, mark, cap.get("evidence", "")))
+        reason = cap.get("deferred_reason")
+        if reason:
+            lines.append("  {:<9} {:<10} {}".format("", "", "* " + reason))
+    return "\n".join(lines)
+
+
+def main():
+    report = scan()
+    if "--caps" in sys.argv:
+        # The auto-apply set, NOT everything detected: firstboot consumes this.
+        print(" ".join(report["auto_apply"]))
+        return 0
+    if "--detected" in sys.argv:
+        print(" ".join(report["detected"]))
+        return 0
+    if "--report" in sys.argv:
+        print(report_text(report))
+        return 0
+    print(json.dumps(report, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

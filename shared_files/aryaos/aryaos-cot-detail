@@ -22,6 +22,7 @@ SERVICES = (
 )
 
 SITE_CONFIG = "/etc/aryaos/aryaos-config.txt"
+CAP_SCAN = "/usr/local/sbin/aryaos-capability-scan"
 DEFAULT_PRODUCT = "DragonEgg"
 
 # Capability key -> (human label, capability unit, default sensor description).
@@ -160,11 +161,41 @@ def _wifi_adapter() -> str:
     return ""
 
 
+def _detected_caps() -> set:
+    """Capabilities this box's HARDWARE supports, per the capability scanner.
+
+    Cached in /run so the beacon (every 60s) doesn't re-probe USB and the AntSDR
+    link constantly; hardware changes are picked up on reboot or when the cache
+    is removed.
+    """
+    cache = "/run/aryaos/capabilities-detected"
+    cached = _read(cache)
+    if cached:
+        return set(cached.split())
+    if not os.path.exists(CAP_SCAN):
+        return set()
+    out = _run([CAP_SCAN, "--detected"], timeout=20)
+    try:
+        os.makedirs("/run/aryaos", exist_ok=True)
+        with open(cache, "w", encoding="utf-8") as fp:
+            fp.write(out)
+    except OSError:
+        pass
+    return set(out.split())
+
+
 def _capabilities() -> list[dict[str, str]]:
-    """Active capabilities from site config, with label + live state + sensor."""
-    caps = _config("ARYAOS_CAPABILITIES").replace(",", " ").split()
+    """Every capability this box has hardware for OR has switched on.
+
+    Reporting `available` as well as `active` lets a fleet view spot a
+    misconfigured node — "that box has a Wi-Fi Remote ID adapter but it's off" —
+    which is invisible if the beacon only carries what is running.
+    """
+    active_caps = _config("ARYAOS_CAPABILITIES").replace(",", " ").split()
+    detected = _detected_caps()
+
     out: list[dict[str, str]] = []
-    for key in caps:
+    for key in sorted(set(active_caps) | detected):
         label, unit, sensor = CAPABILITIES.get(key, (key, "", ""))
         if key == "wifi-rid":
             sensor = _wifi_adapter() or sensor
@@ -173,6 +204,8 @@ def _capabilities() -> list[dict[str, str]]:
                 "key": key,
                 "label": label,
                 "active": str(bool(unit) and _service_state(unit) == "active").lower(),
+                "available": str(key in detected).lower(),
+                "enabled": str(key in active_caps).lower(),
                 "sensor": sensor,
             }
         )

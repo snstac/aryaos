@@ -16,6 +16,8 @@
 #   product LINE         Set the product line and apply its default capabilities.
 #   caps CAP...          Set the active capability set (space/comma separated).
 #                        Use "none" to disable every sensor (bare CoT node).
+#   discover [--apply]   Detect attached hardware and report which capabilities
+#                        it supports; --apply enables them.
 #   set ROLE             Back-compat: apply a legacy role as a capability preset.
 #
 # Capability keys: adsb ais dji wifi-rid ds101 sik sapient
@@ -36,7 +38,7 @@ LEGACY_ROLES="multi air maritime cuas relay"
 DEFAULT_PRODUCT="DragonEgg"
 
 usage() {
-	echo "usage: aryaos-role {list | product LINE | caps CAP... | set ROLE}" >&2
+	echo "usage: aryaos-role {list | discover [--apply] | product LINE | caps CAP... | set ROLE}" >&2
 	echo "  products: ${PRODUCTS}" >&2
 	echo "  caps:     ${CAPS}  (or 'none' for a bare CoT node)" >&2
 	echo "  roles:    ${LEGACY_ROLES}  (legacy presets)" >&2
@@ -226,6 +228,38 @@ set_caps() {
 	echo "Capabilities set to: ${caps:-<none>}"
 }
 
+CAP_SCAN="/usr/local/sbin/aryaos-capability-scan"
+
+# Detect attached hardware and (optionally) enable the capabilities it supports.
+# Report-only by default: seeing what a box COULD do should never change what it
+# IS doing without being asked.
+discover() {
+	local apply="${1:-0}"
+	if [[ ! -x "${CAP_SCAN}" ]]; then
+		echo "aryaos-role: ${CAP_SCAN} not installed" >&2
+		exit 2
+	fi
+
+	local detected
+	detected="$("${CAP_SCAN}" --caps 2>/dev/null | xargs || true)"
+
+	echo "Detected hardware capabilities: ${detected:-<none>}"
+	"${CAP_SCAN}" --report 2>/dev/null || true
+
+	if [[ "${apply}" != 1 ]]; then
+		echo
+		echo "Nothing changed. Apply with: aryaos-role discover --apply"
+		return 0
+	fi
+
+	if [[ -z "${detected}" ]]; then
+		echo "No sensor hardware detected; leaving capabilities unchanged." >&2
+		return 0
+	fi
+	echo
+	set_caps "${detected}"
+}
+
 set_product() {
 	local product="$1" defaults
 	if ! defaults="$(product_default_caps "${product}")"; then
@@ -298,6 +332,10 @@ case "${cmd}" in
 		require_root
 		[[ $# -eq 2 ]] || usage
 		set_role "$2"
+		;;
+	discover)
+		[[ "${2:-}" == "--apply" ]] && require_root
+		discover "$([[ "${2:-}" == "--apply" ]] && echo 1 || echo 0)"
 		;;
 	*)
 		usage
