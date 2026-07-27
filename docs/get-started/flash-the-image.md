@@ -1,6 +1,6 @@
 # Flash the image
 
-Write the AryaOS image to a microSD card, then boot your Raspberry Pi from it. This takes a few minutes with either Raspberry Pi Imager or balenaEtcher, and both verify the write before you unplug.
+Write the AryaOS image to a microSD card, then boot your Raspberry Pi from it. The quickest route is **AryaOS Imager**, which downloads the image for you; Raspberry Pi Imager and balenaEtcher also work if you already have them.
 
 !!! danger "Flashing erases the card"
     Writing an image overwrites everything on the target microSD card. Double-check the drive you select before you start.
@@ -13,17 +13,35 @@ Write the AryaOS image to a microSD card, then boot your Raspberry Pi from it. T
 
 ## Get the image
 
+**If you use AryaOS Imager you can skip this section** — it fetches the current image itself.
+
 | Source | Where | When to use |
 |---|---|---|
-| GitHub Releases | [github.com/snstac/aryaos/releases](https://github.com/snstac/aryaos/releases) | The stable, recommended download |
+| AryaOS Imager | [github.com/snstac/aryaos-imager](https://github.com/snstac/aryaos-imager/releases) | Easiest: picks up the latest image automatically |
+| GitHub Releases | [github.com/snstac/aryaos/releases](https://github.com/snstac/aryaos/releases) | Downloading the `.img.xz` by hand |
 | CI artifacts | GitHub Actions build artifacts on the repo | Testing an unreleased build your team pointed you to |
 
-Download the AryaOS image (published as a compressed `.img.xz`). Both flashing tools below read `.img.xz` directly — you do not need to decompress it first.
+Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads `.img.xz` directly — you do not need to decompress it first.
 
 !!! info "Every release is signed and bill-of-materials'd"
     Each image build attaches an SPDX and CycloneDX software bill of materials (SBOM) to its GitHub Release, and all AryaOS packages install from the [signed apt repository](https://snstac.github.io/packages). See [SBOM & supply chain](../operations/sbom.md).
 
 ## Flash the card
+
+=== "AryaOS Imager"
+
+    [AryaOS Imager](https://github.com/snstac/aryaos-imager/releases) is a single-purpose build of Raspberry Pi Imager that offers **only AryaOS**. It downloads the image for you, so there is no file to find and no way to pick the wrong operating system. Available for Windows and Linux.
+
+    1. Download and install AryaOS Imager.
+    2. Insert the microSD card into your workstation.
+    3. Open AryaOS Imager and choose **AryaOS (latest release)**. A **latest dev** build is also offered — that one bakes in lab access and is not for field use.
+    4. Under storage, select the microSD card. **Confirm the device — this erases the card.**
+    5. Write, and wait for the verify step to finish.
+
+    !!! note "Windows shows a SmartScreen warning"
+        The installer is not code-signed, so Windows displays *"Windows protected your PC"*. Click **More info → Run anyway**. Each release publishes a `SHA256SUMS.txt` if you would rather verify the download first.
+
+    There is no OS-customization step to skip: AryaOS configures itself on [first boot](first-boot.md), so the imager deliberately leaves those settings alone.
 
 === "Raspberry Pi Imager"
 
