@@ -62,6 +62,11 @@ resume_gpsd() {
 	# was already using gpsd pick the new device up.
 	systemctl start gpsd.socket >/dev/null 2>&1 || true
 	systemctl try-restart gpsd.service >/dev/null 2>&1 || true
+	# Stopping gpsd also SIGTERMs the udev-launched gpsdctl@<tty> units that
+	# were registering devices with it, leaving them "failed" on every GPS box
+	# even though gpsd itself is healthy. Their work is redone by the restart
+	# above, so clear the collateral damage rather than leave a scary unit state.
+	systemctl reset-failed 'gpsdctl@*' >/dev/null 2>&1 || true
 }
 
 # True for an ESP32-based Remote ID receiver (BlueMark DroneScout DS101 /

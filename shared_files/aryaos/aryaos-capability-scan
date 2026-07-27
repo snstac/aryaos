@@ -44,6 +44,21 @@ ONBOARD_WIFI_DRIVERS = {"brcmfmac"}  # the Pi's own radio: never a RID sniffer
 # default. The loser stays "available" and can be enabled by hand.
 CONTENTION_PRIORITY = ("adsb", "ais")
 
+# Capability -> the systemd unit that owns its receiver. Mirrors aryaos-role.
+CAP_UNITS = {
+    "adsb": "adsbcot",
+    "ais": "aiscot",
+    "dji": "dronecot",
+    "wifi-rid": "dronecot-wifi",
+    "ds101": "dronecot-dronescout",
+    "sik": "sikw00fcot",
+    "sapient": "sapientcot",
+}
+
+
+def unit_active(unit):
+    return _run(["/usr/bin/systemctl", "is-active", f"{unit}.service"], timeout=5) == "active"
+
 
 def _run(args, timeout=6.0):
     try:
@@ -292,6 +307,22 @@ def scan():
                     f"shares a radio with '{key}'; enable manually with "
                     f"`aryaos-role caps {loser}` (or add a second receiver)"
                 )
+
+    # A capability whose gateway is ALREADY RUNNING is available by definition —
+    # it is demonstrably working. Without this the probes lie about their own
+    # success: a live dronecot-dronescout holds the DS101 serial port, so the
+    # MAVLink probe (which deliberately refuses to disturb a busy port) reports
+    # nothing, and `discover --apply` would then switch off a capability that is
+    # working right now. Observed on a real box: firstboot found "dji ds101",
+    # a rescan minutes later found only "dji".
+    for key, cap in caps.items():
+        unit = CAP_UNITS.get(key)
+        if unit and unit_active(unit):
+            cap["available"] = True
+            cap["auto_apply"] = True
+            cap["in_use"] = True
+            cap["evidence"] = f"{unit}.service is running ({cap.get('evidence', '')})".strip()
+            cap.pop("deferred_reason", None)
 
     return {
         "ok": True,
