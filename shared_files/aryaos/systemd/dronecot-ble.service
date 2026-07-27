@@ -1,0 +1,44 @@
+[Unit]
+Description=DroneCOT (Bluetooth Remote ID) — Open Drone ID over BLE to TAK
+Documentation=https://github.com/snstac/dronecot
+# A dronecot instance that captures Open Drone ID from Bluetooth LE
+# advertisements (ASTM F3411 service data, UUID 0xFFFA, app code 0x0D) using the
+# board's OWN Bluetooth radio — no Sniffle dongle, no add-on hardware. Decodes
+# with dronecot's BlueZWorker and feeds the same charontak hub as the Wi-Fi,
+# AntSDR/DJI and DS101 sources.
+#
+# This is the only sensor with no external hardware to plug in, which is exactly
+# why it stays OPT-IN: the radio is present on every box, so auto-enabling it
+# would switch a sensor on across the whole fleet. Turn it on deliberately:
+#   sudo aryaos-role caps <existing caps...> ble-rid
+#
+# Coexists with aryaos-bt-pan: dronecot drives an LE scan over BlueZ D-Bus as an
+# ordinary client rather than seizing the adapter, so Classic PAN keeps working.
+#
+# CAPTURES LEGACY ADVERTISING ONLY. The ASTM long-range profile uses BT5
+# extended advertising on the Coded PHY, which the Pi's CYW43455 is not known to
+# receive — this complements a Sniffle dongle or DS101, it does not replace one.
+Wants=network.target
+After=network.target bluetooth.service aryaos-bt-ready.service
+ConditionPathExistsGlob=/sys/class/bluetooth/hci*
+
+[Service]
+User=root
+# The default reader is an HCI_CHANNEL_MONITOR socket (the passive tap btmon
+# uses), which delivers every advertising report un-coalesced but needs
+# CAP_NET_RAW. Without it dronecot falls back to the BlueZ D-Bus reader, where
+# BlueZ may coalesce repeats — and for Remote ID a coalesced repeat is a lost
+# message TYPE, not a duplicate, because a transmitter rotates message types.
+AmbientCapabilities=CAP_NET_RAW
+ExecStart=/usr/bin/dronecot
+RuntimeDirectory=dronecot-ble
+SyslogIdentifier=dronecot-ble
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+EnvironmentFile=/etc/default/dronecot-ble
+Type=simple
+Restart=always
+RestartSec=20
+Nice=-1
+
+[Install]
+WantedBy=multi-user.target

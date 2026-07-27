@@ -33,7 +33,7 @@ set -euo pipefail
 
 SITE_CONFIG="/etc/aryaos/aryaos-config.txt"
 PRODUCTS="AryaAir AryaSea DragonEgg"
-CAPS="adsb ais dji wifi-rid ds101 sik sapient"
+CAPS="adsb ais dji wifi-rid ble-rid ds101 sik sapient"
 LEGACY_ROLES="multi air maritime cuas relay"
 DEFAULT_PRODUCT="DragonEgg"
 
@@ -84,6 +84,7 @@ cap_units() {
 		ais)      echo "ais-catcher aiscot" ;;
 		dji)      echo "dronecot" ;;
 		wifi-rid) echo "dronecot-wifi" ;;
+		ble-rid)  echo "dronecot-ble" ;;
 		ds101)    echo "dronecot-dronescout" ;;
 		sik)      echo "sikw00fcot" ;;
 		sapient)  echo "sapientcot" ;;
@@ -98,6 +99,7 @@ cap_label() {
 		ais)      echo "AIS" ;;
 		dji)      echo "DJI DroneID" ;;
 		wifi-rid) echo "Wi-Fi Remote ID" ;;
+		ble-rid)  echo "Bluetooth Remote ID" ;;
 		ds101)    echo "DroneScout DS101" ;;
 		sik)      echo "SiK Telemetry" ;;
 		sapient)  echo "SAPIENT C-UAS" ;;
@@ -129,7 +131,7 @@ role_caps() {
 
 all_managed_units() {
 	echo "readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot \
-		dronecot dronecot-wifi dronecot-dronescout sikw00fcot sapientcot"
+		dronecot dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot"
 }
 
 # Expand a capability list to the (deduplicated) union of its units.

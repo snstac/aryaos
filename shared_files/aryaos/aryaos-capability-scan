@@ -50,6 +50,7 @@ CAP_UNITS = {
     "ais": "aiscot",
     "dji": "dronecot",
     "wifi-rid": "dronecot-wifi",
+    "ble-rid": "dronecot-ble",
     "ds101": "dronecot-dronescout",
     "sik": "sikw00fcot",
     "sapient": "sapientcot",
@@ -118,6 +119,28 @@ def probe_wifi_monitor():
             continue
         found.append({"interface": iface, "driver": driver})
     return found
+
+
+def probe_onboard_bt():
+    """Find a Bluetooth adapter capable of receiving Remote ID advertisements.
+
+    Unlike every other probe there is no add-on hardware to look for: the board's
+    own radio is always there. That is exactly why 'ble-rid' must NOT auto-apply
+    (see scan()) — detecting it on every box in the fleet is not a reason to
+    switch a sensor on across the fleet.
+    """
+    adapters = []
+    for path in sorted(glob.glob("/sys/class/bluetooth/hci*")):
+        # sysfs exposes no 'address' attribute for hci devices, so identify the
+        # adapter by its driver instead: hci_uart/btbcm is the Pi's own radio,
+        # btusb an add-on dongle.
+        driver = ""
+        try:
+            driver = os.path.basename(os.path.realpath(f"{path}/device/driver"))
+        except OSError:
+            pass
+        adapters.append({"adapter": os.path.basename(path), "driver": driver})
+    return adapters
 
 
 def probe_esp32_serial():
@@ -288,13 +311,39 @@ def scan():
         "manual_only": True,
     }
 
+    # Bluetooth Remote ID: the ONLY capability needing no add-on hardware, which
+    # makes it the only one where "available" must not imply "switch it on".
+    # Every box has a Bluetooth radio, so auto-applying would turn a sensor on
+    # across the whole fleet — the opposite of shipping everything off by
+    # default. It is reported as available so an operator can find it, and waits
+    # for `aryaos-role caps ... ble-rid`.
+    bt = probe_onboard_bt()
+    caps["ble-rid"] = {
+        "available": bool(bt),
+        "evidence": (
+            "Bluetooth adapter "
+            + ", ".join(a["adapter"] + (f" ({a['driver']})" if a["driver"] else "") for a in bt)
+            + " — legacy advertising only, no BT5 Coded PHY"
+            if bt
+            else "no Bluetooth adapter detected"
+        ),
+        "manual_only": True,
+        "deferred_reason": (
+            "present on every box, so it is never auto-enabled; turn it on with "
+            "`aryaos-role caps ... ble-rid`"
+        ),
+    }
+
     # Auto-apply must be conflict-free. Two capabilities that share one radio
     # would otherwise both be switched on and fight over it — on a single-SDR
     # box that means adsbcot and aiscot each grabbing the same dongle. Keep the
     # higher-priority one and say plainly why the other was held back; the JSON
     # still reports both as available so an operator can choose differently.
+    # 'manual_only' capabilities are never auto-applied even when available —
+    # ble-rid's radio is present on every board, and SAPIENT is a deliberate
+    # network configuration, not a discovery.
     for key, cap in caps.items():
-        cap["auto_apply"] = bool(cap.get("available"))
+        cap["auto_apply"] = bool(cap.get("available")) and not cap.get("manual_only")
     for key in CONTENTION_PRIORITY:
         cap = caps.get(key)
         if not cap or not cap.get("auto_apply"):

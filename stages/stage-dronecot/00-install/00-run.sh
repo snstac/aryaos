@@ -79,6 +79,15 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/dronecot-wifi.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/dronecot-wifi.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/dronecot-wifi.default" \
 	"${ROOTFS_DIR}/etc/default/dronecot-wifi"
+# Bluetooth Remote ID: an opt-in dronecot instance that decodes Open Drone ID
+# from BLE advertisements using the board's OWN Bluetooth radio — the only
+# sensor needing no add-on hardware, which is precisely why it must stay opt-in
+# (auto-enabling would switch a sensor on across the entire fleet).
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/dronecot-ble.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/dronecot-ble.service"
+install -v -m 0644 "${SHARED_FILES}/aryaos/dronecot-ble.default" \
+	"${ROOTFS_DIR}/etc/default/dronecot-ble"
+
 # Monitor-mode prep helper (dronecot's own set_monitor_mode doesn't down the
 # iface first nor release it from NetworkManager) — used as ExecStartPre.
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-wifi-monitor" \

@@ -28,6 +28,7 @@ ais-catcher
 aiscot
 dronecot
 dronecot-wifi
+dronecot-ble
 dronecot-dronescout
 sikw00fcot
 sapientcot
