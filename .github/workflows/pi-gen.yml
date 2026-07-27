@@ -328,6 +328,38 @@ jobs:
           git tag -a "$TAG" -m "Automated image build ${{ github.sha }}"
           git push origin "refs/tags/${TAG}"
 
+      - name: Generate image-info.json (hashes + sizes)
+        # AryaOS Imager's OS list needs the hash of the UNCOMPRESSED image so it
+        # can verify a card after writing, but the GitHub asset digest only
+        # covers the .img.xz. Publishing it here costs ~30s and no disk: the
+        # image is decompressed to a PIPE, never to a file (the raw .img is long
+        # gone by now — ARYAOS_CI_TRIM_WORK reaps the pi-gen work dir). The
+        # uncompressed size differs per build, so it is recorded, not assumed.
+        if: success() && steps.build_aryaos.outputs.image-path != ''
+        run: |
+          set -euo pipefail
+          IMG_XZ="${{ steps.build_aryaos.outputs.image-path }}"
+          mkdir -p deploy/imager
+          XZ_SHA="$(sha256sum "${IMG_XZ}" | awk '{print $1}')"
+          XZ_SIZE="$(stat -c%s "${IMG_XZ}")"
+          IMG_SIZE="$(xz -l --robot "${IMG_XZ}" | awk -F'\t' '/^totals/{print $5}')"
+          IMG_SHA="$(xz -dc "${IMG_XZ}" | sha256sum | awk '{print $1}')"
+          IS_DEV=false
+          [ "${ARYAOS_LAB_ACCESS}" = "1" ] && IS_DEV=true
+          cat > deploy/imager/image-info.json <<EOF
+          {
+            "schema": 1,
+            "tag": "${{ steps.reltag.outputs.tag }}",
+            "is_dev": ${IS_DEV},
+            "image_name": "$(basename "${IMG_XZ}")",
+            "xz_sha256": "${XZ_SHA}",
+            "xz_size": ${XZ_SIZE},
+            "img_sha256": "${IMG_SHA}",
+            "img_size": ${IMG_SIZE}
+          }
+          EOF
+          python3 -m json.tool deploy/imager/image-info.json
+
       - name: Build overlay deb for release asset
         if: success() && steps.build_aryaos.outputs.image-path != ''
         run: |
@@ -350,6 +382,8 @@ jobs:
           for sbom in deploy/sbom/aryaos-*.json; do
             [ -f "$sbom" ] && args+=("$sbom")
           done
+          # Tiny (<1 KB) manifest the AryaOS Imager OS list is generated from.
+          [ -f deploy/imager/image-info.json ] && args+=(deploy/imager/image-info.json)
           if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
             args+=(--prerelease)
           fi
