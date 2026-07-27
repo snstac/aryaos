@@ -26,6 +26,28 @@
   ansible.builtin.apt:
     deb: /usr/src/flightaware-apt-repository_1.2_all.deb
 
+# FlightAware's package pool and their own index disagree about this package, so
+# ANY apt run that tries to upgrade it aborts the whole transaction and fails the
+# build:
+#
+#   E: Failed to fetch .../flightaware-apt-repository_1.3_all.deb Hash Sum mismatch
+#      expected SHA256: b0a60c0dfd9620a95e7331d382ae7a8b81634650209ce088df489e8804fc9df1
+#      received SHA256: 20bdb73536845d9d95bc4659973e7ed07bc0fbdda7491045b82a66d5361046cc
+#
+# Verified by hand 2026-07-27: fetching that URL yields the "received" hash, so
+# the file they serve genuinely is not the file their index describes (same
+# 4664-byte size, different content). Upstream's inconsistency — retrying never
+# clears it; two identical build failures confirmed that.
+#
+# We only want this package for the sources.list it drops, and 1.2 is vendored
+# above precisely so the repo definition is reproducible. Hold it so upgrade
+# passes skip it and never attempt the broken fetch. Nothing depends on it, so
+# the hold cannot block another package.
+- name: Hold flightaware-apt-repository (upstream pool/index SHA256 disagree for 1.3)
+  ansible.builtin.dpkg_selections:
+    name: flightaware-apt-repository
+    selection: hold
+
 - name: Use bookworm FlightAware apt suite on trixie (no trixie Release upstream)
   ansible.builtin.replace:
     path: /etc/apt/sources.list.d/flightaware-apt-repository.list
