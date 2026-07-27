@@ -162,19 +162,43 @@ fi
 # plug-and-play while a bare one stays silent. Runs ONCE (marker file) so a
 # later deliberate `aryaos-role caps ...` is never overwritten.
 CAP_MARKER="/etc/aryaos/.capabilities-autodetected"
+CAP_TRIES="/etc/aryaos/.capabilities-autodetect-tries"
+CAP_MAX_TRIES=3
 if [[ ! -f "$CAP_MARKER" ]] \
 	&& [[ -x /usr/local/sbin/aryaos-role ]] \
 	&& [[ -x /usr/local/sbin/aryaos-capability-scan ]]; then
-	DETECTED="$(/usr/local/sbin/aryaos-capability-scan --caps 2>/dev/null | xargs || true)"
+	# Wait for USB to finish enumerating before believing an empty result. A
+	# LimeSDR was present at 3.7s on a real first boot but the scan still came
+	# back empty, because SoapySDRUtil blocks activating Avahi over dbus this
+	# early; the box then recorded "bare node" permanently.
+	udevadm settle --timeout=30 >/dev/null 2>&1 || true
+	DETECTED=""
+	for _try in 1 2 3; do
+		DETECTED="$(/usr/local/sbin/aryaos-capability-scan --caps 2>/dev/null | xargs || true)"
+		[[ -n "$DETECTED" ]] && break
+		sleep 10
+	done
+
 	if [[ -n "$DETECTED" ]]; then
 		if /usr/local/sbin/aryaos-role caps $DETECTED >/dev/null 2>&1; then
 			echo "AryaOS firstboot: detected hardware -> capabilities: $DETECTED"
 			CHANGED=1
 		fi
+		touch "$CAP_MARKER"
 	else
-		echo "AryaOS firstboot: no sensor hardware detected; staying a bare CoT node."
+		# Do NOT latch "bare" on one look: a slow device, a sensor plugged in
+		# later, or a service that was not up yet all deserve another attempt on
+		# the next boot. Give up after CAP_MAX_TRIES so a genuinely bare relay
+		# node stops scanning.
+		TRIES=$(( $(cat "$CAP_TRIES" 2>/dev/null || echo 0) + 1 ))
+		echo "$TRIES" > "$CAP_TRIES"
+		if [[ "$TRIES" -ge "$CAP_MAX_TRIES" ]]; then
+			echo "AryaOS firstboot: no sensor hardware after ${TRIES} boots; staying a bare CoT node."
+			touch "$CAP_MARKER"
+		else
+			echo "AryaOS firstboot: no sensor hardware detected (attempt ${TRIES}/${CAP_MAX_TRIES}); will retry next boot."
+		fi
 	fi
-	touch "$CAP_MARKER"
 fi
 
 if [[ "$CHANGED" -eq 0 ]]; then
