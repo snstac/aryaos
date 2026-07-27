@@ -4,8 +4,8 @@ repo_url: https://github.com/snstac/aryaos
 repo_name: snstac/aryaos
 edit_uri: edit/main/docs/
 site_description: >-
-  AryaOS — the all-in-one operating system for building a Common Operating
-  Picture from aircraft, vessels, and drones with TAK.
+  Turn a Raspberry Pi into a TAK sensor gateway: ADS-B aircraft, AIS vessels and
+  drone Remote ID as Cursor on Target. Open source and offline-capable.
 site_author: Greg Albrecht <gba@snstac.com>
 copyright: Copyright Sensors &amp; Signals LLC https://www.snstac.com/
 
