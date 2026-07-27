@@ -35,10 +35,22 @@ if [[ -x "${HCICONFIG}" ]]; then
 fi
 
 if [[ -x "${BLUETOOTHCTL}" ]]; then
-	timeout 8 "${BLUETOOTHCTL}" power on
-	timeout 8 "${BLUETOOTHCTL}" discoverable-timeout 0
-	timeout 8 "${BLUETOOTHCTL}" discoverable on
-	timeout 8 "${BLUETOOTHCTL}" pairable on
+	# The adapter directory appearing in sysfs does not mean bluetoothd has
+	# registered a controller yet; issuing commands too early returns "No
+	# default controller available" and, under set -e, failed the whole unit on
+	# a box whose Bluetooth was otherwise fine. Wait for the controller, then
+	# treat these as best-effort: Bluetooth PAN is an optional transport and
+	# must not leave a failed unit behind.
+	for _ in $(seq 1 20); do
+		if timeout 5 "${BLUETOOTHCTL}" show >/dev/null 2>&1; then
+			break
+		fi
+		sleep 0.5
+	done
+	timeout 8 "${BLUETOOTHCTL}" power on || log "power on failed (controller not ready)"
+	timeout 8 "${BLUETOOTHCTL}" discoverable-timeout 0 || true
+	timeout 8 "${BLUETOOTHCTL}" discoverable on || true
+	timeout 8 "${BLUETOOTHCTL}" pairable on || true
 fi
 
 if [[ -r "/sys/class/bluetooth/${ADAPTER}/address" ]]; then
