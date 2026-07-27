@@ -16,6 +16,41 @@
 
 dpkg -i /usr/src/flightaware-apt-repository_1.2_all.deb
 
+# Never let apt pull flightaware-apt-repository from FlightAware's own repo.
+#
+# Their pool and their index disagree about 1.3 — same 4664-byte size, different
+# content — so any apt run that tries to upgrade it aborts the whole
+# transaction and fails the build:
+#
+#   E: Failed to fetch .../flightaware-apt-repository_1.3_all.deb Hash Sum mismatch
+#      expected SHA256: b0a60c0d...fc9df1   (their index)
+#      received SHA256: 20bdb735...1046cc   (their pool)
+#
+# Verified by hand 2026-07-27: fetching that URL really does yield the "received"
+# hash. Upstream inconsistency, not a corrupt download — three builds failed
+# identically. It bites in pi-gen's OWN export-image/02-set-sources step, which
+# runs a blanket `apt-get dist-upgrade` long after this stage.
+#
+# We install this package solely for the sources.list it drops, and 1.2 is
+# vendored in shared_files precisely so the repo definition is reproducible, so
+# a remote copy is never wanted. Two independent guards, because a dpkg hold
+# alone did not survive to export-image:
+#   1. a negative pin, so no remote version is ever a candidate (any version —
+#      1.4 would presumably be just as broken)
+#   2. a dpkg hold, so upgrade passes skip it
+# Nothing in FlightAware's index Depends on this package, so neither can block
+# dump978-fa/skyaware978.
+install -d /etc/apt/preferences.d
+cat >/etc/apt/preferences.d/02-aryaos-pin-flightaware-apt-repository.pref <<'EOF'
+# flightaware-apt-repository is installed from a vendored .deb; FlightAware's
+# hosted copy has a pool/index SHA256 mismatch that breaks any apt transaction
+# that tries to fetch it. Refuse every remote version.
+Package: flightaware-apt-repository
+Pin: release *
+Pin-Priority: -1
+EOF
+apt-mark hold flightaware-apt-repository
+
 # FlightAware does not publish a trixie dist; use the bookworm suite on Debian 13+ / Pi OS trixie images.
 # See build log: "404  Not Found" on .../packages trixie Release.
 if [[ -f /etc/apt/sources.list.d/flightaware-apt-repository.list ]]; then
