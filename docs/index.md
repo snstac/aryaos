@@ -14,6 +14,9 @@ device — ATAK, WinTAK, iTAK, or a TAK Server — with no cloud, no subscriptio
 and no command line required. Sensors in, [Cursor on Target](reference/glossary.md#cot)
 out, managed entirely from a touch-friendly web console.
 
+ADS-B and UAT aircraft, AIS vessels, drone Remote ID over Wi-Fi and Bluetooth,
+DJI DroneID, APRS, and your own GPS position — on one box, in one picture.
+
 [Get started in 15 minutes](get-started/quickstart.md){ .md-button .md-button--primary }
 [What is AryaOS?](get-started/overview.md){ .md-button }
 
@@ -44,7 +47,8 @@ out, managed entirely from a touch-friendly web console.
 
     ---
 
-    Detect and track drones via Remote ID and DJI DroneID for airspace awareness.
+    Detect and track drones by Remote ID — over Wi-Fi *and* over Bluetooth — plus
+    DJI DroneID. Reports the aircraft and the operator's location.
 
     [:octicons-arrow-right-24: Counter-UAS](deploy/counter-uas.md)
 
@@ -58,6 +62,30 @@ out, managed entirely from a touch-friendly web console.
     [:octicons-arrow-right-24: Multi-sensor](deploy/multi-sensor.md)
 
 </div>
+
+## What it can hear
+
+Each capability is a receiver AryaOS knows how to turn into TAK tracks. The image
+ships with every sensor **switched off**; on first boot the box detects what is
+actually plugged in and enables what it finds, then reports anything it could do
+but did not turn on. Mix them freely — it will tell you when two capabilities
+want the same radio.
+
+| Capability | What appears on the map | Typical receiver |
+|------------|-------------------------|------------------|
+| **ADS-B / UAT** | Crewed aircraft on 1090 MHz and 978 MHz | RTL-SDR or any SoapySDR device |
+| **AIS** | Ships and vessels | dAISy NMEA receiver, or a spare SDR |
+| **Wi-Fi Remote ID** | ASTM F3411 Remote ID over 802.11, plus operator location | Monitor-mode adapter (e.g. Atheros AR9271) |
+| **Bluetooth Remote ID** | ASTM F3411 Remote ID over Bluetooth LE | **None — the board's own radio** |
+| **DJI DroneID** | DJI aircraft and the pilot's position | AntSDR E200 |
+| **DroneScout DS101** | Remote ID via a dedicated receiver | BlueMark DS101 |
+| **SiK telemetry** | MAVLink drone telemetry | SiK radio |
+| **SAPIENT** | Counter-UAS sensors speaking BSI Flex 335 | Network sensor |
+| **APRS** | Amateur radio stations and trackers | RTL-SDR |
+| **GPS** | The node's own position, shared with every connected device | USB GPS receiver |
+
+[:octicons-arrow-right-24: Choosing hardware](get-started/hardware.md) &nbsp;·&nbsp;
+[:octicons-arrow-right-24: Capabilities and device roles](config/device-roles.md)
 
 ## Start here
 
@@ -103,6 +131,9 @@ out, managed entirely from a touch-friendly web console.
   and needs no internet to put a picture on a phone in a backpack.
 - **Never touch a terminal.** Network, radios, TAK certificates, VPN, updates,
   device role, and diagnostics all live in the web console.
+- **Quiet by default.** A stock image ships with every sensor disabled and only starts
+  what the attached hardware supports, so a box with no radios is a working TAK node —
+  not a wall of errors.
 - **Built on open standards.** Every gateway is powered by
   [PyTAK](reference/glossary.md#pytak) and speaks Cursor on Target to the whole
   TAK ecosystem. See the [software suite](reference/software-suite.md).

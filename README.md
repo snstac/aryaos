@@ -1,17 +1,70 @@
 <img src="https://aryaos.readthedocs.io/en/latest/media/aryaos_logo-25p.png" width="160" height="160" alt="AryaOS logo">
 
-# AryaOS - The Operating System for Modern Situational Awareness
+# AryaOS — the situational awareness operating system for TAK
 
-AryaOS is a Linux-based operating system with a suite of situational awareness tools pre-installed.
+AryaOS turns an inexpensive single-board computer into a turn-key sensor gateway. It listens to
+the radio traffic around it — aircraft, vessels, drones, radios — and puts what it hears onto any
+[TAK](https://www.aryaos.org/reference/glossary/#tak) device as
+[Cursor on Target](https://www.aryaos.org/reference/glossary/#cot): ATAK, WinTAK, iTAK, TAKX, or a
+TAK Server.
 
-Features of AryaOS:
+No cloud. No subscription. No command line. Flash a card, boot the box, connect a phone —
+everything else is configured from a touch-friendly web console.
 
-* Includes decoders and gateways for [AIS](https://github.com/snstac/aiscot), [ADS-B](https://github.com/snstac/adsbcot) & [Drone Remote ID](https://github.com/snstac/dronecot).
-* Works with all TAK Products, including ATAK, WinTAK, iTAK, TAKX & TAK Server.
-* Facilitates rapid test & evaluation of edge node sensors.
-* Browser based low-code development tool for visual programming & open API.
-* Runs on inexpensive COTS & low SWaP-C small board computers, including the Raspberry Pi.
-* Built for Arm (arm64) single-board computers today; Intel/amd64 support is planned ([#129](https://github.com/snstac/aryaos/issues/129)) — the full gateway suite already installs on any Debian host from the [signed apt repository](https://snstac.github.io/packages).
+[**Get started in 15 minutes →**](https://www.aryaos.org/get-started/quickstart/)
+
+## What you can build with it
+
+| Mission | What AryaOS does |
+|---------|------------------|
+| **Aerial firefighting & wildland fire** | Puts the local ADS-B and UAT air picture in front of crews on the ground, with no dependence on connectivity. The original AirTAK use case, funded by the Colorado Center of Excellence and the USDA Forest Service. |
+| **Search & rescue** | A backpack-sized node that broadcasts its own Wi-Fi and shares aircraft, vessel, and team position with every phone in range. |
+| **Maritime domain awareness** | Live vessel traffic from an over-the-air AIS receiver or an online feed. |
+| **Counter-UAS & airspace security** | Detects drones by Remote ID (Wi-Fi and Bluetooth), DJI DroneID, and purpose-built receivers — reporting the aircraft *and* the operator's location. |
+| **Range & site security** | A fixed multi-sensor node fusing air, maritime, and drone feeds into a single common operating picture. |
+| **CoT relay & bridging** | Moves Cursor on Target between isolated networks, radios, and a TAK Server. |
+| **Electronic flight bag** | Feeds ADS-B traffic to ForeFlight and other GDL 90 apps. |
+
+## Sensor capabilities
+
+Each capability is a receiver AryaOS knows how to turn into TAK tracks. The image ships with every
+sensor **switched off**; on first boot the box detects what is actually plugged in and enables what
+it finds, then reports anything it could do but did not turn on — so you always know what the
+hardware is capable of.
+
+| Capability | What appears on the map | Typical receiver |
+|------------|-------------------------|------------------|
+| **ADS-B / UAT** | Crewed aircraft on 1090 MHz and 978 MHz | RTL-SDR or any SoapySDR device |
+| **AIS** | Ships and vessels | dAISy NMEA receiver, or a spare SDR |
+| **Wi-Fi Remote ID** | ASTM F3411 Remote ID broadcast over 802.11, plus operator location | Monitor-mode adapter (e.g. Atheros AR9271) |
+| **Bluetooth Remote ID** | ASTM F3411 Remote ID broadcast over Bluetooth LE | **None — the board's own Bluetooth radio** |
+| **DJI DroneID** | DJI aircraft and the pilot's position | AntSDR E200 |
+| **DroneScout DS101** | Remote ID via a dedicated BlueMark receiver | BlueMark DS101 |
+| **SiK telemetry** | MAVLink drone telemetry | SiK radio |
+| **SAPIENT** | Counter-UAS sensors speaking BSI Flex 335 | Network sensor |
+| **APRS** | Amateur radio stations and trackers | RTL-SDR |
+| **GPS** | The node's own position, shared with every connected device | USB GPS receiver |
+
+Mix them freely: one box can run an air picture and a drone picture at once, and tells you when two
+capabilities want the same radio.
+
+## Why teams choose it
+
+* **Works with every TAK product** — ATAK, WinTAK, iTAK, TAKX, and TAK Server, over the open
+  Cursor on Target standard.
+* **Runs offline.** Boots on a Raspberry Pi, broadcasts its own Wi-Fi, and needs no internet to put
+  a picture on a phone in a backpack.
+* **Quiet by default.** A stock image ships with every sensor disabled and only starts what the
+  attached hardware supports, so a box with no radios is a working TAK node rather than a wall of
+  errors.
+* **No terminal required.** Network, radios, TAK certificates, VPN, updates, and diagnostics all
+  live in the browser.
+* **Open source, end to end.** Every gateway is built on [PyTAK](https://github.com/snstac/pytak)
+  and licensed Apache 2.0.
+* **Inexpensive, low SWaP-C hardware.** Built for Arm (arm64) single-board computers such as the
+  Raspberry Pi 4 and 5. Intel/amd64 support is planned
+  ([#129](https://github.com/snstac/aryaos/issues/129)) — the full gateway suite already installs on
+  any Debian host from the [signed apt repository](https://snstac.github.io/packages).
 
 ## AryaOS Software Suite
 
