@@ -1,6 +1,12 @@
 # code: language=ansible
 # fa.yml
 #
+# !! NOT EXECUTED BY THE IMAGE BUILD !!
+# The live code path is stages/stage-adsbcot/02-install-repos/00-run-chroot.sh,
+# which duplicates this logic in shell. A 2026-07-27 build log contained no
+# PLAY/TASK lines at all — ansible does not run — so a fix applied only here has
+# no effect on the image. Keep the two in sync, but change the shell script.
+#
 # Copyright Sensors & Signals LLC https://www.snstac.com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
