@@ -1,0 +1,34 @@
+# AryaOS dronecot (Bluetooth Remote ID) config — /etc/default/dronecot-ble
+#
+# Captures Open Drone ID broadcast over Bluetooth LE (ASTM F3411 service data,
+# UUID 0xFFFA, app code 0x0D) using the board's OWN Bluetooth radio and forwards
+# it to charontak as CoT. COT_URL is inherited from aryaos-config.txt via the
+# service EnvironmentFile.
+#
+# No add-on hardware is required, so this is deliberately OPT-IN — the radio is
+# present on every box and auto-enabling would switch a sensor on fleet-wide:
+#   sudo aryaos-role caps <existing caps...> ble-rid
+#
+# LEGACY ADVERTISING ONLY: the ASTM long-range profile uses BT5 extended
+# advertising on the Coded PHY, which the Pi's CYW43455 is not known to receive.
+# Treat this as complementary to a Sniffle dongle or a DroneScout DS101.
+
+FEED_URL=ble+hci://hci0
+BLE_ADAPTER=hci0
+SENSOR_ID=ble-rid
+
+# Reader selection:
+#   monitor — HCI_CHANNEL_MONITOR socket (needs CAP_NET_RAW, granted by the
+#             unit). Every advertising report, nothing coalesced. Preferred.
+#   dbus    — BlueZ ServiceData property. No capability needed, but BlueZ may
+#             coalesce repeated advertisements, and because a transmitter
+#             rotates message types a coalesced repeat is a LOST MESSAGE TYPE.
+#   auto    — try monitor, fall back to dbus.
+BLE_READER=auto
+
+# Optional: ignore advertisements weaker than this (dBm). Unset = no filter.
+#BLE_RSSI_THRESHOLD=-95
+
+# SIGINT / receiver detail carried in the CoT payload (dronecot >= 2.2.5).
+SENSOR_TYPE=Bluetooth Open Drone ID
+SENSOR_MODEL=Onboard Bluetooth (BlueZ)
