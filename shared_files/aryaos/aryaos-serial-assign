@@ -79,6 +79,26 @@ is_rid_device() {
 	[[ "$vid" == "303a" ]]  # Espressif
 }
 
+# True for a GNSS receiver, identified by udev rather than by what it is saying.
+#
+# This matters because a GPS is NOT always talking: gpsd is deliberately stopped
+# while we probe (see pause_gpsd), and a receiver that is cold-starting, indoors,
+# or between fixes can be silent for the whole probe window. A silent GPS used to
+# fall through to the "leftover" pile and get claimed as a dAISy BY ELIMINATION.
+#
+# Observed on a real box: /etc/default/gpsd DEVICES and /etc/default/ais-catcher
+# SERIAL_PORT both pointed at the SAME u-blox 7, so ais-catcher crash-looped
+# fighting gpsd for the port AND the GPS lost its fix. Worse, the capability scan
+# then read that config back and reported "AIS receiver present" -- confirming its
+# own mistake.
+is_gps_device() {
+	local dev="$1" props
+	props="$(udevadm info -q property -n "$dev" 2>/dev/null)"
+	# u-blox vendor id, or any device whose model/serial announces GPS/GNSS.
+	grep -qE '^ID_VENDOR_ID=1546$' <<<"$props" && return 0
+	grep -qiE '^ID_(MODEL|SERIAL|VENDOR)=.*(gps|gnss|u-blox|garmin)' <<<"$props"
+}
+
 # True if this port is the AntSDR's serial console (pinned to /dev/antsdr-console
 # by udev when the operator opts in). The AntSDR console echoes but never emits
 # NMEA, so it must not be swept up as a silent "leftover" and mis-assigned as a
@@ -143,7 +163,17 @@ main() {
 			busy)  log "skip $dev (held by a running service)";;
 			gps:*) [[ -z "$gps_dev" ]] && { gps_dev="$dev"; log "GPS on $dev (${cls#gps:} baud)"; };;
 			ais:*) [[ -z "$ais_dev" ]] && { ais_dev="$dev"; ais_baud="${cls#ais:}"; log "AIS/dAISy on $dev (${cls#ais:} baud)"; };;
-			"")    leftover+=("$dev"); log "silent/unknown serial: $dev";;
+			"")
+				# A silent port that udev says is a GNSS receiver is a GPS, not a
+				# candidate dAISy. Never let it reach "leftover" -- assignment by
+				# elimination would hand the GPS to ais-catcher.
+				if is_gps_device "$dev"; then
+					[[ -z "$gps_dev" ]] && { gps_dev="$dev"; log "GPS on $dev (silent during probe; identified by udev)"; } \
+						|| log "skip $dev (additional GNSS receiver)"
+				else
+					leftover+=("$dev"); log "silent/unknown serial: $dev"
+				fi
+				;;
 		esac
 	done
 	shopt -u nullglob
@@ -154,6 +184,13 @@ main() {
 		&& systemctl is-enabled ais-catcher.service >/dev/null 2>&1; then
 		ais_dev="${leftover[0]}"; ais_baud="$AIS_BAUD_DEFAULT"
 		log "AIS/dAISy assumed on $ais_dev by elimination (silent; ${ais_baud} baud)"
+	fi
+
+	# Final guard: gpsd and ais-catcher must never be pointed at one device.
+	if [[ -n "$gps_dev" && -n "$ais_dev" ]] \
+		&& [[ "$(readlink -f "$gps_dev")" == "$(readlink -f "$ais_dev")" ]]; then
+		log "refusing to assign $ais_dev to BOTH gpsd and ais-catcher; keeping it as GPS"
+		ais_dev=""
 	fi
 
 	local changed=0
