@@ -1,0 +1,96 @@
+#!/bin/bash
+# aryaos-time-pps — discipline chrony from a GNSS pulse-per-second, when one exists.
+#
+# Why this is not just a static config line:
+#
+#   * The PPS device NUMBER is not stable. On a Pi 5 with a USB GPS the kernel
+#     exposes /dev/pps0 = ptp0 (the Ethernet PHY clock) and /dev/pps1 = acm0
+#     (the GPS pulse over USB CDC). Hardcoding /dev/pps0 would discipline the
+#     clock from the NIC, which is not tied to GNSS at all.
+#   * Boxes without a GPS expose only ptp0, and must get no refclock rather than
+#     a wrong one.
+#
+# So pick the PPS source by NAME, and only accept one that is GNSS-backed.
+#
+# Why it matters: the packaged drop-in already has `refclock SHM 0 refid GPS`,
+# which is gpsd's NMEA time — good to roughly a millisecond. For time-difference
+# work between nodes that is useless: at ~300 m per microsecond, the 130-800 us
+# RMS measured across the fleet is tens to hundreds of kilometres of error. The
+# PPS edge is what turns a "synced" box into one that can contribute to TDOA.
+#
+# `lock GPS` ties the pulse to the SHM refclock so PPS takes its second number
+# from NMEA; without a fix chrony simply will not select it, which is the
+# correct failure mode.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+set -uo pipefail
+
+CONF="/etc/chrony/conf.d/20-aryaos-pps.conf"
+
+log() { logger -t aryaos-time-pps "$*" 2>/dev/null || true; echo "aryaos-time-pps: $*"; }
+
+# A GNSS receiver's pulse arrives via a serial/CDC driver (acm0, ttyACM0) or is
+# named for the receiver. An Ethernet PHY (ptp0) is NOT disciplined to GNSS.
+is_gnss_pps() {
+	[[ "$1" =~ ^(acm|ttyACM|gps|gnss|ublox|u-blox) ]]
+}
+
+find_gnss_pps() {
+	local path name
+	for path in /sys/class/pps/pps*; do
+		[[ -e "${path}/name" ]] || continue
+		name="$(cat "${path}/name" 2>/dev/null)"
+		if is_gnss_pps "${name}"; then
+			echo "/dev/$(basename "${path}")|${name}"
+			return 0
+		fi
+	done
+	return 1
+}
+
+main() {
+	[[ "$(id -u)" == 0 ]] || { echo "aryaos-time-pps: must run as root" >&2; exit 2; }
+
+	local found dev name previous=""
+	[[ -f "${CONF}" ]] && previous="$(cat "${CONF}")"
+
+	if ! found="$(find_gnss_pps)"; then
+		if [[ -f "${CONF}" ]]; then
+			rm -f "${CONF}"
+			log "no GNSS PPS present; removed ${CONF}"
+			systemctl try-restart chrony.service >/dev/null 2>&1 || true
+		else
+			log "no GNSS PPS present (only non-GNSS sources such as ptp0, if any)"
+		fi
+		return 0
+	fi
+
+	dev="${found%%|*}"
+	name="${found##*|}"
+
+	local desired
+	desired="$(cat <<EOF
+# Written by aryaos-time-pps. Do not edit; re-run the service to regenerate.
+#
+# GNSS pulse-per-second on ${dev} (kernel name: ${name}).
+# 'lock GPS' pairs the pulse with the SHM refclock in aryaos.conf, so PPS takes
+# its second number from NMEA. With no GPS fix chrony will not select it.
+refclock PPS ${dev} refid PPS lock GPS
+EOF
+)"
+
+	if [[ "${previous}" == "${desired}" ]]; then
+		log "GNSS PPS already configured on ${dev} (${name})"
+		return 0
+	fi
+
+	install -d -m 0755 /etc/chrony/conf.d
+	printf '%s\n' "${desired}" > "${CONF}"
+	chmod 0644 "${CONF}"
+	log "GNSS PPS on ${dev} (${name}) -> ${CONF}"
+	systemctl try-restart chrony.service >/dev/null 2>&1 || true
+}
+
+main "$@"

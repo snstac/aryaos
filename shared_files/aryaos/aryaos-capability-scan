@@ -51,7 +51,7 @@ CAP_UNITS = {
     "dji": "dronecot",
     "wifi-rid": "dronecot-wifi",
     "ble-rid": "dronecot-ble",
-    "ds101": "dronecot-dronescout",
+    "rid": "dronecot-dronescout",
     "sik": "sikw00fcot",
     "sapient": "sapientcot",
 }
@@ -297,7 +297,7 @@ def scan():
     }
 
     # DroneScout DS101 vs SiKW00F: same USB id, so probe for MAVLink.
-    ds101 = {"available": False, "evidence": "no ESP32-S3 serial device"}
+    rid = {"available": False, "evidence": "no ESP32-S3 serial device"}
     sik = {"available": False, "evidence": "no ESP32-S3 serial device"}
     if esp32:
         mav = None
@@ -306,10 +306,10 @@ def scan():
             if mav:
                 break
         if mav:
-            ds101 = {"available": True, "evidence": f"MAVLink on {esp32[0]}"}
+            rid = {"available": True, "evidence": f"MAVLink on {esp32[0]}"}
             sik = {
                 "available": False,
-                "evidence": "ESP32-S3 present but speaking MAVLink (DS101)",
+                "evidence": "ESP32 present but speaking MAVLink (DroneScout receiver)",
             }
         else:
             note = (
@@ -317,9 +317,9 @@ def scan():
                 "SiKW00F share the same USB id and the port was silent or busy — "
                 "cannot tell them apart"
             )
-            ds101 = {"available": False, "ambiguous": True, "evidence": note}
+            rid = {"available": False, "ambiguous": True, "evidence": note}
             sik = {"available": False, "ambiguous": True, "evidence": note}
-    caps["ds101"] = ds101
+    caps["rid"] = rid
     caps["sik"] = sik
 
     # SAPIENT: network sensor, no local signature.
@@ -380,7 +380,7 @@ def scan():
     # success: a live dronecot-dronescout holds the DS101 serial port, so the
     # MAVLink probe (which deliberately refuses to disturb a busy port) reports
     # nothing, and `discover --apply` would then switch off a capability that is
-    # working right now. Observed on a real box: firstboot found "dji ds101",
+    # working right now. Observed on a real box: firstboot found "dji rid",
     # a rescan minutes later found only "dji".
     for key, cap in caps.items():
         unit = CAP_UNITS.get(key)

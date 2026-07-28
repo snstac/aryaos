@@ -34,7 +34,7 @@ WIFI_AP_IP=10.41.0.1
 # Product line: AryaAir (airspace SA) | AryaSea (maritime SA) | DragonEgg (general SIGINT).
 ARYAOS_PRODUCT="DragonEgg"
 
-# Active sensor capabilities: adsb ais dji wifi-rid ds101 sik sapient
+# Active sensor capabilities: adsb ais dji wifi-rid ble-rid rid sik sapient
 #
 # EMPTY BY DEFAULT — the image ships with every sensor gateway disabled. A box
 # with no radios attached should be quiet, not crash-looping decoders it has no

@@ -1,0 +1,19 @@
+[Unit]
+Description=AryaOS: discipline chrony from a GNSS PPS when one is present
+Documentation=https://www.aryaos.org/
+# Runs after gpsd so the GPS has been opened and its PPS device exists, and
+# after chrony so the restart lands on a running daemon. Re-runs on every boot
+# because the PPS device number is not stable across reboots or replugs.
+After=gpsd.service chrony.service
+Wants=gpsd.service
+ConditionPathExistsGlob=/sys/class/pps/pps*
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/aryaos-time-pps
+# Best effort: a box with no GNSS pulse is a normal, supported configuration.
+SuccessExitStatus=0 2
+
+[Install]
+WantedBy=multi-user.target

@@ -20,7 +20,7 @@
 #                        it supports; --apply enables them.
 #   set ROLE             Back-compat: apply a legacy role as a capability preset.
 #
-# Capability keys: adsb ais dji wifi-rid ds101 sik sapient
+# Capability keys: adsb ais dji wifi-rid ble-rid rid sik sapient
 # The ADS-B decoder unit follows ARYAOS_ADSB_DECODER (readsb | dump1090_fa).
 # Units missing from the image are skipped, not errors.
 #
@@ -32,8 +32,8 @@
 set -euo pipefail
 
 SITE_CONFIG="/etc/aryaos/aryaos-config.txt"
-PRODUCTS="AryaAir AryaSea DragonEgg"
-CAPS="adsb ais dji wifi-rid ble-rid ds101 sik sapient"
+PRODUCTS="AryaAir AryaSea AryaUAS DragonEgg"
+CAPS="adsb ais dji wifi-rid ble-rid rid sik sapient"
 LEGACY_ROLES="multi air maritime cuas relay"
 DEFAULT_PRODUCT="DragonEgg"
 
@@ -85,7 +85,7 @@ cap_units() {
 		dji)      echo "dronecot" ;;
 		wifi-rid) echo "dronecot-wifi" ;;
 		ble-rid)  echo "dronecot-ble" ;;
-		ds101)    echo "dronecot-dronescout" ;;
+		rid)      echo "dronecot-dronescout" ;;
 		sik)      echo "sikw00fcot" ;;
 		sapient)  echo "sapientcot" ;;
 		*)        return 1 ;;
@@ -100,7 +100,7 @@ cap_label() {
 		dji)      echo "DJI DroneID" ;;
 		wifi-rid) echo "Wi-Fi Remote ID" ;;
 		ble-rid)  echo "Bluetooth Remote ID" ;;
-		ds101)    echo "DroneScout DS101" ;;
+		rid)      echo "Remote ID receiver" ;;
 		sik)      echo "SiK Telemetry" ;;
 		sapient)  echo "SAPIENT C-UAS" ;;
 		*)        echo "$1" ;;
@@ -108,9 +108,19 @@ cap_label() {
 }
 
 # Product line -> default capability set applied by `product`.
+# Product line -> default capability set applied by `product`.
+#
+# The lines describe what the box is FOR, and the capability mix is what makes
+# that true:
+#   AryaAir  air picture: ADS-B/UAT *plus* Remote ID, so crewed and uncrewed
+#            traffic appear together.
+#   AryaUAS  uncrewed only: drone detection with NO ADS-B.
+#   AryaSea  maritime: AIS.
+#   DragonEgg general SIGINT: no assumption, operator chooses.
 product_default_caps() {
 	case "$1" in
-		AryaAir)   echo "adsb" ;;
+		AryaAir)   echo "adsb rid" ;;
+		AryaUAS)   echo "dji rid" ;;
 		AryaSea)   echo "ais" ;;
 		DragonEgg) echo "" ;;
 		*)         return 1 ;;
@@ -135,6 +145,20 @@ all_managed_units() {
 }
 
 # Expand a capability list to the (deduplicated) union of its units.
+# Accept the retired 'ds101' key and map it to 'rid'. The capability was named
+# after one BlueMark model, but the same code path serves a DroneScout Bridge
+# (DS110) and anything else speaking MAVLink Open Drone ID over serial, so the
+# key is now model-neutral. Deployed boxes may still have ds101 persisted in
+# aryaos-config.txt.
+normalize_caps() {
+	local cap out=""
+	for cap in $1; do
+		[[ "${cap}" == "ds101" ]] && cap="rid"
+		out="${out}${cap} "
+	done
+	echo "${out% }"
+}
+
 units_for_caps() {
 	local cap u seen=" "
 	for cap in $1; do
@@ -218,6 +242,9 @@ set_caps() {
 	case "${caps}" in
 		none | off) caps="" ;;
 	esac
+	# Map retired keys (ds101 -> rid) before validation, so deployed boxes and
+	# existing muscle memory keep working.
+	caps="$(normalize_caps "${caps}")"
 	local cap
 	for cap in ${caps}; do
 		cap_units "${cap}" >/dev/null 2>&1 || { echo "aryaos-role: unknown capability '${cap}' (caps: ${CAPS})" >&2; exit 2; }

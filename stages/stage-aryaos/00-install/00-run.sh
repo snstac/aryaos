@@ -123,6 +123,25 @@ done
 # chrony drop-in: GPS-disciplined NTP + serve time to the local networks.
 install -v -D -m 0644 "${SHARED_FILES}/aryaos/chrony/aryaos.conf" "${ROOTFS_DIR}/etc/chrony/conf.d/aryaos.conf"
 
+# GNSS pulse-per-second discipline. The packaged drop-in above gives chrony
+# gpsd's NMEA time (SHM), good to about a millisecond; the PPS edge is what
+# takes a node from "synced" to usable for time-difference work between boxes.
+# It cannot be a static config line because the PPS device number is not stable
+# — on a Pi 5 with a USB GPS, /dev/pps0 is the Ethernet PHY clock (ptp0) and the
+# GPS pulse is /dev/pps1 (acm0) — so a helper picks it by name at boot.
+install -v -D -m 0755 "${SHARED_FILES}/aryaos/aryaos-time-pps" \
+	"${ROOTFS_DIR}/usr/local/sbin/aryaos-time-pps"
+install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-time-pps.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-time-pps.service"
+
+# Stop hopeless sensor units from crash-looping forever (and from hiding the
+# fact, since a unit that restarts endlessly never enters `failed`).
+for _u in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot \
+	dronecot dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot; do
+	install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-startlimit.conf" \
+		"${ROOTFS_DIR}/etc/systemd/system/${_u}.service.d/aryaos-startlimit.conf"
+done
+
 ## One-click updates: helper + oneshot unit (driven by Cockpit -> AryaOS Site)
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-update" "${ROOTFS_DIR}/usr/local/sbin/aryaos-update"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-update.service" \

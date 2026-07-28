@@ -133,6 +133,13 @@ require_path /usr/local/sbin/aryaos-firstboot.sh
 require_path /usr/local/sbin/aryaos-lincot-remarks
 require_path /usr/local/sbin/aryaos-cot-detail
 require_grep 'capabilities' /usr/local/sbin/aryaos-cot-detail "beacon advertises product + capabilities (v2)"
+require_path /usr/local/sbin/aryaos-time-pps
+require_path /etc/systemd/system/aryaos-time-pps.service
+require_path /etc/systemd/system/multi-user.target.wants/aryaos-time-pps.service
+# Crash-loop guard: a sensor unit that restarts forever never enters `failed`,
+# so a start limit is what makes the failure visible at all.
+require_path /etc/systemd/system/readsb.service.d/aryaos-startlimit.conf
+require_path /etc/systemd/system/adsbcot.service.d/aryaos-startlimit.conf
 require_path /usr/local/sbin/aryaos-neighbord
 require_path /etc/systemd/system/aryaos-firstboot.service
 require_path /etc/systemd/system/aryaos-neighbord.service
