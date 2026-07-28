@@ -41,6 +41,8 @@ systemctl enable aryaos-gps-time-sync.service
 # client-only systemd-timesyncd.
 systemctl disable systemd-timesyncd.service 2>/dev/null || true
 systemctl enable chrony.service
+# Picks a GNSS PPS (by name, not by device number) and hands it to chrony.
+systemctl enable aryaos-time-pps.service
 systemctl enable aryaos-tak-dp-importd.service
 systemctl enable aryaos-neighbord.service
 # EMCON: re-applies WiFi/Bluetooth rfkill at boot when /etc/aryaos/emcon is set.
