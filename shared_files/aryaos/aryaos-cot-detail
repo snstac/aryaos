@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import glob
 import os
+import re
 import socket
 import subprocess
 import time
@@ -214,11 +216,129 @@ def _capabilities() -> list[dict[str, str]]:
     return out
 
 
+# Threshold below which PPS-disciplined time is worth claiming for time-difference
+# work. A GPS/PPS refclock typically holds well under a microsecond; plain NTP over
+# the internet sits in the hundreds of microseconds. At 300 m per microsecond of
+# error, that difference decides whether a node can contribute to TDOA at all.
+TDOA_RMS_MAX_S = 1.0e-5
+
+
+def _pps_devices() -> list:
+    """PPS sources the kernel exposes, as (device, name) e.g. ('pps0', 'acm0').
+
+    The name matters: 'acm0'/'ttyACM0' is a GPS receiver's pulse arriving over USB
+    CDC, while 'ptp0' is an Ethernet PHY clock — only the former is disciplined to
+    GNSS and useful as a time reference.
+    """
+    out = []
+    for path in sorted(glob.glob("/sys/class/pps/pps*")):
+        name = _read(f"{path}/name").strip()
+        out.append((os.path.basename(path), name))
+    return out
+
+
+def _chrony_tracking() -> dict:
+    """Parse `chronyc tracking` into a flat dict; empty if chrony is absent."""
+    raw = _run(["/usr/bin/chronyc", "-n", "tracking"], timeout=2.0)
+    info = {}
+    for line in raw.splitlines():
+        if ":" not in line:
+            continue
+        key, _, val = line.partition(":")
+        info[key.strip().lower()] = val.strip()
+    return info
+
+
+def _chrony_refclock_locked() -> bool:
+    """True when the SELECTED time source is a local refclock (PPS/GPS).
+
+    chronyc marks the synchronised source with '*'; a local refclock is prefixed
+    '#'. So '#*' means "we are actually disciplined by the local pulse" rather
+    than by a network server, which is the distinction that matters here.
+    """
+    for line in _run(["/usr/bin/chronyc", "-n", "sources"], timeout=2.0).splitlines():
+        if line.startswith("#*"):
+            return True
+    return False
+
+
+def _seconds(text: str) -> str:
+    """Pull the leading float out of e.g. '0.000268655 seconds' or '+9.9e-06 seconds'."""
+    m = re.match(r"[+-]?[0-9.eE+-]+", text.strip())
+    return m.group(0).lstrip("+") if m else ""
+
+
+def _time_state() -> dict:
+    """Clock quality, reported in enough detail to judge TDOA suitability.
+
+    'synced' alone is not a useful answer for a direction-finding network: a node
+    can be perfectly NTP-synced and still be hundreds of microseconds off, which is
+    tens of kilometres of error. So we publish the offset, the RMS, whether a PPS
+    refclock is actually selected, and a single honest verdict in tdoa_ready.
+    """
+    state = {
+        "synced": _run(
+            ["/usr/bin/timedatectl", "show", "-p", "NTPSynchronized", "--value"],
+            timeout=2.0,
+        ).strip().lower() or "unknown",
+        "tz": _run(
+            ["/usr/bin/timedatectl", "show", "-p", "Timezone", "--value"], timeout=2.0
+        ).strip(),
+        "daemon": "chrony" if _service_state("chrony") == "active" else (
+            "systemd-timesyncd" if _service_state("systemd-timesyncd") == "active" else "none"
+        ),
+    }
+
+    pps = _pps_devices()
+    state["pps"] = ",".join(f"{dev}:{name}" if name else dev for dev, name in pps)
+    # A GNSS pulse (CDC-ACM serial GPS) is a usable reference; an Ethernet PHY
+    # clock (ptp) is not disciplined to GNSS and must not be counted as one.
+    state["pps_gnss"] = str(any(n.startswith(("acm", "ttyACM", "gps")) for _, n in pps)).lower()
+
+    track = _chrony_tracking()
+    locked = False
+    if track:
+        ref = track.get("reference id", "")
+        state["ref"] = ref.split("(", 1)[1].rstrip(")") if "(" in ref else ref
+        state["stratum"] = track.get("stratum", "")
+        state["offset_s"] = _seconds(track.get("system time", ""))
+        state["rms_s"] = _seconds(track.get("rms offset", ""))
+        state["skew_ppm"] = _seconds(track.get("skew", ""))
+        state["leap"] = track.get("leap status", "").lower()
+        locked = _chrony_refclock_locked()
+    state["refclock_locked"] = str(locked).lower()
+
+    try:
+        rms_ok = float(state.get("rms_s") or "inf") <= TDOA_RMS_MAX_S
+    except ValueError:
+        rms_ok = False
+    # Deliberately conservative: claim TDOA readiness only when a local pulse is
+    # the selected source AND the measured RMS backs it up.
+    state["tdoa_ready"] = str(bool(locked and rms_ok)).lower()
+
+    return {k: v for k, v in state.items() if v != ""}
+
+
+def _nap_state() -> dict:
+    """Bluetooth PAN (NAP) reachability — the fallback link when there is no LAN."""
+    clients = 0
+    for path in glob.glob("/sys/class/net/bnep*"):
+        if os.path.isdir(path):
+            clients += 1
+    return {
+        "service": _service_state("aryaos-bt-pan"),
+        "ready": _service_state("aryaos-bt-ready"),
+        "iface": "pan0" if os.path.isdir("/sys/class/net/pan0") else "",
+        "up": str(_read("/sys/class/net/pan0/operstate").strip() in ("up", "unknown")).lower(),
+        "clients": str(clients),
+    }
+
+
 def main() -> int:
     hostname = socket.gethostname().split(".", 1)[0]
     load1, load5, load15 = _loadavg()
 
-    root = ET.Element("__aryaos", {"version": "2"})
+    root = ET.Element("__aryaos", {"version": "3"})
     ET.SubElement(
         root,
         "product",
@@ -250,6 +370,10 @@ def main() -> int:
             "temp_c": _temp_c(),
         },
     )
+    # Clock quality and BT PAN reachability. Time is reported in detail because a
+    # distributed direction-finding network stands or falls on it.
+    ET.SubElement(root, "time", _time_state())
+    ET.SubElement(root, "nap", _nap_state())
     services = ET.SubElement(root, "services")
     for svc in SERVICES:
         # XML attribute names can't contain '-'; normalize for the services map.
