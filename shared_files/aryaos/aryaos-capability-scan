@@ -213,12 +213,30 @@ def probe_antsdr():
     return None
 
 
+def _is_gnss(port):
+    """Does udev identify this serial port as a GNSS receiver?"""
+    props = _run(["/usr/bin/udevadm", "info", "-q", "property", "-n", port], timeout=5)
+    if re.search(r"^ID_VENDOR_ID=1546$", props, re.M):
+        return True
+    return bool(re.search(r"^ID_(MODEL|SERIAL|VENDOR)=.*(gps|gnss|u-blox|garmin)", props, re.M | re.I))
+
+
 def probe_ais_serial():
-    """A dAISy (or similar) NMEA AIS receiver wired up by aryaos-serial-assign."""
+    """A dAISy (or similar) NMEA AIS receiver wired up by aryaos-serial-assign.
+
+    This reads back the config aryaos-serial-assign WROTE, so on its own it can
+    only confirm that assignment -- including a wrong one. Observed on a real box:
+    a silent u-blox GPS was assigned to ais-catcher by elimination, and this probe
+    then dutifully reported "AIS receiver present", enabling the ais capability on
+    a box that had no AIS hardware at all. So reject a port that udev says is a
+    GNSS receiver rather than treating the config as ground truth.
+    """
     for line in _read("/etc/default/ais-catcher").splitlines():
         if line.startswith("SERIAL_PORT="):
             port = line.split("=", 1)[1].strip().strip("\"'")
             if port and os.path.exists(port):
+                if _is_gnss(port):
+                    return None
                 return port
     return None
 
