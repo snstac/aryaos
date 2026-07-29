@@ -27,7 +27,24 @@
 
 set -uo pipefail
 
-CONF="/etc/chrony/conf.d/20-aryaos-pps.conf"
+# The refclock config MUST be ephemeral. chronyd treats a refclock naming a
+# missing device as a FATAL error and refuses to start:
+#
+#   Fatal error : Could not open /dev/pps1 : No such file or directory
+#
+# A USB GPS enumerates after chrony starts, so a config persisted in
+# /etc/chrony/conf.d/ is present at boot while the device is not -- which killed
+# chrony outright on a lab box and left it with NO time sync for 7 hours. That is
+# strictly worse than having no PPS at all.
+#
+# Writing to /run instead means the file cannot survive a reboot: chrony starts
+# clean, then this helper (udev-triggered when the PPS device appears) writes the
+# refclock and reloads it. Verified: chronyd tolerates a confdir that does not
+# exist, and tolerates an empty one.
+RUN_DIR="/run/chrony-aryaos"
+CONF="${RUN_DIR}/20-aryaos-pps.conf"
+# Older builds wrote here and would break chrony on the next boot; remove it.
+LEGACY_CONF="/etc/chrony/conf.d/20-aryaos-pps.conf"
 
 log() { logger -t aryaos-time-pps "$*" 2>/dev/null || true; echo "aryaos-time-pps: $*"; }
 
@@ -53,14 +70,21 @@ find_gnss_pps() {
 main() {
 	[[ "$(id -u)" == 0 ]] || { echo "aryaos-time-pps: must run as root" >&2; exit 2; }
 
+	# Migration: a persisted config from an older build is a boot-time landmine.
+	if [[ -f "${LEGACY_CONF}" ]]; then
+		rm -f "${LEGACY_CONF}"
+		log "removed legacy ${LEGACY_CONF} (persisted refclock breaks chrony at boot)"
+	fi
+
 	local found dev name previous=""
+	install -d -m 0755 "${RUN_DIR}"
 	[[ -f "${CONF}" ]] && previous="$(cat "${CONF}")"
 
 	if ! found="$(find_gnss_pps)"; then
 		if [[ -f "${CONF}" ]]; then
 			rm -f "${CONF}"
 			log "no GNSS PPS present; removed ${CONF}"
-			systemctl try-restart chrony.service >/dev/null 2>&1 || true
+			systemctl reload-or-restart chrony.service >/dev/null 2>&1 || true
 		else
 			log "no GNSS PPS present (only non-GNSS sources such as ptp0, if any)"
 		fi
@@ -86,11 +110,10 @@ EOF
 		return 0
 	fi
 
-	install -d -m 0755 /etc/chrony/conf.d
 	printf '%s\n' "${desired}" > "${CONF}"
 	chmod 0644 "${CONF}"
 	log "GNSS PPS on ${dev} (${name}) -> ${CONF}"
-	systemctl try-restart chrony.service >/dev/null 2>&1 || true
+	systemctl reload-or-restart chrony.service >/dev/null 2>&1 || true
 }
 
 main "$@"
