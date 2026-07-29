@@ -103,6 +103,14 @@ require_grep() {
 		fail "${label} missing from ${path}"
 	fi
 }
+forbid_grep() {
+	local pattern="$1" path="$2" label="$3"
+	if grep -qsE "${pattern}" "${MNT}${path}"; then
+		fail "${label} — unexpectedly found ${pattern} in ${path}"
+	else
+		ok "${label}"
+	fi
+}
 require_unit() {
 	local u="$1" d
 	for d in etc/systemd/system lib/systemd/system usr/lib/systemd/system; do
@@ -136,6 +144,20 @@ require_grep 'capabilities' /usr/local/sbin/aryaos-cot-detail "beacon advertises
 require_path /usr/local/sbin/aryaos-time-pps
 require_path /etc/systemd/system/aryaos-time-pps.service
 require_path /etc/udev/rules.d/99-aryaos-pps.rules
+# Without this line the helper writes a refclock into /run that chrony never
+# reads, and the PPS discipline silently does nothing -- which is exactly how
+# this feature failed twice already. The /run path is deliberate: a refclock
+# naming a not-yet-enumerated device is a FATAL chronyd error, so it must not
+# persist across a reboot.
+require_grep '^confdir /run/chrony-aryaos$' /etc/chrony/conf.d/aryaos.conf \
+	"chrony reads the ephemeral PPS refclock dir"
+# The helper must WRITE to /run. It still mentions the /etc path deliberately, to
+# migrate it away on boxes from an older build, so assert the write target rather
+# than the absence of the string.
+require_grep '^CONF="\$\{RUN_DIR\}/' /usr/local/sbin/aryaos-time-pps \
+	"PPS refclock is written under /run, not a path that survives reboot"
+forbid_grep '^CONF="/etc/' /usr/local/sbin/aryaos-time-pps \
+	"PPS refclock target is not in /etc"
 require_path /etc/systemd/system/multi-user.target.wants/aryaos-time-pps.service
 # Crash-loop guard: a sensor unit that restarts forever never enters `failed`,
 # so a start limit is what makes the failure visible at all.
