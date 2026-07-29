@@ -10,6 +10,17 @@ on:
   push:
     branches:
       - main
+    # A docs or branding change cannot alter the image, but it used to trigger a
+    # full ~20 minute arm64 build AND cut a release — which the AryaOS Imager
+    # then offers as "latest dev", superseding a verified image with one that is
+    # functionally identical. paths-ignore only skips when EVERY changed file
+    # matches, so any real change still builds.
+    paths-ignore:
+      - 'docs/**'
+      - 'overrides/**'
+      - 'README.md'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs.yml'
   workflow_dispatch:
     inputs:
       release:
