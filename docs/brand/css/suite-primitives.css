@@ -1,0 +1,163 @@
+@import url("./fonts.css");
+@import url("../tokens/suite-tokens.css");
+
+:root {
+  --sns-kit-paper-muted: #dfe3d8;
+  --sns-console-copy: #b9bfb6;
+  --sns-console-rule: #52564a;
+}
+
+.sns-suite-frame {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--surface-text);
+  background: var(--surface-ground);
+  font-family: var(--sns-font-body);
+  font-size: 16px;
+  line-height: 1.56;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
+}
+
+.sns-suite-frame,
+.sns-suite-frame *,
+.sns-suite-frame *::before,
+.sns-suite-frame *::after {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.sns-surface-paper {
+  color-scheme: light;
+  --surface-ground: var(--sns-kit-paper);
+  --surface-panel: var(--sns-kit-paper);
+  --surface-text: var(--sns-kit-ink);
+  --surface-muted: var(--sns-bracket);
+  --surface-rule: var(--sns-kit-ink);
+  --surface-hairline: var(--sns-bracket);
+  --surface-focus: var(--sns-kit-ink);
+}
+
+.sns-surface-console {
+  color-scheme: dark;
+  --surface-ground: var(--sns-kit-ink);
+  --surface-panel: var(--sns-kit-panel);
+  --surface-text: var(--sns-kit-paper);
+  --surface-muted: var(--sns-console-copy);
+  --surface-rule: var(--sns-console-rule);
+  --surface-hairline: var(--sns-bracket-rev);
+  --surface-focus: var(--sns-accent);
+}
+
+.sns-suite-frame :focus-visible {
+  outline: 3px solid var(--surface-focus);
+  outline-offset: 3px;
+}
+
+.sns-suite-control {
+  min-height: var(--sns-target);
+  color: var(--surface-text);
+  background: var(--surface-panel);
+  border: var(--sns-rule) solid var(--surface-rule);
+  font: inherit;
+}
+
+.brand-token {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--sns-font-mono);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.brand-token-paper .brand-token-bracket {
+  color: #9aa08f;
+}
+
+.brand-token-console .brand-token-bracket {
+  color: var(--sns-bracket-rev);
+}
+
+.brand-token-paper .brand-token-amp {
+  color: var(--sns-kit-ink);
+}
+
+.brand-token-console .brand-token-amp {
+  color: var(--sns-kit-paper);
+}
+
+.brand-token-k {
+  color: var(--sns-accent);
+}
+
+.brand-lockup-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  line-height: 1;
+}
+
+.brand-lockup-inner .brand-token {
+  font-size: 2rem;
+}
+
+.brand-lockup-name {
+  font-family: var(--sns-font-display);
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.property-token {
+  width: auto;
+  height: 64px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.property-token-onecop {
+  max-width: 148px;
+}
+
+/* --- AryaOS local adjustment: Arya-family surfaces -----------------------
+ *
+ * The shared primitives above define .sns-surface-paper / .sns-surface-console
+ * against the &kit palette (--sns-kit-paper #F2F4EE, --sns-kit-ink #0B0C0A).
+ * AryaOS is an ARYA-family property, whose grounds are Paper #F2EFE7 on Ink
+ * #12211A (see the guide's "Grounds" section). Adopting the &kit values
+ * verbatim would put an Arya property on the wrong paper.
+ *
+ * The design-system README sanctions this: implementation/ is "copyable CSS",
+ * adjusted for the consumer. Raised upstream so the shared primitives can
+ * become family-aware rather than every Arya consumer patching it locally.
+ *
+ * Scoped to the Arya family so a &kit property including this file is
+ * unaffected.
+ */
+[data-property="aryaos"] .sns-surface-paper,
+[data-property="aryaair"] .sns-surface-paper,
+[data-property="aryauas"] .sns-surface-paper,
+[data-property="aryasea"] .sns-surface-paper {
+  --surface-ground: var(--sns-paper);
+  --surface-panel: var(--sns-paper-2);
+  --surface-text: var(--sns-ink);
+  --surface-muted: var(--sns-slate);
+  --surface-rule: var(--sns-ink);
+  --surface-hairline: var(--sns-hairline);
+  --surface-focus: var(--sns-ink);
+}
+
+[data-property="aryaos"] .sns-surface-console,
+[data-property="aryaair"] .sns-surface-console,
+[data-property="aryauas"] .sns-surface-console,
+[data-property="aryasea"] .sns-surface-console,
+[data-property="dragonegg"] .sns-surface-console {
+  --surface-ground: var(--sns-console);
+  --surface-panel: var(--sns-field);
+  --surface-text: var(--sns-paper);
+  --surface-rule: var(--sns-hairline);
+}
