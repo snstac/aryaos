@@ -133,6 +133,10 @@ install -v -D -m 0755 "${SHARED_FILES}/aryaos/aryaos-time-pps" \
 	"${ROOTFS_DIR}/usr/local/sbin/aryaos-time-pps"
 install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-time-pps.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-time-pps.service"
+# Re-trigger the helper when a PPS device appears: a USB GPS enumerates
+# asynchronously, so a boot-time-only run loses the race.
+install -v -D -m 0644 "${SHARED_FILES}/aryaos/udev/99-aryaos-pps.rules" \
+	"${ROOTFS_DIR}/etc/udev/rules.d/99-aryaos-pps.rules"
 
 # Stop hopeless sensor units from crash-looping forever (and from hiding the
 # fact, since a unit that restarts endlessly never enters `failed`).

@@ -1,0 +1,9 @@
+# Re-run the chrony PPS helper whenever a pulse-per-second source appears.
+#
+# A USB GPS enumerates asynchronously, so at boot the service can run (or be
+# skipped) before /sys/class/pps/* exists. Triggering on the device itself
+# removes the race and also covers replugging the receiver mid-flight.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+ACTION=="add", SUBSYSTEM=="pps", TAG+="systemd", ENV{SYSTEMD_WANTS}="aryaos-time-pps.service"

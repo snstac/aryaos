@@ -6,11 +6,23 @@ Documentation=https://www.aryaos.org/
 # because the PPS device number is not stable across reboots or replugs.
 After=gpsd.service chrony.service
 Wants=gpsd.service
-ConditionPathExistsGlob=/sys/class/pps/pps*
+# NO ConditionPathExistsGlob here. A USB GPS enumerates asynchronously, so at
+# boot the condition was evaluated before /sys/class/pps/pps* existed and the
+# unit was skipped entirely -- on a box that had a perfectly good GNSS pulse.
+# Observed: "skipped, unmet condition check", while running the helper by hand
+# a minute later selected /dev/pps1 (acm0) and wrote the config.
+#
+# The helper is idempotent and already handles "no PPS present" by removing any
+# stale config and exiting 0, so it is safe to run unconditionally. A udev rule
+# (99-aryaos-pps.rules) re-triggers it whenever a PPS device appears, which
+# covers both the boot race and replugging the GPS.
 
 [Service]
 Type=oneshot
-RemainAfterExit=yes
+# Deliberately NOT RemainAfterExit: the unit would stay "active" after its first
+# run, and the udev re-trigger (a Wants= on an already-active oneshot) would do
+# nothing. Each PPS device event must be able to re-run the helper, which is
+# idempotent and rewrites the config only when the selected device changes.
 ExecStart=/usr/local/sbin/aryaos-time-pps
 # Best effort: a box with no GNSS pulse is a normal, supported configuration.
 SuccessExitStatus=0 2
