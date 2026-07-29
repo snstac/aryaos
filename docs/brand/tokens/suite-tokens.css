@@ -1,0 +1,82 @@
+/* AryaOS Product Suite — design tokens v1.0
+   Sensors & Signals LLC. Core is shared by every property;
+   set data-property on the root to theme. */
+
+:root {
+  --sns-ink:        #12211A;
+  --sns-field:      #1D4634;
+  --sns-console:    #0B1512;
+  --sns-paper:      #F2EFE7;
+  --sns-paper-2:    #EAE6DC;
+  --sns-slate:      #6B7169;
+  --sns-hairline:   #CFCBC0;
+
+  --sns-kit-ink:    #0B0C0A;
+  --sns-kit-panel:  #101210;
+  --sns-kit-paper:  #F2F4EE;
+  --sns-bracket:    #52564A;
+  --sns-bracket-rev:#6E7364;
+
+  --sns-ok:         #3F7D57;
+  --sns-warn:       #A8811C;
+  --sns-fault:      #A32820;
+
+  --sns-unit:       8px;
+  --sns-gutter:     24px;
+  --sns-rule:       2px;
+  --sns-radius:     0;
+  --sns-target:     44px;
+
+  --sns-font-display: 'Archivo', sans-serif;
+  --sns-font-body:    'Archivo', sans-serif;
+  --sns-font-label:   'Archivo Narrow', sans-serif;
+  --sns-font-mono:    'JetBrains Mono', ui-monospace, monospace;
+}
+
+[data-property="aryaos"] { /* AryaOS · Signal Orange */
+  --sns-accent: #E4610F;
+  --sns-family: arya;
+}
+[data-property="aryaair"] { /* AryaAir · Sky Cyan */
+  --sns-accent: #0FA8CE;
+  --sns-family: arya;
+}
+[data-property="aryauas"] { /* AryaUAS · Signal Violet */
+  --sns-accent: #7C52E8;
+  --sns-family: arya;
+}
+[data-property="aryasea"] { /* AryaSea · Marine Blue */
+  --sns-accent: #1F5BD1;
+  --sns-family: arya;
+}
+[data-property="dragonegg"] { /* DragonEgg · Crimson */
+  --sns-accent: #C4161C;
+  --sns-family: arya;
+}
+[data-property="andkit"] { /* &kit · Lime */
+  --sns-accent: #D7FF3F;
+  --sns-family: kit;
+}
+[data-property="onecop"] { /* OneCOP · Signal Teal */
+  --sns-accent: #0E9A94;
+  --sns-family: kit;
+}
+[data-property="firecop"] { /* FireCOP · Ember Gold */
+  --sns-accent: #E8A80F;
+  --sns-family: kit;
+}
+[data-property="cambot"] { /* Cambot · Phosphor */
+  --sns-accent: #23C48E;
+  --sns-family: kit;
+}
+[data-property="dronecase"] { /* DroneCase · Magenta */
+  --sns-accent: #CE2E86;
+  --sns-family: kit;
+}
+
+/* DragonEgg runs an alt-skin: no paper ground, mono headings, stencil labels. */
+[data-property="dragonegg"] {
+  --sns-ground:  #0B0C0A;
+  --sns-panel:   #101210;
+  --sns-hairline:#2A2C28;
+}

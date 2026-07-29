@@ -3,6 +3,15 @@ site_url: https://www.aryaos.org/
 repo_url: https://github.com/snstac/aryaos
 repo_name: snstac/aryaos
 edit_uri: edit/main/docs/
+# The vendored design kit lives in docs/brand/ so the tokens and marks are
+# served, but the kit's own README and guide are not published as site pages.
+exclude_docs: |
+  brand/README.md
+  brand/*.html
+
+extra_css:
+  - stylesheets/suite.css
+
 site_description: >-
   Turn a Raspberry Pi into a TAK sensor gateway: ADS-B aircraft, AIS vessels and
   drone Remote ID as Cursor on Target. Open source and offline-capable.
@@ -11,6 +20,12 @@ copyright: Copyright Sensors &amp; Signals LLC https://www.snstac.com/
 
 theme:
   name: material
+  # Sets data-property="aryaos" on the root so the suite tokens theme correctly.
+  custom_dir: overrides
+  # The design kit is explicit: ship the fonts, don't link them. Material's font
+  # option pulls from Google Fonts, so it stays off; the stack is declared in
+  # docs/stylesheets/suite.css. See docs/brand/README.md for the licence note.
+  font: false
   logo: media/aryaos_logo.png
   favicon: media/aryaos_logo-25p.png
   icon:

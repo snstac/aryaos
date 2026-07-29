@@ -1,0 +1,133 @@
+/* AryaOS Product Suite design kit -> Material for MkDocs.
+ *
+ * The kit is vendored verbatim in docs/brand/ (tokens, marks, guide). This file
+ * only BRIDGES those tokens onto the variables Material actually reads; it
+ * introduces no new colours or sizes of its own. If a value here is not
+ * traceable to docs/brand/tokens/suite-tokens.css, it is a bug.
+ *
+ * Documentation is a *read* surface, so it sits on Paper (#F2EFE7). Console
+ * dark is reserved for surfaces an operator drives — the Cockpit plugins — and
+ * the kit is explicit that a property never mixes the two on one screen.
+ */
+
+@import url("../brand/tokens/suite-tokens.css");
+
+:root {
+  /* Ground and ink */
+  --md-default-bg-color:        var(--sns-paper);
+  --md-default-bg-color--light: var(--sns-paper-2);
+  --md-default-fg-color:        var(--sns-ink);
+  --md-default-fg-color--light: var(--sns-slate);
+  --md-default-fg-color--lighter: var(--sns-hairline);
+  --md-default-fg-color--lightest: var(--sns-hairline);
+
+  /* One accent per surface, ~5% of it. This is the AryaOS property, so Signal
+     Orange. Sibling properties carry their own accent and must not appear here
+     at the same time. */
+  --md-primary-fg-color:        var(--sns-ink);
+  --md-primary-bg-color:        var(--sns-paper);
+  --md-accent-fg-color:         var(--sns-accent);
+
+  --md-typeset-a-color:         var(--sns-accent);
+
+  /* Code is machine output: mono, on the secondary paper. */
+  --md-code-bg-color:           var(--sns-paper-2);
+  --md-code-fg-color:           var(--sns-ink);
+
+  /* Status colours are fixed by the kit and never borrow an accent. */
+  --md-typeset-mark-color:      color-mix(in srgb, var(--sns-warn) 22%, transparent);
+
+  --md-text-font-family:        var(--sns-font-body);
+  --md-code-font-family:        var(--sns-font-mono);
+}
+
+/* --- Non-negotiables from the guide ------------------------------------- */
+
+/* radius 0 — everywhere, no exceptions. */
+.md-typeset code,
+.md-typeset pre,
+.md-typeset table:not([class]),
+.md-typeset .admonition,
+.md-typeset details,
+.md-typeset .highlight,
+.md-typeset .tabbed-set,
+.md-button,
+.md-search__form,
+.md-search__output,
+.md-nav__link,
+img {
+  border-radius: var(--sns-radius) !important;
+}
+
+/* No shadows. A 2px rule does the separating. */
+.md-header,
+.md-tabs,
+.md-typeset .admonition,
+.md-typeset details,
+.md-search__form,
+.md-search__output,
+.md-nav--primary .md-nav__title,
+.md-typeset table:not([class]) {
+  box-shadow: none !important;
+}
+
+.md-header {
+  border-bottom: var(--sns-rule) solid var(--sns-ink);
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  border: var(--sns-rule) solid var(--sns-hairline);
+  border-left-width: calc(var(--sns-rule) * 2);
+}
+
+.md-typeset table:not([class]) th {
+  border-bottom: var(--sns-rule) solid var(--sns-ink);
+}
+
+/* Flush left everywhere — including the label inside a wide button. */
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4 {
+  text-align: left;
+}
+
+/* 44px is the kit minimum; AryaOS operator surfaces use 48px for gloved use
+   (documented deviation — see docs/brand/README.md). Docs are read, not driven,
+   so the kit value applies here. */
+.md-button,
+.md-nav__link,
+.md-tabs__link {
+  min-height: var(--sns-target);
+  display: inline-flex;
+  align-items: center;
+}
+
+.md-button {
+  border: var(--sns-rule) solid currentColor;
+  justify-content: flex-start;
+}
+
+/* Mono means machine: commands, ports, frequencies, callsigns, hex, morse. */
+.md-typeset code,
+.md-typeset kbd,
+.md-typeset pre {
+  font-family: var(--sns-font-mono);
+}
+
+/* Status colours, fixed. */
+.md-typeset .admonition.success,
+.md-typeset .admonition.tip { border-left-color: var(--sns-ok); }
+.md-typeset .admonition.warning,
+.md-typeset .admonition.caution { border-left-color: var(--sns-warn); }
+.md-typeset .admonition.danger,
+.md-typeset .admonition.failure { border-left-color: var(--sns-fault); }
+
+/* 8px unit / 24px gutter rhythm on the grid cards used on the landing page. */
+.md-typeset .grid.cards > ul > li {
+  border: var(--sns-rule) solid var(--sns-hairline);
+  border-radius: var(--sns-radius);
+  padding: var(--sns-gutter);
+  box-shadow: none;
+}
