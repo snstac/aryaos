@@ -1,4 +1,4 @@
-<img src="https://aryaos.readthedocs.io/en/latest/media/aryaos_logo-25p.png" width="160" height="160" alt="AryaOS logo">
+<img src="docs/brand/logo/mark-aryaos.svg" width="160" height="160" alt="AryaOS Signal Block mark">
 
 # AryaOS — the situational awareness operating system for TAK
 
@@ -24,6 +24,19 @@ everything else is configured from a touch-friendly web console.
 | **Range & site security** | A fixed multi-sensor node fusing air, maritime, and drone feeds into a single common operating picture. |
 | **CoT relay & bridging** | Moves Cursor on Target between isolated networks, radios, and a TAK Server. |
 | **Electronic flight bag** | Feeds ADS-B traffic to ForeFlight and other GDL 90 apps. |
+
+## Product lines
+
+Each line is what a box is **for**; the capability mix is what makes that true.
+Marks and accents come from the [AryaOS Product Suite design kit](docs/brand/)
+(`docs/brand/logo/`), vendored here as the source of truth.
+
+| | Line | Default capabilities | For |
+|---|------|----------------------|-----|
+| <img src="docs/brand/logo/mark-aryaair.svg" width="28" alt=""> | **AryaAir** | `adsb rid` | Air picture — ADS-B/UAT **and** Remote ID, so crewed and uncrewed traffic appear together |
+| <img src="docs/brand/logo/mark-aryauas.svg" width="28" alt=""> | **AryaUAS** | `dji rid` | Uncrewed only — drone detection with no ADS-B |
+| <img src="docs/brand/logo/mark-aryasea.svg" width="28" alt=""> | **AryaSea** | `ais` | Maritime |
+| <img src="docs/brand/logo/mark-dragonegg.svg" width="28" alt=""> | **DragonEgg** | *(none)* | General SIGINT — you choose |
 
 ## Sensor capabilities
 

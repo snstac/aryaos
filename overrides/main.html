@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{#
+  The suite tokens are themed by a data-property attribute on the root
+  (see docs/brand/tokens/suite-tokens.css). This site is the AryaOS property,
+  so declare it in <head> — setting it later would flash unthemed content.
+#}
+{% block extrahead %}
+  <script>document.documentElement.setAttribute("data-property", "aryaos");</script>
+{% endblock %}

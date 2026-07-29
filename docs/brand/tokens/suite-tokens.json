@@ -1,0 +1,159 @@
+{
+  "name": "AryaOS Product Suite",
+  "version": "1.0",
+  "owner": "Sensors & Signals LLC",
+  "families": {
+    "arya": {
+      "mark": "Signal Block (KNOW in morse)",
+      "accentCarrier": "the opening dot of row four",
+      "ground": [
+        "#F2EFE7",
+        "#0B1512"
+      ]
+    },
+    "kit": {
+      "mark": "Bracket token",
+      "accentCarrier": "the brackets",
+      "ground": [
+        "#F2F4EE",
+        "#0B0C0A"
+      ]
+    }
+  },
+  "core": {
+    "ink": "#12211A",
+    "field": "#1D4634",
+    "console": "#0B1512",
+    "paper": "#F2EFE7",
+    "paper2": "#EAE6DC",
+    "slate": "#6B7169",
+    "hairline": "#CFCBC0",
+    "kitInk": "#0B0C0A",
+    "kitPanel": "#101210",
+    "kitPaper": "#F2F4EE",
+    "bracket": "#52564A",
+    "bracketRev": "#6E7364"
+  },
+  "status": {
+    "ok": "#3F7D57",
+    "warn": "#A8811C",
+    "fault": "#A32820"
+  },
+  "grid": {
+    "unit": 8,
+    "columns": 12,
+    "gutter": 24,
+    "rule": 2,
+    "radius": 0,
+    "hitTarget": 44
+  },
+  "type": {
+    "display": "Archivo 800",
+    "heading": "Archivo 700",
+    "body": "Archivo 400 16/1.56",
+    "label": "Archivo Narrow 600 uppercase 0.18em",
+    "mono": "JetBrains Mono 400/700"
+  },
+  "properties": [
+    {
+      "slug": "aryaos",
+      "name": "AryaOS",
+      "family": "arya",
+      "accent": "#E4610F",
+      "accentName": "Signal Orange",
+      "mark": "suite/mark-aryaos.svg",
+      "markReverse": "suite/mark-aryaos-rev.svg",
+      "parent": null
+    },
+    {
+      "slug": "aryaair",
+      "name": "AryaAir",
+      "family": "arya",
+      "accent": "#0FA8CE",
+      "accentName": "Sky Cyan",
+      "mark": "suite/mark-aryaair.svg",
+      "markReverse": "suite/mark-aryaair-rev.svg",
+      "parent": null
+    },
+    {
+      "slug": "aryauas",
+      "name": "AryaUAS",
+      "family": "arya",
+      "accent": "#7C52E8",
+      "accentName": "Signal Violet",
+      "mark": "suite/mark-aryauas.svg",
+      "markReverse": "suite/mark-aryauas-rev.svg",
+      "parent": null
+    },
+    {
+      "slug": "aryasea",
+      "name": "AryaSea",
+      "family": "arya",
+      "accent": "#1F5BD1",
+      "accentName": "Marine Blue",
+      "mark": "suite/mark-aryasea.svg",
+      "markReverse": "suite/mark-aryasea-rev.svg",
+      "parent": null
+    },
+    {
+      "slug": "dragonegg",
+      "name": "DragonEgg",
+      "family": "arya",
+      "accent": "#C4161C",
+      "accentName": "Crimson",
+      "mark": "suite/mark-dragonegg.svg",
+      "markReverse": "suite/mark-dragonegg-rev.svg",
+      "parent": null
+    },
+    {
+      "slug": "andkit",
+      "name": "&kit",
+      "family": "kit",
+      "accent": "#D7FF3F",
+      "accentName": "Lime",
+      "mark": "suite/token-andkit.svg",
+      "markReverse": "suite/token-andkit-rev.svg",
+      "parent": null
+    },
+    {
+      "slug": "onecop",
+      "name": "OneCOP",
+      "family": "kit",
+      "accent": "#0E9A94",
+      "accentName": "Signal Teal",
+      "mark": "suite/token-onecop.svg",
+      "markReverse": "suite/token-onecop-rev.svg",
+      "parent": null
+    },
+    {
+      "slug": "firecop",
+      "name": "FireCOP",
+      "family": "kit",
+      "accent": "#E8A80F",
+      "accentName": "Ember Gold",
+      "mark": "suite/token-firecop.svg",
+      "markReverse": "suite/token-firecop-rev.svg",
+      "parent": "onecop"
+    },
+    {
+      "slug": "cambot",
+      "name": "Cambot",
+      "family": "kit",
+      "accent": "#23C48E",
+      "accentName": "Phosphor",
+      "mark": "suite/token-cambot.svg",
+      "markReverse": "suite/token-cambot-rev.svg",
+      "parent": null
+    },
+    {
+      "slug": "dronecase",
+      "name": "DroneCase",
+      "family": "kit",
+      "accent": "#CE2E86",
+      "accentName": "Magenta",
+      "mark": "suite/token-dronecase.svg",
+      "markReverse": "suite/token-dronecase-rev.svg",
+      "parent": null
+    }
+  ]
+}
