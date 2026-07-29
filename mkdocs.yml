@@ -6,8 +6,10 @@ edit_uri: edit/main/docs/
 # The vendored design kit lives in docs/brand/ so the tokens and marks are
 # served, but the kit's own README and guide are not published as site pages.
 exclude_docs: |
-  brand/README.md
+  brand/VENDORED.md
   brand/*.html
+  brand/fonts/*.md
+  brand/fonts/*.txt
 
 extra_css:
   - stylesheets/suite.css

@@ -10,7 +10,10 @@
  * the kit is explicit that a property never mixes the two on one screen.
  */
 
-@import url("../brand/tokens/suite-tokens.css");
+/* Vendored from snstac/design-system at a pinned commit — see
+   docs/brand/VENDORED.md. suite-primitives pulls in fonts.css and the tokens,
+   so this single import is the whole kit. */
+@import url("../brand/css/suite-primitives.css");
 
 :root {
   /* Ground and ink */
