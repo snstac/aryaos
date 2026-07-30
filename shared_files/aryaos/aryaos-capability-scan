@@ -254,15 +254,43 @@ def scan():
     caps = {}
 
     # ADS-B/UAT: needs at least one SDR.
+    # ADS-B/UAT needs an SDR the DECODER can actually drive, not merely an SDR.
+    #
+    # readsb ships with --device-type rtlsdr (see /etc/default/readsb), so a
+    # non-RTL SDR makes it exit immediately:
+    #
+    #   FATAL: rtlsdr: no supported devices found.
+    #   sdrOpen() failed, exiting!
+    #
+    # Measured on aryaos-270d, which has a LimeSDR Mini and nothing else: the
+    # probe said "1 SDR(s)" -> adsb auto-applied at firstboot -> readsb
+    # crash-looped 10 times, took adsbcot and gdltak down with it (29 restarts
+    # between them) and left the box in systemd `degraded` with its whole reason
+    # for existing dead. Out of the box, with no operator error.
+    #
+    # So a usable SDR is an RTL one. A non-RTL SDR still REPORTS the capability,
+    # because the hardware genuinely is there and pretending otherwise is its own
+    # kind of lie -- but it is not auto-applied, and it says why.
+    rtl_sdrs = [d for d in sdrs if str(d.get("driver", "")).lower() == "rtlsdr"]
+    other_sdrs = [d for d in sdrs if d not in rtl_sdrs]
+
+    def _labels(ds):
+        return ", ".join(d.get("label") or d.get("driver", "?") for d in ds)
+
     caps["adsb"] = {
         "available": bool(sdrs),
         "evidence": (
-            f"{len(sdrs)} SDR(s): "
-            + ", ".join(d.get("label") or d.get("driver", "?") for d in sdrs)
-            if sdrs
-            else "no SDR detected"
+            f"{len(sdrs)} SDR(s): " + _labels(sdrs) if sdrs else "no SDR detected"
         ),
     }
+    if sdrs and not rtl_sdrs:
+        caps["adsb"]["auto_apply"] = False
+        caps["adsb"]["deferred_reason"] = (
+            f"readsb is configured for RTL-SDR (--device-type rtlsdr) and the only "
+            f"SDR present is {_labels(other_sdrs)}. Enabling adsb would crash-loop "
+            f"readsb. Retune readsb for this device first, then "
+            f"`aryaos-role caps ... adsb`."
+        )
 
     # AIS: a dedicated NMEA receiver, or a spare SDR. Flag the contention: with
     # a single SDR, enabling both adsb and ais fights over one radio.
