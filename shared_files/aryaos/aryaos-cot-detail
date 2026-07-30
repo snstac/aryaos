@@ -26,7 +26,6 @@ SERVICES = (
 
 SITE_CONFIG = "/etc/aryaos/aryaos-config.txt"
 CAP_SCAN = "/usr/local/sbin/aryaos-capability-scan"
-DEFAULT_PRODUCT = "DragonEgg"
 
 # Capability key -> (human label, capability unit, default sensor description).
 # Mirrors the capability registry in aryaos-role.
@@ -338,12 +337,12 @@ def main() -> int:
     hostname = socket.gethostname().split(".", 1)[0]
     load1, load5, load15 = _loadavg()
 
-    root = ET.Element("__aryaos", {"version": "3"})
-    ET.SubElement(
-        root,
-        "product",
-        {"line": _config("ARYAOS_PRODUCT") or DEFAULT_PRODUCT},
-    )
+    # version 4 drops <product line="...">. It claimed a product line that was
+    # baked into the image at build time and never derived from anything, so
+    # every box in the fleet advertised the same value regardless of what was
+    # actually attached to it. A consumer trusting that field was worse off than
+    # one ignoring it. Capabilities carry the real answer and are measured.
+    root = ET.Element("__aryaos", {"version": "4"})
     ET.SubElement(
         root,
         "host",
