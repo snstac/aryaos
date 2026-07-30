@@ -35,6 +35,20 @@ require_root() {
 now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 # Config paths to capture. Missing paths are skipped, not errors.
+#
+# Entries may be GLOBS. They used to be a literal, hand-maintained list, and it
+# went stale: every gateway added after the list was written was silently left
+# out of the backup. Measured on a live box, these existed in /etc/default but
+# were NOT captured -- aprscot, sapientcot, ais-catcher, dronecot-ble,
+# dronecot-wifi, dronecot-dronescout, readsb, dump1090-fa, dump978-fa.
+#
+# That is a data-loss bug in the one tool whose entire job is not losing data:
+# a factory reset and restore would come back with APRS, SAPIENT, Bluetooth
+# Remote ID, Wi-Fi Remote ID, DroneScout and the AIS/ADS-B receiver settings all
+# reverted to defaults, and nothing would say so.
+#
+# Globbing by family means a new gateway is captured the day it lands, with no
+# edit here. That is the point: the failure mode was "someone must remember".
 config_paths() {
 	cat <<'EOF'
 etc/aryaos
@@ -42,15 +56,13 @@ etc/charontak.ini
 etc/charontak
 etc/comitup.conf
 etc/comitup.json
-etc/default/adsbcot
-etc/default/aiscot
-etc/default/dronecot
-etc/default/lincot
-etc/default/gpstak
-etc/default/gdltak
-etc/default/sikw00fcot
-etc/default/charontak
+etc/default/*cot*
+etc/default/*tak
+etc/default/ais-catcher
 etc/default/gpsd
+etc/default/readsb
+etc/default/dump1090-fa
+etc/default/dump978-fa
 etc/adsbcot
 etc/aiscot
 etc/dronecot
@@ -85,7 +97,9 @@ do_backup() {
 	[[ "${1:-}" == "--no-secrets" ]] && include_secrets=0
 
 	local host stamp name root
-	host="$(hostname | tr -c 'A-Za-z0-9.-' '-')"
+	# tr -d '\n' first: tr -c would otherwise translate hostname's trailing
+	# newline into a '-', producing names like aryaos-config_aryaos-4f11-_2026...
+	host="$(hostname | tr -d '\n' | tr -c 'A-Za-z0-9.-' '-')"
 	# Second-granularity stamp plus the PID, so two backups in the same second
 	# (e.g. a full then a --no-secrets from the UI) get distinct names instead
 	# of one silently overwriting the other.
@@ -101,9 +115,14 @@ do_backup() {
 
 	# Build the list of existing paths (relative to /).
 	local -a paths=()
-	local p
+	local p m
 	while IFS= read -r p; do
-		[[ -e "/${p}" ]] && paths+=("${p}")
+		# Entries may be globs, so expand rather than testing the pattern
+		# literally. A pattern that matches nothing stays unexpanded and fails
+		# the -e test, preserving "missing paths are skipped, not errors".
+		for m in /${p}; do
+			[[ -e "${m}" ]] && paths+=("${m#/}")
+		done
 	done < <(config_paths)
 	if [[ "${include_secrets}" == "1" ]]; then
 		while IFS= read -r p; do
