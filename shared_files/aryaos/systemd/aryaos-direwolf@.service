@@ -1,5 +1,8 @@
 [Unit]
 Description=AryaOS APRS receiver — rtl_fm + Dire Wolf on RTL-SDR %i (KISS :8001)
+# NOTE: rtl_fm is RTL-SDR ONLY. A SoapySDR-only box (LimeSDR, Airspy, HackRF)
+# cannot use this unit -- there is no Soapy FM demodulator in the image and
+# neither rx-tools nor csdr is in the configured apt repos. See aryaos task #81.
 Documentation=https://github.com/wb2osz/direwolf
 # Started on demand by `aryaos-sdr task %i aprs`. Tunes RTL-SDR %i to 144.39 MHz
 # (North America VHF APRS), FM-demodulates with rtl_fm, and hands 24 kHz audio to
@@ -14,7 +17,13 @@ Type=simple
 # %i = RTL device index (matches `aryaos-sdr list`). rtl_fm emits 24 kHz s16 mono on
 # stdout; direwolf reads it from stdin (`-`) and matches with -r 24000. -t 0 disables
 # color codes so journald stays clean. APRS RX frequency is 144.390 MHz (US/NA).
-ExecStart=/bin/sh -c 'exec /usr/bin/rtl_fm -d %i -f 144.39M -s 24000 -o 4 - | /usr/bin/direwolf -c /etc/aryaos/direwolf.conf -r 24000 -D 1 -t 0 -'
+# APRS is on a different channel per region: 144.39 MHz North America (the
+# default, and correct for our fleet), 144.800 most of Europe/UK, 145.175 AU/NZ,
+# 144.64 JA. The default is right; this only makes it overridable via APRS_FREQ
+# in /etc/default/aprscot so a unit shipped abroad does not need a code change.
+# A box on the wrong channel decodes nothing and looks like broken hardware.
+EnvironmentFile=-/etc/default/aprscot
+ExecStart=/bin/sh -c 'exec /usr/bin/rtl_fm -d %i -f "${APRS_FREQ:-144.39M}" -s 24000 -o 4 - | /usr/bin/direwolf -c /etc/aryaos/direwolf.conf -r 24000 -D 1 -t 0 -'
 Restart=on-failure
 RestartSec=5
 
