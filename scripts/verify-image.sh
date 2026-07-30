@@ -597,7 +597,8 @@ backup_covers_gateway_configs() {
 
 		covered=0
 		for pat in "${pats[@]}"; do
-			# shellcheck disable=SC2053 -- pattern match is the point
+			# Unquoted RHS is deliberate: glob matching is the point here.
+			# shellcheck disable=SC2053
 			[[ "${rel}" == ${pat} ]] && { covered=1; break; }
 		done
 		[[ "${covered}" -eq 1 ]] || missing+=("${base}")
