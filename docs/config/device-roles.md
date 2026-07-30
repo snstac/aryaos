@@ -102,8 +102,8 @@ worse than enabling nothing:
 - **Contended radios.** One SDR cannot serve ADS-B *and* AIS at once, so only
   the higher-priority capability (`adsb`) is auto-enabled; the other is reported
   as available with the reason it was held back.
-- **DS101 vs SiKW00F.** Both are ESP32-S3 (`303a:1001`) — the USB id cannot tell
-  them apart. The scanner probes the port for MAVLink framing (a DS101 speaks
+- **DS110 vs SiKW00F.** Both are ESP32-S3 (`303a:1001`) — the USB id cannot tell
+  them apart. The scanner probes the port for MAVLink framing (a DS110 speaks
   it); if the port is silent or in use it reports `AMBIGUOUS` rather than
   guessing.
 - **SAPIENT.** A network sensor with no local hardware signature; never

@@ -25,42 +25,32 @@ everything else is configured from a touch-friendly web console.
 | **CoT relay & bridging** | Moves Cursor on Target between isolated networks, radios, and a TAK Server. |
 | **Electronic flight bag** | Feeds ADS-B traffic to ForeFlight and other GDL 90 apps. |
 
-## Product lines
+## What it can hear
 
-Each line is what a box is **for**; the capability mix is what makes that true.
-Marks and accents come from the [AryaOS Product Suite design kit](docs/brand/)
-(`docs/brand/logo/`), vendored here as the source of truth.
+Capabilities are named after the signal, not after a product — `adsb`, `ais`,
+`wifi-rid`, `ble-rid`, `rid`, `dji`, `sik`, `sapient`. They are exactly the names
+you type, the names the box reports, and the names on the map.
 
-These are build configurations, not something the software labels itself with.
-AryaOS describes a box by the capabilities it actually has — the same image runs
-on all of them, and one box can carry any mix.
+Each capability is a receiver AryaOS turns into TAK tracks. The image ships with every sensor
+**switched off**; on first boot the box works out what is actually plugged in and enables what it
+finds, then reports anything it could do but did not turn on — so you always know what the hardware
+is capable of.
 
-| | Line | Typical capabilities | For |
-|---|------|----------------------|-----|
-| <img src="docs/brand/logo/mark-aryaair.svg" width="28" alt=""> | **AryaAir** | `adsb rid` | Air picture — ADS-B/UAT **and** Remote ID, so crewed and uncrewed traffic appear together |
-| <img src="docs/brand/logo/mark-aryauas.svg" width="28" alt=""> | **AryaUAS** | `dji rid` | Uncrewed only — drone detection with no ADS-B |
-| <img src="docs/brand/logo/mark-aryasea.svg" width="28" alt=""> | **AryaSea** | `ais` | Maritime |
-| <img src="docs/brand/logo/mark-dragonegg.svg" width="28" alt=""> | **DragonEgg** | *(none)* | General SIGINT — you choose |
+| Capability | Enable with | What appears on the map | Hardware needed |
+|------------|-------------|-------------------------|-----------------|
+| **ADS-B / UAT** | `adsb` | Crewed aircraft on 1090 MHz and 978 MHz | **SDR** — RTL-SDR, or any SoapySDR device |
+| **AIS** | `ais` | Ships and vessels | dAISy NMEA receiver, or a spare **SDR** |
+| **Remote ID** — Wi-Fi | `wifi-rid` | ASTM F3411 Remote ID over 802.11, plus operator location | Monitor-mode Wi-Fi adapter (e.g. Atheros AR9271) |
+| **Remote ID** — Bluetooth | `ble-rid` | ASTM F3411 Remote ID over Bluetooth LE | **None** — the board's own radio |
+| **Remote ID** — receiver | `rid` | Remote ID via a dedicated receiver, over **MAVLink** | BlueMark DroneScout DS110 |
+| **DJI DroneID** | `dji` | DJI aircraft and the pilot's position | AntSDR E200 |
+| **MAVLink telemetry** | `sik` | Drone telemetry from a SiK radio | SiK / SiKW00F radio |
+| **SAPIENT C-UAS** | `sapient` | Counter-UAS sensors speaking BSI Flex 335 | Networked sensor |
 
-## Sensor capabilities
-
-Each capability is a receiver AryaOS knows how to turn into TAK tracks. The image ships with every
-sensor **switched off**; on first boot the box detects what is actually plugged in and enables what
-it finds, then reports anything it could do but did not turn on — so you always know what the
-hardware is capable of.
-
-| Capability | What appears on the map | Typical receiver |
-|------------|-------------------------|------------------|
-| **ADS-B / UAT** | Crewed aircraft on 1090 MHz and 978 MHz | RTL-SDR or any SoapySDR device |
-| **AIS** | Ships and vessels | dAISy NMEA receiver, or a spare SDR |
-| **Wi-Fi Remote ID** | ASTM F3411 Remote ID broadcast over 802.11, plus operator location | Monitor-mode adapter (e.g. Atheros AR9271) |
-| **Bluetooth Remote ID** | ASTM F3411 Remote ID broadcast over Bluetooth LE | **None — the board's own Bluetooth radio** |
-| **DJI DroneID** | DJI aircraft and the pilot's position | AntSDR E200 |
-| **DroneScout DS101** | Remote ID via a dedicated BlueMark receiver | BlueMark DS101 |
-| **SiK telemetry** | MAVLink drone telemetry | SiK radio |
-| **SAPIENT** | Counter-UAS sensors speaking BSI Flex 335 | Network sensor |
-| **APRS** | Amateur radio stations and trackers | RTL-SDR |
-| **GPS** | The node's own position, shared with every connected device | USB GPS receiver |
+Two things are **not** capabilities, because they are not optional receivers:
+**GPS** (a USB receiver, shared with every connected device via gpsd) and
+**APRS** (an RTL-SDR plus Dire Wolf, configured on its own). Both are documented
+under configuration.
 
 Mix them freely: one box can run an air picture and a drone picture at once, and tells you when two
 capabilities want the same radio.
