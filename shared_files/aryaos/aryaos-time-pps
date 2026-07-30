@@ -41,6 +41,10 @@ set -uo pipefail
 # clean, then this helper (udev-triggered when the PPS device appears) writes the
 # refclock and reloads it. Verified: chronyd tolerates a confdir that does not
 # exist, and tolerates an empty one.
+# A real PPS is 1 Hz, so a few seconds is plenty to see the counter move. Kept
+# short because this runs on every udev event for a PPS device.
+PPS_PROBE_SECONDS="${PPS_PROBE_SECONDS:-4}"
+
 RUN_DIR="/run/chrony-aryaos"
 CONF="${RUN_DIR}/20-aryaos-pps.conf"
 # Older builds wrote here and would break chrony on the next boot; remove it.
@@ -54,15 +58,49 @@ is_gnss_pps() {
 	[[ "$1" =~ ^(acm|ttyACM|gps|gnss|ublox|u-blox) ]]
 }
 
+# ...but a GNSS-SHAPED NAME IS NOT A PULSE.
+#
+# Measured on aryaos-270d: a u-blox 7 on USB CDC. The kernel creates
+# /dev/pps1 named "acm0" from the serial DCD line, the name matches above, and
+# the receiver has a healthy 3D fix on 9 satellites -- but the u-blox's PPS is a
+# physical pin and USB CDC does not carry it. The assert counter sits at 0
+# forever.
+#
+# The cost of not checking: chrony carried a dead refclock for the life of the
+# box --
+#     #? PPS   0  4  0  -  +0ns   (reach 0, never a single sample)
+# -- while the beacon happily reported pps_gnss=true. A capability we do not
+# have, advertised to the fleet, feeding the TDOA readiness flag. Working
+# plumbing, no water.
+#
+# So: require the kernel assert counter to actually advance. A real 1 Hz pulse
+# moves it every second.
+pps_is_pulsing() {
+	local sysdev="$1" before after
+	before="$(cut -d'#' -f2 <"${sysdev}/assert" 2>/dev/null || echo "")"
+	[[ -n "${before}" ]] || return 1
+	sleep "${PPS_PROBE_SECONDS}"
+	after="$(cut -d'#' -f2 <"${sysdev}/assert" 2>/dev/null || echo "")"
+	[[ -n "${after}" ]] || return 1
+	[[ "${after}" -gt "${before}" ]]
+}
+
 find_gnss_pps() {
 	local path name
 	for path in /sys/class/pps/pps*; do
 		[[ -e "${path}/name" ]] || continue
 		name="$(cat "${path}/name" 2>/dev/null)"
-		if is_gnss_pps "${name}"; then
-			echo "/dev/$(basename "${path}")|${name}"
-			return 0
+		is_gnss_pps "${name}" || continue
+		if ! pps_is_pulsing "${path}"; then
+			# Named like GNSS, silent in practice. Say so out loud rather than
+			# handing chrony a refclock that never reports.
+			# >&2 matters: this function's STDOUT is captured by the caller as
+			# the device path, so logging to stdout here would corrupt it.
+			log "$(basename "${path}") (${name}) looks GNSS-shaped but its assert counter did not advance in ${PPS_PROBE_SECONDS}s -- no pulse on this line, skipping" >&2
+			continue
 		fi
+		echo "/dev/$(basename "${path}")|${name}"
+		return 0
 	done
 	return 1
 }
