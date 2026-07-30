@@ -31,7 +31,11 @@ Each line is what a box is **for**; the capability mix is what makes that true.
 Marks and accents come from the [AryaOS Product Suite design kit](docs/brand/)
 (`docs/brand/logo/`), vendored here as the source of truth.
 
-| | Line | Default capabilities | For |
+These are build configurations, not something the software labels itself with.
+AryaOS describes a box by the capabilities it actually has — the same image runs
+on all of them, and one box can carry any mix.
+
+| | Line | Typical capabilities | For |
 |---|------|----------------------|-----|
 | <img src="docs/brand/logo/mark-aryaair.svg" width="28" alt=""> | **AryaAir** | `adsb rid` | Air picture — ADS-B/UAT **and** Remote ID, so crewed and uncrewed traffic appear together |
 | <img src="docs/brand/logo/mark-aryauas.svg" width="28" alt=""> | **AryaUAS** | `dji rid` | Uncrewed only — drone detection with no ADS-B |

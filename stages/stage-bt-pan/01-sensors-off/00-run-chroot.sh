@@ -41,12 +41,21 @@ for unit in ${SENSOR_UNITS}; do
 	fi
 done
 
-# Make the default explicit rather than implied by an empty variable, so
-# `aryaos-role list` and the capability beacon report something meaningful on a
+# Make the empty capability set explicit rather than implied by a missing
+# variable, so `aryaos-role list` and the beacon report something meaningful on a
 # fresh image.
+#
+# ARYAOS_PRODUCT is deliberately NOT written here any more. Writing a product line
+# at build time meant every box in the fleet advertised the same one -- most of
+# them "DragonEgg" -- no matter what hardware was attached, which is how a box
+# with an AntSDR and a DroneScout ended up claiming to be a DragonEgg. A field
+# that is always the same carries no information but looks authoritative, so it
+# was removed rather than guessed at. Capabilities are measured instead.
+#
+# Boxes flashed from an older image keep an inert ARYAOS_PRODUCT line in their
+# config until they are re-flashed; nothing reads it.
 CONFIG="/etc/aryaos/aryaos-config.txt"
 if [[ -f "${CONFIG}" ]]; then
-	grep -qE '^#?\s*ARYAOS_PRODUCT=' "${CONFIG}" || printf 'ARYAOS_PRODUCT="DragonEgg"\n' >>"${CONFIG}"
 	grep -qE '^#?\s*ARYAOS_CAPABILITIES=' "${CONFIG}" || printf 'ARYAOS_CAPABILITIES=""\n' >>"${CONFIG}"
 fi
 

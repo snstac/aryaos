@@ -1,19 +1,19 @@
 #!/bin/bash
-# aryaos-role — set the device's product line + sensor capabilities at runtime.
+# aryaos-role — set the device's sensor capabilities at runtime.
 #
-# AryaOS boxes are modeled as a PRODUCT LINE (identity/branding) carrying a set
-# of CAPABILITIES (what receivers are attached and active):
-#   - AryaAir   — airspace SA (ADS-B/UAT, Wi-Fi/DJI drone Remote ID)
-#   - AryaSea   — maritime SA (AIS)
-#   - DragonEgg — general-purpose SIGINT + TAK gateway (any capability)
+# A box is described by its CAPABILITIES: which receivers are attached and
+# active. There is deliberately no product-line label. One used to exist, but it
+# was written into the image at build time and never derived from anything, so
+# every box advertised the same value regardless of its hardware -- a field that
+# was worse than absent, because it looked authoritative. What differs between
+# boxes is the capability mix, and that is measured (aryaos-capability-scan).
 #
 # Capabilities map to sensor systemd units; a capability set enables the union of
 # those units and disables the rest. The CoT core (charontak, lincot, gpstak,
 # gpsd) is never touched — it always runs.
 #
 # Subcommands:
-#   list                 JSON: product, capabilities, available caps/units, roles.
-#   product LINE         Set the product line and apply its default capabilities.
+#   list                 JSON: capabilities, available caps/units, roles.
 #   caps CAP...          Set the active capability set (space/comma separated).
 #                        Use "none" to disable every sensor (bare CoT node).
 #   discover [--apply]   Detect attached hardware and report which capabilities
@@ -32,14 +32,15 @@
 set -euo pipefail
 
 SITE_CONFIG="/etc/aryaos/aryaos-config.txt"
-PRODUCTS="AryaAir AryaSea AryaUAS DragonEgg"
+# No product line. It was a label baked into the image at build time and never
+# derived from anything, so every box claimed the same one no matter what was
+# attached. Capabilities are what differ between boxes, and unlike the product
+# they are measured -- see aryaos-capability-scan.
 CAPS="adsb ais dji wifi-rid ble-rid rid sik sapient"
 LEGACY_ROLES="multi air maritime cuas relay"
-DEFAULT_PRODUCT="DragonEgg"
 
 usage() {
-	echo "usage: aryaos-role {list | discover [--apply] | product LINE | caps CAP... | set ROLE}" >&2
-	echo "  products: ${PRODUCTS}" >&2
+	echo "usage: aryaos-role {list | discover [--apply] | caps CAP... | set ROLE}" >&2
 	echo "  caps:     ${CAPS}  (or 'none' for a bare CoT node)" >&2
 	echo "  roles:    ${LEGACY_ROLES}  (legacy presets)" >&2
 	exit 2
@@ -104,26 +105,6 @@ cap_label() {
 		sik)      echo "SiK Telemetry" ;;
 		sapient)  echo "SAPIENT C-UAS" ;;
 		*)        echo "$1" ;;
-	esac
-}
-
-# Product line -> default capability set applied by `product`.
-# Product line -> default capability set applied by `product`.
-#
-# The lines describe what the box is FOR, and the capability mix is what makes
-# that true:
-#   AryaAir  air picture: ADS-B/UAT *plus* Remote ID, so crewed and uncrewed
-#            traffic appear together.
-#   AryaUAS  uncrewed only: drone detection with NO ADS-B.
-#   AryaSea  maritime: AIS.
-#   DragonEgg general SIGINT: no assumption, operator chooses.
-product_default_caps() {
-	case "$1" in
-		AryaAir)   echo "adsb rid" ;;
-		AryaUAS)   echo "dji rid" ;;
-		AryaSea)   echo "ais" ;;
-		DragonEgg) echo "" ;;
-		*)         return 1 ;;
 	esac
 }
 
@@ -289,17 +270,6 @@ discover() {
 	set_caps "${detected}"
 }
 
-set_product() {
-	local product="$1" defaults
-	if ! defaults="$(product_default_caps "${product}")"; then
-		echo "aryaos-role: unknown product '${product}' (products: ${PRODUCTS})" >&2
-		exit 2
-	fi
-	config_set ARYAOS_PRODUCT "${product}"
-	set_caps "${defaults}"
-	echo "Product line set to '${product}'."
-}
-
 set_role() {
 	local role="$1" caps
 	if ! caps="$(role_caps "${role}")"; then
@@ -311,13 +281,9 @@ set_role() {
 }
 
 list_json() {
-	local product caps
-	product="$(config_get ARYAOS_PRODUCT)"; [[ -n "${product}" ]] || product="${DEFAULT_PRODUCT}"
+	local caps
 	caps="$(config_get ARYAOS_CAPABILITIES)"
-	printf '{"product": "%s", "products": [' "${product}"
-	local p sep=""
-	for p in ${PRODUCTS}; do printf '%s"%s"' "${sep}" "${p}"; sep=", "; done
-	printf '], "capabilities": "%s", "caps": {' "${caps}"
+	printf '{"capabilities": "%s", "caps": {' "${caps}"
 	local c first=1
 	for c in ${CAPS}; do
 		[[ "${first}" == "1" ]] || printf ', '
@@ -345,11 +311,6 @@ cmd="${1:-}"
 case "${cmd}" in
 	list)
 		list_json
-		;;
-	product)
-		require_root
-		[[ $# -eq 2 ]] || usage
-		set_product "$2"
 		;;
 	caps)
 		require_root

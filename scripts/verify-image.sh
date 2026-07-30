@@ -140,7 +140,11 @@ require_path /etc/sudoers.d/aryaos
 require_path /usr/local/sbin/aryaos-firstboot.sh
 require_path /usr/local/sbin/aryaos-lincot-remarks
 require_path /usr/local/sbin/aryaos-cot-detail
-require_grep 'capabilities' /usr/local/sbin/aryaos-cot-detail "beacon advertises product + capabilities (v2)"
+require_grep 'capabilities' /usr/local/sbin/aryaos-cot-detail "beacon advertises capabilities"
+# v4 dropped <product line="...">: it was baked in at build time and identical on
+# every box, so it looked authoritative while carrying no information.
+forbid_grep '"product"' /usr/local/sbin/aryaos-cot-detail "beacon does not advertise a product line"
+forbid_grep '^ARYAOS_PRODUCT=' /etc/aryaos/aryaos-config.txt "no product line baked into the shipped config"
 require_path /usr/local/sbin/aryaos-time-pps
 require_path /etc/systemd/system/aryaos-time-pps.service
 require_path /etc/udev/rules.d/99-aryaos-pps.rules
