@@ -84,9 +84,17 @@
   --aos-panel-border: rgba(16, 46, 39, 0.18);
   --aos-text: #0d1a16;
   --aos-muted: #47574f;
-  /* Signal Orange darkened to 4.66:1 as text on white; the pure #E4610F is
-     3.49:1 there, fine as a button fill but not as text. */
-  --aos-accent: #c2520d;
+  /* TWO roles, deliberately separated.
+     Signal Orange is the BRAND cue and only ever appears as a fill or a rule,
+     never as text: measured against this palette it sits deltaE 5 from the
+     danger colour on night and 17 from warn on day, so orange text reads as a
+     status warning when nothing is wrong. It is also only ~4.7:1 as text where
+     body ink is ~17:1, which is why it felt hard to read. */
+  --aos-brand: #c2520d;
+  --aos-brand-ink: #ffffff;
+  /* Interactive text/links: Okabe-Ito blue. Furthest of any candidate from all
+     three status hues (deltaE >= 64 here) and the highest contrast (5.19:1). */
+  --aos-accent: #0072b2;
   --aos-accent-ink: #ffffff;
   --aos-magenta: #9c3d78;
   /* Okabe-Ito darkened for a light panel — see the header table. */
@@ -111,8 +119,12 @@
     --aos-panel-border: rgba(126, 178, 151, 0.24);
     --aos-text: #e6ede9;
     --aos-muted: #93a89e;
-    /* Signal Orange, unmodified: 5.02:1 on the night panel. */
-    --aos-accent: #e4610f;
+    /* Brand fill only -- see the day block. On night, Signal Orange is deltaE
+       5.3 from the danger colour, i.e. effectively the same hue. */
+    --aos-brand: #e4610f;
+    --aos-brand-ink: #071211;
+    /* Interactive text: Okabe-Ito blue, 7.60:1 and deltaE >= 60 from status. */
+    --aos-accent: #56b4e9;
     --aos-accent-ink: #071211;
     --aos-magenta: #cf8fae;
     /* True Okabe-Ito — all clear 4.5:1 on the night panel. */
@@ -139,7 +151,9 @@
   --aos-muted: #93a89e;
   /* Same values as the prefers-color-scheme: dark block above — this is the
      explicitly forced night theme. Kept in sync deliberately. */
-  --aos-accent: #e4610f;
+  --aos-brand: #e4610f;
+  --aos-brand-ink: #071211;
+  --aos-accent: #56b4e9;
   --aos-accent-ink: #071211;
   --aos-magenta: #cf8fae;
   --aos-ok: #009e73;
@@ -980,7 +994,8 @@
   backdrop-filter: blur(6px);
 }
 .aos-appbar-brand { display: flex; align-items: baseline; gap: 0.5rem; min-width: 0; }
-.aos-appbar-logo { color: var(--aos-accent); font-size: 1.15rem; }
+/* The wordmark is where the brand colour belongs. */
+.aos-appbar-logo { color: var(--aos-brand); font-size: 1.15rem; }
 .aos-appbar-name {
   font-family: var(--aos-mono);
   font-weight: 800;
@@ -1336,9 +1351,11 @@ samp {
 /* The accent is one per surface, ~5% of it. UIkit's primary button is the main
    place it lands. */
 .uk-button-primary {
-  background-color: var(--aos-accent);
-  color: var(--aos-accent-ink);
-  border-color: var(--aos-accent);
+  /* A fill, so the brand colour is a background with ink on top rather than
+     low-contrast orange text. */
+  background-color: var(--aos-brand);
+  color: var(--aos-brand-ink);
+  border-color: var(--aos-brand);
 }
 
 /* Fleet-standard breakpoint. The narrower ones above (420/560/639/900px) are
