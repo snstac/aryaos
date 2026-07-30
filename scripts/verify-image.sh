@@ -575,10 +575,13 @@ backup_covers_gateway_configs() {
 		return
 	fi
 
-	# Packages we install from the snstac repo, per the build manifest.
+	# Packages we install from the snstac repo, per the build manifest. Resolved
+	# relative to this script, not the caller's cwd.
+	local manifest
+	manifest="$(dirname "${BASH_SOURCE[0]}")/../manifests/aryaos-sensor-packages.yml"
 	local -a ours=()
-	mapfile -t ours < <(grep -oE '^\s*-\s+[A-Za-z0-9._+-]+' manifests/aryaos-sensor-packages.yml 2>/dev/null \
-		| sed -E 's/^\s*-\s+//')
+	mapfile -t ours < <(grep -oE '^\s*-\s+[A-Za-z0-9._+-]+' "${manifest}" 2>/dev/null \
+		| sed -E 's/^\s*-\s+//' || true)
 
 	local -a missing=()
 	local f base rel owner is_ours covered pat pkg
@@ -587,25 +590,44 @@ backup_covers_gateway_configs() {
 		base="$(basename "${f}")"
 		rel="etc/default/${base}"
 
-		# Which package claims it, if any?
+		# Which package claims it, if any? An UNOWNED file is the normal case
+		# for anything our stage scripts wrote, so grep finding nothing must not
+		# be treated as an error: under `set -euo pipefail` the failing grep
+		# propagated through `head` and killed the whole script, which is exactly
+		# how this check took down a build -- silently, with no FAIL line and no
+		# summary, because the script died rather than reporting anything.
 		owner=""
-		owner="$(grep -lFx "/${rel}" "${MNT}"/var/lib/dpkg/info/*.list 2>/dev/null | head -1)"
+		owner="$(grep -lFx "/${rel}" "${MNT}"/var/lib/dpkg/info/*.list 2>/dev/null | head -1 || true)"
 		is_ours=0
 		if [[ -z "${owner}" ]]; then
 			is_ours=1
 		else
-			pkg="$(basename "${owner}" .list)"; pkg="${pkg%%:*}"
-			for p in "${ours[@]}"; do [[ "${pkg}" == "${p}" ]] && { is_ours=1; break; }; done
+			pkg="$(basename "${owner}" .list)"
+			pkg="${pkg%%:*}"
+			# ${arr[@]+...} so an empty manifest does not trip `set -u`, and an
+			# explicit if so a non-matching last iteration does not leave the
+			# loop with a non-zero status for `set -e` to act on.
+			for p in ${ours[@]+"${ours[@]}"}; do
+				if [[ "${pkg}" == "${p}" ]]; then
+					is_ours=1
+					break
+				fi
+			done
 		fi
 		[[ "${is_ours}" -eq 1 ]] || continue
 
 		covered=0
-		for pat in "${pats[@]}"; do
+		for pat in ${pats[@]+"${pats[@]}"}; do
 			# Unquoted RHS is deliberate: glob matching is the point here.
 			# shellcheck disable=SC2053
-			[[ "${rel}" == ${pat} ]] && { covered=1; break; }
+			if [[ "${rel}" == ${pat} ]]; then
+				covered=1
+				break
+			fi
 		done
-		[[ "${covered}" -eq 1 ]] || missing+=("${base}")
+		if [[ "${covered}" -ne 1 ]]; then
+			missing+=("${base}")
+		fi
 	done
 
 	if [[ "${#missing[@]}" -gt 0 ]]; then
