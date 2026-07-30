@@ -590,29 +590,41 @@ backup_covers_gateway_configs() {
 		base="$(basename "${f}")"
 		rel="etc/default/${base}"
 
-		# Which package claims it, if any? An UNOWNED file is the normal case
-		# for anything our stage scripts wrote, so grep finding nothing must not
-		# be treated as an error: under `set -euo pipefail` the failing grep
-		# propagated through `head` and killed the whole script, which is exactly
-		# how this check took down a build -- silently, with no FAIL line and no
-		# summary, because the script died rather than reporting anything.
-		owner=""
-		owner="$(grep -lFx "/${rel}" "${MNT}"/var/lib/dpkg/info/*.list 2>/dev/null | head -1 || true)"
+		# Is this file ours? Two independent signals, either is sufficient:
+		#
+		#   1. it is NAMED like one of our gateways, or
+		#   2. the package that ships it is in the build manifest.
+		#
+		# Ownership alone is not enough in either direction. UNOWNED does not
+		# mean ours -- Debian generates console-setup, keyboard and locale here
+		# at configure time and no package .list claims them, and treating
+		# unowned as ours flagged all three and failed a build. OWNED does not
+		# mean Debian's either: aprscot and sapientcot ship their own
+		# /etc/default file but are installed outside the manifest, so an
+		# ownership-only rule skipped them silently -- the exact blind spot this
+		# check exists to prevent.
+		#
+		# Trade-off, stated: a future gateway named outside these families AND
+		# absent from the manifest would not be checked.
 		is_ours=0
-		if [[ -z "${owner}" ]]; then
-			is_ours=1
-		else
-			pkg="$(basename "${owner}" .list)"
-			pkg="${pkg%%:*}"
-			# ${arr[@]+...} so an empty manifest does not trip `set -u`, and an
-			# explicit if so a non-matching last iteration does not leave the
-			# loop with a non-zero status for `set -e` to act on.
-			for p in ${ours[@]+"${ours[@]}"}; do
-				if [[ "${pkg}" == "${p}" ]]; then
-					is_ours=1
-					break
-				fi
-			done
+		case "${base}" in
+			*cot*|*tak*|ais-catcher|readsb|dump*-fa|gpsd) is_ours=1 ;;
+		esac
+		if [[ "${is_ours}" -eq 0 ]]; then
+			# grep finding nothing must not be an error: under `set -euo
+			# pipefail` a failing grep propagated through `head` and killed the
+			# whole script -- no FAIL line, no summary, just a dead build.
+			owner="$(grep -lFx "/${rel}" "${MNT}"/var/lib/dpkg/info/*.list 2>/dev/null | head -1 || true)"
+			if [[ -n "${owner}" ]]; then
+				pkg="$(basename "${owner}" .list)"
+				pkg="${pkg%%:*}"
+				for p in ${ours[@]+"${ours[@]}"}; do
+					if [[ "${pkg}" == "${p}" ]]; then
+						is_ours=1
+						break
+					fi
+				done
+			fi
 		fi
 		[[ "${is_ours}" -eq 1 ]] || continue
 
