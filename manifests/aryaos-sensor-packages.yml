@@ -16,9 +16,10 @@ sensor_apt_packages:
   - dronecot
   - sikw00fcot
   - lincot
-  # aprscot imports aprslib.parsing; the deb did not declare it, so aprscot
-  # could not start at all (snstac/aprscot#19). Belt and braces until that
-  # release lands in the apt repo.
+  # aprscot imports aprslib.parsing. The deb used to not declare it, so aprscot
+  # could not start at all (snstac/aprscot#19). Fixed and released: aprscot
+  # 8.2.1 declares python3-aprslib, and it is in the apt repo. Kept explicit
+  # anyway so an older pinned aprscot cannot silently install unusable.
   - python3-aprslib
   # gdltak — CoT to GDL90: ForeFlight/EFB display of the TAK air picture.
   # NOTE: requires gdltak indexed in the apt repo (snstac/packages PR #1) —

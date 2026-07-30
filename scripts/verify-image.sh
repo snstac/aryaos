@@ -540,5 +540,77 @@ else
 	fi
 fi
 
+# Regression guard for a data-loss bug found on a live box: aryaos-config-backup
+# captured a literal, hand-maintained list of config paths, and it had gone stale.
+# aprscot, sapientcot, ais-catcher, dronecot-ble, dronecot-wifi,
+# dronecot-dronescout and readsb all existed in /etc/default and NONE were backed
+# up, so a factory reset + restore came back with those capabilities silently
+# reverted to defaults.
+#
+# "Is this file AryaOS configuration?" is decided from dpkg ownership, NOT from a
+# second hardcoded list here -- a second list would rot exactly the same way. A
+# /etc/default entry is ours if no package in the image claims it (our stage
+# scripts wrote it), or if the claiming package is one we install from the snstac
+# apt repo.
+backup_covers_gateway_configs() {
+	local script="${MNT}/usr/local/sbin/aryaos-config-backup"
+	if [[ ! -r "${script}" ]]; then
+		fail "aryaos-config-backup not readable; cannot check backup coverage"
+		return
+	fi
+
+	local -a pats=()
+	# Take the path lines straight out of the config_paths() block. Matching the
+	# heredoc markers instead needs nested quoting that is easy to get wrong --
+	# a first attempt at it silently extracted nothing and the check "passed" by
+	# doing nothing at all.
+	mapfile -t pats < <(sed -n "/^config_paths() {/,/^}/p" "${script}" \
+		| grep -E '^(etc|home|usr|var)/')
+	if [[ "${#pats[@]}" -eq 0 ]]; then
+		fail "could not read config_paths() out of aryaos-config-backup"
+		return
+	fi
+
+	# Packages we install from the snstac repo, per the build manifest.
+	local -a ours=()
+	mapfile -t ours < <(grep -oE '^\s*-\s+[A-Za-z0-9._+-]+' manifests/aryaos-sensor-packages.yml 2>/dev/null \
+		| sed -E 's/^\s*-\s+//')
+
+	local -a missing=()
+	local f base rel owner is_ours covered pat pkg
+	for f in "${MNT}"/etc/default/*; do
+		[[ -f "${f}" ]] || continue
+		base="$(basename "${f}")"
+		rel="etc/default/${base}"
+
+		# Which package claims it, if any?
+		owner=""
+		owner="$(grep -lFx "/${rel}" "${MNT}"/var/lib/dpkg/info/*.list 2>/dev/null | head -1)"
+		is_ours=0
+		if [[ -z "${owner}" ]]; then
+			is_ours=1
+		else
+			pkg="$(basename "${owner}" .list)"; pkg="${pkg%%:*}"
+			for p in "${ours[@]}"; do [[ "${pkg}" == "${p}" ]] && { is_ours=1; break; }; done
+		fi
+		[[ "${is_ours}" -eq 1 ]] || continue
+
+		covered=0
+		for pat in "${pats[@]}"; do
+			# Unquoted RHS is deliberate: glob matching is the point here.
+			# shellcheck disable=SC2053
+			[[ "${rel}" == ${pat} ]] && { covered=1; break; }
+		done
+		[[ "${covered}" -eq 1 ]] || missing+=("${base}")
+	done
+
+	if [[ "${#missing[@]}" -gt 0 ]]; then
+		fail "aryaos-config-backup would not back up: ${missing[*]}"
+	else
+		ok "aryaos-config-backup covers every AryaOS config in /etc/default"
+	fi
+}
+backup_covers_gateway_configs
+
 echo "== ${PASS} ok, ${FAIL} failed =="
 [[ "${FAIL}" -eq 0 ]]
