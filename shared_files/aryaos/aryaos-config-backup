@@ -57,7 +57,7 @@ etc/charontak
 etc/comitup.conf
 etc/comitup.json
 etc/default/*cot*
-etc/default/*tak
+etc/default/*tak*
 etc/default/ais-catcher
 etc/default/gpsd
 etc/default/readsb
