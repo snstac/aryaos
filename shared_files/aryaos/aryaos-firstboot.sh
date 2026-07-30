@@ -172,11 +172,32 @@ if [[ ! -f "$CAP_MARKER" ]] \
 	# back empty, because SoapySDRUtil blocks activating Avahi over dbus this
 	# early; the box then recorded "bare node" permanently.
 	udevadm settle --timeout=30 >/dev/null 2>&1 || true
+	# Accumulate the UNION across tries, and stop only once two consecutive
+	# scans agree.
+	#
+	# This loop used to break on the first NON-EMPTY result, which guarded
+	# against seeing nothing but not against seeing only PART of the kit. Buses
+	# come up at very different speeds: on aryaos-4f11 the AntSDR sits on a
+	# point-to-point Ethernet link and answered immediately, while the DroneScout
+	# is an ESP32 on USB that had not started streaming MAVLink yet. Try 1
+	# returned "dji", the loop broke, and the box latched caps="dji" with the
+	# Remote ID receiver plugged in and idle -- and because the marker file is
+	# then written, autodetect never looks again.
+	#
+	# Union rather than last-wins, so a device that answers once and is busy on a
+	# later pass cannot be dropped again. The probes only ever report hardware
+	# they can see, so this cannot invent a capability.
 	DETECTED=""
+	_prev=""
 	for _try in 1 2 3; do
-		DETECTED="$(/usr/local/sbin/aryaos-capability-scan --caps 2>/dev/null | xargs || true)"
-		[[ -n "$DETECTED" ]] && break
-		sleep 10
+		_this="$(/usr/local/sbin/aryaos-capability-scan --caps 2>/dev/null \
+			| tr ' ' '\n' | sed '/^$/d' | sort -u | xargs || true)"
+		DETECTED="$(printf '%s %s' "${DETECTED}" "${_this}" \
+			| tr ' ' '\n' | sed '/^$/d' | sort -u | xargs || true)"
+		# Settled: same set twice running, and not empty.
+		[[ -n "${_this}" && "${_this}" == "${_prev}" ]] && break
+		_prev="${_this}"
+		[[ "${_try}" -lt 3 ]] && sleep 10
 	done
 
 	if [[ -n "$DETECTED" ]]; then
