@@ -1,12 +1,71 @@
 /* AryaOS portal — field command deck. Day/night (auto) + colorblind-safe status.
  * Built for USFS-style outdoor use: big glove targets, high contrast, sunlight-
  * legible day theme. Status never rides on color alone — every state also carries
- * an icon + text label. Colorblind-safe hues are an Okabe-Ito-derived set
- * (bluish-green / orange / vermillion), not red-vs-green. */
+ * an icon + text label (see .aos-tak-dot / .aos-pill glyphs below).
+ *
+ * Now on the AryaOS Product Suite design kit: kit geometry and type (radius 0,
+ * 2px rules, no shadows, Archivo + JetBrains Mono, Signal Orange accent), while
+ * keeping the two things this page does better than the kit — the sunlight-
+ * legible day theme, and status that carries an icon and a label rather than
+ * relying on hue.
+ *
+ * STATUS COLOURS ARE MEASURED, NOT PICKED. Dichromacy was simulated and the
+ * worst-case protanopia/deuteranopia deltaE recorded for every pair. The old
+ * comment claimed an "Okabe-Ito-derived set"; the values were not actually
+ * Okabe-Ito, and the day theme separated WORSE than the design kit:
+ *
+ *   ok / bad pair                      normal  protan  deutan  worst
+ *   old day  #0b7a4f / #bf2a1a          101.2    17.3    40.1   17.3
+ *   design kit #3F7D57 / #A32820         82.1    21.2    29.9   21.2
+ *   NEW day  #008662 / #8F2A00            ~93    ~32     ~32    31.7
+ *   NEW night #009E73 / #D55E00          102.4    35.9    53.1   35.9
+ *
+ * Night uses true Okabe-Ito unmodified — it clears 4.5:1 as text on the night
+ * panel (ok 5.13, warn 7.79, bad 4.53). Day CANNOT: unmodified Okabe-Ito is
+ * 3.42 / 2.25 / 3.87 on white, so day uses darkened variants.
+ *
+ * Naively darkening both warn and bad collapsed them into each other for
+ * dichromats (warn/bad protan deltaE 3.3 — indistinguishable). The day values
+ * below keep a deliberate lightness gap so all three pairs stay separable:
+ *   day  warn/bad 20.0   ok/bad 31.7   ok/warn 35.4
+ *   night warn/bad 19.6  ok/bad 35.9
+ * bad is #8F2A00 rather than the maximally-separable #661B00 (35.1) because
+ * that reads brown rather than dangerous, and colour here is reinforcement for
+ * the glyph, not the only channel. */
+
+@font-face {
+  font-family: Archivo;
+  src: url("../fonts/archivo-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Archivo Narrow";
+  src: url("../fonts/archivo-narrow-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/jetbrains-mono-latin.woff2") format("woff2");
+  font-weight: 100 800;
+  font-display: swap;
+}
 
 :root {
-  --aos-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Monaco, Consolas, monospace;
-  --aos-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Kit geometry. Deviation: 48px targets, not the kit's 44px — gloves. */
+  --sns-unit: 8px;
+  --sns-gutter: 24px;
+  --sns-rule: 2px;
+  --sns-radius: 0;
+  --sns-target: 48px;
+
+  --aos-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+  --aos-sans: Archivo, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --aos-label: "Archivo Narrow", Archivo, sans-serif;
+
   /* Colorblind-safe status aliases (resolve per-theme --aos-ok/warn/bad below). */
   --aos-phosphor: var(--aos-ok);
   --aos-phosphor-dim: var(--aos-ok);
@@ -25,13 +84,24 @@
   --aos-panel-border: rgba(16, 46, 39, 0.18);
   --aos-text: #0d1a16;
   --aos-muted: #47574f;
-  --aos-accent: #0a6b57;
+  /* TWO roles, deliberately separated.
+     Signal Orange is the BRAND cue and only ever appears as a fill or a rule,
+     never as text: measured against this palette it sits deltaE 5 from the
+     danger colour on night and 17 from warn on day, so orange text reads as a
+     status warning when nothing is wrong. It is also only ~4.7:1 as text where
+     body ink is ~17:1, which is why it felt hard to read. */
+  --aos-brand: #c2520d;
+  --aos-brand-ink: #ffffff;
+  /* Interactive text/links: Okabe-Ito blue. Furthest of any candidate from all
+     three status hues (deltaE >= 64 here) and the highest contrast (5.19:1). */
+  --aos-accent: #0072b2;
   --aos-accent-ink: #ffffff;
   --aos-magenta: #9c3d78;
-  --aos-ok: #0b7a4f;
-  --aos-warn: #8f5400;
-  --aos-bad: #bf2a1a;
-  --aos-elev: 0 8px 22px rgba(6, 20, 16, 0.10);
+  /* Okabe-Ito darkened for a light panel — see the header table. */
+  --aos-ok: #008662;   /* 4.58:1 */
+  --aos-warn: #ad6200; /* 4.62:1 */
+  --aos-bad: #8f2a00;  /* 8.40:1 */
+  --aos-elev: none;
   --aos-scan: rgba(0, 0, 0, 0.28);
   color-scheme: light;
 }
@@ -42,20 +112,26 @@
     --aos-bg0: #0b0f0e;
     --aos-bg1: #111816;
     --aos-page-grad:
-      radial-gradient(ellipse 120% 80% at 50% -20%, rgba(126, 220, 159, 0.06), transparent 55%),
+      radial-gradient(ellipse 120% 80% at 50% -20%, color-mix(in srgb, var(--aos-ok) 6%, transparent), transparent 55%),
       linear-gradient(180deg, #111816 0%, #0b0f0e 48%, #080b0a 100%);
     --aos-panel: #131b18;
     --aos-panel-2: #172420;
     --aos-panel-border: rgba(126, 178, 151, 0.24);
     --aos-text: #e6ede9;
     --aos-muted: #93a89e;
-    --aos-accent: #6ed4be;
+    /* Brand fill only -- see the day block. On night, Signal Orange is deltaE
+       5.3 from the danger colour, i.e. effectively the same hue. */
+    --aos-brand: #e4610f;
+    --aos-brand-ink: #071211;
+    /* Interactive text: Okabe-Ito blue, 7.60:1 and deltaE >= 60 from status. */
+    --aos-accent: #56b4e9;
     --aos-accent-ink: #071211;
     --aos-magenta: #cf8fae;
-    --aos-ok: #3ddc97;
-    --aos-warn: #f2a93b;
-    --aos-bad: #ff6f5e;
-    --aos-elev: 0 10px 30px rgba(0, 0, 0, 0.42);
+    /* True Okabe-Ito — all clear 4.5:1 on the night panel. */
+    --aos-ok: #009e73;   /* 5.13:1 */
+    --aos-warn: #e69f00; /* 7.79:1 */
+    --aos-bad: #d55e00;  /* 4.53:1 */
+    --aos-elev: none;
     --aos-scan: rgba(0, 0, 0, 0.35);
     color-scheme: dark;
   }
@@ -66,20 +142,24 @@
   --aos-bg0: #0b0f0e;
   --aos-bg1: #111816;
   --aos-page-grad:
-    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(126, 220, 159, 0.06), transparent 55%),
+    radial-gradient(ellipse 120% 80% at 50% -20%, color-mix(in srgb, var(--aos-ok) 6%, transparent), transparent 55%),
     linear-gradient(180deg, #111816 0%, #0b0f0e 48%, #080b0a 100%);
   --aos-panel: #131b18;
   --aos-panel-2: #172420;
   --aos-panel-border: rgba(126, 178, 151, 0.24);
   --aos-text: #e6ede9;
   --aos-muted: #93a89e;
-  --aos-accent: #6ed4be;
+  /* Same values as the prefers-color-scheme: dark block above — this is the
+     explicitly forced night theme. Kept in sync deliberately. */
+  --aos-brand: #e4610f;
+  --aos-brand-ink: #071211;
+  --aos-accent: #56b4e9;
   --aos-accent-ink: #071211;
   --aos-magenta: #cf8fae;
-  --aos-ok: #3ddc97;
-  --aos-warn: #f2a93b;
-  --aos-bad: #ff6f5e;
-  --aos-elev: 0 10px 30px rgba(0, 0, 0, 0.42);
+  --aos-ok: #009e73;
+  --aos-warn: #e69f00;
+  --aos-bad: #d55e00;
+  --aos-elev: none;
   --aos-scan: rgba(0, 0, 0, 0.35);
   color-scheme: dark;
 }
@@ -143,7 +223,7 @@
   color: #07100b;
   background: #9fcfab;
   padding: 0.12rem 0.45rem;
-  border-radius: 2px;
+  border-radius: var(--sns-radius);
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -155,12 +235,15 @@
 }
 
 @keyframes aos-rx-pulse {
+  /* A RING that grows and fades, not a glow: the kit forbids elevation shadows,
+     and a 0-offset 0-blur ring is an outline. Previously this pulsed a blurred
+     green glow hardcoded to rgba(126, 220, 159) -- a colour in no theme. */
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(126, 220, 159, 0.22);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--aos-ok) 45%, transparent);
   }
   50% {
-    box-shadow: 0 0 8px 1px rgba(126, 220, 159, 0.16);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--aos-ok) 0%, transparent);
   }
 }
 
@@ -182,7 +265,6 @@
   font-size: 1.45rem;
   letter-spacing: 0.06em;
   color: var(--aos-text);
-  text-shadow: 0 0 18px rgba(126, 220, 159, 0.08);
 }
 
 .aos-hero-lead {
@@ -213,7 +295,7 @@
   margin-bottom: 0.45rem;
   padding: 0.2rem 0.55rem;
   border: 1px solid var(--aos-panel-border);
-  border-radius: 3px;
+  border-radius: var(--sns-radius);
   background: rgba(11, 20, 16, 0.72);
 }
 
@@ -222,7 +304,7 @@
   height: 0.45rem;
   border-radius: 50%;
   background: var(--aos-phosphor);
-  box-shadow: 0 0 6px rgba(126, 220, 159, 0.45);
+  box-shadow: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -293,7 +375,7 @@
   display: flex;
   align-items: center;
   border: 1px solid var(--aos-panel-border);
-  border-radius: 5px;
+  border-radius: var(--sns-radius);
   background: rgba(0, 0, 0, 0.2);
   color: var(--aos-text);
   font-family: var(--aos-mono);
@@ -320,21 +402,21 @@
 
 .aos-upload-result {
   margin-top: 0.65rem;
-  border-radius: 5px;
+  border-radius: var(--sns-radius);
   padding: 0.55rem 0.7rem;
   font-size: 0.82rem;
   font-family: var(--aos-mono);
 }
 
 .aos-upload-result--ok {
-  border: 1px solid rgba(61, 255, 154, 0.35);
-  background: rgba(61, 255, 154, 0.1);
+  border: 1px solid color-mix(in srgb, var(--aos-ok) 35%, transparent);
+  background: color-mix(in srgb, var(--aos-ok) 10%, transparent);
   color: var(--aos-text);
 }
 
 .aos-upload-result--bad {
-  border: 1px solid rgba(255, 68, 102, 0.4);
-  background: rgba(255, 68, 102, 0.1);
+  border: 1px solid color-mix(in srgb, var(--aos-bad) 40%, transparent);
+  background: color-mix(in srgb, var(--aos-bad) 10%, transparent);
   color: var(--aos-text);
 }
 
@@ -371,25 +453,25 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0.4rem 0.75rem;
-  border-radius: 5px;
+  border-radius: var(--sns-radius);
   border: 1px solid var(--aos-panel-border);
   background: rgba(0, 0, 0, 0.35);
   color: var(--aos-text);
 }
 
 .aos-tak-chip.aos-tak--up {
-  background: rgba(61, 255, 154, 0.14);
-  border-color: rgba(61, 255, 154, 0.42);
+  background: color-mix(in srgb, var(--aos-ok) 14%, transparent);
+  border-color: color-mix(in srgb, var(--aos-ok) 42%, transparent);
 }
 
 .aos-tak-chip.aos-tak--down {
-  background: rgba(255, 68, 102, 0.12);
-  border-color: rgba(255, 68, 102, 0.45);
+  background: color-mix(in srgb, var(--aos-bad) 12%, transparent);
+  border-color: color-mix(in srgb, var(--aos-bad) 45%, transparent);
 }
 
 .aos-tak-chip.aos-tak--degraded {
-  background: rgba(255, 176, 32, 0.12);
-  border-color: rgba(255, 176, 32, 0.45);
+  background: color-mix(in srgb, var(--aos-warn) 12%, transparent);
+  border-color: color-mix(in srgb, var(--aos-warn) 45%, transparent);
 }
 
 .aos-tak-chip.aos-tak--absent,
@@ -418,17 +500,17 @@
 
 .aos-tak--up .aos-tak-dot {
   background: var(--aos-phosphor);
-  box-shadow: 0 0 6px rgba(61, 255, 154, 0.45);
+  box-shadow: none;
 }
 
 .aos-tak--down .aos-tak-dot {
   background: var(--aos-danger);
-  box-shadow: 0 0 6px rgba(255, 68, 102, 0.35);
+  box-shadow: none;
 }
 
 .aos-tak--degraded .aos-tak-dot {
   background: var(--aos-amber);
-  box-shadow: 0 0 6px rgba(255, 176, 32, 0.35);
+  box-shadow: none;
 }
 
 .aos-tak--absent .aos-tak-dot,
@@ -495,16 +577,16 @@
 .aos-status-group {
   border-left: 3px solid var(--aos-panel-border);
   padding: 0.45rem 0.6rem 0.5rem 0.7rem;
-  border-radius: 5px;
+  border-radius: var(--sns-radius);
   background: rgba(0, 0, 0, 0.22);
 }
 
 .aos-status-group--meta {
-  border-left-color: rgba(61, 255, 154, 0.45);
+  border-left-color: color-mix(in srgb, var(--aos-ok) 45%, transparent);
 }
 
 .aos-status-group--net {
-  border-left-color: rgba(255, 176, 32, 0.55);
+  border-left-color: color-mix(in srgb, var(--aos-warn) 55%, transparent);
 }
 
 .aos-status-group--gps {
@@ -538,17 +620,17 @@
 
 .aos-pill--ok {
   background: var(--aos-phosphor);
-  box-shadow: 0 0 6px rgba(61, 255, 154, 0.45);
+  box-shadow: none;
 }
 
 .aos-pill--warn {
   background: var(--aos-amber);
-  box-shadow: 0 0 5px rgba(255, 176, 32, 0.35);
+  box-shadow: none;
 }
 
 .aos-pill--bad {
   background: var(--aos-danger);
-  box-shadow: 0 0 5px rgba(255, 68, 102, 0.35);
+  box-shadow: none;
 }
 
 .aos-pill--pending {
@@ -604,7 +686,7 @@
   padding: 0;
   margin: 0;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: var(--sns-radius);
   background: transparent;
   color: var(--aos-muted);
   opacity: 0.55;
@@ -620,25 +702,27 @@
 .aos-copy-btn:focus {
   opacity: 1;
   color: var(--aos-phosphor);
-  border-color: rgba(61, 255, 154, 0.25);
+  border-color: color-mix(in srgb, var(--aos-ok) 25%, transparent);
   background: rgba(0, 0, 0, 0.35);
   outline: none;
 }
 
 .aos-copy-btn:focus-visible {
   opacity: 1;
-  box-shadow: 0 0 0 2px rgba(61, 255, 154, 0.45);
+  /* Focus indicator -- kept deliberately when the elevation shadows went, and
+     recoloured from a stale hardcoded green to the theme accent. */
+  box-shadow: 0 0 0 2px var(--aos-accent);
 }
 
 .aos-copy-btn--ok {
   color: var(--aos-phosphor);
-  border-color: rgba(61, 255, 154, 0.5);
+  border-color: color-mix(in srgb, var(--aos-ok) 50%, transparent);
   opacity: 1;
 }
 
 .aos-copy-btn--fail {
   color: var(--aos-danger);
-  border-color: rgba(255, 68, 102, 0.45);
+  border-color: color-mix(in srgb, var(--aos-bad) 45%, transparent);
   opacity: 1;
 }
 
@@ -650,8 +734,8 @@
   background: var(--aos-panel);
   color: var(--aos-text);
   border: 1px solid var(--aos-panel-border);
-  border-radius: 6px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  border-radius: var(--sns-radius);
+  box-shadow: none;
 }
 
 .aos-theme-sigint .uk-card-title {
@@ -693,14 +777,14 @@
   color: var(--aos-phosphor);
   background: rgba(0, 0, 0, 0.35);
   padding: 0.1em 0.35em;
-  border-radius: 3px;
+  border-radius: var(--sns-radius);
   word-break: break-all;
 }
 
 .aos-theme-sigint .uk-button-primary {
   background: linear-gradient(180deg, #1a6b4a 0%, #0d3d2a 100%);
   color: #e8fff4;
-  border: 1px solid rgba(61, 255, 154, 0.35);
+  border: 1px solid color-mix(in srgb, var(--aos-ok) 35%, transparent);
   font-family: var(--aos-mono);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -732,13 +816,13 @@
 .aos-theme-sigint .uk-alert-danger {
   background: rgba(80, 10, 20, 0.55);
   color: #ffc8d0;
-  border: 1px solid rgba(255, 68, 102, 0.35);
+  border: 1px solid color-mix(in srgb, var(--aos-bad) 35%, transparent);
 }
 
 .aos-theme-sigint .uk-alert-warning {
   background: rgba(50, 38, 0, 0.55);
   color: #ffe8b8;
-  border: 1px solid rgba(255, 176, 32, 0.35);
+  border: 1px solid color-mix(in srgb, var(--aos-warn) 35%, transparent);
 }
 
 .aos-theme-sigint a:not(.uk-button) {
@@ -781,7 +865,7 @@
   word-break: break-word;
   background: rgba(0, 0, 0, 0.55);
   border: 1px solid var(--aos-panel-border);
-  border-radius: 4px;
+  border-radius: var(--sns-radius);
   padding: 0.75rem 1rem;
   margin: 0;
   max-height: 12rem;
@@ -866,7 +950,7 @@
 
 .aos-theme-sigint .aos-neighbor-table tbody tr:hover,
 .aos-theme-sigint .aos-rf-table tbody tr:hover {
-  background: rgba(61, 255, 154, 0.04);
+  background: color-mix(in srgb, var(--aos-ok) 4%, transparent);
 }
 
 @media (max-width: 639px) {
@@ -885,7 +969,7 @@
 .aos-docs-qr img {
   background: #fff;
   padding: 4px;
-  border-radius: 6px;
+  border-radius: var(--sns-radius);
   flex: 0 0 auto;
 }
 
@@ -910,7 +994,8 @@
   backdrop-filter: blur(6px);
 }
 .aos-appbar-brand { display: flex; align-items: baseline; gap: 0.5rem; min-width: 0; }
-.aos-appbar-logo { color: var(--aos-accent); font-size: 1.15rem; }
+/* The wordmark is where the brand colour belongs. */
+.aos-appbar-logo { color: var(--aos-brand); font-size: 1.15rem; }
 .aos-appbar-name {
   font-family: var(--aos-mono);
   font-weight: 800;
@@ -957,7 +1042,7 @@
   min-height: 2.75rem;
   padding: 0 0.9rem;
   border: 2px solid var(--aos-panel-border);
-  border-radius: 8px;
+  border-radius: var(--sns-radius);
   background: var(--aos-panel-2);
   color: var(--aos-text);
   font-family: var(--aos-mono);
@@ -994,7 +1079,7 @@
   background: var(--aos-panel);
   border: 1px solid var(--aos-panel-border);
   border-left: 7px solid var(--sc);
-  border-radius: 10px;
+  border-radius: var(--sns-radius);
   box-shadow: var(--aos-elev);
 }
 .aos-stat-ico { font-size: 1.5rem; color: var(--sc); line-height: 1; }
@@ -1009,7 +1094,7 @@
 /* --- Banners --- */
 .aos-banner {
   padding: 0.75rem 0.9rem;
-  border-radius: 8px;
+  border-radius: var(--sns-radius);
   font-size: 0.9rem;
   font-weight: 600;
   border: 1px solid var(--aos-bad);
@@ -1033,7 +1118,7 @@
   padding: 1.1rem 1rem;
   background: var(--aos-panel);
   border: 2px solid var(--aos-panel-border);
-  border-radius: 12px;
+  border-radius: var(--sns-radius);
   box-shadow: var(--aos-elev);
   color: var(--aos-text);
   text-decoration: none;
@@ -1068,7 +1153,7 @@
   min-height: 2.5rem;
   padding: 0 0.8rem;
   border: 2px solid var(--sc);
-  border-radius: 999px;
+  border-radius: var(--sns-radius);
   background: color-mix(in srgb, var(--sc) 12%, var(--aos-panel));
   font-family: var(--aos-mono);
   font-weight: 700;
@@ -1099,7 +1184,7 @@
 /* --- Small status pill (GNSS) — colorblind glyph prefix --- */
 .aos-pill {
   display: inline-flex; align-items: center;
-  padding: 0.15rem 0.55rem; border-radius: 999px;
+  padding: 0.15rem 0.55rem; border-radius: var(--sns-radius);
   font-family: var(--aos-mono); font-size: 0.75rem; font-weight: 700;
   border: 1px solid var(--aos-muted); color: var(--aos-text);
   background: color-mix(in srgb, var(--aos-muted) 14%, var(--aos-panel));
@@ -1116,7 +1201,7 @@
 .aos-drawer {
   background: var(--aos-panel);
   border: 1px solid var(--aos-panel-border);
-  border-radius: 10px;
+  border-radius: var(--sns-radius);
   box-shadow: var(--aos-elev);
   overflow: hidden;
 }
@@ -1151,14 +1236,14 @@
   padding: 1.2rem;
   background: var(--aos-panel);
   border: 1px solid var(--aos-panel-border);
-  border-radius: 10px;
+  border-radius: var(--sns-radius);
 }
 .aos-foot-h { font-size: 1rem; margin: 0 0 0.4rem; }
 .aos-foot p { color: var(--aos-muted); font-size: 0.88rem; margin: 0 0 0.6rem; }
 .aos-foot a { color: var(--aos-accent); }
 .aos-foot-list { list-style: none; padding: 0; margin: 0; font-size: 0.9rem; line-height: 1.9; }
 .aos-docs-qr { display: flex; align-items: center; gap: 0.6rem; color: var(--aos-muted); font-size: 0.8rem; }
-.aos-docs-qr img { background: #fff; padding: 4px; border-radius: 6px; }
+.aos-docs-qr img { background: #fff; padding: 4px; border-radius: var(--sns-radius); }
 .aos-legal { text-align: center; color: var(--aos-muted); font-size: 0.78rem; margin: 0.4rem 0 0; }
 .aos-legal a { color: var(--aos-accent); }
 
@@ -1180,4 +1265,107 @@
 @media (prefers-reduced-motion: reduce) {
   .aos-online-dot { animation: none; }
   .aos-tile { transition: none; }
+}
+
+/* ============================================================================
+ * AryaOS design kit — geometry, targets and UIkit containment.
+ *
+ * This block is last on purpose: UIkit (uikit.min.css, 262 KB) is a third-party
+ * framework that ships its own radii, shadows and control sizes, and it loads
+ * before this file. Overriding it here keeps the kit's geometry without forking
+ * or dropping UIkit.
+ *
+ * Scoped to the elements this page actually renders rather than a blanket `*`,
+ * for the same reason as the Cockpit theme: a global rule also flattens things
+ * where the radius carries meaning. The status dots keep their 50% -- a 2px
+ * square status dot reads as a defect rather than a state.
+ * ========================================================================== */
+
+.uk-card,
+.uk-card-default,
+.uk-button,
+.uk-button-default,
+.uk-button-primary,
+.uk-alert,
+.uk-alert-danger,
+.uk-alert-warning,
+.uk-input,
+.uk-select,
+.uk-textarea,
+.uk-section-muted {
+  border-radius: var(--sns-radius);
+  box-shadow: none;
+}
+
+/* 2px rules do the separating, since nothing casts a shadow any more. */
+.uk-card,
+.uk-card-default,
+.uk-alert,
+.uk-section-muted {
+  border: var(--sns-rule) solid var(--aos-panel-border);
+}
+
+/* 48px targets for gloved use — the kit minimum is 44px, see the header. */
+.uk-button,
+.uk-button-default,
+.uk-button-primary,
+.uk-input,
+.uk-select,
+.uk-textarea,
+button,
+[role="button"],
+input,
+select,
+textarea {
+  min-height: var(--sns-target);
+}
+
+/* Type: Archivo for UI, Archivo Narrow for labels, JetBrains Mono for machine
+   output only. UIkit sets its own stack on headings and controls. */
+body,
+.uk-card,
+.uk-button,
+.uk-input,
+.uk-select,
+.uk-textarea,
+h1, h2, h3, h4, h5, h6,
+.uk-heading-small,
+.uk-card-title {
+  font-family: var(--aos-sans);
+}
+
+.uk-description-list dt,
+label,
+legend,
+th {
+  font-family: var(--aos-label);
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--aos-mono);
+}
+
+/* The accent is one per surface, ~5% of it. UIkit's primary button is the main
+   place it lands. */
+.uk-button-primary {
+  /* A fill, so the brand colour is a background with ink on top rather than
+     low-contrast orange text. */
+  background-color: var(--aos-brand);
+  color: var(--aos-brand-ink);
+  border-color: var(--aos-brand);
+}
+
+/* Fleet-standard breakpoint. The narrower ones above (420/560/639/900px) are
+   left in place deliberately: they carry real layout decisions for a page with
+   this much content, and collapsing them into one needs a visual check on a
+   device rather than a find-and-replace. Flagged, not silently changed. */
+@media (width <= 760px) {
+  .uk-card,
+  .uk-card-default,
+  .uk-section-muted {
+    padding: var(--sns-unit);
+  }
 }
