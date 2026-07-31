@@ -1,0 +1,337 @@
+#!/usr/bin/env python3
+"""aryaos-spectrum-survey — measure band occupancy with a SoapySDR receiver.
+
+What this is FOR
+----------------
+A wideband SDR (LimeSDR Mini, HackRF, Airspy, PlutoSDR, or an RTL dongle within
+its tuning range) makes a useful survey instrument even where no protocol
+decoder applies: "which parts of the spectrum are busy here, and how busy" is
+answerable without knowing what any of the emitters are. That question is the
+one a SIGINT box can always answer, unlike ADS-B or AIS, which need traffic in
+range and enough sensitivity to hear it.
+
+So this reports MEASUREMENTS, never identifications. A band being occupied does
+not tell you what is transmitting, and this tool does not guess. The band plan
+supplies human labels for context only; nothing here claims a decode.
+
+Two measurement traps this is built to avoid
+--------------------------------------------
+1. THE DC / LO SPIKE. A direct-conversion receiver puts a large artefact at
+   exactly its centre frequency. A naive "find the strongest bin" survey reports
+   that artefact in EVERY band and concludes everything is occupied. Measured on
+   a LimeSDR Mini v2, a first pass reported peaks at exactly 433.920, 1090.000
+   and 98.500 MHz -- all precisely at centre, all artefact. So the bins nearest
+   DC are excluded from the statistics, and a band is tuned OFFSET from the
+   region of interest so that region never sits under the spike.
+
+2. NOISE FLOOR IS NOT OCCUPANCY. Raising gain raises the noise floor roughly
+   1:1 and tells you nothing about whether anyone is transmitting. Measured on
+   the same box at 1090 MHz: gain 40 -> -31.9 dBFS floor, gain 60 -> -13.4 dBFS
+   floor, and 0 usable ADS-B messages at either. What separates a busy band from
+   a quiet one is EXCURSIONS ABOVE ITS OWN FLOOR, so occupancy is defined
+   relative to each band's median, not against an absolute threshold.
+
+   Validated against a controlled emitter -- the box's own 2.4 GHz AP on channel
+   1 at 31 dBm -- versus an out-of-band control:
+
+     2412 MHz (our AP)      26.7% of samples >20 dB over median
+     2390 MHz (below band)   0.169%
+     2462 MHz (neighbours)   7.1%
+
+   a 158x separation between a known-busy channel and a known-quiet one.
+
+Copyright Sensors & Signals LLC https://www.snstac.com/
+SPDX-License-Identifier: Apache-2.0
+"""
+
+import argparse
+import json
+import math
+import sys
+import time
+
+# Bands worth sweeping on a general-purpose SA box. `label` is context for an
+# operator, NOT a claim about what was heard. `span` is the width we care about;
+# the tool tunes offset from centre so the DC spike lands outside it.
+DEFAULT_BANDS = [
+    {"name": "ism433", "center": 433.92e6, "span": 1.0e6, "label": "ISM 433 MHz (sensors, TPMS, remotes)"},
+    {"name": "ais", "center": 162.0e6, "span": 0.2e6, "label": "Marine AIS 161.975/162.025"},
+    {"name": "uat978", "center": 978.0e6, "span": 1.0e6, "label": "UAT 978 MHz"},
+    {"name": "adsb1090", "center": 1090.0e6, "span": 2.0e6, "label": "ADS-B 1090 MHz"},
+    {"name": "ism915", "center": 915.0e6, "span": 2.0e6, "label": "ISM 915 MHz"},
+    {"name": "wifi2g_ch1", "center": 2412.0e6, "span": 20.0e6, "label": "Wi-Fi 2.4 GHz ch1"},
+    {"name": "wifi2g_ch6", "center": 2437.0e6, "span": 20.0e6, "label": "Wi-Fi 2.4 GHz ch6"},
+    {"name": "wifi2g_ch11", "center": 2462.0e6, "span": 20.0e6, "label": "Wi-Fi 2.4 GHz ch11"},
+    {"name": "fmbcast", "center": 98.0e6, "span": 2.0e6, "label": "FM broadcast (propagation check)"},
+]
+
+# An excursion this far over the band's own median counts as a signal event.
+# 20 dB is deliberately conservative: at 6 dB, thermal noise alone produces
+# several percent of samples in every band, which reads as "everything is busy".
+EXCURSION_DB = 20.0
+
+# Occupancy above this is called "occupied". Chosen from the validation above:
+# a known-quiet control measured 0.169% and a known-busy channel 26.7%, so
+# anything approaching a percent is well clear of noise.
+OCCUPIED_PCT = 0.5
+
+# A narrowband spectral peak this far above the band's own spectral median is
+# called a continuous carrier. Calibrated against FM broadcast on the test box,
+# where two identified stations stood 18.8 dB and 18.3 dB over the local median
+# while a genuinely empty band's strongest non-DC bin sat under 8 dB. 12 dB sits
+# clearly between the two.
+CARRIER_DB = 12.0
+
+
+def _db(x):
+    return 20.0 * math.log10(max(float(x), 1e-9))
+
+
+def survey_band(sdr, band, dwell, gain, sample_rate, antenna, np, SoapySDR, fmt):
+    """Measure one band. Returns a dict of measurements, or an error dict."""
+    center = float(band["center"])
+    span = float(band["span"])
+
+    # Tune OFFSET so the DC spike sits outside the span we report on. A quarter
+    # of the sample rate puts it well clear while keeping the region in-band.
+    offset = sample_rate / 4.0
+    tuned = center + offset
+
+    try:
+        sdr.setSampleRate(SoapySDR.SOAPY_SDR_RX, 0, sample_rate)
+        sdr.setFrequency(SoapySDR.SOAPY_SDR_RX, 0, tuned)
+        sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, gain)
+        if antenna:
+            sdr.setAntenna(SoapySDR.SOAPY_SDR_RX, 0, antenna)
+    except Exception as exc:  # noqa: BLE001 - report, do not abort the sweep
+        return {"error": f"tune failed: {exc}"}
+
+    try:
+        stream = sdr.setupStream(SoapySDR.SOAPY_SDR_RX, fmt)
+        sdr.activateStream(stream)
+    except Exception as exc:  # noqa: BLE001
+        return {"error": f"stream setup failed: {exc}"}
+
+    n = 16384
+    nfft = 4096
+    buf = np.zeros(n * 2, np.int16)
+    mags = []
+    # Complex frames retained for the frequency-domain (continuous-carrier)
+    # check. Bounded: the time-domain stats want the whole dwell, but 64 frames
+    # is already plenty to average a stable PSD, and keeping every frame on a
+    # long dwell would balloon memory for no gain.
+    iq_frames = []
+    deadline = time.monotonic() + dwell
+    reads = 0
+    short_reads = 0
+
+    try:
+        while time.monotonic() < deadline:
+            res = sdr.readStream(stream, [buf], n, timeoutUs=200000)
+            if res.ret <= 0:
+                short_reads += 1
+                if short_reads > 50:
+                    break
+                continue
+            reads += 1
+            iq = buf[: res.ret * 2].astype(np.float32)
+            i_ch, q_ch = iq[0::2], iq[1::2]
+            mags.append(np.hypot(i_ch, q_ch))
+            if len(iq_frames) < 64 and i_ch.size >= nfft:
+                iq_frames.append((i_ch[:nfft] + 1j * q_ch[:nfft]).astype(np.complex64))
+    finally:
+        try:
+            sdr.deactivateStream(stream)
+            sdr.closeStream(stream)
+        except Exception:  # noqa: BLE001
+            pass
+
+    if not mags:
+        return {"error": "no samples read"}
+
+    return analyze_capture(
+        np.concatenate(mags), iq_frames, sample_rate, nfft, np,
+        extra={"tuned_hz": tuned, "offset_hz": offset, "reads": reads},
+    )
+
+
+def analyze_capture(m, iq_frames, sample_rate, nfft, np, extra=None):
+    """Classify a capture. Pure: no SDR, so it is testable without hardware.
+
+    `m` is a 1-D array of sample magnitudes; `iq_frames` a list of complex
+    arrays of length `nfft` (may be empty, in which case only the time-domain
+    statistics are produced).
+    """
+    median = float(np.median(m))
+    peak = float(m.max())
+    full_scale = 32767.0
+
+    # Occupancy: fraction of samples EXCURSION_DB above this band's own median.
+    # Relative, not absolute -- see the module docstring on why an absolute
+    # threshold measures gain rather than activity.
+    thresh = median * (10.0 ** (EXCURSION_DB / 20.0))
+    occupancy = float((m > thresh).mean() * 100.0)
+
+    # CLIPPING. An excursion count is only meaningful if the samples are real.
+    # Once the ADC saturates, the clipped tops are counted as signal events and
+    # occupancy is inflated by the gain setting rather than by activity. Seen on
+    # the first validation sweep: gain 40 on a LimeSDR gave peaks of +1.3, +2.5
+    # and +3.0 dBFS -- above full scale -- and a 4.6% "occupancy" at 162 MHz
+    # that was an artefact. Flagged rather than silently reported.
+    clip_level = 0.98 * full_scale
+    clipped_pct = float((m >= clip_level).mean() * 100.0)
+    clipped = clipped_pct > 0.01
+
+    # CONTINUOUS CARRIERS. The excursion metric above only sees bursty emitters.
+    # A steady carrier raises the median it is measured against, so it scores
+    # ZERO occupancy no matter how strong it is. The first validation sweep
+    # called FM broadcast "quiet" at 0.000% on a box where two stations had
+    # already been positively identified at 97.313 and 98.906 MHz.
+    #
+    # So the band is also examined in the frequency domain: average a set of
+    # FFTs and look for a narrowband peak standing above the spectral median.
+    # The bins nearest DC are discarded first -- that artefact is always the
+    # strongest thing present and would otherwise be "detected" in every band.
+    carrier_db = 0.0
+    carrier_offset = None
+    if iq_frames:
+        win = np.hanning(nfft)
+        acc = np.zeros(nfft)
+        for frame in iq_frames:
+            acc += np.abs(np.fft.fftshift(np.fft.fft(frame * win))) ** 2
+        psd = 10.0 * np.log10(acc / len(iq_frames) + 1e-12)
+
+        # Mask the LO artefact before looking for a peak. It is always the
+        # strongest bin present, so without this every band "detects a carrier"
+        # at exactly its centre frequency -- the same mistake that made a first
+        # pass report 433.920, 1090.000 and 98.500 MHz as occupied.
+        mid = nfft // 2
+        guard = max(4, nfft // 100)
+        keep = np.ones(nfft, dtype=bool)
+        keep[mid - guard: mid + guard] = False
+        psd_kept = psd[keep]
+        bins_kept = np.arange(nfft)[keep]
+
+        med_psd = float(np.median(psd_kept))
+        best = int(np.argmax(psd_kept))
+        carrier_db = round(float(psd_kept[best]) - med_psd, 1)
+        carrier_offset = float((int(bins_kept[best]) - mid) * (sample_rate / nfft))
+
+    bursty = occupancy >= OCCUPIED_PCT
+    continuous = carrier_db >= CARRIER_DB
+
+    result = {
+        "samples": int(m.size),
+        "noise_floor_dbfs": round(_db(median / full_scale), 1),
+        "peak_dbfs": round(_db(peak / full_scale), 1),
+        "peak_over_median_db": round(_db(peak / max(median, 1e-9)), 1),
+        "occupancy_pct": round(occupancy, 4),
+        "carrier_over_noise_db": carrier_db,
+        "carrier_offset_hz": carrier_offset,
+        "clipped": clipped,
+        "clipped_pct": round(clipped_pct, 4),
+        "occupied": bool(bursty or continuous),
+        "detection": (
+            "bursty+continuous" if (bursty and continuous)
+            else "bursty" if bursty
+            else "continuous" if continuous
+            else "none"
+        ),
+    }
+    if extra:
+        result.update(extra)
+    return result
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(
+        description="Measure band occupancy with a SoapySDR receiver.",
+        epilog="Reports measurements only. Never identifies emitters.",
+    )
+    ap.add_argument("--device", default="", help='SoapySDR args, e.g. "driver=lime". Default: first found.')
+    ap.add_argument("--antenna", default="", help="RX antenna port, e.g. LNAH / LNAW.")
+    ap.add_argument("--gain", type=float, default=40.0, help="RX gain in dB (default 40).")
+    ap.add_argument("--dwell", type=float, default=2.0, help="Seconds per band (default 2).")
+    ap.add_argument("--sample-rate", type=float, default=4e6, help="Sample rate in Hz (default 4e6).")
+    ap.add_argument("--bands", default="", help="Comma-separated band names to sweep (default: all).")
+    ap.add_argument("--json", action="store_true", help="Emit JSON only.")
+    args = ap.parse_args(argv)
+
+    try:
+        import numpy as np
+        import SoapySDR
+    except ImportError as exc:
+        print(f"aryaos-spectrum-survey: missing dependency: {exc}", file=sys.stderr)
+        print("install: apt install python3-numpy python3-soapysdr", file=sys.stderr)
+        return 1
+
+    # A bare {"driver": "lime"} dict is NOT reliable: on the LimeSDR Mini v2 it
+    # fails with "Device::make() no match" while enumeration works fine. The
+    # enumerated args must be passed whole, so that is the default path.
+    try:
+        found = SoapySDR.Device.enumerate(args.device) if args.device else SoapySDR.Device.enumerate()
+    except Exception as exc:  # noqa: BLE001
+        print(f"aryaos-spectrum-survey: enumeration failed: {exc}", file=sys.stderr)
+        return 1
+
+    if not found:
+        print("aryaos-spectrum-survey: no SoapySDR device found", file=sys.stderr)
+        return 1
+
+    try:
+        sdr = SoapySDR.Device(found[0])
+    except Exception as exc:  # noqa: BLE001
+        print(f"aryaos-spectrum-survey: cannot open device: {exc}", file=sys.stderr)
+        return 1
+
+    fmt = SoapySDR.SOAPY_SDR_CS16
+
+    wanted = [b.strip() for b in args.bands.split(",") if b.strip()]
+    bands = [b for b in DEFAULT_BANDS if not wanted or b["name"] in wanted]
+    if wanted and not bands:
+        print(f"aryaos-spectrum-survey: no such band(s): {args.bands}", file=sys.stderr)
+        return 2
+
+    out = {
+        "device": str(found[0]),
+        "gain_db": args.gain,
+        "sample_rate_hz": args.sample_rate,
+        "dwell_s": args.dwell,
+        "excursion_db": EXCURSION_DB,
+        "occupied_threshold_pct": OCCUPIED_PCT,
+        "note": "Measurements only; no emitter is identified.",
+        "bands": [],
+    }
+
+    for band in bands:
+        res = survey_band(sdr, band, args.dwell, args.gain, args.sample_rate,
+                          args.antenna, np, SoapySDR, fmt)
+        entry = {"name": band["name"], "center_hz": band["center"], "label": band["label"]}
+        entry.update(res)
+        out["bands"].append(entry)
+
+        if not args.json:
+            if "error" in res:
+                print(f"  {band['name']:12s} {band['center']/1e6:9.3f} MHz  ERROR: {res['error']}")
+            else:
+                flag = "OCCUPIED" if res["occupied"] else "quiet"
+                clip = "  CLIPPING" if res["clipped"] else ""
+                carrier = ""
+                if res["carrier_over_noise_db"] >= CARRIER_DB and res["carrier_offset_hz"] is not None:
+                    at = (res["tuned_hz"] + res["carrier_offset_hz"]) / 1e6
+                    carrier = f"  carrier +{res['carrier_over_noise_db']:.1f}dB @ {at:.3f} MHz"
+                print(
+                    f"  {band['name']:12s} {band['center']/1e6:9.3f} MHz  "
+                    f"floor={res['noise_floor_dbfs']:6.1f} dBFS  "
+                    f"occ={res['occupancy_pct']:7.3f}%  "
+                    f"{flag:8s} [{res['detection']}]{carrier}{clip}"
+                )
+
+    if args.json:
+        json.dump(out, sys.stdout, indent=2)
+        sys.stdout.write("\n")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
