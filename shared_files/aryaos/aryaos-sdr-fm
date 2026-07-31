@@ -35,6 +35,17 @@ Signal path
       -> de-emphasis (optional; OFF by default, see below)
       -> scale to int16, write
 
+AM MODE IS EXPERIMENTAL. It demonstrably recovers audio -- measured on an
+aviation carrier at 132.000 MHz, the voice band (300-3000 Hz) sits 6 dB above
+the sub-voice band and 37 dB above everything past 8 kHz, while the same signal
+through the FM path is featureless noise (8.4x per-second level variation vs
+1.1x). But the output level ramps roughly 4.5x over the first ~15 seconds and
+then plateaus, and I have not explained why. Two candidate causes were tested
+and REFUTED: replacing the running-mean DC estimator with a 200 Hz high-pass
+fixed the spectrum shape but not the ramp, and disabling device AGC explicitly
+changed nothing. Treat AM output as usable for listening and unproven for
+decoding until that is understood.
+
 DE-EMPHASIS IS OFF BY DEFAULT and that is deliberate. It is correct for voice
 and WRONG for data: 1200 baud AFSK carries its bits as 1200/2200 Hz tones, and a
 75 us de-emphasis filter attenuates 2200 Hz about 5 dB more than 1200 Hz, which
@@ -88,6 +99,15 @@ def main(argv=None):
         default=0.0,
         help="De-emphasis time constant in us (e.g. 75). OFF by default: it "
         "distorts AFSK tone balance. Use only for voice.",
+    )
+    ap.add_argument(
+        "--mode",
+        choices=("fm", "am"),
+        default="fm",
+        help="Demodulation mode. fm = NBFM (APRS, marine, NOAA wx, pagers). "
+        "am = amplitude, EXPERIMENTAL (aviation 118-137 MHz, ACARS). Using the "
+        "wrong one yields noise no matter how strong the signal is. See the "
+        "module docstring for the known AM level-settling caveat.",
     )
     ap.add_argument("--squelch", type=float, default=0.0,
                     help="Mute output below this magnitude (0 = off).")
@@ -146,6 +166,15 @@ def main(argv=None):
         sdr = SoapySDR.Device(found[0])
         sdr.setSampleRate(SoapySDR.SOAPY_SDR_RX, 0, sdr_rate)
         sdr.setFrequency(SoapySDR.SOAPY_SDR_RX, 0, freq)
+        # Disable AGC explicitly. setGain() alone does not turn it off on every
+        # driver, and with AGC live the front end keeps re-levelling: on the
+        # LimeSDR that showed up as AM output ramping 2090 -> 6789 rms over ~15 s
+        # with no change in the signal, which looks exactly like a demodulator
+        # bug and is not one.
+        try:
+            sdr.setGainMode(SoapySDR.SOAPY_SDR_RX, 0, False)
+        except Exception:  # noqa: BLE001 - not all drivers expose AGC control
+            pass
         sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, args.gain)
         if args.antenna:
             sdr.setAntenna(SoapySDR.SOAPY_SDR_RX, 0, args.antenna)
@@ -181,6 +210,11 @@ def main(argv=None):
     fir_state = np.zeros(len(taps) - 1)
     deemph_state = np.zeros(1) if deemph_b else None
     prev = np.complex64(0)
+    am_dc_state = None
+    # 200 Hz high-pass for AM DC blocking. Above the wander a carrier-level
+    # estimator leaves behind, below anything a voice or a data tone carries.
+    am_hp_b, am_hp_a = sps.butter(2, 200.0, btype="highpass", fs=audio_rate)
+    am_hp_state = sps.lfilter_zi(am_hp_b, am_hp_a) * 0.0
     carry = np.zeros(0, np.complex64)
     out = sys.stdout.buffer
 
@@ -210,11 +244,41 @@ def main(argv=None):
             filt, fir_state = sps.lfilter(taps, 1.0, iq, zi=fir_state)
             base = filt[::decim]
 
-            # FM discriminator. `prev` carries the last sample across chunks so
-            # no bit is lost on the boundary.
-            rot = base * np.conj(np.concatenate(([prev], base[:-1])))
-            prev = base[-1]
-            audio = np.angle(rot).astype(np.float32)
+            if args.mode == "am":
+                # AM: the envelope IS the audio. The carrier shows up as a DC
+                # term, so it is removed with a running mean -- leave it in and
+                # the output sits pinned near full scale with the actual
+                # modulation riding on top as a small ripple.
+                #
+                # Aviation (118-137 MHz) and ACARS are AM, not FM, so an FM
+                # discriminator on those bands produces noise regardless of how
+                # strong the signal is.
+                env = np.abs(base).astype(np.float32)
+
+                # Carrier level, for normalisation only. AM is not constant
+                # envelope, so without this the output level tracks RF strength
+                # and a strong station clips while a weak one is inaudible.
+                dc = float(env.mean()) if env.size else 0.0
+                am_dc_state = dc if am_dc_state is None else (0.9 * am_dc_state + 0.1 * dc)
+                scale = am_dc_state if am_dc_state > 1e-6 else 1.0
+
+                # DC removal is a proper high-pass, NOT subtraction of that
+                # running mean. Subtracting a slow-moving average leaves the
+                # difference between the true carrier and the estimate as
+                # low-frequency wander in the audio: measured on 132.000 MHz it
+                # put 50-300 Hz ABOVE the 300-3000 Hz voice band and took more
+                # than ten seconds to settle, so the loudest thing in the output
+                # was the estimator catching up rather than anything received.
+                audio, am_hp_state = sps.lfilter(
+                    am_hp_b, am_hp_a, env / scale, zi=am_hp_state
+                )
+                audio = (audio * np.pi).astype(np.float32)
+            else:
+                # FM discriminator. `prev` carries the last sample across chunks
+                # so no bit is lost on the boundary.
+                rot = base * np.conj(np.concatenate(([prev], base[:-1])))
+                prev = base[-1]
+                audio = np.angle(rot).astype(np.float32)
 
             if args.squelch > 0:
                 mag = np.abs(base)
