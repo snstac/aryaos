@@ -35,16 +35,56 @@ sudo LimeUtil --update                # one-time gateware/firmware update
 
 ## Using the LimeSDR
 
-### As the ADS-B 1090 front-end
+### As the AIS receiver
 
-The Lime can replace an RTL-SDR for ADS-B:
+`AIS-catcher` is built with SoapySDR from **0.68-snstac3** onward, so it can drive the Lime
+directly:
+
+```bash
+AIS-catcher -gu DEVICE driver=lime ANTENNA LNAW GAIN LNA=30 -s 1536000 -v
+```
+
+Note the syntax: `SOAPYSDR:` in `AIS-catcher -h` is a section heading, not part of the
+argument, and passing `-d SOAPYSDR` sends it looking for a device with the literal serial
+`SOAPYSDR` instead of using the one you selected.
+
+Earlier builds were compiled **without** SoapySDR (`readelf -d` showed zero `libSoapySDR`
+entries), so the Lime was invisible to them no matter how it was configured — `-l` listed only
+the GPS.
+
+### As the ADS-B 1090 front-end
 
 ```bash
 sudo scripts/readsb-use-lime.sh          # driver=lime, gain 40
 ```
 
 This sets `readsb` to `--device-type soapysdr --soapy-device driver=lime` and restarts it.
-CoT then flows through `adsbcot` → Charontak as usual.
+CoT then flows through `adsbcot` → Charontak as usual. Two `readsb` bugs that made this path
+useless are fixed from **3.16.15-4** onward: `--gain` was applied ten times too large on the
+SoapySDR path, and a block was filled with a single `readStream()` call, which returns at most
+the driver's stream MTU — 2040 samples on a Lime against a 65536-sample buffer.
+
+!!! warning "A bare Lime is not a usable ADS-B receiver"
+    Fixing those bugs is necessary but **not sufficient**. Measured on a dragonegg box with a
+    1090&nbsp;MHz antenna, after both fixes:
+
+    - SNR sits at roughly **0&nbsp;dB at every gain setting**, with the LNA already pinned at
+      its 30&nbsp;dB maximum and only the baseband PGA still moving. PGA amplifies signal and
+      noise equally, so it cannot buy sensitivity.
+    - Burst analysis at 1090&nbsp;MHz against a 1040&nbsp;MHz control found **18 samples
+      >20&nbsp;dB over median versus 0** — real traffic, but very weak.
+    - Result: **~2 usable messages**, no position reports.
+
+    The LimeSDR Mini has **no 1090&nbsp;MHz SAW filter and no LNA**, unlike a ProStick-class
+    ADS-B dongle, so its own noise floor swamps the signal. For ADS-B on a Lime, fit an
+    **inline 1090&nbsp;MHz filtered LNA** ahead of the RX port. An RTL-SDR remains the better
+    choice if ADS-B is the box's job.
+
+!!! note "USB stability"
+    The FT601 bridge has been observed dropping off the bus under sustained streaming —
+    repeated `reset SuperSpeed USB device` messages, then a fallback to high-speed, then a full
+    disconnect requiring a reboot or re-plug to recover. If a capture stops without explanation,
+    check `lsusb` and `dmesg` before suspecting the decoder. A powered hub is worth trying.
 
 ### Remote access (SoapyRemote) {#remote-access-soapyremote}
 

@@ -26,12 +26,40 @@
 
   /* One accent per surface, ~5% of it. This is the AryaOS property, so Signal
      Orange. Sibling properties carry their own accent and must not appear here
-     at the same time. */
+     at the same time.
+
+     TWO ROLES, KEPT APART -- the same split already applied to the Cockpit
+     plugins, the operator portal and the AryaOS Imager, and the reason it is
+     applied here too.
+
+       --sns-brand      Signal Orange. Fills, rules and the mark. NEVER a label.
+       --sns-interactive  Link and control text.
+
+     The kit token --sns-accent is Signal Orange (#E4610F) for this property and
+     is vendored, so it is not edited; the interactive role is introduced here
+     instead and the vendored value keeps its fills-only job.
+
+     Measured on Paper (#F2EFE7), which is what this surface actually is:
+
+       Signal Orange  #E4610F   3.04:1   deltaE 34.6 from the nearest status
+       Okabe-Ito blue #0072B2   4.51:1   deltaE 62.1 from the nearest status
+
+     3.04:1 fails the 4.5:1 body-text floor outright -- links were legible only
+     as large text -- and deltaE 34.6 is against `fault` #A32820, so orange body
+     text on a documentation page reads as an error state on a page that is not
+     reporting one. Both problems are the same colour doing two jobs.
+
+     NOT #56B4E9: that is the console's interactive blue and it is correct on
+     Console dark, but it measures 2.01:1 on Paper. Light and dark surfaces need
+     different blues; see the slate block below. */
+  --sns-brand:                  var(--sns-accent);
+  --sns-interactive:            #0072b2;
+
   --md-primary-fg-color:        var(--sns-ink);
   --md-primary-bg-color:        var(--sns-paper);
-  --md-accent-fg-color:         var(--sns-accent);
+  --md-accent-fg-color:         var(--sns-interactive);
 
-  --md-typeset-a-color:         var(--sns-accent);
+  --md-typeset-a-color:         var(--sns-interactive);
 
   /* Code is machine output: mono, on the secondary paper. */
   --md-code-bg-color:           var(--sns-paper-2);
@@ -42,6 +70,119 @@
 
   --md-text-font-family:        var(--sns-font-body);
   --md-code-font-family:        var(--sns-font-mono);
+}
+
+/* mkdocs.yml offers a light/dark toggle, and Material sets its scheme variables
+   on [data-md-color-scheme], which outranks the :root block above. So the dark
+   scheme needs its own interactive colour or it inherits a value chosen for
+   Paper and used on a dark ground.
+
+   Measured on Material's slate ground (#1F2129):
+
+     Okabe-Ito blue #0072B2   3.10:1   fails the 4.5:1 body-text floor
+     Okabe-Ito sky  #56B4E9   6.96:1   passes
+
+   the exact mirror of the Paper result, where the sky blue is the one that
+   fails. One blue cannot serve both grounds, so each surface names its own --
+   and the dark value is the same #56B4E9 the Cockpit console already uses, so
+   an operator moving between docs and console sees one interactive colour. */
+[data-md-color-scheme="slate"] {
+  --sns-interactive:            #56b4e9;
+
+  --md-accent-fg-color:         var(--sns-interactive);
+  --md-typeset-a-color:         var(--sns-interactive);
+}
+
+/* --- Type scale from the kit -------------------------------------------- */
+
+/* The kit specifies four type roles:
+ *
+ *   display   Archivo 800
+ *   heading   Archivo 700
+ *   body      Archivo 400, 16/1.56
+ *   label     Archivo Narrow 600, uppercase, 0.18em tracking
+ *   mono      JetBrains Mono 400/700
+ *
+ * None of that was reaching this site. suite-primitives.css sets those styles
+ * on its OWN classes -- .sns-suite-frame, .sns-display, .brand-* -- and Material
+ * renders none of them: its content is .md-typeset h1..h6, .md-nav__*, th, and
+ * so on. So the families were inherited through the font-family declarations
+ * while the weights, line-height and tracking that make the kit look like the
+ * kit were simply absent.
+ *
+ * The clearest symptom: --sns-font-label (Archivo Narrow) was referenced
+ * NOWHERE. The webfont shipped to every visitor -- about 28 KB -- and was
+ * applied to nothing.
+ */
+
+body,
+.md-typeset {
+  font-weight: 400;
+  line-height: 1.56;
+}
+
+/* h1 is the display role; h2-h4 are headings. The kit's display tracking is
+   -0.03em, which is set here rather than inherited because Material has its own
+   per-heading letter-spacing. */
+.md-typeset h1 {
+  font-family: var(--sns-font-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+
+  /* Material's own rule is `color: var(--md-default-fg-color--light)`, which
+     our bridge maps to Slate, so the page title was rendering MUTED -- the
+     display role, at 800 weight, as the faintest text on the page. Measured on
+     Paper:
+
+       Slate #6B7169   4.36:1   legal for large text, fails body contrast
+       Ink   #12211A  14.53:1
+
+     Slate is legal here, but it is the kit's secondary/muted role and display
+     is its strongest. A dimmed h1 is a Material styling default, not a kit
+     decision, so it is overridden rather than inherited. */
+  color: var(--sns-ink);
+}
+
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+  font-family: var(--sns-font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* The label role: Archivo Narrow 600, uppercase, 0.18em.
+ *
+ * Applied only where the text genuinely IS a label -- a table header, a nav
+ * section title, the top-level section tabs. NOT to links or body text: at
+ * 0.18em tracking uppercase is a signpost, and signposting a paragraph makes it
+ * unreadable. This is the first use of the Archivo Narrow face on the site. */
+.md-typeset table:not([class]) th,
+.md-nav__title,
+.md-tabs__link {
+  font-family: var(--sns-font-label);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+/* Tracking that wide needs the trailing space trimmed or the last letter drifts
+   away from whatever follows it. */
+.md-typeset table:not([class]) th,
+.md-nav__title {
+  padding-right: calc(var(--sns-unit) + 0.18em);
+}
+
+/* Mono carries a 700 weight in the kit for inline code, so a command inside a
+   sentence reads as machine output rather than emphasis. */
+.md-typeset code {
+  font-weight: 700;
+}
+
+.md-typeset pre code {
+  font-weight: 400;
 }
 
 /* --- Non-negotiables from the guide ------------------------------------- */

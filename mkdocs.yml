@@ -28,26 +28,41 @@ theme:
   # option pulls from Google Fonts, so it stays off; the stack is declared in
   # docs/stylesheets/suite.css. See docs/brand/README.md for the licence note.
   font: false
-  logo: media/aryaos_logo.png
+  # The kit mark, vendored in docs/brand/logo/, rather than a PNG export of it.
+  # The REVERSE variant is the correct one here: the header sits on --sns-ink
+  # (#12211A) via --md-primary-fg-color, and the kit pairs the reverse mark with
+  # a dark ground. SVG also stays sharp on hidpi, which the 25% PNG did not.
+  logo: brand/logo/mark-aryaos-rev.svg
   favicon: media/aryaos_logo-25p.png
   icon:
     repo: fontawesome/brands/github
   palette:
+    # The auto entry needs the colours spelled out too. With them omitted
+    # Material falls back to its stock indigo, which shipped in the built HTML
+    # as data-md-color-primary="indigo" for every visitor whose browser has no
+    # explicit colour-scheme preference -- the default state.
     - media: "(prefers-color-scheme)"
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-auto
         name: Switch to light mode
+    # `custom` tells Material to emit no palette of its own and defer to the
+    # variables set in docs/stylesheets/suite.css, which bridge the vendored
+    # design-kit tokens. This used to say `teal` — the pre-kit colour the whole
+    # fleet has now been moved off (the Cockpit plugins carried the same
+    # #35a58f). Material's teal still won anywhere our overrides did not reach.
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: teal
-      accent: teal
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: teal
-      accent: teal
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
