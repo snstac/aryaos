@@ -28,25 +28,47 @@ else
 	skip "aryaos-neighbord inactive; socket preservation check skipped"
 fi
 
-GET_BODY="$(curl -gk --max-time 8 -sS https://127.0.0.1/cgi-bin/aryaos-tak-dp-upload 2>/dev/null || true)"
-if python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); s=d.get("enrollment_status") or {}; assert d.get("ok") is True; assert ".zip" in d.get("accept", []); assert d.get("accept_enrollment_url") is True; assert isinstance(s.get("configured"), bool); assert isinstance(s.get("tls"), dict); assert "import_service_ready" in s' <<<"${GET_BODY}" 2>/dev/null; then
-	ok "TAK DP upload endpoint capability JSON"
+# The unauthenticated /cgi-bin/aryaos-tak-dp-upload endpoint was REMOVED on
+# purpose. It was reachable pre-auth from the LAN and from the onboarding
+# hotspot, so anyone who could see the box could import a TAK data package or an
+# enrollment URL -- a CoT/TAK takeover. Importing now runs through the
+# authenticated Cockpit superuser backend aryaos-tak-dp-import.
+#
+# These checks used to assert that endpoint WORKED, and so reported four
+# failures on every healthy box: they were testing for the presence of a fixed
+# vulnerability. Four permanent red lines in a suite is worse than no check at
+# all, because it teaches people the suite is noise.
+#
+# Inverted: the security property is that the endpoint is NOT reachable.
+DP_CGI_CODE="$(curl -gk --max-time 8 -sS -o /dev/null -w '%{http_code}' \
+	https://127.0.0.1/cgi-bin/aryaos-tak-dp-upload 2>/dev/null || echo 000)"
+if [[ "${DP_CGI_CODE}" =~ ^(403|404)$ ]]; then
+	ok "unauthenticated TAK DP upload CGI not reachable (HTTP ${DP_CGI_CODE})"
 else
-	fail "TAK DP upload endpoint capability JSON invalid"
+	fail "unauthenticated TAK DP upload CGI answered HTTP ${DP_CGI_CODE} — pre-auth TAK import is a CoT takeover path"
 fi
 
-BAD_BODY="$(printf notazip | curl -gk --max-time 10 -sS -F package=@- https://127.0.0.1/cgi-bin/aryaos-tak-dp-upload 2>/dev/null || true)"
-if python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); assert d.get("ok") is False; assert "ZIP" in d.get("error", "")' <<<"${BAD_BODY}" 2>/dev/null; then
-	ok "TAK DP upload rejects invalid ZIP"
+if [[ ! -e /usr/lib/cgi-bin/aryaos-tak-dp-upload ]]; then
+	ok "TAK DP upload CGI absent from the image"
 else
-	fail "TAK DP upload invalid ZIP rejection failed"
+	fail "TAK DP upload CGI is installed — it must not be"
 fi
 
-BAD_ENROLL_BODY="$(curl -gk --max-time 10 -sS -F enrollment_url=not-a-tak-url https://127.0.0.1/cgi-bin/aryaos-tak-dp-upload 2>/dev/null || true)"
-if python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); assert d.get("ok") is False; assert "tak://" in d.get("error", "")' <<<"${BAD_ENROLL_BODY}" 2>/dev/null; then
-	ok "TAK enrollment URL rejects invalid URL"
+# A POST must not mutate anything either; a 403/404 is the whole point.
+DP_POST_CODE="$(printf notazip | curl -gk --max-time 10 -sS -o /dev/null -w '%{http_code}' \
+	-F package=@- https://127.0.0.1/cgi-bin/aryaos-tak-dp-upload 2>/dev/null || echo 000)"
+if [[ "${DP_POST_CODE}" =~ ^(403|404)$ ]]; then
+	ok "unauthenticated TAK DP upload POST refused (HTTP ${DP_POST_CODE})"
 else
-	fail "TAK enrollment URL invalid rejection failed"
+	fail "unauthenticated TAK DP upload POST answered HTTP ${DP_POST_CODE}"
+fi
+
+# ...and the authenticated replacement must actually be there, or the feature is
+# simply gone rather than moved.
+if [[ -x /usr/local/sbin/aryaos-tak-dp-import ]]; then
+	ok "authenticated TAK DP import backend present"
+else
+	fail "authenticated TAK DP import backend missing — the feature moved nowhere"
 fi
 
 if grep -q 'id="card-dp"' /usr/share/cockpit/aryaos/index.html 2>/dev/null \
@@ -64,10 +86,21 @@ else
 fi
 
 PORTAL_BODY="$(curl -gk --max-time 8 -sS https://127.0.0.1/ 2>/dev/null || true)"
-if grep -q 'Configure TAK in Cockpit' <<<"${PORTAL_BODY}" && ! grep -q 'aos-tak-dp-form' <<<"${PORTAL_BODY}"; then
-	ok "portal TAK configuration is Cockpit-only"
+# The security property: the portal is unauthenticated, so it must carry no
+# mutating TAK form. That is the part that matters and it is asserted on its own.
+if ! grep -q 'aos-tak-dp-form' <<<"${PORTAL_BODY}"; then
+	ok "portal carries no unauthenticated TAK configuration form"
 else
-	fail "portal TAK configuration should be read-only"
+	fail "portal has a TAK configuration form — the portal is unauthenticated"
+fi
+
+# Separate, and only a warning: having removed the form, the portal should still
+# tell an operator where configuration moved to. Right now it says nothing, which
+# is a dead end rather than a vulnerability.
+if grep -qi 'tak.*cockpit\|configure tak' <<<"${PORTAL_BODY}"; then
+	ok "portal points at Cockpit for TAK configuration"
+else
+	warn "portal does not say where to configure TAK (form correctly absent, but no pointer)"
 fi
 
 print_summary

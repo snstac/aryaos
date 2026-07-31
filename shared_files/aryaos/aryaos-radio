@@ -59,7 +59,57 @@ ap_status() {
 	echo "ap: ${act} (${en})"
 }
 
-_rfkill() { command -v rfkill >/dev/null 2>&1 && rfkill "$@" 2>/dev/null || true; }
+# EMCON is a "this box does not radiate" promise, so its mechanism must not be
+# allowed to silently no-op.
+#
+# The old helper was:
+#     _rfkill() { command -v rfkill >/dev/null && rfkill "$@" || true; }
+# and the rfkill BINARY IS NOT IN THE IMAGE. Measured on aryaos-c998 with EMCON
+# reported ON:
+#     hci0 type=bluetooth soft=1     <- blocked (bluetoothctl/systemd did that)
+#     phy0 type=wlan      soft=0     <- NOT blocked
+#     nmcli radio wifi: enabled
+# The interface was down only because comitup had been stopped. Anything that
+# started an AP or a scan would have transmitted while the box reported EMCON.
+#
+# So: block through /sys/class/rfkill directly, which needs no package, and
+# report whether it actually took.
+_rfkill_sysfs() {
+	# $1 = block|unblock, $2 = wlan|bluetooth. Returns non-zero if no matching
+	# device could be set.
+	local want="$1" kind="$2" val=1 found=1 dev
+	[[ "${want}" == "unblock" ]] && val=0
+	for dev in /sys/class/rfkill/rfkill*; do
+		[[ -r "${dev}/type" ]] || continue
+		[[ "$(cat "${dev}/type" 2>/dev/null)" == "${kind}" ]] || continue
+		if printf '%s' "${val}" > "${dev}/soft" 2>/dev/null; then
+			found=0
+		fi
+	done
+	return "${found}"
+}
+
+# Verify rather than assume: read the state back.
+_rfkill_state() {
+	# $1 = wlan|bluetooth. Echoes 1 if every matching device is soft-blocked.
+	local kind="$1" dev any=0 all=1
+	for dev in /sys/class/rfkill/rfkill*; do
+		[[ -r "${dev}/type" ]] || continue
+		[[ "$(cat "${dev}/type" 2>/dev/null)" == "${kind}" ]] || continue
+		any=1
+		[[ "$(cat "${dev}/soft" 2>/dev/null)" == "1" ]] || all=0
+	done
+	[[ "${any}" == "1" && "${all}" == "1" ]] && echo 1 || echo 0
+}
+
+_rfkill() {
+	# Prefer the binary when present; fall back to sysfs, which always is.
+	local action="$1" kind="$2"
+	if command -v rfkill >/dev/null 2>&1; then
+		rfkill "${action}" "${kind}" 2>/dev/null || true
+	fi
+	_rfkill_sysfs "${action}" "${kind}" || true
+}
 
 silence_on() {
 	require_root
@@ -70,8 +120,23 @@ silence_on() {
 	# its own), then rfkill-block both radios.
 	systemctl stop comitup.service aryaos-bt-pan.service >/dev/null 2>&1 || true
 	command -v nmcli >/dev/null 2>&1 && nmcli radio wifi off >/dev/null 2>&1 || true
-	_rfkill block wifi
+	_rfkill block wlan
 	_rfkill block bluetooth
+
+	# Read the radios back. A safety feature that cannot verify its own effect
+	# is not a safety feature, and EMCON reporting ON while a radio is live is
+	# worse than EMCON refusing to engage.
+	local wifi_blocked bt_blocked
+	wifi_blocked="$(_rfkill_state wlan)"
+	bt_blocked="$(_rfkill_state bluetooth)"
+	if [[ "${wifi_blocked}" != "1" || "${bt_blocked}" != "1" ]]; then
+		rm -f "${EMCON_FLAG}"
+		logger "aryaos-radio: EMCON FAILED to block (wifi=${wifi_blocked} bt=${bt_blocked})"
+		echo "EMCON FAILED: could not block all radios (wifi_blocked=${wifi_blocked} bluetooth_blocked=${bt_blocked})." >&2
+		echo "The box may still transmit. EMCON has NOT been engaged." >&2
+		return 1
+	fi
+
 	logger "aryaos-radio: EMCON ON (WiFi + Bluetooth radios disabled)"
 	echo "EMCON on: WiFi + Bluetooth radios blocked (persists across reboot)."
 	echo "SDR receivers are receive-only and left running; stop their services to silence them."
@@ -81,7 +146,7 @@ silence_off() {
 	require_root
 	rm -f "${EMCON_FLAG}"
 	command -v nmcli >/dev/null 2>&1 && nmcli radio wifi on >/dev/null 2>&1 || true
-	_rfkill unblock wifi
+	_rfkill unblock wlan
 	_rfkill unblock bluetooth
 	# Bring the onboarding radios back (their units are ConditionPathExists-gated
 	# on the EMCON flag, which is now removed).

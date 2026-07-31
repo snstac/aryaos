@@ -64,6 +64,16 @@ jobs:
           ansible-galaxy collection install -r requirements.yml
           ansible-playbook -i localhost, -c local site.yml --syntax-check
 
+      - name: Unit-test the capability scanner
+        # aryaos-capability-scan decides what a box turns on at first boot. A
+        # wrong answer either wedges the box in a crash-loop or silently leaves
+        # attached hardware switched off, and both have happened.
+        # unittest, not pytest: the test file is plain unittest and pytest is not
+        # installed on the runner, so requiring it failed the validate job on
+        # every PR in this stack. stdlib is the right dependency for a test that
+        # guards a shell-adjacent script.
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+
       - name: Shellcheck appliance scripts
         # Lint the shell that ships to /usr/local/sbin and the build/test
         # tooling. Error severity only: legacy scripts carry style warnings.

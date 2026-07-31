@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+"""Unit tests for aryaos-capability-scan's capability decisions.
+
+The scanner is a standalone script rather than an importable module, so these
+tests lift the decision blocks out of the source and exercise them directly.
+That is deliberately ugly, and it exists because the alternative -- reasoning
+about the file by reading it -- already shipped a broken fix once.
+
+The bug this file was written for:
+
+    caps["adsb"]["auto_apply"] = False     # in the adsb block
+    ...
+    for key, cap in caps.items():          # ~100 lines later
+        cap["auto_apply"] = available and not manual_only
+
+The second loop unconditionally recomputes the flag, so setting auto_apply in
+the block above it does nothing. On aryaos-c998 the deferral message was
+present and correct while auto_apply stayed true, and readsb crash-looped
+anyway. Testing the block in isolation PASSED; only running the block together
+with the recomputation catches it.
+"""
+
+import os
+import re
+import unittest
+
+SCANNER = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "shared_files",
+    "aryaos",
+    "aryaos-capability-scan",
+)
+
+# The recomputation that runs after every capability decision. Kept as a literal
+# of what the scanner does, so if the scanner's version changes shape this test
+# starts failing and someone has to look.
+RECOMPUTE = (
+    'for key, cap in caps.items():\n'
+    '    cap["auto_apply"] = bool(cap.get("available")) and not cap.get("manual_only")\n'
+)
+
+
+def _dedent(text):
+    return "\n".join(l[4:] if l.startswith("    ") else l for l in text.split("\n"))
+
+
+def _adsb_block(src):
+    start = src.index("    # ADS-B/UAT needs an SDR the DECODER")
+    end = src.index("    ais_available")
+    return _dedent(src[start:end])
+
+
+class AdsbCapabilityTestCase(unittest.TestCase):
+    """adsb must only auto-apply when the DECODER can drive the SDR."""
+
+    @classmethod
+    def setUpClass(cls):
+        with open(SCANNER) as fh:
+            cls.src = fh.read()
+        cls.block = _adsb_block(cls.src)
+
+    def decide(self, sdrs, with_pipeline=True):
+        ns = {"sdrs": sdrs, "caps": {}}
+        exec(self.block, ns)
+        if with_pipeline:
+            exec(RECOMPUTE, ns)
+        return ns["caps"]["adsb"]
+
+    # -- the live failure ------------------------------------------------
+    def test_lime_only_is_not_auto_applied(self):
+        """aryaos-c998: a LimeSDR and readsb configured for rtlsdr."""
+        cap = self.decide([{"driver": "lime", "label": "LimeSDR Mini"}])
+        self.assertTrue(cap["available"], "the hardware is real; say so")
+        self.assertFalse(cap["auto_apply"], "would crash-loop readsb")
+        self.assertIn("crash-loop", cap.get("deferred_reason", ""))
+
+    def test_deferral_survives_the_recomputation(self):
+        """The actual regression: auto_apply set in the block gets overwritten.
+
+        Asserting on the block ALONE passes even with the bug, which is exactly
+        how it shipped. The point of this test is the comparison.
+        """
+        sdrs = [{"driver": "lime", "label": "LimeSDR Mini"}]
+        self.assertFalse(self.decide(sdrs, with_pipeline=True)["auto_apply"])
+        # manual_only is an INPUT to the recomputation, so it must be set.
+        self.assertTrue(self.decide(sdrs, with_pipeline=False).get("manual_only"))
+
+    def test_scanner_still_recomputes_auto_apply(self):
+        """If the pipeline stops recomputing, this test is testing a fiction."""
+        self.assertIn(
+            'cap["auto_apply"] = bool(cap.get("available")) and not cap.get("manual_only")',
+            self.src,
+            "the recomputation this test guards against has changed shape",
+        )
+
+    # -- the cases that must keep working --------------------------------
+    def test_rtl_only_auto_applies(self):
+        cap = self.decide([{"driver": "rtlsdr", "label": "RTL2838UHIDIR"}])
+        self.assertTrue(cap["available"])
+        self.assertTrue(cap["auto_apply"])
+        self.assertNotIn("deferred_reason", cap)
+
+    def test_mixed_auto_applies_because_a_usable_one_exists(self):
+        cap = self.decide(
+            [
+                {"driver": "rtlsdr", "label": "RTL2838UHIDIR"},
+                {"driver": "lime", "label": "LimeSDR Mini"},
+            ]
+        )
+        self.assertTrue(cap["auto_apply"])
+
+    def test_no_sdr_is_not_available(self):
+        cap = self.decide([])
+        self.assertFalse(cap["available"])
+        self.assertFalse(cap["auto_apply"])
+
+    def test_driver_match_is_case_insensitive(self):
+        cap = self.decide([{"driver": "RTLSDR", "label": "RTL2838UHIDIR"}])
+        self.assertTrue(cap["auto_apply"])
+
+    def test_deferral_names_the_device_and_the_way_out(self):
+        """An operator reading this should know what to do next."""
+        cap = self.decide([{"driver": "lime", "label": "LimeSDR Mini"}])
+        reason = cap["deferred_reason"]
+        self.assertIn("LimeSDR Mini", reason)
+        self.assertIn("aryaos-role caps", reason)
+
+
+if __name__ == "__main__":
+    unittest.main()
