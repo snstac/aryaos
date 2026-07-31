@@ -12,6 +12,7 @@ SPDX-License-Identifier: Apache-2.0
 """
 
 import importlib.util
+import json
 import os
 import sys
 import unittest
@@ -154,3 +155,147 @@ class TestBandPlan(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestZMetaEmission(unittest.TestCase):
+    """aryaos-spectrum-survey --zmeta output, validated against the REAL schema.
+
+    The schema is vendored verbatim in scripts/vendor/ rather than approximated
+    here. A hand-written stand-in would accept output the actual consumer
+    rejects, which is exactly what this is meant to catch.
+    """
+
+    BAND = {
+        "name": "fmbcast",
+        "center": 98.0e6,
+        "span": 2.0e6,
+        "label": "FM broadcast (propagation check)",
+    }
+    SOURCE = {
+        "platform_id": "aryaos-c998",
+        "node_role": "EDGE",
+        "producer": "aryaos-spectrum-survey",
+        "sensor_id": "LimeSDR Mini",
+        "sw_version": None,
+    }
+    # A real measurement from the test box: FM detected as a continuous carrier.
+    RESULT = {
+        "tuned_hz": 99.0e6,
+        "noise_floor_dbfs": -45.6,
+        "occupancy_pct": 0.0,
+        "carrier_over_noise_db": 18.2,
+        "carrier_offset_hz": -86914.0625,
+        "clipped": False,
+        "clipped_pct": 0.0,
+        "occupied": True,
+        "detection": "continuous",
+    }
+
+    def build(self, result=None):
+        return survey.zmeta_event(
+            self.BAND, result or self.RESULT, self.SOURCE,
+            1785000000000, bytes(range(10)), 2.0,
+        )
+
+    def test_uuid7_shape(self):
+        """ZMeta pins the UUID version nibble to 7; uuid4 would fail its schema."""
+        ev = self.build()
+        uid = ev["event"]["event_id"]
+        self.assertEqual(uid[14], "7", f"not a v7 UUID: {uid}")
+        self.assertIn(uid[19].lower(), "89ab", f"bad UUID variant: {uid}")
+
+    def test_uuid7_is_time_ordered(self):
+        a = survey._uuid7(1785000000000, bytes(10))
+        b = survey._uuid7(1785000001000, bytes(10))
+        self.assertLess(a, b, "v7 UUIDs must sort by creation time")
+
+    def test_timestamp_is_utc_with_z(self):
+        ts = self.build()["event"]["ts"]
+        self.assertTrue(ts.endswith("Z"), ts)
+
+    def test_is_observation_not_inference(self):
+        """Every field is a measured fact; nothing claims what is transmitting."""
+        ev = self.build()
+        self.assertEqual(ev["event"]["event_type"], "OBSERVATION_EVENT")
+        self.assertEqual(ev["event"]["event_subtype"], "RF")
+        self.assertEqual(ev["payload"]["modality"], "RF")
+
+    def test_no_confidence_field(self):
+        """Occupancy is not a claim-strength, so confidence must not be invented."""
+        self.assertNotIn("confidence", self.build())
+
+    def test_scan_rf_vocabulary(self):
+        """Payload reuses ZMeta's SCAN_RF command field names, same units."""
+        f = self.build()["payload"]["features"]
+        self.assertEqual(f["freq_range_hz"], [97.0e6, 99.0e6])
+        self.assertEqual(f["dwell_ms"], 2000)
+
+    def test_features_carry_no_identity(self):
+        """ZMeta forbids these on an observation; we must not smuggle them in."""
+        f = self.build()["payload"]["features"]
+        for banned in ("track_id", "entity_class", "classification",
+                       "class_name", "label", "confidence"):
+            self.assertNotIn(banned, f)
+
+    def test_clipping_surfaces_in_quality_block(self):
+        clipped = dict(self.RESULT, clipped=True, clipped_pct=4.2)
+        q = self.build(clipped)["payload"]["quality"]
+        self.assertTrue(q["clipped"])
+        self.assertFalse(q["calibrated"])
+
+    def _schema(self):
+        path = os.path.join(HERE, "vendor", "zmeta-event-1.1.0.schema.json")
+        with open(path) as fh:
+            return json.load(fh)
+
+    def test_kernel_and_observation_shape_validate(self):
+        """Everything except the RF power field satisfies the real schema.
+
+        Validated by adding a placeholder power_dbm, which isolates the one
+        known gap: if anything ELSE drifts out of conformance this fails.
+        """
+        try:
+            import jsonschema
+        except ImportError:
+            self.skipTest("jsonschema not installed")
+        ev = self.build()
+        ev["payload"]["features"]["power_dbm"] = -60.0  # test-only placeholder
+        jsonschema.validate(instance=ev, schema=self._schema())
+
+    def test_power_dbm_is_deliberately_absent(self):
+        """We measure dBFS, which is receiver-relative; dBm would be invented.
+
+        On the test box the reported floor moved from -31.9 to -13.4 dBFS purely
+        by changing gain. Emitting that as absolute power would be the unit
+        inference ZMeta's own semantics contract forbids.
+
+        Consequence, recorded rather than hidden: our RF observations do NOT
+        satisfy ZMeta's RF feature contract, which requires power_dbm. This is a
+        spec gap for uncalibrated receivers, raised upstream.
+        """
+        self.assertNotIn("power_dbm", self.build()["payload"]["features"])
+
+    def test_rf_contract_gap_still_exists(self):
+        """Fails when upstream relaxes power_dbm -- our cue to revisit."""
+        try:
+            import jsonschema
+        except ImportError:
+            self.skipTest("jsonschema not installed")
+        with self.assertRaises(
+            jsonschema.ValidationError,
+            msg="ZMeta may have relaxed the RF power_dbm requirement; re-check the mapping",
+        ):
+            jsonschema.validate(instance=self.build(), schema=self._schema())
+
+    def test_schema_rejects_a_malformed_event(self):
+        """Proves the validation above can actually fail."""
+        try:
+            import jsonschema
+        except ImportError:
+            self.skipTest("jsonschema not installed")
+        schema = self._schema()
+        bad = self.build()
+        bad["payload"]["features"]["power_dbm"] = -60.0
+        bad["event"]["event_id"] = "not-a-uuid"
+        with self.assertRaises(jsonschema.ValidationError):
+            jsonschema.validate(instance=bad, schema=schema)
