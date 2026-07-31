@@ -1,0 +1,268 @@
+#!/usr/bin/env python3
+"""aryaos-sdr-fm — narrowband FM demodulator for any SoapySDR receiver.
+
+Why this exists
+---------------
+Every audio-domain decoder AryaOS ships -- direwolf for APRS, multimon-ng for
+POCSAG/FLEX/AFSK -- consumes PCM audio, not IQ. The usual front end for them is
+`rtl_fm`, which only speaks to RTL-SDR dongles. So on a LimeSDR, PlutoSDR,
+bladeRF or anything reached over SoapyRemote, the entire audio-decoder family
+was unreachable: the radio could hear the band and nothing could demodulate it.
+
+Debian packages no SoapySDR equivalent (`rx-tools` and `csdr` are both absent),
+so this is that missing piece, written against the SoapySDR API the rest of the
+image already depends on.
+
+It does one thing: tune, demodulate NBFM, and write signed 16-bit mono PCM to
+stdout. Pipe it into whatever wants audio:
+
+    # APRS (US 2 m calling frequency) -> direwolf
+    aryaos-sdr-fm --freq 144.390M --antenna LNAW |
+        direwolf -r 48000 -b 16 -n 1 -
+
+    # POCSAG pager traffic -> multimon-ng
+    aryaos-sdr-fm --freq 152.0075M |
+        multimon-ng -t raw -a POCSAG1200 -
+
+    # listen to it
+    aryaos-sdr-fm --freq 162.400M | aplay -f S16_LE -r 48000 -c 1
+
+Signal path
+-----------
+    SoapySDR CS16 @ sdr_rate
+      -> FIR low-pass to the NBFM channel, decimated to audio_rate
+      -> FM discriminator: angle(x[n] * conj(x[n-1]))
+      -> de-emphasis (optional; OFF by default, see below)
+      -> scale to int16, write
+
+DE-EMPHASIS IS OFF BY DEFAULT and that is deliberate. It is correct for voice
+and WRONG for data: 1200 baud AFSK carries its bits as 1200/2200 Hz tones, and a
+75 us de-emphasis filter attenuates 2200 Hz about 5 dB more than 1200 Hz, which
+skews the tone balance the modem is measuring. rtl_fm applies none by default
+for the same reason. Use --deemphasis only when a human is listening.
+
+Copyright Sensors & Signals LLC https://www.snstac.com/
+SPDX-License-Identifier: Apache-2.0
+"""
+
+import argparse
+import sys
+
+
+def parse_freq(text):
+    """Accept 144.39M / 144390k / 144390000."""
+    text = str(text).strip()
+    mult = 1.0
+    if text and text[-1] in "kKmMgG":
+        mult = {"k": 1e3, "m": 1e6, "g": 1e9}[text[-1].lower()]
+        text = text[:-1]
+    return float(text) * mult
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(
+        description="Narrowband FM demodulator for any SoapySDR receiver; "
+        "writes S16LE mono PCM to stdout.",
+    )
+    ap.add_argument("--freq", required=True, help="Centre frequency, e.g. 144.390M")
+    ap.add_argument("--device", default="", help='SoapySDR args, e.g. "driver=lime"')
+    ap.add_argument("--antenna", default="", help="RX antenna port, e.g. LNAW")
+    ap.add_argument("--gain", type=float, default=40.0, help="RX gain in dB (default 40)")
+    ap.add_argument("--audio-rate", type=int, default=48000, help="Output rate (default 48000)")
+    ap.add_argument(
+        "--sdr-rate",
+        type=float,
+        default=0.0,
+        help="SDR sample rate. Default: the smallest integer multiple of the audio "
+        "rate that the device accepts (>= 240 kHz).",
+    )
+    ap.add_argument(
+        "--bandwidth",
+        type=float,
+        default=12500.0,
+        help="Channel bandwidth in Hz (default 12500, standard NBFM).",
+    )
+    ap.add_argument(
+        "--deemphasis",
+        type=float,
+        default=0.0,
+        help="De-emphasis time constant in us (e.g. 75). OFF by default: it "
+        "distorts AFSK tone balance. Use only for voice.",
+    )
+    ap.add_argument("--squelch", type=float, default=0.0,
+                    help="Mute output below this magnitude (0 = off).")
+    ap.add_argument(
+        "--volume",
+        type=float,
+        default=0.5,
+        help="Output scaling. Default 0.5, measured against direwolf's own level "
+        "meter; raise if a decoder reports low audio, lower if it warns the "
+        "level is too high.",
+    )
+    args = ap.parse_args(argv)
+
+    try:
+        import numpy as np
+        import SoapySDR
+        from scipy import signal as sps
+    except ImportError as exc:
+        print(f"aryaos-sdr-fm: missing dependency: {exc}", file=sys.stderr)
+        print("install: apt install python3-numpy python3-scipy python3-soapysdr",
+              file=sys.stderr)
+        return 1
+
+    freq = parse_freq(args.freq)
+    audio_rate = int(args.audio_rate)
+
+    # Decimation has to be an integer or the audio clock drifts against the
+    # decoder's expectation, so the SDR rate is chosen as a multiple of the
+    # audio rate rather than taken as given.
+    if args.sdr_rate > 0:
+        sdr_rate = float(args.sdr_rate)
+        decim = int(round(sdr_rate / audio_rate))
+        if decim < 1 or abs(sdr_rate - decim * audio_rate) > 1.0:
+            print(f"aryaos-sdr-fm: --sdr-rate {sdr_rate:.0f} is not an integer "
+                  f"multiple of --audio-rate {audio_rate}", file=sys.stderr)
+            return 2
+    else:
+        decim = 5
+        while decim * audio_rate < 240000:
+            decim += 1
+        sdr_rate = decim * audio_rate
+
+    try:
+        found = SoapySDR.Device.enumerate(args.device) if args.device else SoapySDR.Device.enumerate()
+    except Exception as exc:  # noqa: BLE001
+        print(f"aryaos-sdr-fm: enumeration failed: {exc}", file=sys.stderr)
+        return 1
+    if not found:
+        print("aryaos-sdr-fm: no SoapySDR device found", file=sys.stderr)
+        return 1
+
+    # Pass the enumerated args whole: a bare {"driver": "lime"} fails with
+    # "Device::make() no match" on the LimeSDR Mini v2 even though enumeration
+    # finds it.
+    try:
+        sdr = SoapySDR.Device(found[0])
+        sdr.setSampleRate(SoapySDR.SOAPY_SDR_RX, 0, sdr_rate)
+        sdr.setFrequency(SoapySDR.SOAPY_SDR_RX, 0, freq)
+        sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, args.gain)
+        if args.antenna:
+            sdr.setAntenna(SoapySDR.SOAPY_SDR_RX, 0, args.antenna)
+    except Exception as exc:  # noqa: BLE001
+        print(f"aryaos-sdr-fm: device setup failed: {exc}", file=sys.stderr)
+        return 1
+
+    print(
+        f"aryaos-sdr-fm: {freq/1e6:.4f} MHz  sdr={sdr_rate/1e3:.0f}k  "
+        f"decim={decim}  audio={audio_rate}  gain={args.gain:.0f}dB"
+        + (f"  antenna={args.antenna}" if args.antenna else ""),
+        file=sys.stderr,
+    )
+
+    # Channel filter, run before decimation so out-of-channel energy cannot
+    # alias into the audio. Cutoff is half the channel bandwidth; the transition
+    # band is what is left up to the post-decimation Nyquist.
+    cutoff = min(args.bandwidth / 2.0, audio_rate / 2.0 * 0.9)
+    taps = sps.firwin(129, cutoff, fs=sdr_rate)
+
+    deemph_b = deemph_a = None
+    if args.deemphasis > 0:
+        # One-pole IIR matching the requested time constant.
+        tau = args.deemphasis * 1e-6
+        alpha = 1.0 / (1.0 + 2.0 * np.pi * tau * audio_rate)
+        deemph_b, deemph_a = [alpha], [1.0, -(1.0 - alpha)]
+
+    stream = sdr.setupStream(SoapySDR.SOAPY_SDR_RX, SoapySDR.SOAPY_SDR_CS16)
+    sdr.activateStream(stream)
+
+    chunk = 65536
+    buf = np.zeros(chunk * 2, np.int16)
+    fir_state = np.zeros(len(taps) - 1)
+    deemph_state = np.zeros(1) if deemph_b else None
+    prev = np.complex64(0)
+    carry = np.zeros(0, np.complex64)
+    out = sys.stdout.buffer
+
+    try:
+        while True:
+            res = sdr.readStream(stream, [buf], chunk, timeoutUs=1000000)
+            if res.ret <= 0:
+                if res.ret == 0:
+                    continue
+                # Negative return that is not an overflow means the stream died.
+                if res.ret != -5:  # SOAPY_SDR_OVERFLOW
+                    break
+                continue
+
+            raw = buf[: res.ret * 2].astype(np.float32) / 32768.0
+            iq = (raw[0::2] + 1j * raw[1::2]).astype(np.complex64)
+
+            iq = np.concatenate((carry, iq))
+            usable = (len(iq) // decim) * decim
+            carry = iq[usable:]
+            if usable == 0:
+                continue
+            iq = iq[:usable]
+
+            # Filter and decimate. lfilter carries state across chunks so the
+            # filter does not restart every read, which would tick the audio.
+            filt, fir_state = sps.lfilter(taps, 1.0, iq, zi=fir_state)
+            base = filt[::decim]
+
+            # FM discriminator. `prev` carries the last sample across chunks so
+            # no bit is lost on the boundary.
+            rot = base * np.conj(np.concatenate(([prev], base[:-1])))
+            prev = base[-1]
+            audio = np.angle(rot).astype(np.float32)
+
+            if args.squelch > 0:
+                mag = np.abs(base)
+                audio[mag < args.squelch] = 0.0
+
+            if deemph_b:
+                audio, deemph_state = sps.lfilter(
+                    deemph_b, deemph_a, audio, zi=deemph_state
+                )
+
+            # angle() spans +/-pi, which corresponds to a deviation of half the
+            # AUDIO rate -- +/-24 kHz at 48 ksps. Real NBFM deviates about
+            # +/-2.5 kHz, so a full-scale mapping would leave the audio ~20 dB
+            # down and every downstream modem starved.
+            #
+            # --volume closes that gap, and the default was measured rather than
+            # reasoned about, because reasoning got it wrong twice:
+            #
+            #   volume 4.0   ->  level 177-193, "too high" on every packet
+            #   volume 1.0   ->  level  74-132, "too high" on 14 of 26
+            #   volume 0.25  ->  level  25,      no warnings
+            #   volume 0.10  ->  level  11,      no warnings, fewer packets heard
+            #
+            # Level tracks volume linearly below ~0.5 (level ~= 100 * volume)
+            # and compresses above it, so the default is 0.5 -> ~50, which is
+            # what direwolf asks for. Going lower is not free: at 0.10 the
+            # packet count dropped from 18 to 13 over equal intervals, because
+            # weak stations fall under the modem's threshold.
+            #
+            # Note FM is constant-envelope: the discriminator output depends on
+            # DEVIATION, not on RF amplitude, so --gain barely moves this number
+            # and only --volume does.
+            #
+            # Tune against the receiving decoder, not by ear: direwolf prints an
+            # `audio level = N` per packet and wants N ~ 50.
+            pcm = np.clip(audio * (32767.0 / np.pi) * args.volume, -32768, 32767)
+            out.write(pcm.astype("<i2").tobytes())
+            out.flush()
+    except (BrokenPipeError, KeyboardInterrupt):
+        pass
+    finally:
+        try:
+            sdr.deactivateStream(stream)
+            sdr.closeStream(stream)
+        except Exception:  # noqa: BLE001
+            pass
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

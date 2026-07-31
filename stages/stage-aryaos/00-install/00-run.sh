@@ -175,6 +175,13 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-zeroize.service" \
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-spectrum-survey" \
 	"${ROOTFS_DIR}/usr/local/sbin/aryaos-spectrum-survey"
 
+## NBFM demodulator: the missing front end for every audio-domain decoder on a
+# non-RTL radio. direwolf (APRS) and multimon-ng (POCSAG/FLEX/AFSK) consume PCM,
+# and the usual source is rtl_fm, which only speaks to RTL dongles. Debian
+# packages no SoapySDR equivalent, so this is it. Operator-invoked, no unit.
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-sdr-fm" \
+	"${ROOTFS_DIR}/usr/local/sbin/aryaos-sdr-fm"
+
 ## Radios: WiFi hotspot control + EMCON/radio-silence (Cockpit-driven)
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-radio" "${ROOTFS_DIR}/usr/local/sbin/aryaos-radio"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-radio-silence.service" \
