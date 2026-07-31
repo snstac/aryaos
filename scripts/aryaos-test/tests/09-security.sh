@@ -61,6 +61,23 @@ fi
 # --- unattended security upgrades ---
 if [[ -f /etc/apt/apt.conf.d/52unattended-upgrades-aryaos ]]; then
 	ok "unattended-upgrades AryaOS policy present"
+
+	# A policy file and a working dry-run prove unattended-upgrades COULD run.
+	# Neither proves anything ever STARTS it. On aryaos-c998 both of those
+	# passed while apt-daily-upgrade.timer was disabled, so no Debian security
+	# fix would ever have been applied -- the check reported a security posture
+	# the box did not have.
+	if systemctl is-enabled apt-daily-upgrade.timer >/dev/null 2>&1; then
+		ok "apt-daily-upgrade.timer enabled (something actually triggers upgrades)"
+	else
+		fail "apt-daily-upgrade.timer disabled — unattended-upgrades will never run"
+	fi
+	if systemctl is-enabled apt-daily.timer >/dev/null 2>&1; then
+		ok "apt-daily.timer enabled (package lists get refreshed)"
+	else
+		fail "apt-daily.timer disabled — package lists never refresh, so upgrades find nothing"
+	fi
+
 	if sudo -n unattended-upgrade --dry-run --debug >/dev/null 2>&1; then
 		ok "unattended-upgrade dry-run succeeds"
 	else

@@ -17,9 +17,30 @@
 apt update
 
 systemctl disable dphys-swapfile.service
-systemctl disable apt-daily.timer
-systemctl disable apt-daily-upgrade.timer
 systemctl disable man-db.timer
+
+# The apt timers are deliberately NOT disabled here any more.
+#
+# This stage runs AFTER stage-aryaos (see STAGE_LIST in config), and
+# stage-aryaos installs the unattended-upgrades policy on the explicit
+# assumption that they exist:
+#
+#   stage-aryaos/00-install/01-run-chroot.sh:
+#     "unattended-upgrades runs via the static apt-daily timers; no enable
+#      needed."
+#
+# Disabling them here silently undid that. Measured on aryaos-c998:
+#
+#   apt-daily.timer          active=inactive  enabled=disabled
+#   apt-daily-upgrade.timer  active=inactive  enabled=disabled
+#
+# and unattended-upgrades had only ever run its SHUTDOWN unit -- never an
+# actual upgrade. The box was never going to apply a Debian security fix,
+# while the code comments and the security test both said it would.
+#
+# Disabling man-db indexing and dphys-swapfile is about media longevity and
+# is kept. Disabling security updates is a different kind of decision and
+# was not an intentional one.
 
 # Media longevity: dphys-swapfile is off (no swapfile writes to the SD/NVMe).
 # Provide zram compressed RAM swap so memory spikes do not OOM-kill services,
