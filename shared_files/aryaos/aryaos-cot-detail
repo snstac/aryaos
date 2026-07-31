@@ -222,6 +222,21 @@ def _capabilities() -> list[dict[str, str]]:
 TDOA_RMS_MAX_S = 1.0e-5
 
 
+def _pps_refclock_configured() -> bool:
+    """Did aryaos-time-pps write a GNSS PPS refclock?
+
+    It writes one only after seeing the kernel assert counter advance, so this
+    answers "is there a real pulse" without re-probing. The path is under /run
+    deliberately: a refclock naming a device that has not enumerated yet is a
+    FATAL chronyd error, so it must not survive a reboot.
+    """
+    try:
+        with open("/run/chrony-aryaos/20-aryaos-pps.conf", encoding="utf-8") as fh:
+            return any(line.startswith("refclock PPS") for line in fh)
+    except OSError:
+        return False
+
+
 def _pps_devices() -> list:
     """PPS sources the kernel exposes, as (device, name) e.g. ('pps0', 'acm0').
 
@@ -290,9 +305,23 @@ def _time_state() -> dict:
 
     pps = _pps_devices()
     state["pps"] = ",".join(f"{dev}:{name}" if name else dev for dev, name in pps)
-    # A GNSS pulse (CDC-ACM serial GPS) is a usable reference; an Ethernet PHY
-    # clock (ptp) is not disciplined to GNSS and must not be counted as one.
-    state["pps_gnss"] = str(any(n.startswith(("acm", "ttyACM", "gps")) for _, n in pps)).lower()
+    # pps_gnss means "this box has a GNSS pulse", so it must reflect a PULSE, not
+    # a device name.
+    #
+    # This used to be `any(name startswith acm/ttyACM/gps)`, which is the same
+    # wrong inference aryaos-time-pps used to make. On aryaos-c998 -- a u-blox 7
+    # on USB CDC -- the kernel exposes /dev/pps1 named "acm0" from the serial DCD
+    # line, but the receiver's PPS is a physical pin that USB does not carry. The
+    # assert counter sits at 0 forever. time-pps was fixed to require the counter
+    # to advance and correctly wrote no refclock; the beacon carried on
+    # advertising pps_gnss="true" beside it, because it was deciding
+    # independently from the name.
+    #
+    # Now it reads the decision time-pps already made: the refclock config only
+    # exists if a GNSS-named device was observed actually pulsing. One source of
+    # truth instead of two heuristics that can disagree -- and cheap, because the
+    # beacon runs on a timer and must not spend seconds probing a PPS line.
+    state["pps_gnss"] = str(_pps_refclock_configured()).lower()
 
     track = _chrony_tracking()
     locked = False
