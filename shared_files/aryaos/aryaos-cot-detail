@@ -125,10 +125,36 @@ def _primary_ip() -> str:
 
 
 def _service_state(name: str) -> str:
+    """The unit's actual state: active, inactive, failed, activating...
+
+    `systemctl is-active` reports the state on STDOUT and uses its exit code as a
+    boolean -- 0 for active, 3 for everything else. _run() discards stdout on a
+    non-zero exit, so this used to collapse EVERY non-active state to "unknown":
+
+        systemctl is-active adsbcot  ->  "failed", exit 3   ->  beacon "unknown"
+
+    which meant the fleet could not tell a deliberately-disabled sensor from a
+    crash-looping one from a dead one. On a normal box most sensors are off by
+    design, so a genuine failure was buried among a dozen equally "unknown"
+    units. Observed on aryaos-c998 with readsb, adsbcot and gdltak all failed and
+    all beaconing "unknown".
+
+    So read stdout regardless of the exit code, which is what is-active is
+    documented to do.
+    """
     if not os.path.exists("/usr/bin/systemctl"):
         return "unknown"
-    state = _run(["/usr/bin/systemctl", "is-active", f"{name}.service"], timeout=0.7)
-    return state or "unknown"
+    try:
+        proc = subprocess.run(
+            ["/usr/bin/systemctl", "is-active", f"{name}.service"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=0.7,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return "unknown"
+    return (proc.stdout or "").strip() or "unknown"
 
 
 def _roles() -> dict[str, str]:
