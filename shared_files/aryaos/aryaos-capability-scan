@@ -284,7 +284,20 @@ def scan():
         ),
     }
     if sdrs and not rtl_sdrs:
-        caps["adsb"]["auto_apply"] = False
+        # manual_only, NOT auto_apply.
+        #
+        # My first version of this set auto_apply=False directly, and it did
+        # nothing: a loop further down unconditionally recomputes
+        #     cap["auto_apply"] = available and not manual_only
+        # for every capability, so the flag was overwritten a few lines later and
+        # the box auto-applied adsb anyway. Observed on aryaos-c998: the
+        # deferred_reason was present and correct while auto_apply was true, and
+        # readsb crash-looped exactly as before.
+        #
+        # manual_only is the mechanism the pipeline already has for "available,
+        # but never turn it on by itself" -- ble-rid and sapient both use it --
+        # and it survives that recomputation because it is an INPUT to it.
+        caps["adsb"]["manual_only"] = True
         caps["adsb"]["deferred_reason"] = (
             f"readsb is configured for RTL-SDR (--device-type rtlsdr) and the only "
             f"SDR present is {_labels(other_sdrs)}. Enabling adsb would crash-loop "
