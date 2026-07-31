@@ -64,21 +64,24 @@ useless are fixed from **3.16.15-4** onward: `--gain` was applied ten times too 
 SoapySDR path, and a block was filled with a single `readStream()` call, which returns at most
 the driver's stream MTU — 2040 samples on a Lime against a 65536-sample buffer.
 
-!!! warning "A bare Lime is not a usable ADS-B receiver"
-    Fixing those bugs is necessary but **not sufficient**. Measured on a dragonegg box with a
-    1090&nbsp;MHz antenna, after both fixes:
+!!! success "The antenna decides this, not the SDR"
+    With both fixes and an **outdoor antenna**, a LimeSDR Mini v2 decodes ADS-B properly.
+    Measured on a dragonegg box, 70&nbsp;seconds at gain 40:
 
-    - SNR sits at roughly **0&nbsp;dB at every gain setting**, with the LNA already pinned at
-      its 30&nbsp;dB maximum and only the baseband PGA still moving. PGA amplifies signal and
-      noise equally, so it cannot buy sensitivity.
-    - Burst analysis at 1090&nbsp;MHz against a 1040&nbsp;MHz control found **18 samples
-      >20&nbsp;dB over median versus 0** — real traffic, but very weak.
-    - Result: **~2 usable messages**, no position reports.
+    - **5,173 usable messages**, **711 airborne position reports**
+    - **10 aircraft tracked, all 10 with position** — RSSI −42 to −48&nbsp;dBFS, altitudes
+      3,200 to 39,000&nbsp;ft
 
-    The LimeSDR Mini has **no 1090&nbsp;MHz SAW filter and no LNA**, unlike a ProStick-class
-    ADS-B dongle, so its own noise floor swamps the signal. For ADS-B on a Lime, fit an
-    **inline 1090&nbsp;MHz filtered LNA** ahead of the RX port. An RTL-SDR remains the better
-    choice if ADS-B is the box's job.
+    The same box, same software, on a short indoor whip produced **0–2 usable messages and no
+    positions at all**. Nothing changed but the antenna.
+
+    So budget for the antenna and its feedline before reaching for anything else. An inline
+    1090&nbsp;MHz filtered LNA may still help at a site with strong out-of-band transmitters
+    nearby, but it is **not** required, and it will not rescue a receiver that cannot hear the
+    band in the first place.
+
+    An RTL-SDR remains a reasonable choice for a dedicated ADS-B box — it is cheaper and its
+    front end is already tuned for 1090 — but "the Lime cannot do ADS-B" is not true.
 
 !!! note "USB stability"
     The FT601 bridge has been observed dropping off the bus under sustained streaming —
@@ -100,6 +103,50 @@ SoapySDRServer --bind          # serves the local SDRs over the network
     unauthenticated. Start it manually only when needed, and **bind it to the Tailscale/VPN
     interface, not the open LAN** (see [Firewall](../networking/firewall.md) and
     [VPN](../networking/vpn-tailscale.md)). Stop it when you're done.
+
+### Band occupancy survey
+
+`aryaos-spectrum-survey` sweeps a band plan and reports how busy each band is. It answers
+"what is active here" without needing a decoder for any of it, which is the question a
+wideband box can always answer.
+
+```bash
+sudo aryaos-spectrum-survey --antenna LNAW --gain 25
+sudo aryaos-spectrum-survey --bands fmbcast,adsb1090 --json
+```
+
+```
+  fmbcast    98.000 MHz  floor= -16.9 dBFS  occ=  0.000%  OCCUPIED [continuous]  carrier +46.7dB @ 97.357 MHz
+  adsb1090 1090.000 MHz  floor= -66.2 dBFS  occ=  0.233%  quiet    [none]
+```
+
+It reports **measurements, never identifications**. A band being busy does not tell you what
+is transmitting, and the tool will not guess — the band names are operator context only.
+
+Each band is classified as `bursty`, `continuous`, both, or neither, because those need
+different tests: a packetised emitter shows up as excursions above the band's noise floor,
+while a steady carrier *is* the floor and has to be found in the frequency domain instead.
+
+!!! warning "`occupied` is a convenience flag; the number is the measurement"
+    The `OCCUPIED` threshold is 0.5% of samples more than 20&nbsp;dB above the band's own
+    median. That is tuned for continuously busy bands and it **under-reports short bursts**.
+
+    Measured case: with an outdoor antenna, 1090&nbsp;MHz surveys at **0.301% — below the
+    threshold, so it prints `quiet`** — while `readsb` on the same box at the same time decoded
+    **5,173 messages and tracked 10 aircraft**. ADS-B bursts are about 120&nbsp;µs against a
+    2-second dwell, so low occupancy is the correct measurement and the boolean is what
+    misleads. Read `occupancy_pct`, and compare a band against a known-quiet control rather
+    than against the flag.
+
+!!! note "dBFS is not dBm"
+    All levels are relative to the receiver's own full scale, not absolute power. The same
+    signal moved the reported floor from −31.9 to −13.4&nbsp;dBFS purely by changing gain.
+    Comparing two bands in one sweep is meaningful; comparing to another receiver, or to a
+    published dBm figure, is not.
+
+Pass `--zmeta` to emit [ZMeta](https://github.com/JTC-byte/zmeta-spec) `OBSERVATION_EVENT`
+records (newline-delimited JSON) instead of the table, for feeding a metadata bus rather than
+a human.
 
 ### Local capture / analysis
 
