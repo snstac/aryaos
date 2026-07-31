@@ -26,12 +26,40 @@
 
   /* One accent per surface, ~5% of it. This is the AryaOS property, so Signal
      Orange. Sibling properties carry their own accent and must not appear here
-     at the same time. */
+     at the same time.
+
+     TWO ROLES, KEPT APART -- the same split already applied to the Cockpit
+     plugins, the operator portal and the AryaOS Imager, and the reason it is
+     applied here too.
+
+       --sns-brand      Signal Orange. Fills, rules and the mark. NEVER a label.
+       --sns-interactive  Link and control text.
+
+     The kit token --sns-accent is Signal Orange (#E4610F) for this property and
+     is vendored, so it is not edited; the interactive role is introduced here
+     instead and the vendored value keeps its fills-only job.
+
+     Measured on Paper (#F2EFE7), which is what this surface actually is:
+
+       Signal Orange  #E4610F   3.04:1   deltaE 34.6 from the nearest status
+       Okabe-Ito blue #0072B2   4.51:1   deltaE 62.1 from the nearest status
+
+     3.04:1 fails the 4.5:1 body-text floor outright -- links were legible only
+     as large text -- and deltaE 34.6 is against `fault` #A32820, so orange body
+     text on a documentation page reads as an error state on a page that is not
+     reporting one. Both problems are the same colour doing two jobs.
+
+     NOT #56B4E9: that is the console's interactive blue and it is correct on
+     Console dark, but it measures 2.01:1 on Paper. Light and dark surfaces need
+     different blues; see the slate block below. */
+  --sns-brand:                  var(--sns-accent);
+  --sns-interactive:            #0072b2;
+
   --md-primary-fg-color:        var(--sns-ink);
   --md-primary-bg-color:        var(--sns-paper);
-  --md-accent-fg-color:         var(--sns-accent);
+  --md-accent-fg-color:         var(--sns-interactive);
 
-  --md-typeset-a-color:         var(--sns-accent);
+  --md-typeset-a-color:         var(--sns-interactive);
 
   /* Code is machine output: mono, on the secondary paper. */
   --md-code-bg-color:           var(--sns-paper-2);
@@ -42,6 +70,27 @@
 
   --md-text-font-family:        var(--sns-font-body);
   --md-code-font-family:        var(--sns-font-mono);
+}
+
+/* mkdocs.yml offers a light/dark toggle, and Material sets its scheme variables
+   on [data-md-color-scheme], which outranks the :root block above. So the dark
+   scheme needs its own interactive colour or it inherits a value chosen for
+   Paper and used on a dark ground.
+
+   Measured on Material's slate ground (#1F2129):
+
+     Okabe-Ito blue #0072B2   3.10:1   fails the 4.5:1 body-text floor
+     Okabe-Ito sky  #56B4E9   6.96:1   passes
+
+   the exact mirror of the Paper result, where the sky blue is the one that
+   fails. One blue cannot serve both grounds, so each surface names its own --
+   and the dark value is the same #56B4E9 the Cockpit console already uses, so
+   an operator moving between docs and console sees one interactive colour. */
+[data-md-color-scheme="slate"] {
+  --sns-interactive:            #56b4e9;
+
+  --md-accent-fg-color:         var(--sns-interactive);
+  --md-typeset-a-color:         var(--sns-interactive);
 }
 
 /* --- Non-negotiables from the guide ------------------------------------- */
