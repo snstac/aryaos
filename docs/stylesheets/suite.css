@@ -128,6 +128,19 @@ body,
   font-family: var(--sns-font-display);
   font-weight: 800;
   letter-spacing: -0.03em;
+
+  /* Material's own rule is `color: var(--md-default-fg-color--light)`, which
+     our bridge maps to Slate, so the page title was rendering MUTED -- the
+     display role, at 800 weight, as the faintest text on the page. Measured on
+     Paper:
+
+       Slate #6B7169   4.36:1   legal for large text, fails body contrast
+       Ink   #12211A  14.53:1
+
+     Slate is legal here, but it is the kit's secondary/muted role and display
+     is its strongest. A dimmed h1 is a Material styling default, not a kit
+     decision, so it is overridden rather than inherited. */
+  color: var(--sns-ink);
 }
 
 .md-typeset h2,
