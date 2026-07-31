@@ -13,10 +13,26 @@ apply to every mission.
 
 ## 1. Flash the card
 
-1. Download the latest `aryaos-*.img.xz` from
-   [GitHub Releases](https://github.com/snstac/aryaos/releases).
-2. Write it to the microSD card with **Raspberry Pi Imager** (choose *Use custom*)
-   or **balenaEtcher**. Full instructions: [Flash the image](flash-the-image.md).
+The short way, on **Windows or Linux**, is
+[**AryaOS Imager**](https://github.com/snstac/aryaos-imager/releases) — a
+single-purpose build of Raspberry Pi Imager that offers only AryaOS and
+downloads the image itself, so there is nothing to find and no wrong operating
+system to pick by accident.
+
+1. Install [AryaOS Imager](https://github.com/snstac/aryaos-imager/releases).
+2. Insert the microSD card, open the imager, and choose
+   **AryaOS (latest release)**.
+3. Select the card — **this erases it** — then write and let it verify.
+
+On **macOS**, or if you already have the tools, download the latest
+`aryaos-*.img.xz` from [GitHub Releases](https://github.com/snstac/aryaos/releases)
+and write it with **Raspberry Pi Imager** (choose *Use custom*) or
+**balenaEtcher**. There is no macOS build of AryaOS Imager yet.
+
+Do not fill in the OS-customization prompt if one appears. AryaOS sets its own
+hostname and hotspot on first boot, and pre-seeding those settings can conflict.
+
+Full instructions, including verification: [Flash the image](flash-the-image.md).
 
 ## 2. Boot the box
 
