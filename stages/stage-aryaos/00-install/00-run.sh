@@ -167,6 +167,14 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-factory-reset.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-zeroize.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-zeroize.service"
 
+## Spectrum survey: band-occupancy measurement with any SoapySDR receiver.
+# Not a decoder and not a service -- an operator-invoked instrument. It answers
+# "which bands are busy here" on a box whose SDR has no applicable decoder, or
+# where the decoders have nothing in range to hear. Installed in sbin next to
+# the other aryaos-* tools; no unit, nothing enabled.
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-spectrum-survey" \
+	"${ROOTFS_DIR}/usr/local/sbin/aryaos-spectrum-survey"
+
 ## Radios: WiFi hotspot control + EMCON/radio-silence (Cockpit-driven)
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-radio" "${ROOTFS_DIR}/usr/local/sbin/aryaos-radio"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-radio-silence.service" \
