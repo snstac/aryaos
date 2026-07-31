@@ -93,6 +93,85 @@
   --md-typeset-a-color:         var(--sns-interactive);
 }
 
+/* --- Type scale from the kit -------------------------------------------- */
+
+/* The kit specifies four type roles:
+ *
+ *   display   Archivo 800
+ *   heading   Archivo 700
+ *   body      Archivo 400, 16/1.56
+ *   label     Archivo Narrow 600, uppercase, 0.18em tracking
+ *   mono      JetBrains Mono 400/700
+ *
+ * None of that was reaching this site. suite-primitives.css sets those styles
+ * on its OWN classes -- .sns-suite-frame, .sns-display, .brand-* -- and Material
+ * renders none of them: its content is .md-typeset h1..h6, .md-nav__*, th, and
+ * so on. So the families were inherited through the font-family declarations
+ * while the weights, line-height and tracking that make the kit look like the
+ * kit were simply absent.
+ *
+ * The clearest symptom: --sns-font-label (Archivo Narrow) was referenced
+ * NOWHERE. The webfont shipped to every visitor -- about 28 KB -- and was
+ * applied to nothing.
+ */
+
+body,
+.md-typeset {
+  font-weight: 400;
+  line-height: 1.56;
+}
+
+/* h1 is the display role; h2-h4 are headings. The kit's display tracking is
+   -0.03em, which is set here rather than inherited because Material has its own
+   per-heading letter-spacing. */
+.md-typeset h1 {
+  font-family: var(--sns-font-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+  font-family: var(--sns-font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* The label role: Archivo Narrow 600, uppercase, 0.18em.
+ *
+ * Applied only where the text genuinely IS a label -- a table header, a nav
+ * section title, the top-level section tabs. NOT to links or body text: at
+ * 0.18em tracking uppercase is a signpost, and signposting a paragraph makes it
+ * unreadable. This is the first use of the Archivo Narrow face on the site. */
+.md-typeset table:not([class]) th,
+.md-nav__title,
+.md-tabs__link {
+  font-family: var(--sns-font-label);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+/* Tracking that wide needs the trailing space trimmed or the last letter drifts
+   away from whatever follows it. */
+.md-typeset table:not([class]) th,
+.md-nav__title {
+  padding-right: calc(var(--sns-unit) + 0.18em);
+}
+
+/* Mono carries a 700 weight in the kit for inline code, so a command inside a
+   sentence reads as machine output rather than emphasis. */
+.md-typeset code {
+  font-weight: 700;
+}
+
+.md-typeset pre code {
+  font-weight: 400;
+}
+
 /* --- Non-negotiables from the guide ------------------------------------- */
 
 /* radius 0 — everywhere, no exceptions. */

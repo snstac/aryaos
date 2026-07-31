@@ -28,7 +28,11 @@ theme:
   # option pulls from Google Fonts, so it stays off; the stack is declared in
   # docs/stylesheets/suite.css. See docs/brand/README.md for the licence note.
   font: false
-  logo: media/aryaos_logo.png
+  # The kit mark, vendored in docs/brand/logo/, rather than a PNG export of it.
+  # The REVERSE variant is the correct one here: the header sits on --sns-ink
+  # (#12211A) via --md-primary-fg-color, and the kit pairs the reverse mark with
+  # a dark ground. SVG also stays sharp on hidpi, which the 25% PNG did not.
+  logo: brand/logo/mark-aryaos-rev.svg
   favicon: media/aryaos_logo-25p.png
   icon:
     repo: fontawesome/brands/github
