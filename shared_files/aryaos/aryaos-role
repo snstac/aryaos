@@ -195,6 +195,17 @@ apply_units() {
 		else
 			echo "disable ${unit}"
 			systemctl disable --now "${unit}" >/dev/null 2>&1 || true
+			# Clear any leftover failed state. `disable --now` stops a unit but
+			# does NOT clear a failure it recorded earlier, so a service that
+			# crash-looped under a previous capability set stays in
+			# `systemctl --failed` forever and holds the whole box in
+			# `degraded` -- for a service we just deliberately switched off.
+			#
+			# Seen on aryaos-c998: switching from adsb (a LimeSDR that readsb
+			# cannot drive) to ble-rid left readsb, adsbcot and gdltak listed as
+			# failed while ble-rid ran perfectly. The box reported degraded and
+			# an operator had no way to tell that from a real fault.
+			systemctl reset-failed "${unit}" >/dev/null 2>&1 || true
 		fi
 	done
 }
