@@ -130,17 +130,32 @@ body,
   letter-spacing: -0.03em;
 
   /* Material's own rule is `color: var(--md-default-fg-color--light)`, which
-     our bridge maps to Slate, so the page title was rendering MUTED -- the
-     display role, at 800 weight, as the faintest text on the page. Measured on
-     Paper:
+     our bridge maps to Slate, so the page title rendered MUTED -- the display
+     role, at 800 weight, as the faintest text on the page. Measured on Paper:
 
        Slate #6B7169   4.36:1   legal for large text, fails body contrast
        Ink   #12211A  14.53:1
 
-     Slate is legal here, but it is the kit's secondary/muted role and display
-     is its strongest. A dimmed h1 is a Material styling default, not a kit
-     decision, so it is overridden rather than inherited. */
-  color: var(--sns-ink);
+     Slate is legal there, but it is the kit's secondary/muted role and display
+     is its strongest, so it is overridden rather than inherited.
+
+     THE VARIABLE, NOT THE LITERAL. This first said `var(--sns-ink)`, and that
+     shipped an h1 nobody could read in dark mode: ink is #12211A against
+     slate's #1E2129 ground, which measures
+
+       1.04:1
+
+     -- dark text on a dark background, reported from the live site. The
+     contrast work behind this whole stylesheet was done against Paper only,
+     and a hardcoded colour cannot follow a theme that has two grounds.
+
+     --md-default-fg-color is scheme-aware and already carries the intent:
+     our :root maps it to --sns-ink for the light scheme, and Material's own
+     [data-md-color-scheme="slate"] block replaces it with a light value.
+
+       light  ink #12211A on Paper    14.53:1   (unchanged)
+       dark   #BFC1C6 on #1E2129       8.94:1 */
+  color: var(--md-default-fg-color);
 }
 
 .md-typeset h2,
@@ -216,7 +231,12 @@ img {
 }
 
 .md-header {
-  border-bottom: var(--sns-rule) solid var(--sns-ink);
+  /* Hairline, not ink. The header's own background IS --sns-ink (set above via
+     --md-primary-fg-color), so an ink rule on it was invisible in both schemes
+     -- a separator that looked applied and separated nothing.
+     It matters most in dark mode, where the header (#12211A) and the body
+     ground (#1E2129) are both dark and nearly the same value. */
+  border-bottom: var(--sns-rule) solid var(--sns-hairline);
 }
 
 .md-typeset .admonition,
@@ -226,7 +246,10 @@ img {
 }
 
 .md-typeset table:not([class]) th {
-  border-bottom: var(--sns-rule) solid var(--sns-ink);
+  /* Scheme-aware for the same reason as the h1 colour: a literal --sns-ink rule
+     is correct on Paper and invisible on slate's dark ground, so table headers
+     silently lost their underline in dark mode. */
+  border-bottom: var(--sns-rule) solid var(--md-default-fg-color);
 }
 
 /* Flush left everywhere — including the label inside a wide button. */
