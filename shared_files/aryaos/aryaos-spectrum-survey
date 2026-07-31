@@ -243,6 +243,147 @@ def analyze_capture(m, iq_frames, sample_rate, nfft, np, extra=None):
     return result
 
 
+ZMETA_VERSION = "1.1.0"
+
+
+def _uuid7(now_ms: int, rand_bytes: bytes) -> str:
+    """RFC 9562 UUIDv7: 48-bit millisecond timestamp, then random.
+
+    ZMeta requires v7 specifically -- its schema pattern pins the version nibble
+    to 7 and the variant to [89ab] -- because v7 sorts by creation time, so an
+    event store can range-scan a time window without a secondary index. uuid4
+    validates as a UUID and fails that pattern, so it is not interchangeable.
+
+    Not in the standard library as of 3.13, hence this.
+    """
+    ts = now_ms & ((1 << 48) - 1)
+    b = bytearray(16)
+    b[0:6] = ts.to_bytes(6, "big")
+    b[6:16] = rand_bytes[:10]
+    b[6] = 0x70 | (b[6] & 0x0F)  # version 7
+    b[8] = 0x80 | (b[8] & 0x3F)  # variant 10xx
+    h = b.hex()
+    return f"{h[0:8]}-{h[8:12]}-{h[12:16]}-{h[16:20]}-{h[20:32]}"
+
+
+def zmeta_event(band, result, source, now_ms, rand_bytes, dwell_s):
+    """One surveyed band -> a ZMeta OBSERVATION_EVENT (schema 1.1.0).
+
+    Why OBSERVATION and not INFERENCE: every field here is a measured fact about
+    the spectrum. Nothing claims what is transmitting. ZMeta draws exactly that
+    line -- OBSERVATION_EVENT is "measured facts", INFERENCE_EVENT is "analytic
+    claims" -- which is the distinction this tool has been careful about from the
+    start, so the mapping is honest rather than convenient.
+
+    The payload deliberately mirrors ZMeta's existing SCAN_RF command vocabulary
+    (`freq_range_hz`, `dwell_ms`, `sensor_id`). ZMeta can already ASK for an RF
+    scan; the SIGINT observation modality that would carry the ANSWER is still
+    `status: reserved` in its extension registry, with no feature contract. Using
+    the command's own field names means a SCAN_RF task and this result speak one
+    vocabulary instead of two.
+
+    `confidence` is NOT set. ZMeta's confidence is a claim-strength for an
+    inference, and occupancy is not a claim -- asserting 0.29 confidence because
+    a band was 29% occupied would be a category error.
+    """
+    # modality is RF, not SIGINT. ZMeta's ObservationPayload pins modality to
+    # {RF, EO, IR, ACOUSTIC, NETWORK}; SIGINT exists in its extension registry
+    # but as a RESERVED modality name with no feature contract yet, so RF is
+    # what a spectrum measurement is allowed to claim today.
+    #
+    # The measurements live under `features`, which ZMeta requires and which it
+    # FORBIDS from carrying track_id, entity_class, classification, class_name,
+    # label or confidence. That is the observation/inference split enforced by
+    # the schema rather than by convention -- and it happens to be the same rule
+    # this tool already held itself to, so nothing had to be dropped to comply.
+    features = {
+        "band": band["name"],
+        "band_label": band["label"],
+        # SCAN_RF's own field names and units, so a command and its result speak
+        # one vocabulary.
+        "freq_range_hz": [
+            band["center"] - band["span"] / 2.0,
+            band["center"] + band["span"] / 2.0,
+        ],
+        "dwell_ms": int(dwell_s * 1000),
+        # ZMeta's RF feature contract names: center_freq_hz and bandwidth_hz.
+        "center_freq_hz": band["center"],
+        "bandwidth_hz": band["span"],
+        "tuned_hz": result.get("tuned_hz"),
+        "noise_floor_dbfs": result.get("noise_floor_dbfs"),
+        "occupancy_pct": result.get("occupancy_pct"),
+        "excursion_threshold_db": EXCURSION_DB,
+        # "bursty" / "continuous" / "both" / "none" describes the SHAPE of the
+        # energy, not what produced it, so it is a measurement and not a label.
+        "detection": result.get("detection", "none"),
+        "occupied": bool(result.get("occupied")),
+    }
+    if result.get("carrier_over_noise_db"):
+        features["carrier_over_noise_db"] = result["carrier_over_noise_db"]
+        if result.get("carrier_offset_hz") is not None and result.get("tuned_hz"):
+            features["carrier_hz"] = result["tuned_hz"] + result["carrier_offset_hz"]
+
+    # NOT SET: features.power_dbm.
+    #
+    # ZMeta's RF feature contract requires center_freq_hz, bandwidth_hz AND
+    # power_dbm. The first two are exact. power_dbm is ABSOLUTE power, and every
+    # level this tool measures is dBFS -- decibels relative to the receiver's own
+    # full scale. Converting dBFS to dBm needs the receiver's calibrated gain,
+    # noise figure and any front-end loss, none of which an uncalibrated SDR
+    # reports. Measured on a LimeSDR Mini v2: the same signal moved the reported
+    # floor from -31.9 to -13.4 dBFS purely by changing the gain setting, which
+    # is exactly what "not absolute" means.
+    #
+    # So power_dbm is omitted rather than fabricated, and the event does NOT
+    # currently satisfy the RF contract. That is a deliberate, documented gap:
+    # emitting a plausible dBm number would be the unit inference ZMeta's own
+    # semantics contract forbids, and it would silently poison anything
+    # downstream that reasoned about signal strength.
+    #
+    # The honest value goes in the quality block instead, and the spec gap is
+    # written up for upstream: an uncalibrated receiver cannot produce a
+    # conformant RF observation today.
+    payload = {"modality": "RF", "features": features}
+
+    # STRUCTURED_QUALITY_BLOCK (payload.quality) is ZMeta's place for calibration
+    # and signal-quality metadata. Clipping belongs here and nowhere else: a
+    # clipped capture inflates occupancy, so a consumer must be able to see that
+    # the measurement is suspect without re-deriving it.
+    payload["quality"] = {
+        "clipped": bool(result.get("clipped")),
+        "clipped_pct": result.get("clipped_pct", 0.0),
+        "calibrated": False,
+        "measurement_note": (
+            "dBFS is receiver-relative, not absolute power; no calibration applied"
+        ),
+    }
+
+    return {
+        "zmeta_version": ZMETA_VERSION,
+        "event": {
+            "event_id": _uuid7(now_ms, rand_bytes),
+            "event_type": "OBSERVATION_EVENT",
+            # For an OBSERVATION_EVENT, ZMeta closes event_subtype to the same
+            # enum as modality: {RF, EO, IR, ACOUSTIC, NETWORK}. So it is "RF",
+            # not a descriptive name of our choosing -- and the SIGINT modality
+            # reserved in the extension registry has no way into the schema at
+            # all yet, since neither the subtype nor the modality enum admits it.
+            "event_subtype": "RF",
+            "ts": _rfc3339(now_ms),
+        },
+        "source": source,
+        "payload": payload,
+    }
+
+
+def _rfc3339(now_ms: int) -> str:
+    """UTC RFC 3339 with a trailing Z, which ZMeta's schema requires."""
+    import datetime
+
+    dt = datetime.datetime.fromtimestamp(now_ms / 1000.0, datetime.timezone.utc)
+    return dt.strftime("%Y-%m-%dT%H:%M:%S.") + f"{dt.microsecond // 1000:03d}Z"
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(
         description="Measure band occupancy with a SoapySDR receiver.",
@@ -255,6 +396,11 @@ def main(argv=None):
     ap.add_argument("--sample-rate", type=float, default=4e6, help="Sample rate in Hz (default 4e6).")
     ap.add_argument("--bands", default="", help="Comma-separated band names to sweep (default: all).")
     ap.add_argument("--json", action="store_true", help="Emit JSON only.")
+    ap.add_argument(
+        "--zmeta",
+        action="store_true",
+        help="Emit ZMeta 1.1.0 OBSERVATION_EVENTs (newline-delimited JSON), one per band.",
+    )
     args = ap.parse_args(argv)
 
     try:
@@ -303,12 +449,39 @@ def main(argv=None):
         "bands": [],
     }
 
+    zmeta_source = None
+    if args.zmeta:
+        import os
+        import socket
+
+        zmeta_source = {
+            "platform_id": socket.gethostname(),
+            # EDGE: this runs on the sensor itself, not on a gateway or in a
+            # datacentre, which is what ZMeta's node_role is distinguishing.
+            "node_role": "EDGE",
+            "producer": "aryaos-spectrum-survey",
+            "sensor_id": str(found[0]),
+            "sw_version": os.environ.get("ARYAOS_VERSION") or None,
+        }
+
     for band in bands:
         res = survey_band(sdr, band, args.dwell, args.gain, args.sample_rate,
                           args.antenna, np, SoapySDR, fmt)
         entry = {"name": band["name"], "center_hz": band["center"], "label": band["label"]}
         entry.update(res)
         out["bands"].append(entry)
+
+        if args.zmeta:
+            if "error" not in res:
+                import secrets
+                import time as _time
+
+                event = zmeta_event(
+                    band, res, zmeta_source,
+                    int(_time.time() * 1000), secrets.token_bytes(10), args.dwell,
+                )
+                sys.stdout.write(json.dumps(event) + "\n")
+            continue
 
         if not args.json:
             if "error" in res:
@@ -327,7 +500,7 @@ def main(argv=None):
                     f"{flag:8s} [{res['detection']}]{carrier}{clip}"
                 )
 
-    if args.json:
+    if args.json and not args.zmeta:
         json.dump(out, sys.stdout, indent=2)
         sys.stdout.write("\n")
     return 0
