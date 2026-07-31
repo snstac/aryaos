@@ -30,7 +30,13 @@ Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads 
 
 === "AryaOS Imager"
 
-    [AryaOS Imager](https://github.com/snstac/aryaos-imager/releases) is a single-purpose build of Raspberry Pi Imager that offers **only AryaOS**. It downloads the image for you, so there is no file to find and no way to pick the wrong operating system. Available for Windows and Linux.
+    [AryaOS Imager](https://github.com/snstac/aryaos-imager/releases) is a single-purpose build of Raspberry Pi Imager that offers **only AryaOS**. It downloads the image for you, so there is no file to find and no way to pick the wrong operating system.
+
+    | Platform | Download |
+    |---|---|
+    | Windows | `AryaOS-Imager-Setup-*.exe` (installer) or `aryaos-imager.exe` (portable) |
+    | Linux | `aryaos-imager` — an x86-64 binary |
+    | macOS | **not built yet** — use Raspberry Pi Imager or balenaEtcher |
 
     1. Download and install AryaOS Imager.
     2. Insert the microSD card into your workstation.
@@ -38,8 +44,12 @@ Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads 
     4. Under storage, select the microSD card. **Confirm the device — this erases the card.**
     5. Write, and wait for the verify step to finish.
 
-    !!! note "Windows shows a SmartScreen warning"
-        The installer is not code-signed, so Windows displays *"Windows protected your PC"*. Click **More info → Run anyway**. Each release publishes a `SHA256SUMS.txt` if you would rather verify the download first.
+    !!! warning "Windows shows a SmartScreen warning, and you cannot yet checksum the fix"
+        The installer is not code-signed, so Windows displays *"Windows protected your PC"*. Click **More info → Run anyway**.
+
+        Releases publish a `SHA256SUMS.txt`, but as of `v1.0.0` it covers **only the Linux binary** — the Windows installer, the portable `.exe` and the callback relay have no published checksum. So on Windows there is currently no way to verify the download, and the "run anyway" step is a genuine trust decision. Prefer the Linux build where you have the choice, and re-check `SHA256SUMS.txt` on newer releases.
+
+    The image itself is a separate matter and *is* verifiable: every AryaOS release publishes an SBOM and an uncompressed-image SHA, and the imager verifies what it wrote after writing it.
 
     There is no OS-customization step to skip: AryaOS configures itself on [first boot](first-boot.md), so the imager deliberately leaves those settings alone.
 

@@ -108,7 +108,8 @@ Two things are **not** capabilities, because they are not optional receivers:
 
     ---
 
-    Write AryaOS to a microSD card with Raspberry Pi Imager or Etcher.
+    Write AryaOS to a microSD card with AryaOS Imager, which fetches the image
+    for you — or Raspberry Pi Imager or Etcher.
 
     [:octicons-arrow-right-24: Flash the image](get-started/flash-the-image.md)
 
