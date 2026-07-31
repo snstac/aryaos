@@ -72,7 +72,18 @@ jobs:
         # installed on the runner, so requiring it failed the validate job on
         # every PR in this stack. stdlib is the right dependency for a test that
         # guards a shell-adjacent script.
-        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+        #
+        # numpy is the one exception, and it is installed rather than skipped
+        # around. test_spectrum_survey exercises aryaos-spectrum-survey's signal
+        # classification, which is numpy maths end to end -- the DC-spike guard
+        # and the continuous-carrier check are both FFT work. Making the import
+        # optional would turn the whole suite into a silent no-op on the runner,
+        # which is exactly the failure mode those tests exist to catch. The tool
+        # itself depends on python3-numpy on the image, so testing without it
+        # would not be testing the shipped thing anyway.
+        run: |
+          python3 -m pip install --quiet numpy
+          python3 -m unittest discover -s scripts -p 'test_*.py' -v
 
       - name: Shellcheck appliance scripts
         # Lint the shell that ships to /usr/local/sbin and the build/test
