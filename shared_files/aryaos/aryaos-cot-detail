@@ -214,6 +214,12 @@ def _detected_caps() -> set:
     return set(out.split())
 
 
+# Capabilities whose "available" means nothing more than "an SDR is attached".
+# They share one radio and one antenna, and which of them actually WORKS is
+# decided by the antenna, which the box cannot see.
+SDR_CAPS = frozenset({"adsb", "ais", "acars"})
+
+
 def _capabilities() -> list[dict[str, str]]:
     """Every capability this box has hardware for OR has switched on.
 
@@ -224,8 +230,28 @@ def _capabilities() -> list[dict[str, str]]:
     active_caps = _config("ARYAOS_CAPABILITIES").replace(",", " ").split()
     detected = _detected_caps()
 
+    keys = set(active_caps) | detected
+
+    # Collapse the merely-possible SDR capabilities into one honest `sdr`.
+    #
+    # A box with one SDR and nothing switched on used to beacon adsb, ais AND
+    # acars, each available=true. That reads as three capabilities and is really
+    # one radio -- and it overstates even that, because whether any of them
+    # decodes anything depends on the antenna. Measured this session: identical
+    # software and SDR went from 0 usable ADS-B messages on an indoor whip to
+    # 5173 on an outdoor antenna, and the antenna that hears ACARS at 131 MHz is
+    # the wrong one for 1090.
+    #
+    # So: an SDR capability that is ENABLED is reported by name, because an
+    # operator chose it and it is running. The rest become a single `sdr`
+    # meaning "this box has a radio, nothing is claimed about what it can hear".
+    sdr_enabled = {k for k in keys if k in SDR_CAPS and k in active_caps}
+    sdr_idle = {k for k in keys if k in SDR_CAPS} - sdr_enabled
+    if sdr_idle:
+        keys -= sdr_idle
+
     out: list[dict[str, str]] = []
-    for key in sorted(set(active_caps) | detected):
+    for key in sorted(keys):
         label, unit, sensor = CAPABILITIES.get(key, (key, "", ""))
         if key == "wifi-rid":
             sensor = _wifi_adapter() or sensor
@@ -239,6 +265,23 @@ def _capabilities() -> list[dict[str, str]]:
                 "sensor": sensor,
             }
         )
+
+    if sdr_idle:
+        out.append(
+            {
+                "key": "sdr",
+                "label": "SDR",
+                # No unit of its own: `sdr` is the absence of a chosen decoder,
+                # so it is never "active".
+                "active": "false",
+                "available": "true",
+                "enabled": "false",
+                "sensor": "software-defined radio ("
+                + ", ".join(sorted(sdr_idle))
+                + " possible, none enabled)",
+            }
+        )
+
     return out
 
 
