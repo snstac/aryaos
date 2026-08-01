@@ -6,6 +6,8 @@ from __future__ import annotations
 import glob
 import os
 import re
+import json
+import sys
 import socket
 import subprocess
 import time
@@ -389,7 +391,167 @@ def _nap_state() -> dict:
     }
 
 
+
+# Gateway name -> short label used in the beacon and remarks.
+DECODERS = {
+    "adsbcot": "adsb",
+    "aiscot": "ais",
+    "acarscot": "acars",
+    "aprscot": "aprs",
+    "dronecot": "rid",
+    "lincot": "sys",
+    "sapientcot": "sapient",
+    "gpstak": "gps",
+    "sikw00fcot": "sik",
+}
+
+# A gateway is "stale" if its status file has not been rewritten in this long.
+# The gateways heartbeat every few seconds even when idle, so this is generous.
+DECODE_STALE_S = 120.0
+
+
+def _decoder_status(app: str) -> dict:
+    """Read one gateway's runtime status (pytak.StatusWriter, >= 7.4.0).
+
+    Returns {} when there is no status file. That is NOT the same as "heard
+    nothing" and is reported differently: a box running a pytak too old to
+    write status, and a gateway that is hearing nothing, look identical if you
+    only count contacts.
+    """
+    try:
+        with open(f"/run/{app}/status.json", "r") as handle:
+            doc = json.load(handle)
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(doc, dict):
+        return {}
+
+    now = time.time()
+    wall = doc.get("wall_t")
+    age = (now - wall) if isinstance(wall, (int, float)) else None
+
+    trend = doc.get("trend") or []
+    interval = doc.get("trend_interval_s") or 60.0
+    # Rate over the most recent buckets: "is it hearing anything NOW", which is
+    # the question, rather than a lifetime average that stays healthy-looking
+    # for hours after an antenna falls off.
+    recent = trend[-5:] if trend else []
+    per_min = (sum(recent) / (len(recent) * interval / 60.0)) if recent else 0.0
+
+    counters = doc.get("counters") or {}
+    return {
+        "age_s": age,
+        "uptime_s": doc.get("uptime_s"),
+        "rate_min": per_min,
+        "total": counters.get("rx") or counters.get("recorded") or 0,
+        "emitted": counters.get("emitted") or 0,
+        "tracked": doc.get("tracked"),
+        "write_errors": doc.get("write_errors") or 0,
+    }
+
+
+def _decode_state(st: dict, svc: str) -> str:
+    """One word for how a decoder is doing.
+
+    "No contacts" has several very different causes and an operator triaging a
+    box remotely needs to tell them apart:
+
+      active  - hearing traffic
+      quiet   - alive and reporting, hearing nothing
+      stale   - the unit is running but its status stopped updating; wedged
+      faulted - running but cannot write its own status
+      unknown - running, but reporting nothing at all: a pytak older than 7.4.0
+
+    `unknown` is NOT a fault, and getting that wrong matters. Status files only
+    exist from pytak 7.4.0, so on the fleet as it stands today EVERY gateway
+    would otherwise be reported as broken -- nine false alarms per box, which
+    trains operators to ignore the field entirely.
+    """
+    running = svc in ("active", "activating", "reloading")
+    if not st:
+        return "unknown" if running else "off"
+    if st.get("write_errors"):
+        return "faulted"
+    age = st.get("age_s")
+    if age is None or age > DECODE_STALE_S:
+        # Only a fault if the unit still claims to be running. A stopped
+        # gateway leaving a stale file behind is just a stopped gateway.
+        return "stale" if running else "off"
+    return "active" if (st.get("rate_min") or 0) > 0 else "quiet"
+
+
+def _decoding() -> list:
+    """Per-decoder activity for the beacon.
+
+    Deliberately COUNTS AND RATES ONLY. No UIDs, callsigns, MMSIs or positions:
+    this beacon leaves the box and lands on a server, and what a node has seen
+    is a different disclosure from how well it is working. The former belongs
+    in the recording, which stays local.
+    """
+    out = []
+    for app, label in DECODERS.items():
+        svc = _service_state(app)
+        st = _decoder_status(app)
+        state = _decode_state(st, svc)
+        if state == "off":
+            # A gateway that is not running is not news: on a normal box most
+            # sensors are deliberately off. Reporting them would bury the one
+            # that actually broke.
+            continue
+        row = {"source": label, "state": state}
+        if st:
+            if st.get("rate_min") is not None:
+                row["rate_min"] = f"{st['rate_min']:.1f}"
+            row["total"] = str(int(st.get("total") or 0))
+            if st.get("emitted"):
+                row["emitted"] = str(int(st["emitted"]))
+            if st.get("tracked") is not None:
+                row["tracked"] = str(int(st["tracked"]))
+            if st.get("age_s") is not None:
+                row["age_s"] = str(int(st["age_s"]))
+        out.append(row)
+    return out
+
+
+def _decoding_summary(rows: list) -> str:
+    """A one-line human summary for CoT remarks.
+
+    Remarks are read on a phone, in a hurry, so this leads with what is wrong.
+    A node with nothing to report says so rather than emitting an empty string
+    that reads as a truncated message.
+    """
+    if not rows:
+        return "decoders: none reporting"
+
+    active = [r for r in rows if r["state"] == "active"]
+    quiet = [r for r in rows if r["state"] == "quiet"]
+    unknown = [r for r in rows if r["state"] == "unknown"]
+    # Only these two are actionable. "unknown" means the gateway is running but
+    # predates status reporting, which is a thing to upgrade, not to alarm on.
+    bad = [r for r in rows if r["state"] in ("stale", "faulted")]
+
+    parts = []
+    if active:
+        parts.append(
+            "active " + ", ".join(f"{r['source']} {r.get('rate_min', '?')}/min" for r in active)
+        )
+    if quiet:
+        parts.append("quiet " + ",".join(r["source"] for r in quiet))
+    if unknown:
+        parts.append("no stats " + ",".join(r["source"] for r in unknown))
+    if bad:
+        # Named with their state, because "adsb stale" and "adsb faulted" call
+        # for different actions.
+        parts.append("PROBLEM " + ",".join(f"{r['source']}:{r['state']}" for r in bad))
+    return "decoders: " + "; ".join(parts)
+
+
 def main() -> int:
+    if "--remarks" in sys.argv:
+        # Just the human line, for the CoT <remarks> field.
+        print(_decoding_summary(_decoding()))
+        return 0
+
     hostname = socket.gethostname().split(".", 1)[0]
     load1, load5, load15 = _loadavg()
 
@@ -398,7 +560,7 @@ def main() -> int:
     # every box in the fleet advertised the same value regardless of what was
     # actually attached to it. A consumer trusting that field was worse off than
     # one ignoring it. Capabilities carry the real answer and are measured.
-    root = ET.Element("__aryaos", {"version": "4"})
+    root = ET.Element("__aryaos", {"version": "5"})
     ET.SubElement(
         root,
         "host",
@@ -439,6 +601,15 @@ def main() -> int:
     for cap in _capabilities():
         ET.SubElement(caps_el, "capability", cap)
     ET.SubElement(root, "roles", _roles())
+
+    # What this box is actually decoding, as opposed to what it advertises it
+    # could decode. Capabilities answer "is an AIS receiver fitted"; this
+    # answers "is it hearing any vessels".
+    rows = _decoding()
+    dec_el = ET.SubElement(root, "decoding", {"summary": _decoding_summary(rows)})
+    for row in rows:
+        ET.SubElement(dec_el, "source", row)
+
     print(ET.tostring(root, encoding="unicode", short_empty_elements=True))
     return 0
 
