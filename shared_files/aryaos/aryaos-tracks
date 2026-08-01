@@ -11,9 +11,9 @@
 # Recorded tracks are asset location history. They are deliberately NOT under
 # the web root, so nothing serves them; this tool and Cockpit are the ways in.
 #
-# Querying and export land with the analysis tooling; this covers the part an
-# operator needs before that exists, which is knowing what is on the card and
-# being able to get rid of it.
+# Prebuilt queries and export are delegated to aryaos-tracks-query, which needs
+# no packages beyond the standard library. Arbitrary SQL uses DuckDB when it is
+# installed.
 
 set -euo pipefail
 
@@ -26,6 +26,10 @@ Usage: aryaos-tracks <command> [options]
 Commands:
   status              Show how much is recorded, and the period covered.
   list                List archive files, oldest first.
+  query [NAME] [opts] Run a prebuilt query. Names: summary (default),
+                      top-contacts, coverage, dropouts. --sql for raw SQL.
+  export [--format csv|json] [--since 24h]
+                      Dump recorded rows.
   purge [--older-than DAYS] [--yes]
                       Delete recordings. With no --older-than, deletes ALL.
   path                Print the recording directory.
@@ -34,8 +38,14 @@ Recordings are also cleared by `aryaos-factory-reset` and `aryaos-zeroize`.
 
 Examples:
   aryaos-tracks status
+  aryaos-tracks query top-contacts --since 24h
+  aryaos-tracks query coverage --lat 37.6 --lon -122.4
+  aryaos-tracks query dropouts --since 7d
+  aryaos-tracks export --since 24h > tracks.csv
   aryaos-tracks purge --older-than 7
   aryaos-tracks purge --yes            # everything, no prompt
+
+The prebuilt queries need no extra packages. --sql needs DuckDB.
 EOF
 }
 
@@ -162,8 +172,16 @@ cmd_purge() {
 	echo "Purged ${#targets[@]} archive(s)."
 }
 
+QUERY_TOOL="${QUERY_TOOL:-/usr/local/sbin/aryaos-tracks-query}"
+[[ -x "${QUERY_TOOL}" ]] || QUERY_TOOL="$(dirname "$0")/aryaos-tracks-query"
+
 case "${1:-}" in
 	status) shift; cmd_status "$@" ;;
+	query|export)
+		# Delegated: the analysis is a Python job, and shelling out keeps the
+		# two concerns (managing recordings vs reading them) separate.
+		exec env TRACKS_DIR="${TRACKS_DIR}" "${QUERY_TOOL}" --dir "${TRACKS_DIR}" "$@"
+		;;
 	list) shift; cmd_list "$@" ;;
 	purge) shift; cmd_purge "$@" ;;
 	path) echo "${TRACKS_DIR}" ;;

@@ -226,6 +226,7 @@ done
 # is stored, over what period, and purge on demand. Recordings are also cleared
 # by aryaos-factory-reset and aryaos-zeroize.
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tracks" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tracks"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tracks-query" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tracks-query"
 
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-serial-assign" "${ROOTFS_DIR}/usr/local/sbin/aryaos-serial-assign"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-serial-assign.service" \

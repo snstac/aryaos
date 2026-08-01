@@ -1,0 +1,392 @@
+#!/usr/bin/env python3
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+"""Answer questions about locally recorded CoT tracks.
+
+Invoked by `aryaos-tracks query` and `aryaos-tracks export`.
+
+Why this does not require DuckDB
+--------------------------------
+The archives are compressed JSON lines, which Python reads with the standard
+library. The questions an operator actually asks -- what did I see, when, how
+much, and where were the gaps -- are aggregations over a bounded window, and
+doing them here means the tool works on every box the day it ships rather than
+only on boxes that got a DuckDB package.
+
+DuckDB is used when it is installed and the query is arbitrary SQL, which is
+where a columnar engine genuinely earns its place. Prebuilt queries never need
+it.
+
+Control traffic is excluded by default
+--------------------------------------
+pytak emits its own housekeeping events -- a `t-x-d-d` ping from each gateway,
+carrying lat/lon 0,0 -- and those are recorded because the recorder writes what
+was on the wire rather than deciding what counts. But 0,0 is the Gulf of
+Guinea, and left in, every "top contacts" answer has a phantom at Null Island
+sitting near the top. They are filtered here, at read time, where the decision
+is reversible with --include-control.
+"""
+
+import argparse
+import csv
+import glob
+import gzip
+import json
+import math
+import os
+import sys
+import time
+from collections import Counter, defaultdict
+from typing import Any, Dict, Iterator, List, Optional
+
+DEFAULT_DIR = os.environ.get("TRACKS_DIR", "/var/lib/charontak/tracks")
+
+# CoT types that are protocol housekeeping rather than an observed contact.
+CONTROL_PREFIXES = ("t-x-",)
+
+
+def _open_archive(path: str):
+    if path.endswith(".zst"):
+        try:
+            import zstandard
+        except ImportError:
+            return None
+        return zstandard.ZstdDecompressor().stream_reader(open(path, "rb"))
+    if path.endswith(".gz"):
+        return gzip.open(path, "rb")
+    return open(path, "rb")
+
+
+def archives(directory: str) -> List[str]:
+    """Archive files, oldest first (date=/hour= sorts chronologically)."""
+    return sorted(glob.glob(os.path.join(directory, "date=*", "hour=*", "events.*")))
+
+
+def read_rows(
+    directory: str,
+    since: Optional[float] = None,
+    include_control: bool = False,
+) -> Iterator[Dict[str, Any]]:
+    """Yield recorded rows, newest archives last.
+
+    A truncated final frame -- what a power cut leaves behind -- ends that one
+    file early rather than aborting the whole read. Losing the tail of one hour
+    should not cost you the other seven hundred.
+    """
+    for path in archives(directory):
+        handle = _open_archive(path)
+        if handle is None:
+            print(
+                f"warning: cannot read {os.path.basename(path)} "
+                "(install python3-zstandard)",
+                file=sys.stderr,
+            )
+            continue
+        try:
+            raw = handle.read()
+        except Exception:
+            continue
+        finally:
+            try:
+                handle.close()
+            except Exception:
+                pass
+
+        for line in raw.decode("utf-8", "replace").splitlines():
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue  # torn tail; the rest of the archive still counts
+            if since is not None and (row.get("recorded_at") or 0) < since:
+                continue
+            if not include_control:
+                t = row.get("cot_type") or ""
+                if t.startswith(CONTROL_PREFIXES):
+                    continue
+            yield row
+
+
+def _parse_since(spec: Optional[str]) -> Optional[float]:
+    """Accept 24h, 7d, 90m, or a plain number of hours."""
+    if not spec:
+        return None
+    spec = spec.strip().lower()
+    units = {"m": 60, "h": 3600, "d": 86400}
+    if spec[-1] in units:
+        try:
+            return time.time() - float(spec[:-1]) * units[spec[-1]]
+        except ValueError:
+            pass
+    try:
+        return time.time() - float(spec) * 3600
+    except ValueError:
+        raise SystemExit(f"cannot parse --since {spec!r} (try 24h, 7d, 90m)")
+
+
+def _haversine_km(lat1, lon1, lat2, lon2) -> float:
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = p2 - p1, math.radians(lon2 - lon1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * 6371.0088 * math.asin(math.sqrt(a))
+
+
+def _fmt_time(ts: Optional[float]) -> str:
+    if not ts:
+        return "-"
+    return time.strftime("%Y-%m-%d %H:%M", time.localtime(ts))
+
+
+# --- prebuilt queries ----------------------------------------------------
+
+
+def q_top_contacts(rows, args) -> None:
+    """Which contacts were seen most, and when."""
+    seen: Dict[str, Dict[str, Any]] = {}
+    for r in rows:
+        uid = r.get("uid")
+        if not uid:
+            continue
+        e = seen.setdefault(
+            uid,
+            {"n": 0, "first": None, "last": None, "callsign": None, "type": r.get("cot_type")},
+        )
+        e["n"] += 1
+        t = r.get("recorded_at")
+        if t:
+            e["first"] = t if e["first"] is None else min(e["first"], t)
+            e["last"] = t if e["last"] is None else max(e["last"], t)
+        if r.get("callsign"):
+            e["callsign"] = r["callsign"]
+
+    ranked = sorted(seen.items(), key=lambda kv: -kv[1]["n"])[: args.limit]
+    if not ranked:
+        print("No contacts recorded in that window.")
+        return
+    print(f"{'UID':<28} {'CALLSIGN':<10} {'TYPE':<12} {'N':>6}  FIRST SEEN       LAST SEEN")
+    for uid, e in ranked:
+        print(
+            f"{uid[:28]:<28} {(e['callsign'] or '-')[:10]:<10} "
+            f"{(e['type'] or '-')[:12]:<12} {e['n']:>6}  "
+            f"{_fmt_time(e['first']):<16} {_fmt_time(e['last'])}"
+        )
+
+
+def q_coverage(rows, args) -> None:
+    """How far out are we hearing things, and in which directions.
+
+    Needs a reference point. Without one, range is meaningless, so it asks
+    rather than quietly assuming the recordings' centroid -- a centroid of
+    traffic is not where the antenna is.
+    """
+    if args.lat is None or args.lon is None:
+        raise SystemExit(
+            "coverage needs --lat/--lon (the receiver's position).\n"
+            "Range from an assumed origin would be a made-up number."
+        )
+
+    ring = Counter()
+    sectors: Dict[int, float] = defaultdict(float)
+    n = 0
+    for r in rows:
+        lat, lon = r.get("lat"), r.get("lon")
+        if lat is None or lon is None or (lat == 0 and lon == 0):
+            continue
+        d = _haversine_km(args.lat, args.lon, lat, lon)
+        if d > 2000:
+            continue  # implausible for anything we receive; almost certainly bad data
+        n += 1
+        ring[int(d // 25) * 25] += 1
+        brg = int((math.degrees(math.atan2(lon - args.lon, lat - args.lat)) + 360) % 360)
+        sectors[brg // 45 * 45] = max(sectors[brg // 45 * 45], d)
+
+    if not n:
+        print("No positioned contacts in that window.")
+        return
+    print(f"Positioned contacts: {n}\n")
+    print("Range distribution:")
+    peak = max(ring.values())
+    for band in sorted(ring):
+        bar = "#" * max(1, int(40 * ring[band] / peak))
+        print(f"  {band:>4}-{band + 25:<4} km  {ring[band]:>7}  {bar}")
+    print("\nFurthest contact by bearing:")
+    for sector in range(0, 360, 45):
+        d = sectors.get(sector, 0.0)
+        print(f"  {sector:>3}-{sector + 45:<3}  {d:>7.1f} km" + ("" if d else "   (nothing heard)"))
+
+
+def q_dropouts(rows, args) -> None:
+    """Gaps in reception: when was nothing recorded at all.
+
+    This is the question behind "was the receiver working last night", and it
+    is answered from the recording itself rather than from a service being
+    'active', which stays green through an antenna falling off.
+    """
+    times = sorted(r["recorded_at"] for r in rows if r.get("recorded_at"))
+    if len(times) < 2:
+        print("Not enough recorded activity to find gaps.")
+        return
+
+    threshold = args.gap_minutes * 60
+    gaps = [
+        (times[i], times[i + 1], times[i + 1] - times[i])
+        for i in range(len(times) - 1)
+        if times[i + 1] - times[i] >= threshold
+    ]
+    span = times[-1] - times[0]
+    quiet = sum(g[2] for g in gaps)
+    print(f"Window   : {_fmt_time(times[0])} -> {_fmt_time(times[-1])} ({span / 3600:.1f}h)")
+    print(f"Events   : {len(times)}")
+    print(f"Gaps >{args.gap_minutes}m: {len(gaps)}, totalling {quiet / 3600:.1f}h "
+          f"({100 * quiet / span:.0f}% of the window)")
+    if gaps:
+        print("\nLongest gaps:")
+        for start, end, d in sorted(gaps, key=lambda g: -g[2])[: args.limit]:
+            print(f"  {_fmt_time(start)} -> {_fmt_time(end)}   {d / 60:>7.1f} min")
+
+
+def q_summary(rows, args) -> None:
+    """What is in the archive at all."""
+    n = 0
+    uids = set()
+    types = Counter()
+    positioned = 0
+    first = last = None
+    for r in rows:
+        n += 1
+        uids.add(r.get("uid"))
+        types[r.get("cot_type") or "-"] += 1
+        if r.get("lat") is not None and r.get("lon") is not None:
+            positioned += 1
+        t = r.get("recorded_at")
+        if t:
+            first = t if first is None else min(first, t)
+            last = t if last is None else max(last, t)
+
+    if not n:
+        print("No recorded events in that window.")
+        return
+    print(f"Events        : {n}")
+    print(f"Distinct UIDs : {len(uids)}")
+    print(f"Positioned    : {positioned} ({100 * positioned / n:.0f}%)")
+    print(f"Period        : {_fmt_time(first)} -> {_fmt_time(last)}")
+    print("\nBy CoT type:")
+    for t, c in types.most_common(12):
+        print(f"  {t:<16} {c:>8}")
+
+
+QUERIES = {
+    "summary": q_summary,
+    "top-contacts": q_top_contacts,
+    "coverage": q_coverage,
+    "dropouts": q_dropouts,
+}
+
+
+def cmd_query(args) -> None:
+    if args.sql:
+        return run_sql(args)
+    fn = QUERIES.get(args.name)
+    if fn is None:
+        raise SystemExit(
+            f"unknown query {args.name!r}. Available: {', '.join(sorted(QUERIES))}"
+        )
+    fn(read_rows(args.dir, _parse_since(args.since), args.include_control), args)
+
+
+def run_sql(args) -> None:
+    """Arbitrary SQL, when DuckDB is available."""
+    try:
+        import duckdb
+    except ImportError:
+        raise SystemExit(
+            "SQL needs DuckDB, which is not installed.\n"
+            "The prebuilt queries (summary, top-contacts, coverage, dropouts) "
+            "work without it."
+        )
+    rows = list(read_rows(args.dir, _parse_since(args.since), args.include_control))
+    if not rows:
+        raise SystemExit("No recorded events in that window.")
+    con = duckdb.connect()
+    con.register("events", rows) if hasattr(con, "register") else None
+    try:
+        con.execute("CREATE TABLE events AS SELECT * FROM (SELECT unnest(?) )", [rows])
+    except Exception:
+        # Simplest portable path: hand DuckDB newline JSON.
+        import tempfile
+
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            for r in rows:
+                fh.write(json.dumps(r, default=str) + "\n")
+            tmp = fh.name
+        con.execute(f"CREATE TABLE events AS SELECT * FROM read_json_auto('{tmp}')")
+        os.unlink(tmp)
+    for row in con.execute(args.sql).fetchall():
+        print("\t".join("" if v is None else str(v) for v in row))
+
+
+def cmd_export(args) -> None:
+    rows = read_rows(args.dir, _parse_since(args.since), args.include_control)
+    if args.format == "json":
+        for r in rows:
+            print(json.dumps(r, default=str))
+        return
+    writer = None
+    for r in rows:
+        if writer is None:
+            writer = csv.DictWriter(
+                sys.stdout,
+                fieldnames=[
+                    "recorded_at", "uid", "callsign", "cot_type", "how",
+                    "lat", "lon", "hae", "ce", "le", "time", "stale", "detail_json",
+                ],
+                extrasaction="ignore",
+            )
+            writer.writeheader()
+        writer.writerow(r)
+    if writer is None:
+        print("No recorded events in that window.", file=sys.stderr)
+
+
+def main() -> None:
+    p = argparse.ArgumentParser(
+        prog="aryaos-tracks-query",
+        description="Query locally recorded CoT tracks.",
+    )
+    p.add_argument("--dir", default=DEFAULT_DIR, help="recording directory")
+    p.add_argument("--since", help="window, e.g. 24h, 7d, 90m")
+    p.add_argument(
+        "--include-control",
+        action="store_true",
+        help="include pytak housekeeping events (t-x-*), which sit at 0,0",
+    )
+    p.add_argument("--limit", type=int, default=20)
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    q = sub.add_parser("query", help="run a prebuilt query, or SQL with --sql")
+    q.add_argument("name", nargs="?", default="summary",
+                   help=f"one of: {', '.join(sorted(QUERIES))}")
+    q.add_argument("--sql", help="arbitrary SQL over an `events` table (needs DuckDB)")
+    q.add_argument("--lat", type=float, help="receiver latitude (coverage)")
+    q.add_argument("--lon", type=float, help="receiver longitude (coverage)")
+    q.add_argument("--gap-minutes", type=float, default=15.0)
+    q.set_defaults(func=cmd_query)
+
+    e = sub.add_parser("export", help="dump rows as CSV or JSON")
+    e.add_argument("--format", choices=("csv", "json"), default="csv")
+    e.set_defaults(func=cmd_export)
+
+    args = p.parse_args()
+    if not os.path.isdir(args.dir):
+        raise SystemExit(f"No recordings: {args.dir} does not exist.")
+    args.func(args)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except BrokenPipeError:
+        os._exit(0)  # piping into head is normal
+    except KeyboardInterrupt:
+        sys.exit(130)
