@@ -99,7 +99,11 @@ fi
 echo "reset Node-RED credentials (rotate the password from the web console after reboot)"
 
 # 5. Recorded CoT tracks, backups, support bundles, update state.
-wipe /var/www/html/recorder /var/lib/aryaos/backups /var/lib/aryaos/support
+# /var/lib/charontak/tracks is where the charontak recorder writes. It is
+# NOT under the web root, so it must be named explicitly here -- recorded
+# tracks are asset location history and are exactly what zeroize is for.
+wipe /var/lib/charontak/tracks \
+	/var/www/html/recorder /var/lib/aryaos/backups /var/lib/aryaos/support
 rm -f /var/lib/aryaos/*.json 2>/dev/null || true
 echo "wiped recorded tracks and local bundles"
 

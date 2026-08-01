@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+# aryaos-tracks: inspect and purge locally recorded CoT tracks.
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+#
+# The charontak recorder writes compressed CoT archives under
+# /var/lib/charontak/tracks. This is the operator's handle on them: see how much
+# is stored and over what period, and delete some or all of it on demand.
+#
+# Recorded tracks are asset location history. They are deliberately NOT under
+# the web root, so nothing serves them; this tool and Cockpit are the ways in.
+#
+# Prebuilt queries and export are delegated to aryaos-tracks-query, which needs
+# no packages beyond the standard library. Arbitrary SQL uses DuckDB when it is
+# installed.
+
+set -euo pipefail
+
+TRACKS_DIR="${TRACKS_DIR:-/var/lib/charontak/tracks}"
+
+usage() {
+	cat <<'EOF'
+Usage: aryaos-tracks <command> [options]
+
+Commands:
+  status              Show how much is recorded, and the period covered.
+  list                List archive files, oldest first.
+  query [NAME] [opts] Run a prebuilt query. Names: summary (default),
+                      top-contacts, coverage, dropouts. --sql for raw SQL.
+  export [--format csv|json] [--since 24h]
+                      Dump recorded rows.
+  purge [--older-than DAYS] [--yes]
+                      Delete recordings. With no --older-than, deletes ALL.
+  path                Print the recording directory.
+
+Recordings are also cleared by `aryaos-factory-reset` and `aryaos-zeroize`.
+
+Examples:
+  aryaos-tracks status
+  aryaos-tracks query top-contacts --since 24h
+  aryaos-tracks query coverage --lat 37.6 --lon -122.4
+  aryaos-tracks query dropouts --since 7d
+  aryaos-tracks export --since 24h > tracks.csv
+  aryaos-tracks purge --older-than 7
+  aryaos-tracks purge --yes            # everything, no prompt
+
+The prebuilt queries need no extra packages. --sql needs DuckDB.
+EOF
+}
+
+human() {
+	local bytes="${1:-0}"
+	if command -v numfmt >/dev/null 2>&1; then
+		numfmt --to=iec --suffix=B "${bytes}" 2>/dev/null || echo "${bytes}B"
+	else
+		echo "${bytes}B"
+	fi
+}
+
+archives() {
+	[[ -d "${TRACKS_DIR}" ]] || return 0
+	# Sorted lexically, which is chronological: the date=/hour= stamps are
+	# zero-padded UTC.
+	find "${TRACKS_DIR}" -type f -name 'events.*' 2>/dev/null | sort
+}
+
+cmd_status() {
+	if [[ ! -d "${TRACKS_DIR}" ]]; then
+		echo "No recordings: ${TRACKS_DIR} does not exist."
+		echo "Recording is enabled per lane in /etc/charontak.ini (record = on|only)."
+		return 0
+	fi
+
+	local count total first last
+	count=$(archives | wc -l | tr -d ' ')
+	total=$(du -sb "${TRACKS_DIR}" 2>/dev/null | cut -f1 || echo 0)
+
+	echo "Recordings: ${TRACKS_DIR}"
+	echo "  archives : ${count}"
+	echo "  on disk  : $(human "${total}")"
+
+	if [[ "${count}" -gt 0 ]]; then
+		first=$(archives | head -1)
+		last=$(archives | tail -1)
+		echo "  oldest   : $(echo "${first}" | sed "s#${TRACKS_DIR}/##")"
+		echo "  newest   : $(echo "${last}" | sed "s#${TRACKS_DIR}/##")"
+	fi
+
+	# Free space matters here: the recorder stops below its reserve, and an
+	# operator looking at this page is usually asking why it stopped.
+	local avail
+	avail=$(df -B1 --output=avail "${TRACKS_DIR}" 2>/dev/null | tail -1 | tr -d ' ' || echo "")
+	[[ -n "${avail}" ]] && echo "  free     : $(human "${avail}")"
+
+	if [[ -r /run/charontak/status.json ]]; then
+		echo "  recorder : $(python3 - <<'PY' 2>/dev/null || echo "unknown"
+import json
+d = json.load(open("/run/charontak/status.json"))
+r = d.get("recorder") or {}
+print("recording" if r.get("recording") else (r.get("halted_reason") or "not recording"))
+PY
+)"
+	fi
+}
+
+cmd_list() {
+	local n=0
+	while IFS= read -r f; do
+		[[ -n "${f}" ]] || continue
+		printf "  %10s  %s\n" "$(human "$(stat -c %s "${f}" 2>/dev/null || echo 0)")" \
+			"${f#"${TRACKS_DIR}"/}"
+		n=$((n + 1))
+	done < <(archives)
+	[[ "${n}" -eq 0 ]] && echo "  (no recordings)"
+	return 0
+}
+
+cmd_purge() {
+	local older_than="" assume_yes=0
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+			--older-than) older_than="${2:-}"; shift 2 ;;
+			--yes|-y) assume_yes=1; shift ;;
+			*) echo "Unknown option: $1" >&2; exit 2 ;;
+		esac
+	done
+
+	[[ -d "${TRACKS_DIR}" ]] || { echo "No recordings to purge."; return 0; }
+
+	local -a targets=()
+	if [[ -n "${older_than}" ]]; then
+		[[ "${older_than}" =~ ^[0-9]+$ ]] || { echo "--older-than takes whole days" >&2; exit 2; }
+		while IFS= read -r f; do
+			[[ -n "${f}" ]] && targets+=("${f}")
+		done < <(find "${TRACKS_DIR}" -type f -name 'events.*' -mtime "+${older_than}" 2>/dev/null | sort)
+	else
+		while IFS= read -r f; do
+			[[ -n "${f}" ]] && targets+=("${f}")
+		done < <(archives)
+	fi
+
+	if [[ "${#targets[@]}" -eq 0 ]]; then
+		echo "Nothing matches; no recordings removed."
+		return 0
+	fi
+
+	local bytes=0 f
+	for f in "${targets[@]}"; do
+		bytes=$((bytes + $(stat -c %s "${f}" 2>/dev/null || echo 0)))
+	done
+
+	echo "About to delete ${#targets[@]} archive(s), $(human "${bytes}")."
+	[[ -z "${older_than}" ]] && echo "This is ALL recorded track history on this box."
+
+	if [[ "${assume_yes}" != "1" ]]; then
+		# Deleting movement history is not undoable and is occasionally the
+		# whole point, so it is confirmed rather than assumed.
+		read -r -p "Type PURGE to proceed: " answer
+		[[ "${answer}" == "PURGE" ]] || { echo "Aborted."; return 0; }
+	fi
+
+	for f in "${targets[@]}"; do
+		# Single pass + zero. Multi-pass is pointless on flash, and this
+		# matches what aryaos-zeroize does.
+		shred -u -z -n1 "${f}" 2>/dev/null || rm -f "${f}" 2>/dev/null || true
+	done
+
+	# Tidy the now-empty date=/hour= partitions.
+	find "${TRACKS_DIR}" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+
+	echo "Purged ${#targets[@]} archive(s)."
+}
+
+QUERY_TOOL="${QUERY_TOOL:-/usr/local/sbin/aryaos-tracks-query}"
+[[ -x "${QUERY_TOOL}" ]] || QUERY_TOOL="$(dirname "$0")/aryaos-tracks-query"
+
+case "${1:-}" in
+	status) shift; cmd_status "$@" ;;
+	query|export)
+		# Delegated: the analysis is a Python job, and shelling out keeps the
+		# two concerns (managing recordings vs reading them) separate.
+		exec env TRACKS_DIR="${TRACKS_DIR}" "${QUERY_TOOL}" --dir "${TRACKS_DIR}" "$@"
+		;;
+	list) shift; cmd_list "$@" ;;
+	purge) shift; cmd_purge "$@" ;;
+	path) echo "${TRACKS_DIR}" ;;
+	-h|--help|help|"") usage ;;
+	*) echo "Unknown command: $1" >&2; usage >&2; exit 2 ;;
+esac

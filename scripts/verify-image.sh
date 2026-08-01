@@ -141,6 +141,7 @@ require_path /usr/local/sbin/aryaos-firstboot.sh
 require_path /usr/local/sbin/aryaos-lincot-remarks
 require_path /usr/local/sbin/aryaos-cot-detail
 require_grep 'capabilities' /usr/local/sbin/aryaos-cot-detail "beacon advertises capabilities"
+require_grep 'decoding' /usr/local/sbin/aryaos-cot-detail "beacon reports decoder activity"
 # v4 dropped <product line="...">: it was baked in at build time and identical on
 # every box, so it looked authoritative while carrying no information.
 forbid_grep '"product"' /usr/local/sbin/aryaos-cot-detail "beacon does not advertise a product line"
