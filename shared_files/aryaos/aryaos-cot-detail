@@ -35,6 +35,7 @@ CAPABILITIES = {
     "dji": ("DJI DroneID", "dronecot", "AntSDR (DJI OcuSync)"),
     "wifi-rid": ("Wi-Fi Remote ID", "dronecot-wifi", "Wi-Fi monitor-mode adapter"),
     "ble-rid": ("Bluetooth Remote ID", "dronecot-ble", "onboard Bluetooth adapter"),
+    "acars": ("ACARS", "acarscot", "VHF SDR"),
     "rid": ("Remote ID receiver", "dronecot-dronescout", "BlueMark DroneScout (OpenDroneID)"),
     "sik": ("SiK Telemetry", "sikw00fcot", "SiK radio"),
     "sapient": ("SAPIENT C-UAS", "sapientcot", "SAPIENT sensor (BSI Flex 335)"),
