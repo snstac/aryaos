@@ -7,6 +7,33 @@ signal-collection tasks, with the box's own position on the map.
 AryaOS ships the driver and access layer for the LimeSDR; the collection/analysis application
 you point at it is deployment-specific.
 
+## What one LimeSDR can receive
+
+Everything below was measured on a dragonegg box with an outdoor antenna, not
+inferred from datasheets. **One SDR does one band at a time** — these are
+alternatives, not a simultaneous list.
+
+| Capability | Band | Verified result |
+|---|---|---|
+| **ADS-B** | 1090 MHz | 5,173 usable messages, 711 positions, 10 aircraft tracked |
+| **UAT** | 978 MHz | aircraft decoded (`N93214`, light aircraft) |
+| **AIS** | 162 MHz | 15 vessels, incl. USCG base stations at −27 dBFS |
+| **APRS** | 144.39 MHz | 20 packets from 7 stations, MIC-E position reports |
+| **ACARS** | 130–132 MHz | 5 aircraft, incl. routes (`KSFO KABQ`) and ARINC-622 |
+| **Band survey** | 100 kHz–3.5 GHz | occupancy, noise floor, carrier detection |
+
+!!! warning "The antenna decides, not the SDR"
+    This is the single most important fact about the laydown. The same box, same
+    software and same SDR produced **0 usable ADS-B messages on a short indoor
+    whip and 5,173 on an outdoor antenna**.
+
+    A 1090 MHz ADS-B antenna is nearly deaf at 131 MHz ACARS, and a VHF antenna
+    is poor at 1090. Budget for the antenna and its feedline before anything
+    else, and expect to swap it when you change bands.
+
+    Because the box **cannot see what antenna is attached**, SDR capabilities are
+    never auto-enabled — see [Device roles](../config/device-roles.md).
+
 ## What's on the image
 
 - **`soapysdr-module-lms7`** — the SoapySDR driver for LimeSDR / LMS7002M. Any SoapySDR client
@@ -88,6 +115,65 @@ the driver's stream MTU — 2040 samples on a Lime against a 65536-sample buffer
     repeated `reset SuperSpeed USB device` messages, then a fallback to high-speed, then a full
     disconnect requiring a reboot or re-plug to recover. If a capture stops without explanation,
     check `lsusb` and `dmesg` before suspecting the decoder. A powered hub is worth trying.
+
+### As the ACARS receiver
+
+ACARS is the VHF datalink airliners use for operational traffic: flight plans,
+position and weather reports, engine data, gate requests and crew messages.
+
+```bash
+sudo aryaos-role caps <existing caps> acars
+```
+
+That enables two units — `acarsdec` demodulates VHF, `acarscot` turns its JSON
+into CoT — mirroring the `readsb`/`adsbcot` split. Frequencies live in
+`/etc/default/acarsdec`; the defaults are the common US channels.
+
+**ARINC-622 is decoded** from `acarsdec 4.6-snstac2` onward, via
+[libacars](https://github.com/snstac/libacars): FANS-1/A **ADS-C** and **CPDLC**,
+MIAM, OHMA and Media Advisory. Verified on live traffic:
+
+```
+Aircraft reg: B-KPD   Flight id: CX0880
+/OAKODYA.DIS..B-KPD804741
+ADS-C disconnect request:
+```
+
+Cathay Pacific talking to Oakland Oceanic. Without libacars that line is an
+opaque string.
+
+!!! note "Most ACARS messages have no position"
+    Measured over San Francisco: **0 parseable positions in 48 messages**. The
+    payloads were mostly airline engine and maintenance blobs.
+
+    So `acarscot` emits nothing to the map for the majority of traffic, and that
+    is correct rather than broken — it refuses to invent a position. What ACARS
+    reliably adds is the operational context ADS-B cannot give you: tail number,
+    flight ID and route.
+
+### Audio-band decoders (APRS, pagers)
+
+`aryaos-sdr-fm` demodulates NBFM from any SoapySDR receiver and writes PCM to
+stdout, which is what `direwolf` and `multimon-ng` consume. Without it those
+decoders only work with an RTL dongle, since their usual front end is `rtl_fm`.
+
+```bash
+# APRS
+aryaos-sdr-fm --freq 144.390M --antenna LNAW | direwolf -r 48000 -b 16 -n 1 -
+
+# POCSAG pagers
+aryaos-sdr-fm --freq 152.0075M | multimon-ng -t raw -a POCSAG1200 -
+
+# listen (NOAA weather radio)
+aryaos-sdr-fm --freq 162.400M | aplay -f S16_LE -r 48000 -c 1
+```
+
+`--mode am` handles aviation voice and other AM signals; it is **experimental**,
+with a documented level-settling caveat. De-emphasis is off by default because
+it distorts AFSK tone balance — use it only when a human is listening.
+
+Tune the output level against the decoder, not by ear: `direwolf` prints
+`audio level = N` per packet and wants roughly 50.
 
 ### Remote access (SoapyRemote) {#remote-access-soapyremote}
 
