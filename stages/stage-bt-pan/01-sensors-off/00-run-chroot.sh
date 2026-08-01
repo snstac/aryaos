@@ -32,6 +32,8 @@ dronecot-ble
 dronecot-dronescout
 sikw00fcot
 sapientcot
+acarsdec
+acarscot
 "
 
 for unit in ${SENSOR_UNITS}; do

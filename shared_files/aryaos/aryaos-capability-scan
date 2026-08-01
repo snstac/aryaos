@@ -48,6 +48,7 @@ CONTENTION_PRIORITY = ("adsb", "ais")
 CAP_UNITS = {
     "adsb": "adsbcot",
     "ais": "aiscot",
+    "acars": "acarscot",
     "dji": "dronecot",
     "wifi-rid": "dronecot-wifi",
     "ble-rid": "dronecot-ble",
@@ -390,6 +391,33 @@ def scan():
         "deferred_reason": (
             "present on every box, so it is never auto-enabled; turn it on with "
             "`aryaos-role caps ... ble-rid`"
+        ),
+    }
+
+    # ACARS: needs an SDR, and needs it pointed at VHF.
+    #
+    # manual_only, and the reason is the antenna rather than the radio. ACARS
+    # lives around 131 MHz; ADS-B is at 1090 and AIS at 162. A box can see which
+    # SDRs are attached but has NO WAY to know what antenna is on the end of the
+    # coax, and the antenna decides everything here. Measured on a dragonegg box
+    # this session: identical software and SDR went from 0 usable ADS-B messages
+    # on a short indoor whip to 5173 on an outdoor antenna, and the same antenna
+    # that hears 131 MHz well is the wrong one for 1090.
+    #
+    # So auto-enabling ACARS because an SDR exists would, on most boxes, start a
+    # decoder that hears nothing and claim the capability while doing it. It is
+    # reported as available so an operator can find it, and waits to be asked.
+    caps["acars"] = {
+        "available": bool(sdrs),
+        "evidence": (
+            f"{len(sdrs)} SDR(s): " + _labels(sdrs) if sdrs else "no SDR detected"
+        ),
+        "manual_only": True,
+        "deferred_reason": (
+            "ACARS is VHF (~131 MHz) and needs an antenna to match; a 1090 MHz "
+            "ADS-B antenna will hear almost nothing. The box cannot detect which "
+            "antenna is attached, so enable it deliberately with "
+            "`aryaos-role caps ... acars`."
         ),
     }
 

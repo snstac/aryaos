@@ -131,3 +131,64 @@ class AdsbCapabilityTestCase(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AcarsCapabilityTestCase(unittest.TestCase):
+    """The `acars` capability wiring.
+
+    ACARS must never auto-apply. It is VHF (~131 MHz) and the box can see which
+    SDRs are attached but NOT what antenna is on the end of the coax -- and the
+    antenna decides everything. Measured this session on a dragonegg box:
+    identical software and SDR went from 0 usable ADS-B messages on a short
+    indoor whip to 5173 on an outdoor antenna. Auto-enabling ACARS because an
+    SDR exists would start a decoder that hears nothing while claiming the
+    capability.
+    """
+
+    def _scan_acars(self, sdrs):
+        """Run the acars block plus the auto_apply recomputation together.
+
+        Run in isolation this passes while the shipped scanner does the
+        opposite: a later loop recomputes auto_apply from manual_only, and an
+        earlier fix that set auto_apply directly was silently overwritten a few
+        lines later. That bug reached hardware.
+        """
+        caps = {}
+        caps["acars"] = {
+            "available": bool(sdrs),
+            "evidence": f"{len(sdrs)} SDR(s)" if sdrs else "no SDR detected",
+            "manual_only": True,
+            "deferred_reason": "ACARS is VHF and needs a matching antenna",
+        }
+        for cap in caps.values():
+            cap["auto_apply"] = bool(cap.get("available")) and not cap.get("manual_only")
+        return caps["acars"]
+
+    def test_available_when_an_sdr_is_present(self):
+        cap = self._scan_acars([{"driver": "lime"}])
+        self.assertTrue(cap["available"])
+
+    def test_never_auto_applies_even_with_an_sdr(self):
+        cap = self._scan_acars([{"driver": "lime"}])
+        self.assertFalse(cap["auto_apply"], "acars must never auto-enable")
+
+    def test_unavailable_with_no_sdr(self):
+        cap = self._scan_acars([])
+        self.assertFalse(cap["available"])
+        self.assertFalse(cap["auto_apply"])
+
+    def test_deferred_reason_names_the_antenna(self):
+        """The operator has to know WHY, or they will just force it on."""
+        cap = self._scan_acars([{"driver": "lime"}])
+        self.assertIn("antenna", cap["deferred_reason"].lower())
+
+    def test_shipped_scanner_declares_acars_manual_only(self):
+        """Guards the real file, not this reconstruction."""
+        import pathlib
+
+        src = pathlib.Path(__file__).parent.parent / "shared_files/aryaos/aryaos-capability-scan"
+        text = src.read_text()
+        idx = text.find('caps["acars"]')
+        self.assertGreater(idx, 0, "acars capability block missing from the scanner")
+        block = text[idx : idx + 900]
+        self.assertIn('"manual_only": True', block)

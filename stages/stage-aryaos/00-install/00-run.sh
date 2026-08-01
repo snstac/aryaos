@@ -175,6 +175,15 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-zeroize.service" \
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-spectrum-survey" \
 	"${ROOTFS_DIR}/usr/local/sbin/aryaos-spectrum-survey"
 
+## ACARS decoder unit. acarsdec's own package ships only the binary -- upstream
+# has no service -- so the unit and its defaults come from here, mirroring the
+# readsb/adsbcot split where the decoder and the CoT gateway are separate units.
+# Installed disabled; the `acars` capability turns both on together.
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/acarsdec.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/acarsdec.service"
+install -v -m 0644 "${SHARED_FILES}/aryaos/acarsdec.default" \
+	"${ROOTFS_DIR}/etc/default/acarsdec"
+
 ## NBFM demodulator: the missing front end for every audio-domain decoder on a
 # non-RTL radio. direwolf (APRS) and multimon-ng (POCSAG/FLEX/AFSK) consume PCM,
 # and the usual source is rtl_fm, which only speaks to RTL dongles. Debian

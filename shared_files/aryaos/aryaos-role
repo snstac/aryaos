@@ -20,7 +20,7 @@
 #                        it supports; --apply enables them.
 #   set ROLE             Back-compat: apply a legacy role as a capability preset.
 #
-# Capability keys: adsb ais dji wifi-rid ble-rid rid sik sapient
+# Capability keys: adsb ais acars dji wifi-rid ble-rid rid sik sapient
 # The ADS-B decoder unit follows ARYAOS_ADSB_DECODER (readsb | dump1090_fa).
 # Units missing from the image are skipped, not errors.
 #
@@ -36,7 +36,7 @@ SITE_CONFIG="/etc/aryaos/aryaos-config.txt"
 # derived from anything, so every box claimed the same one no matter what was
 # attached. Capabilities are what differ between boxes, and unlike the product
 # they are measured -- see aryaos-capability-scan.
-CAPS="adsb ais dji wifi-rid ble-rid rid sik sapient"
+CAPS="adsb ais acars dji wifi-rid ble-rid rid sik sapient"
 LEGACY_ROLES="multi air maritime cuas relay"
 
 usage() {
@@ -83,6 +83,9 @@ cap_units() {
 	case "$1" in
 		adsb)     echo "$(adsb_decoder_unit) dump978-fa adsbcot gdltak" ;;
 		ais)      echo "ais-catcher aiscot" ;;
+		# Decoder and gateway, same split as readsb/adsbcot: acarsdec
+		# demodulates VHF, acarscot turns its JSON into CoT.
+		acars)    echo "acarsdec acarscot" ;;
 		dji)      echo "dronecot" ;;
 		wifi-rid) echo "dronecot-wifi" ;;
 		ble-rid)  echo "dronecot-ble" ;;
@@ -98,6 +101,7 @@ cap_label() {
 	case "$1" in
 		adsb)     echo "ADS-B / UAT" ;;
 		ais)      echo "AIS" ;;
+		acars)    echo "ACARS" ;;
 		dji)      echo "DJI DroneID" ;;
 		wifi-rid) echo "Wi-Fi Remote ID" ;;
 		ble-rid)  echo "Bluetooth Remote ID" ;;

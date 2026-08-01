@@ -355,7 +355,8 @@ forbid_enabled() {
 }
 for _u in readsb.service dump978-fa.service adsbcot.service aiscot.service \
 	dronecot.service sikw00fcot.service ais-catcher.service sapientcot.service \
-	dronecot-wifi.service dronecot-ble.service dronecot-dronescout.service; do
+	dronecot-wifi.service dronecot-ble.service dronecot-dronescout.service \
+	acarsdec.service acarscot.service; do
 	forbid_enabled "${_u}"
 done
 require_grep '^ARYAOS_CAPABILITIES=""$' /etc/aryaos/aryaos-config.txt "no sensor capabilities enabled out of the box"

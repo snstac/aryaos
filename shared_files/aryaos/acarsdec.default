@@ -1,0 +1,26 @@
+# /etc/default/acarsdec — AryaOS runtime configuration for the ACARS decoder.
+#
+# acarsdec decodes ACARS from VHF and hands JSON to acarscot, which turns it
+# into CoT. Both units belong to the `acars` capability; enable with:
+#   sudo aryaos-role caps ... acars
+#
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+
+# SDR selection. Any SoapySDR device works; a LimeSDR Mini v2 is verified.
+# For an RTL dongle use: ACARSDEC_DEVICE_ARGS="--rtlsdr 0 -g 40"
+ACARSDEC_DEVICE_ARGS="--soapysdr driver=lime -a LNAW -g 40"
+
+# Where acarscot listens. Loopback: this feed is not for the network.
+ACARSDEC_JSON_HOST=127.0.0.1
+ACARSDEC_JSON_PORT=5555
+
+# Channels to decode, in MHz. These are the common US ACARS frequencies and
+# they fit inside one tuner bandwidth. acarsdec handles up to 8 at once.
+# Europe/other regions differ -- check what is used where the box is deployed.
+ACARSDEC_FREQS="130.025 130.425 130.450 131.125 131.550 131.725"
+
+# ANTENNA MATTERS MORE THAN ANYTHING HERE. ACARS is VHF (~131 MHz), so a
+# 1090 MHz ADS-B antenna will hear almost nothing. Measured on a dragonegg box:
+# swapping a short indoor whip for an outdoor antenna took ADS-B from 0 usable
+# messages to 5173. The same applies here, in the opposite band.

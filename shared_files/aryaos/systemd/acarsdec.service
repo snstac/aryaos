@@ -1,0 +1,29 @@
+[Unit]
+Description=acarsdec: ACARS VHF decoder (feeds acarscot)
+Documentation=https://github.com/snstac/acarsdec
+Wants=network.target
+After=network.target
+# The gateway is the consumer, so it may start first and wait; acarsdec does
+# not depend on it. Ordering only.
+Before=acarscot.service
+
+[Service]
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+EnvironmentFile=/etc/default/acarsdec
+ExecStart=/bin/sh -c '/usr/bin/acarsdec $ACARSDEC_DEVICE_ARGS \
+  --output json:udp:host=$ACARSDEC_JSON_HOST,port=$ACARSDEC_JSON_PORT \
+  $ACARSDEC_FREQS'
+SyslogIdentifier=acarsdec
+Type=simple
+Restart=always
+RestartSec=20
+# Cap the restarts. A decoder whose SDR is absent or held by another service
+# will fail instantly and forever; without a limit it burns CPU retrying and
+# buries the journal. readsb crash-looping this way once took adsbcot and
+# gdltak down with it and left a box in `degraded` with no clue why.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+Nice=-1
+
+[Install]
+WantedBy=default.target
