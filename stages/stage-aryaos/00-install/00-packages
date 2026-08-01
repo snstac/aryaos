@@ -4,3 +4,4 @@ firewalld
 unattended-upgrades
 chrony
 uhubctl
+python3-zstandard
