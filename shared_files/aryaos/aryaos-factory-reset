@@ -105,10 +105,18 @@ sed -i -E '/^127\.0\.[01]\.1[[:space:]]+aryaos(-[0-9a-f]{4})?([[:space:]]|$)/d;/
 grep -qE '^127\.0\.1\.1[[:space:]]+aryaos([[:space:]]|$)' /etc/hosts 2>/dev/null || printf '127.0.1.1\taryaos\n' >> /etc/hosts
 echo "cleared device identity (regenerates on next boot)"
 
-# 5. State: drop backups/support bundles/update state that reference this identity.
+# 5. Recorded tracks. A reset that leaves an asset's movement history on the
+# card has not reset the box in the sense an operator means.
+if [[ -d /var/lib/charontak/tracks ]]; then
+	find /var/lib/charontak/tracks -type f -exec shred -u -z -n1 {} + 2>/dev/null || \
+		find /var/lib/charontak/tracks -type f -delete 2>/dev/null || true
+	echo "removed recorded tracks"
+fi
+
+# 6. State: drop backups/support bundles/update state that reference this identity.
 rm -f /var/lib/aryaos/update-*.json /var/lib/aryaos/support-bundle.json /var/lib/aryaos/config-backup.json 2>/dev/null || true
 
-# 6. Optionally wipe saved networks.
+# 7. Optionally wipe saved networks.
 if [[ "${WIPE_NETWORK}" == "1" ]]; then
 	find /etc/NetworkManager/system-connections -type f ! -name 'aryaos-antsdr.nmconnection' -delete 2>/dev/null || true
 	rm -f /etc/comitup.json 2>/dev/null || true
