@@ -123,6 +123,15 @@
     force: "{{ aryaos_force_gpsd_default | default(false) | bool }}"
   notify: Restart gpsd
 
+- name: Match BlueZ configuration-directory mode to the packaged directory
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/systemd/bluetooth.service.d/aryaos-directory-mode.conf"
+    dest: /etc/systemd/system/bluetooth.service.d/aryaos-directory-mode.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
 - name: Ensure www-data can use gpspipe (gpsd socket group)
   ansible.builtin.user:
     name: www-data
