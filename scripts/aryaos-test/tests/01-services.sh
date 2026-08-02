@@ -15,10 +15,9 @@ else
 	ok "no failed systemd units"
 fi
 
-if test_profile uas; then
-	CORE_SERVICES=(lighttpd gpsd)
-else
-	CORE_SERVICES=(readsb adsbcot lighttpd gpsd)
+CORE_SERVICES=(lighttpd gpsd)
+if capability_enabled adsb; then
+	CORE_SERVICES=(readsb adsbcot "${CORE_SERVICES[@]}")
 fi
 
 for svc in "${CORE_SERVICES[@]}"; do
@@ -66,6 +65,8 @@ for svc in charontak lincot adsbcot aiscot dronecot sikw00fcot; do
 	fi
 	if unit_active "${svc}"; then
 		ok "TAK gateway ${svc} active"
+	elif [[ "${svc}" == "adsbcot" ]] && ! capability_enabled adsb; then
+		skip "TAK gateway ${svc} inactive (adsb capability disabled)"
 	elif test_profile uas && [[ "${svc}" == "adsbcot" ]]; then
 		skip "TAK gateway ${svc} inactive on UAS profile"
 	elif ! test_profile uas && [[ "${svc}" == "dronecot" ]]; then

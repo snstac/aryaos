@@ -31,6 +31,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 import glob
@@ -156,6 +157,38 @@ def probe_esp32_serial():
     return ports
 
 
+def _open_nonblocking_with_timeout(port, seconds=1.0):
+    """Open a serial device without letting a wedged USB tty block discovery."""
+
+    def timed_out(_signum, _frame):
+        raise TimeoutError
+
+    previous = signal.signal(signal.SIGALRM, timed_out)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        return os.open(port, os.O_RDONLY | os.O_NONBLOCK | os.O_NOCTTY)
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
+def _close_with_timeout(fd, seconds=1.0):
+    """Close a USB tty without hanging discovery in a driver drain path."""
+
+    def timed_out(_signum, _frame):
+        raise TimeoutError
+
+    previous = signal.signal(signal.SIGALRM, timed_out)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        os.close(fd)
+    except (OSError, TimeoutError):
+        pass
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
 def probe_mavlink(port, seconds=3):
     """Does this port emit MAVLink? Distinguishes a DS101 from a bare ESP32.
 
@@ -167,12 +200,12 @@ def probe_mavlink(port, seconds=3):
     if _run(["/usr/bin/fuser", port], timeout=3):
         return None  # in use — don't disturb a running dronecot
     try:
-        import selectors
-
-        fd = os.open(port, os.O_RDONLY | os.O_NONBLOCK)
-    except OSError:
+        fd = _open_nonblocking_with_timeout(port)
+    except (OSError, TimeoutError):
         return None
     try:
+        import selectors
+
         sel = selectors.DefaultSelector()
         sel.register(fd, selectors.EVENT_READ)
         import time
@@ -191,7 +224,10 @@ def probe_mavlink(port, seconds=3):
         # MAVLink v1 starts 0xFE, v2 starts 0xFD.
         return bool(buf) and (b"\xfd" in buf or b"\xfe" in buf)
     finally:
-        os.close(fd)
+        # The cdc_acm USB JTAG tty used by some ESP32-S3 receivers can block in
+        # close() as root even though O_NONBLOCK made open() immediate. Bound the
+        # close too; otherwise one receiver freezes every root hardware scan.
+        _close_with_timeout(fd)
 
 
 def probe_antsdr():
