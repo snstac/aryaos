@@ -93,14 +93,14 @@ def _config(key):
 
 
 def probe_sdrs():
-    """Enumerate SDRs via aryaos-sdr (SoapySDR/rtl_test under the hood).
+    """Enumerate local SDRs without waiting for network discovery/Avahi.
 
-    Generous timeout on purpose: SoapySDRUtil --find probes for NETWORK SDRs and
-    blocks activating Avahi over dbus. Early in boot that activation is slow, and
-    a 15s budget expired before the LimeSDR was ever reported — the box then
-    latched "no hardware" for good. Measured ~2s once avahi is up.
+    A generic Soapy ``--find`` loads its network factories. Before Avahi starts,
+    that took 60 seconds per scan and held multi-user.target for 106 seconds on a
+    bare node. ``list-local`` asks only the USB receiver families AryaOS knows how
+    to configure; the interactive ``aryaos-sdr list`` remains universal.
     """
-    out = _run(["/usr/local/sbin/aryaos-sdr", "list"], timeout=60)
+    out = _run(["/usr/local/sbin/aryaos-sdr", "list-local"], timeout=20)
     try:
         return json.loads(out).get("devices", []) if out else []
     except ValueError:

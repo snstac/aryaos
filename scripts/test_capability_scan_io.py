@@ -6,6 +6,7 @@ import importlib.util
 import os
 import time
 import unittest
+from unittest import mock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOOL = os.path.join(HERE, "..", "shared_files", "aryaos", "aryaos-capability-scan")
@@ -29,6 +30,22 @@ class SerialIoTestCase(unittest.TestCase):
         finally:
             scanner.os.close = original_close
         self.assertLess(time.monotonic() - started, 0.5)
+
+
+class SdrProbeTestCase(unittest.TestCase):
+    def test_probe_uses_bounded_local_enumeration(self):
+        payload = '{"devices":[{"driver":"lime","serial":"0009072C00482223"}]}'
+        with mock.patch.object(scanner, "_run", return_value=payload) as run:
+            devices = scanner.probe_sdrs()
+
+        run.assert_called_once_with(
+            ["/usr/local/sbin/aryaos-sdr", "list-local"], timeout=20
+        )
+        self.assertEqual(devices[0]["driver"], "lime")
+
+    def test_probe_ignores_invalid_enumerator_output(self):
+        with mock.patch.object(scanner, "_run", return_value="not-json"):
+            self.assertEqual(scanner.probe_sdrs(), [])
 
 
 if __name__ == "__main__":
