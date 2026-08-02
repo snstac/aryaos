@@ -23,7 +23,31 @@ After=network.target
 [Service]
 User=ais-catcher
 # FIXME Change ExecStart to allow system overrides via /etc/default/ais-catcher
-ExecStart=/usr/bin/AIS-catcher -u ${UDP_DEST_ADDR} ${UDP_DEST_PORT} -e ${SERIAL_BAUDRATE} ${SERIAL_PORT} -N ${HTTP_PORT}
+#
+# `-X off` is NOT optional, and is deliberately hardcoded rather than driven from
+# /etc/default/ais-catcher.
+#
+# AIS-catcher can share received traffic with the public aiscatcher.org community
+# feed. In this build (0.68) that is ON BY DEFAULT: the binary embeds the hub
+# address 185.77.96.227:4242, and its own hint string says "Currently ON by
+# default" -- while its `-h` output claims "(default: off)". The two disagree, and
+# a deployed AryaOS box was observed holding an active outbound connection to
+# exactly that address while passing no -X flag at all. For a tactical receiver
+# that is a position disclosure: it tells a public website where this unit is and
+# what it can hear.
+#
+# Passing `-X off` explicitly makes us independent of whichever default the
+# packaged build happens to carry, and it is the only form that yields a positive
+# confirmation in the log ("Community feed sharing disabled.").
+#
+# Do NOT rewrite this as `-X ${SOME_VAR}`: systemd drops an unset variable, which
+# would leave a BARE `-X` on the command line -- and a bare `-X` does NOT disable
+# sharing (verified: prints nothing, behaves like the default). An empty variable
+# would therefore silently restore the leak.
+#
+# To deliberately opt IN to community sharing, override ExecStart with a drop-in
+# (`systemctl edit ais-catcher`) rather than editing this line.
+ExecStart=/usr/bin/AIS-catcher -X off -u ${UDP_DEST_ADDR} ${UDP_DEST_PORT} -e ${SERIAL_BAUDRATE} ${SERIAL_PORT} -N ${HTTP_PORT}
 RuntimeDirectory=ais-catcher
 SyslogIdentifier=ais-catcher
 EnvironmentFile=/etc/default/ais-catcher
