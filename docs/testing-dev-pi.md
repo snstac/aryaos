@@ -53,6 +53,7 @@ scripts/aryaos-test/
     09-security.sh     # firewall, SSH, updates, swap, TLS
     10-storage.sh      # root superblock, kernel media errors, boot PARTUUID
     11-wifi-rid.sh     # enabled Wi-Fi RID adapter/service/data-path health
+    12-gutcheck.sh     # enabled capability API/dashboard/auth/runtime health
 ```
 
 Expectations live in **`expectations.yml`**; update that file when image defaults change.
