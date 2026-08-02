@@ -192,3 +192,18 @@ class AcarsCapabilityTestCase(unittest.TestCase):
         self.assertGreater(idx, 0, "acars capability block missing from the scanner")
         block = text[idx : idx + 900]
         self.assertIn('"manual_only": True', block)
+
+    def test_role_manager_controls_both_acars_units(self):
+        """Persisting `acars` must also enable its decoder and gateway."""
+        import pathlib
+        import re
+
+        src = pathlib.Path(__file__).parent.parent / "shared_files/aryaos/aryaos-role"
+        text = src.read_text()
+        match = re.search(
+            r"all_managed_units\(\) \{(?P<body>.*?)\n\}", text, re.DOTALL
+        )
+        self.assertIsNotNone(match, "all_managed_units function missing")
+        managed = match.group("body")
+        self.assertIn("acarsdec", managed)
+        self.assertIn("acarscot", managed)

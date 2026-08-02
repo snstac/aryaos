@@ -125,7 +125,7 @@ role_caps() {
 }
 
 all_managed_units() {
-	echo "readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot \
+	echo "readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot acarsdec acarscot \
 		dronecot dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot"
 }
 
