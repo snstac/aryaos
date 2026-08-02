@@ -4,6 +4,7 @@
 import importlib.machinery
 import importlib.util
 from pathlib import Path
+import tempfile
 import unittest
 
 
@@ -55,6 +56,23 @@ class BurninSummaryTestCase(unittest.TestCase):
         )["hosts"]["192.0.2.1"]
 
         self.assertNotIn("optional-service", host["service_nonactive"])
+
+    def test_reads_existing_jsonl_and_skips_blank_lines(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "samples.jsonl"
+            path.write_text('{"host":"one","ok":false}\n\n')
+
+            self.assertEqual(
+                burnin.read_samples(path), [{"host": "one", "ok": False}]
+            )
+
+    def test_existing_jsonl_error_names_line(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "samples.jsonl"
+            path.write_text('{"host":"one"}\nnot-json\n')
+
+            with self.assertRaisesRegex(ValueError, r"samples\.jsonl:2"):
+                burnin.read_samples(path)
 
 
 if __name__ == "__main__":

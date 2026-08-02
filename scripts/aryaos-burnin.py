@@ -244,6 +244,20 @@ def summarize(samples):
     return summary
 
 
+def read_samples(path):
+    """Read a sampler JSONL artifact for repeatable post-run analysis."""
+    samples = []
+    with Path(path).open(encoding="utf-8") as stream:
+        for line_number, line in enumerate(stream, 1):
+            if not line.strip():
+                continue
+            try:
+                samples.append(json.loads(line))
+            except ValueError as exc:
+                raise ValueError(f"{path}:{line_number}: invalid JSON: {exc}") from exc
+    return samples
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--hosts", nargs="+", default=["192.168.0.13", "192.168.0.44", "192.168.0.60", "192.168.0.199"])
@@ -255,7 +269,38 @@ def main():
     parser.add_argument("--interval", type=float, default=60.0)
     parser.add_argument("--probe-timeout", type=float, default=30.0)
     parser.add_argument("--output")
+    parser.add_argument(
+        "--summarize-existing",
+        metavar="SAMPLES_JSONL",
+        help="regenerate a summary from an existing raw samples file and exit",
+    )
+    parser.add_argument(
+        "--summary-output",
+        metavar="SUMMARY_JSON",
+        help="summary destination for --summarize-existing (default: stdout only)",
+    )
     args = parser.parse_args()
+    if args.summarize_existing:
+        if args.output:
+            parser.error("--output cannot be combined with --summarize-existing")
+        samples = read_samples(args.summarize_existing)
+        result = summarize(samples)
+        result["last_captured_utc"] = next(
+            (
+                sample.get("captured_utc")
+                for sample in reversed(samples)
+                if sample.get("captured_utc")
+            ),
+            None,
+        )
+        result["summarized_utc"] = dt.datetime.now(dt.timezone.utc).isoformat()
+        rendered = json.dumps(result, indent=2) + "\n"
+        if args.summary_output:
+            Path(args.summary_output).write_text(rendered)
+        print(rendered, end="")
+        return 0
+    if args.summary_output:
+        parser.error("--summary-output requires --summarize-existing")
     duration = args.duration_seconds if args.duration_seconds is not None else args.duration_hours * 3600
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     output = Path(args.output or f".aryaos-burnin/{stamp}")
