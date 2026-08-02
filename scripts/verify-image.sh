@@ -521,6 +521,9 @@ else
 	ok "aryaos-hotspot zone withholds ssh/node-red/mesh from onboarding clients"
 fi
 require_grep '(aryaos-hotspot|--change-interface)' /usr/local/sbin/comitup-callback.sh "comitup-callback assigns wlan0 to the hotspot zone"
+require_grep '^bind-dynamic$' /usr/share/comitup/dns/dns-hotspot.conf "WiFi hotspot DHCP coexists with Bluetooth PAN DHCP"
+require_grep '^bind-dynamic$' /usr/share/comitup/dns/dns-connected.conf "WiFi connecting DHCP coexists with Bluetooth PAN DHCP"
+require_grep 'dhcp6-change\|reapply' /etc/NetworkManager/dispatcher.d/99-aryaos-dispatcher "dispatcher accepts NetworkManager reapply events"
 # Bluetooth PAN (pan0) is the other onboarding radio — it must be confined to the
 # hotspot zone too (statically in the zone XML + at bridge-up in the bt-pan NAP).
 require_grep '<interface name="pan0"/>' /etc/firewalld/zones/aryaos-hotspot.xml "pan0 statically bound to hotspot zone"

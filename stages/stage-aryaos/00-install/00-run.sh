@@ -445,6 +445,14 @@ install -v -m 755 "${SHARED_FILES}/aryaos/comitup-callback.sh" "${ROOTFS_DIR}/us
 install -v -m 644 "${SHARED_FILES}/aryaos/comitup.service" "${ROOTFS_DIR}/lib/systemd/system/"
 install -v -m 644 "${SHARED_FILES}/aryaos/comitup.json" "${ROOTFS_DIR}/var/lib/comitup/"
 install -v -m 755 "${SHARED_FILES}/aryaos/wifi-nuke.py" "${ROOTFS_DIR}/usr/local/sbin/"
+# Comitup and Bluetooth PAN each run a dnsmasq. Pin Comitup's DHCP socket to
+# wlan0 while allowing that interface to appear after the daemon starts.
+for dns_conf in dns-hotspot.conf dns-connected.conf; do
+	conf_path="${ROOTFS_DIR}/usr/share/comitup/dns/${dns_conf}"
+	[[ -f "${conf_path}" ]] || continue
+	sed --follow-symlinks -i '/^bind-interfaces$/d' "${conf_path}"
+	grep -qxF 'bind-dynamic' "${conf_path}" || printf '\nbind-dynamic\n' >> "${conf_path}"
+done
 ## FIXME Deprecated replace old NetworkManager Python module. https://github.com/snstac/aryaos/issues/54 
 install -v -m 644 "${SHARED_FILES}/aryaos/NetworkManager.py" "${ROOTFS_DIR}/usr/lib/python3/dist-packages/NetworkManager.py"
 

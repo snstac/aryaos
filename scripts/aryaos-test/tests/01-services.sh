@@ -88,4 +88,29 @@ else
 	warn "aryaos-bt-pan unit not installed (older image?)"
 fi
 
+# Wi-Fi onboarding and Bluetooth PAN are deliberately simultaneous. Their two
+# dnsmasq DHCP servers can share UDP/67 only when each is pinned to one
+# interface; the broken state still showed both parent services as active.
+if unit_active comitup && unit_active aryaos-bt-pan; then
+	if pgrep -f '^dnsmasq .*--interface=pan0([[:space:]]|$)' >/dev/null; then
+		ok "Bluetooth PAN DHCP active on pan0"
+	else
+		fail "Bluetooth PAN active without a pan0 DHCP server"
+	fi
+	if pgrep -f '^dnsmasq .*--interface=wlan0([[:space:]]|$)' >/dev/null; then
+		ok "WiFi onboarding DHCP active on wlan0"
+	else
+		fail "Comitup active without a wlan0 DHCP server"
+	fi
+fi
+
+if [[ -x /etc/NetworkManager/dispatcher.d/99-aryaos-dispatcher ]]; then
+	if env IP4_NUM_ADDRESSES=0 IP6_NUM_ADDRESSES=0 \
+		/etc/NetworkManager/dispatcher.d/99-aryaos-dispatcher wlan0 reapply; then
+		ok "NetworkManager dispatcher accepts reapply events"
+	else
+		fail "NetworkManager dispatcher rejects reapply events"
+	fi
+fi
+
 print_summary

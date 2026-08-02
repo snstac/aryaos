@@ -57,5 +57,9 @@ case "${1:-}" in
 		;;
 esac
 
-# Ping a callback on Node-RED:
-wget -a http://127.0.0.1:1880/comitup_callback/$*
+# Ping a callback on Node-RED. This is advisory: Node-RED may still be starting,
+# and a notification failure must not turn a successful hotspot transition into
+# a failed Comitup callback. (`wget -a` means "append logs to this filename";
+# it does not mean quiet mode and the old command supplied no URL at all.)
+wget -q -O /dev/null --timeout=2 --tries=1 \
+  "http://127.0.0.1:1880/comitup_callback/${1:-}" || true

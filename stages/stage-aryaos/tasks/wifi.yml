@@ -53,6 +53,27 @@
     dest: /etc
     mode: "0644"
 
+# Bluetooth PAN has a second, interface-pinned dnsmasq. Without dynamic
+# binding, Comitup's instance claims UDP/67 globally (or fails if PAN won the
+# race), leaving one onboarding transport without DHCP.
+- name: Remove incompatible static dnsmasq binding from Comitup
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: '^bind-interfaces$'
+    state: absent
+  loop:
+    - /usr/share/comitup/dns/dns-hotspot.conf
+    - /usr/share/comitup/dns/dns-connected.conf
+
+- name: Isolate Comitup dnsmasq to the Wi-Fi interface
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    line: bind-dynamic
+    state: present
+  loop:
+    - /usr/share/comitup/dns/dns-hotspot.conf
+    - /usr/share/comitup/dns/dns-connected.conf
+
 - name: Copy comitup script
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/run_comitup.sh"
