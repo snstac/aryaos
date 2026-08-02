@@ -1,4 +1,4 @@
-# Agent handoff — state as of 2026-07-21
+# Agent handoff — state as of 2026-08-02
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
@@ -6,6 +6,159 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
+
+## 2026-08-02 four-node HIL burn-in (SOAK COMPLETE; `.60` RECOVERY BLOCKED)
+
+The eight-hour sampler ran from 09:03:45 through 17:03:45 UTC against `.13`,
+`.44`, `.60`, and `.199`: 480 cycles per host and 1,920 records. Raw evidence,
+enhanced summaries, intervention annotations, and final HIL/audit logs live in
+gitignored `.aryaos-burnin/20260802T090345Z/`. Every `.13`/`.44`/`.199` probe
+failure is explained by a controlled reboot/package intervention or the sudo
+capacity defect found and fixed below. `.60` supplied 164 successful samples,
+then remained offline for cycles 165--480 after its operator-triggered
+filesystem-repair reboot; physical recovery is still required.
+
+### Lab inventory and roles
+
+| Address | Host | Active role / attached hardware | Wired link |
+|---|---|---|---|
+| `192.168.0.13` | `aryaos-36aa` | DJI DroneID; AntSDR at `172.31.100.2`; ESP32-S3 + CH340 | 10 Mb/full |
+| `192.168.0.44` | `aryaos-91bd` | Wi-Fi Remote ID; AR9271 monitor adapter + CH340 + CP2102N | 10 Mb/full |
+| `192.168.0.60` | `aryaos-fad2` | ACARS; LimeSDR Mini + u-blox 7 | 1 Gb/full |
+| `192.168.0.199` | `aryaos-0f26` | Gutcheck; Pico + PL2303 | 1 Gb/full |
+
+### Findings already fixed and deployed
+
+- Gutcheck `v0.2.0` parses AryaOS beacon v1-v5 capabilities, decoder state,
+  clock/TDoA fields, and PAN state, and renders all four on its node table. It
+  sustained 5,000 rich entities and 10,000 authenticated API requests without
+  drops or restarts. AryaOS now permits its token-gated port 8181 on the trusted
+  LAN only (never the onboarding hotspot).
+- PyTAK `v7.4.2` uses per-app runtime status directories and serializes status
+  writes. Dronecot `v2.3.7` reports DJI runtime state, preserves intentional
+  service enablement across upgrades, and reloads changed systemd units. Lincot
+  `v1.3.7` bounds the
+  no-GPS probe and kills its process group. Charontak `v0.2.1` fixes write-only
+  UDP CPU spin, usrmerge packaging, and binary AES key handling.
+- All Cockpit gateway consumers use `cockpit-shared v1.3.1`, which closes the
+  four-second D-Bus client leak. Sapient/APRS packaging and dependency audits
+  are also clean.
+- Capability beacon v5, bounded local SDR/serial discovery, ACARS start limits,
+  portal GPS probing, Wi-Fi/Bluetooth DHCP coexistence, and the burn-in sampler
+  are in the AryaOS branch `fix/dronecot-ws-recovery`.
+- Raspberry Pi OS Trixie's new `rpi-swap` defaulted to `zram+file`, silently
+  creating a 2 GiB `/var/swap` backing file and periodic flash writeback. Overlay
+  `2.0.4` pins `Mechanism=zram`. Controlled reboots on `.13`, `.44`, and `.199`
+  proved `/var/swap` absent and `/sys/block/zram0/backing_dev` equal to `none`;
+  `.60` still needs that validation after its filesystem recovery.
+- Overlay `2.0.5` initializes the legacy GPSD `OPTIONS` variable and
+  reconciles BlueZ's expected configuration-directory mode with Debian's
+  packaged `/etc/bluetooth`. Live GPSD/BlueZ/PAN restarts on all three reachable
+  nodes produce no corresponding warnings and recover fully. It also overrides
+  Debian lighttpd's request for its optional `tls` kernel module: the Raspberry
+  Pi kernel omits kTLS, while HTTPS correctly continues through user-space
+  OpenSSL. A live `systemd-modules-load` restart completes cleanly on all three.
+- Overlay `2.0.6` bounds sudo's compressed I/O audit history with
+  `Defaults maxseq=128`. The eight-hour run reproduced a fleet-wide failure in
+  which 409/401/403 unbounded sudo sessions consumed the entire 50 MiB
+  `/var/log` tmpfs on `.13`/`.44`/`.199`; sudo then rejected every privileged
+  command with `ENOSPC`, although the nodes and role services themselves stayed
+  healthy. After recording the failure, the oldest 288/280/282 ephemeral
+  sessions were removed, leaving the newest 128 and restoring 63--72% free
+  space. The new sequence limit parsed successfully and passed the live
+  security/media HIL checks on every reachable node. The
+  image verifier and HIL suite now assert both the bound and `/var/log`
+  headroom.
+  Three concurrent privileged samplers then drove the counters through a
+  natural rollover to sequence 4/4/7 with no failed probe, while `/var/log`
+  retained 36--39% free even before the closing reboot cleared the old tmpfs
+  sessions.
+- Burn-in sampling and the HIL suite now inspect the root superblock, current-
+  boot filesystem/media errors, boot command-line shape, and configured versus
+  installed root PARTUUID. This was added after the deeper audit below caught a
+  failure which the ordinary service checks and direct-I/O benchmark did not.
+- Burn-in summaries now distinguish overlapping journal observations from
+  distinct events by journal cursor, retain both historical and current failed-
+  unit state, and locate the first/last failed probe. A 20-minute companion run
+  after deployment collected 20/20 good samples per reachable node, zero
+  filesystem/PARTUUID alerts, zero failed-unit samples, and zero service drops.
+  It reduced 21 overlapping warning observations to 12 distinct events per node
+  (four scheduled Comitup scans, three Broadcom messages each), proving the
+  deduplication works. Memory moved only +0.24/+0.13/-0.07 percentage points on
+  `.13`/`.44`/`.199`.
+- The HIL suite now has role-aware Wi-Fi RID and Gutcheck modules. On `.44`, all
+  eight Wi-Fi checks pass (AR9271 driver, monitor mode, live packet flow, healthy
+  status, no write errors/restarts, Dronecot `2.3.7-1`). On `.199`, all nine
+  Gutcheck checks pass (package `0.2.0-1`, health/dashboard, enforced API auth,
+  live capability-rich entity fields, zero drops/warnings/restarts, and the four
+  display columns). Other roles skip these modules rather than producing noise.
+
+### Active-test evidence
+
+- The main run recorded maxima of 52.35 °C, load 3.95, and 14.9% memory used;
+  there was no throttling or service restart growth. The closing overlay `2.0.6`
+  proof collected 77/77 successful samples on each reachable node with clean
+  filesystems/PARTUUIDs, no failed units or service drops, and memory changes of
+  only +0.56/+0.55/+0.32 points on `.13`/`.44`/`.199`.
+  Three historical failed-unit samples came from the deliberately removed
+  `rpi-zram-writeback.timer` during the swap-policy migration; every final and
+  post-fix sample had zero failed units.
+- Concurrent 15-minute CPU/VM stress on all four: no failures, no swap use, no
+  throttling; maximum 52.35 °C.
+- Direct-ext4 1 GiB sequential write/read MiB/s: `.13` 27.7/94.0, `.44`
+  33.0/94.9, `.60` 48.0/89.0, `.199` 24.6/94.6. No immediate I/O errors occurred
+  during the benchmark, but the later whole-boot audit found pre-existing `.60`
+  metadata corruption; throughput alone is not a media-integrity test.
+- `.60`↔`.199` reached about 936 Mb/s. `.13` and `.44` advertise gigabit but
+  their link partners advertise only 10baseT; unidirectional transfers reach
+  the full 9.4 Mb/s with zero NIC CRC/symbol errors. Bidirectional loss/retries
+  are consistent with switch buffering between 1 Gb and 10 Mb ports, not AryaOS.
+- Multicast from `.199` does not reach the other three nodes although unicast
+  does. Treat the 10 Mb links and `.199` multicast isolation as switch/cabling/
+  IGMP/VLAN work, not image defects.
+- `.44` received 2,092,896 ambient monitor-mode frames (about 110 frames/s)
+  without capture drops/errors or service restarts. `.60` produced 113 ACARS
+  frames and tracked five aircraft before its repair reboot, with zero gateway
+  write errors. Gutcheck processed 1,407 live events with zero drops, warnings,
+  or restarts. No live DJI target was present for `.13`, but the AntSDR feed and
+  Dronecot service remained established with zero write errors/restarts.
+- The clean pre-intervention install-media baseline was 2.19--3.00 MiB/hour;
+  an early post-overlay interval including once-per-minute audit probes was
+  5.55--7.03 MiB/hour. The later 4.66-hour interval averaged 73.7--75.2 MiB/hour
+  because it deliberately included package installs, repeated HIL/apt checks,
+  Docker image/container recovery work, and hundreds of sudo rollover sessions;
+  it is not an idle-write baseline.
+- After the closing controlled reboot, `.13`, `.44`, and `.199` returned with
+  new boot IDs. All default HIL suites passed, as did `.13`'s UAS profile with
+  all eight AntSDR checks, `.44`'s eight Wi-Fi RID checks, and `.199`'s nine
+  Gutcheck API/capability/UI checks. Exact fresh-boot scans found zero kTLS
+  module, GPSD `OPTIONS`, BlueZ configuration-directory, filesystem/media, sudo
+  `ENOSPC`, or USB-reset regressions. Packages and dependencies audited clean;
+  root PARTUUIDs matched; swap was RAM-only with no backing device or
+  `/var/swap`; and no systemd unit failed. A forced 300-session sudo test on
+  each node retained exactly 128 sessions (16.4 MiB) and left `/var/log` only
+  33% used.
+
+### `.60` install-media incident (physical recovery required)
+
+- The deeper kernel/superblock audit found ext4 directory-checksum failures in
+  `/usr/src/linux-headers-6.18.39+rpt-common-rpi/include/net` and `/srv`. The root
+  superblock was `clean with errors`; the boot FAT was dirty. No contemporaneous
+  MMC I/O error was logged, so the evidence establishes damaged install media,
+  not a specific hardware root cause.
+- `/boot/firmware/cmdline.txt` itself contained corrupt random-looking data and
+  named no usable root. Before reboot it was reconstructed as a single line with
+  the current root PARTUUID (`7c6f9611-02`), `fsck.repair=yes`, and a one-boot
+  `fsck.mode=force`. Redacted configuration and support archives were copied
+  off-host into the burn-in evidence directory before intervention.
+- `.60` had not returned by the final 17:11 UTC ping/SSH/mDNS/ARP check after
+  the 11:47 UTC repair reboot. Do not issue another blind reboot. If it remains
+  offline, attach a console or remove
+  the card and run `fsck.fat` on the boot partition plus `e2fsck -f -D` on root
+  from another Linux host, then verify the command-line PARTUUID before booting.
+- Once reachable, capture the fsck journal, prove both filesystems clean, remove
+  `fsck.mode=force`, reboot once normally, verify the RAM-only swap policy, rerun
+  the full HIL suite, and recheck LimeSDR USB resets under ACARS load.
 
 ## 2026-07-19→21 sweep — HIL hardening + landing-page features (SHIPPED)
 
