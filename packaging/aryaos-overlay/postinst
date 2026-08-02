@@ -74,6 +74,9 @@ case "$1" in
       systemctl try-restart fail2ban.service 2>/dev/null || true
       firewall-cmd --reload >/dev/null 2>&1 || true
       systemctl restart aryaos-tak-dp-importd.service aryaos-neighbord.service lighttpd.service 2>/dev/null || true
+      # These are role-dependent, so refresh only instances that were already
+      # running; package installation must not enable a new radio role.
+      systemctl try-restart lincot.service acarsdec.service 2>/dev/null || true
       systemctl try-restart gpsd.socket gpsd.service cockpit.socket 2>/dev/null || true
       systemctl start aryaos-gps-time-sync.service 2>/dev/null || true
     fi

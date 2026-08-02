@@ -302,6 +302,9 @@ require_unit gdltak.service
 require_unit lincot.service
 require_unit charontak.service
 require_unit readsb.service
+require_path /etc/systemd/system/lincot.service.d/aryaos-config.conf
+require_grep '^EnvironmentFile=-/etc/aryaos/aryaos-config.txt$' /etc/systemd/system/lincot.service.d/aryaos-config.conf "lincot drop-in inherits AryaOS site config"
+require_grep '^EnvironmentFile=/etc/default/lincot$' /etc/systemd/system/lincot.service.d/aryaos-config.conf "lincot service defaults keep precedence"
 require_grep '^EnvironmentFile=/etc/aryaos/aryaos-config.txt$' /lib/systemd/system/sikw00fcot.service "sikw00fcot inherits AryaOS site config"
 require_grep '^EnvironmentFile=/etc/default/sikw00fcot$' /lib/systemd/system/sikw00fcot.service "sikw00fcot keeps service defaults override"
 

@@ -2,7 +2,8 @@
 # CGI: JSON host/network + GNSS (gpsd) + radio/RF inventory for the HTTPS landing page.
 #
 # Uses absolute paths (lighttpd often sets a minimal PATH) and /usr/bin/python3.
-# www-data must be in the "gpsd" group to run gpspipe against /run/gpsd.sock.
+# GNSS is read from gpsd's loopback TCP socket.  Avoid spawning gpspipe here:
+# a CGI request that is cancelled by the HTTP client can otherwise orphan it.
 # www-data must be in the "video" group to run vcgencmd (temp / throttling) on Raspberry Pi.
 #
 # systemd's lighttpd unit sets RestrictAddressFamilies without AF_NETLINK by default;
@@ -18,11 +19,13 @@ import re
 import socket
 import subprocess
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 IP = "/usr/sbin/ip"
 UPTIME = "/usr/bin/uptime"
-GPSPIPE = "/usr/bin/gpspipe"
+GPSD_HOST = "127.0.0.1"
+GPSD_PORT = 2947
 SYSTEMCTL = "/usr/bin/systemctl"
 LSUSB = "/usr/bin/lsusb"
 RFKILL_CANDIDATES = ("/usr/sbin/rfkill", "/usr/bin/rfkill")
@@ -103,23 +106,36 @@ def run(argv, timeout=8):
         return "", -1, "command timed out"
 
 
-def run_gpspipe(argv, timeout=8):
-    """Like run(), but keep partial stdout on TimeoutExpired so we can still parse."""
+def read_gpsd(max_lines=40, timeout=8):
+    """Read bounded JSON reports directly from gpsd, retaining partial data.
+
+    A direct socket read is intentional.  lighttpd may terminate a CGI process
+    when its client disconnects; a gpspipe child would then survive under PID 1
+    and wait indefinitely when no receiver is producing reports.
+    """
+    payload = bytearray()
+    deadline = time.monotonic() + timeout
     try:
-        r = subprocess.run(
-            argv,
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        return (r.stdout or "").strip(), r.returncode, (r.stderr or "").strip()
+        with socket.create_connection((GPSD_HOST, GPSD_PORT), timeout=timeout) as sock:
+            sock.sendall(b'?WATCH={"enable":true,"json":true};\n')
+            while payload.count(b"\n") < max_lines:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise socket.timeout
+                sock.settimeout(remaining)
+                chunk = sock.recv(65536)
+                if not chunk:
+                    break
+                payload.extend(chunk)
     except OSError as e:
-        return "", -1, str(e)
-    except subprocess.TimeoutExpired as e:
-        partial = (e.stdout or "").strip() if e.stdout else ""
-        hint = "gpspipe timed out (no JSON yet)" if not partial else "gpspipe timed out (using partial capture)"
+        partial = payload.decode("utf-8", errors="replace").strip()
+        if not isinstance(e, socket.timeout):
+            return partial, -1, str(e)
+        hint = "gpsd timed out (no JSON yet)" if not partial else "gpsd timed out (using partial capture)"
         return partial, -1, hint
+
+    text = payload.decode("utf-8", errors="replace")
+    return "\n".join(text.splitlines()[:max_lines]).strip(), 0, ""
 
 
 def primary_ip():
@@ -796,7 +812,7 @@ def gather_gps():
         "satellites_used": None,
     }
     # Few lines suffice for VERSION/DEVICES/WATCH/SKY/TPV; large -n + short timeout caused false timeouts.
-    stdout, code, err = run_gpspipe([GPSPIPE, "-w", "-n", "40"], timeout=8)
+    stdout, code, err = read_gpsd(max_lines=40, timeout=8)
     if code != 0 and not stdout:
         out["error"] = err or f"gpspipe exit {code}"
         return out
