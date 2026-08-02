@@ -267,7 +267,7 @@ require_pkg ais-catcher
 require_pkg sikw00fcot
 require_pkg gdltak
 require_pkg_version pytak 7.4.1
-require_pkg_version dronecot 2.3.6
+require_pkg_version dronecot 2.3.7
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
