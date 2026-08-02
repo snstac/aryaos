@@ -140,8 +140,18 @@ disk_free = stat.f_bavail * stat.f_frsize
 rc, throttled, _ = run(["vcgencmd", "get_throttled"])
 failed_rc, failed, failed_err = run(["systemctl", "--failed", "--no-legend", "--plain"])
 jrc, journal_warnings, jerr = run(
-    ["journalctl", "-p", "warning", "--since", "-2 minutes", "--no-pager", "-o", "cat"], 8
+    ["journalctl", "-p", "warning", "--since", "-2 minutes", "--no-pager", "-o", "json"], 8
 )
+journal_events = []
+for line in journal_warnings.splitlines():
+    try:
+        event = json.loads(line)
+    except (TypeError, ValueError):
+        continue
+    journal_events.append({
+        "cursor": event.get("__CURSOR"),
+        "message": event.get("MESSAGE"),
+    })
 _, usb, _ = run(["lsusb"])
 _, top, _ = run(["ps", "-eo", "pid,etimes,%cpu,%mem,rss,comm", "--sort=-%cpu"])
 health = {}
@@ -170,8 +180,9 @@ print(json.dumps({
     "disk": {"total_bytes": disk_total, "free_bytes": disk_free,
              "used_pct": round((disk_total - disk_free) * 100 / disk_total, 2)},
     "failed_units": failed.splitlines() if failed_rc in (0, 1) else [failed_err],
-    "journal_warning_count_2m": len([x for x in journal_warnings.splitlines() if x.strip()]),
-    "journal_warning_tail": journal_warnings.splitlines()[-12:],
+    "journal_warning_count_2m": len(journal_events),
+    "journal_warning_events_2m": journal_events,
+    "journal_warning_tail": [event.get("message") for event in journal_events[-12:]],
     "services": services(), "gateway_status": gateway_status(),
     "filesystem": filesystem_health(),
     "networks": networks(), "usb": usb.splitlines(), "health": health,
@@ -215,19 +226,32 @@ def probe(host, args):
 
 def summarize(samples):
     summary = {"sample_count": len(samples), "hosts": {}}
+    warning_cursors = {}
+    warning_messages = {}
     for sample in samples:
         host = sample["host"]
         out = summary["hosts"].setdefault(host, {
             "samples": 0, "probe_failures": 0, "max_temp_c": None, "max_load1": None,
             "max_mem_pct": None, "max_disk_pct": None, "throttle_events": 0,
-            "failed_units": [], "service_nonactive": {}, "restart_range": {},
-            "service_state_counts": {}, "journal_warnings": 0, "boot_ids": [],
+            "failed_units": [], "failed_unit_samples": 0, "last_failed_units": [],
+            "service_nonactive": {}, "restart_range": {},
+            "service_state_counts": {}, "journal_warnings": 0,
+            "journal_warning_observations": 0, "journal_event_tracking_samples": 0,
+            "journal_warning_unique_events": None,
+            "journal_warning_unique_messages": [], "boot_ids": [],
             "first_mem_pct": None, "last_mem_pct": None, "mem_delta_pct": None,
             "filesystem_alerts": 0, "filesystem_states": [],
+            "first_probe_failure_utc": None, "last_probe_failure_utc": None,
+            "first_probe_failure_cycle": None, "last_probe_failure_cycle": None,
         })
         out["samples"] += 1
         if not sample.get("ok"):
             out["probe_failures"] += 1
+            if out["first_probe_failure_utc"] is None:
+                out["first_probe_failure_utc"] = sample.get("captured_utc")
+                out["first_probe_failure_cycle"] = sample.get("cycle")
+            out["last_probe_failure_utc"] = sample.get("captured_utc")
+            out["last_probe_failure_cycle"] = sample.get("cycle")
             continue
         for key, value in (("max_temp_c", sample.get("temperature_c")),
                            ("max_load1", (sample.get("load") or [None])[0]),
@@ -245,8 +269,26 @@ def summarize(samples):
             )
         if sample.get("throttled") not in (None, "throttled=0x0"):
             out["throttle_events"] += 1
-        out["journal_warnings"] += sample.get("journal_warning_count_2m") or 0
-        out["failed_units"] = sorted(set(out["failed_units"] + sample.get("failed_units", [])))
+        warning_count = sample.get("journal_warning_count_2m") or 0
+        # Keep the original field for readers of older artifacts, but name its
+        # semantics explicitly: overlapping two-minute windows are observations,
+        # not distinct journal events.
+        out["journal_warnings"] += warning_count
+        out["journal_warning_observations"] += warning_count
+        if "journal_warning_events_2m" in sample:
+            out["journal_event_tracking_samples"] += 1
+            cursors = warning_cursors.setdefault(host, set())
+            messages = warning_messages.setdefault(host, set())
+            for event in sample.get("journal_warning_events_2m") or []:
+                if event.get("cursor"):
+                    cursors.add(event["cursor"])
+                if event.get("message"):
+                    messages.add(event["message"])
+        failed_units = sample.get("failed_units", [])
+        if failed_units:
+            out["failed_unit_samples"] += 1
+        out["last_failed_units"] = failed_units
+        out["failed_units"] = sorted(set(out["failed_units"] + failed_units))
         boot_id = sample.get("boot_id")
         if boot_id and boot_id not in out["boot_ids"]:
             out["boot_ids"].append(boot_id)
@@ -280,6 +322,12 @@ def summarize(samples):
                 out["service_nonactive"][name] = (
                     out["service_nonactive"].get(name, 0) + inactive
                 )
+    for host, out in summary["hosts"].items():
+        if out["journal_event_tracking_samples"]:
+            out["journal_warning_unique_events"] = len(warning_cursors.get(host, set()))
+            out["journal_warning_unique_messages"] = sorted(
+                warning_messages.get(host, set())
+            )
     return summary
 
 

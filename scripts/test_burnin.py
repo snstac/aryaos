@@ -99,6 +99,44 @@ class BurninSummaryTestCase(unittest.TestCase):
         self.assertEqual(host["filesystem_alerts"], 1)
         self.assertEqual(host["filesystem_states"], ["clean", "clean with errors"])
 
+    def test_overlapping_journal_windows_count_unique_events_once(self):
+        first = sample(1, 10, "active")
+        second = sample(2, 10, "active")
+        first.update(
+            journal_warning_count_2m=2,
+            journal_warning_events_2m=[
+                {"cursor": "one", "message": "first warning"},
+                {"cursor": "two", "message": "second warning"},
+            ],
+        )
+        second.update(
+            journal_warning_count_2m=2,
+            journal_warning_events_2m=[
+                {"cursor": "two", "message": "second warning"},
+                {"cursor": "three", "message": "second warning"},
+            ],
+        )
+
+        host = burnin.summarize([first, second])["hosts"]["192.0.2.1"]
+
+        self.assertEqual(host["journal_warning_observations"], 4)
+        self.assertEqual(host["journal_warning_unique_events"], 3)
+        self.assertEqual(
+            host["journal_warning_unique_messages"],
+            ["first warning", "second warning"],
+        )
+
+    def test_failed_units_preserve_history_and_current_state(self):
+        first = sample(1, 10, "active")
+        second = sample(2, 10, "active")
+        first["failed_units"] = ["transient.service failed"]
+
+        host = burnin.summarize([first, second])["hosts"]["192.0.2.1"]
+
+        self.assertEqual(host["failed_units"], ["transient.service failed"])
+        self.assertEqual(host["failed_unit_samples"], 1)
+        self.assertEqual(host["last_failed_units"], [])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
