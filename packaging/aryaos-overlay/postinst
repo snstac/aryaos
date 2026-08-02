@@ -57,7 +57,13 @@ case "$1" in
     fi
 
     if command -v systemctl >/dev/null 2>&1; then
+      # Installing the AryaOS rpi-swap drop-in changes the generated topology
+      # from zram+file to file-free zram. Stop the old generated timer before
+      # daemon-reload makes its trigger unit vanish; otherwise systemd records
+      # a synthetic failed unit and leaves the appliance degraded until reboot.
+      systemctl stop rpi-zram-writeback.timer 2>/dev/null || true
       systemctl daemon-reload || true
+      systemctl reset-failed rpi-zram-writeback.timer 2>/dev/null || true
       systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-neighbord.service aryaos-radio-silence.service NetworkManager-dispatcher.service 2>/dev/null || true
       # Time service: chrony (GPS-disciplined + serves the local network) replaces
       # the client-only systemd-timesyncd.

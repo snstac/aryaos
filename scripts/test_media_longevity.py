@@ -21,10 +21,19 @@ class SwapPolicyTestCase(unittest.TestCase):
     def test_overlay_ships_rpi_swap_policy_and_generator_dependency(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
         control = (ROOT / "packaging/aryaos-overlay/control").read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
 
         self.assertIn("rpi-swap-aryaos.conf", builder)
         self.assertIn("/etc/rpi/swap.conf.d/90-aryaos.conf", builder)
         self.assertIn("systemd-zram-generator", control)
+        self.assertLess(
+            postinst.index("systemctl stop rpi-zram-writeback.timer"),
+            postinst.index("systemctl daemon-reload"),
+        )
+        self.assertGreater(
+            postinst.index("systemctl reset-failed rpi-zram-writeback.timer"),
+            postinst.index("systemctl daemon-reload"),
+        )
 
     def test_image_removes_build_time_swapfile(self):
         tweaks = (
