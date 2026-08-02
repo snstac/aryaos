@@ -1,5 +1,10 @@
 {# readsb RECEIVER_OPTIONS line for /etc/default/readsb — device-type must come first. #}
-{% if readsb_device_type | string == 'soapysdr' %}
+{# With an ADSBee attached, run_readsb.sh overrides this at runtime from         #}
+{# /run/aryaos/adsbee.env unless ARYAOS_ADSB_RECEIVER pins an SDR. This line is  #}
+{# what an SDR box uses, and what an ADSBee box falls back to if it is unplugged. #}
+{% if readsb_device_type | string == 'adsbee' %}
+RECEIVER_OPTIONS="--device-type modesbeast --beast-serial {{ readsb_beast_serial }}"
+{% elif readsb_device_type | string == 'soapysdr' %}
 RECEIVER_OPTIONS="--device-type soapysdr --soapy-device {{ readsb_soapy_device }} --gain {{ readsb_gain }}"
 {% else %}
 RECEIVER_OPTIONS="--device-type rtlsdr --device {{ adsb_sdr_sn }} --gain {{ readsb_gain }} --ppm {{ readsb_ppm }}"

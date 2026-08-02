@@ -1,0 +1,416 @@
+#!/usr/bin/env python3
+"""aryaos-adsbee — identify and provision an ADSBee 1090/1090U ADS-B receiver.
+
+The ADSBee is a self-contained dual-band receiver (RP2040 + CC1312 sub-GHz +
+ESP32) that demodulates 1090 MHz Mode S AND 978 MHz UAT in dedicated silicon and
+emits Mode S Beast over its USB console. readsb reads that stream directly with
+`--device-type modesbeast`, so one USB cable replaces both RTL-SDR dongles and
+readsb stops burning CPU on demodulation.
+
+Two things make this device awkward to autodetect, and both drive the design here:
+
+1. It enumerates as `2e8a:000a "Raspberry Pi Pico"` -- the STOCK RP2040 CDC id,
+   shared with every other Pico on earth. USB descriptors cannot identify it.
+2. It ships SILENT (`PROTOCOL_OUT=CONSOLE,NONE`), so passive sniffing sees
+   nothing at all.
+
+So identification is an ACTIVE probe: send `AT+DEVICE_INFO?` and look for the
+ADSBee's reply. Sending that string to some unrelated Pico is harmless.
+
+It also ships hostile-by-default for a tactical box: its Wi-Fi AP is ENABLED
+(SSID `ADSBee1090-<serial>`, password `yummyflowers`) and four PUBLIC aggregator
+feeds are preconfigured and active (whereplane, adsb.lol, airplanes.live,
+adsb.fi). Those are dormant only while it has no network -- give it one and it
+starts telling the internet where we are. Provisioning turns all of that off.
+
+Usage:
+    aryaos-adsbee detect [--json]   # identify only; no writes to the device
+    aryaos-adsbee provision         # identify, configure, persist (boot path)
+    aryaos-adsbee info              # print the last detection snapshot
+
+Exit status is 0 when an ADSBee was found, 1 when none was.
+"""
+
+import argparse
+import glob
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+try:
+    import serial
+except ImportError:  # pragma: no cover - python3-serial is a package dependency
+    serial = None
+
+# Stock RP2040 CDC identifiers. NOT unique to the ADSBee -- see module docstring.
+USB_VENDOR_ID = "2e8a"
+USB_MODEL_ID = "000a"
+
+STATE_DIR = "/run/aryaos"
+STATE_ENV = os.path.join(STATE_DIR, "adsbee.env")
+STATE_JSON = os.path.join(STATE_DIR, "adsbee.json")
+
+# The console is a USB CDC virtual COM port, so the baud rate is arbitrary.
+BAUD = 115200
+# Line endings MUST be CRLF; the firmware's AT parser ignores bare LF.
+EOL = b"\r\n"
+
+
+def log(msg):
+    print(f"aryaos-adsbee: {msg}", file=sys.stderr)
+
+
+def udev_properties(dev):
+    try:
+        out = subprocess.run(
+            ["udevadm", "info", "-q", "property", "-n", dev],
+            capture_output=True, text=True, timeout=5,
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        return {}
+    props = {}
+    for line in out.splitlines():
+        key, _, value = line.partition("=")
+        props[key] = value
+    return props
+
+
+def candidates():
+    """Every serial port that *could* be an ADSBee, by USB id alone."""
+    found = []
+    for dev in sorted(glob.glob("/dev/serial/by-id/*")):
+        props = udev_properties(dev)
+        if (props.get("ID_VENDOR_ID") == USB_VENDOR_ID
+                and props.get("ID_MODEL_ID") == USB_MODEL_ID):
+            found.append(dev)
+    return found
+
+
+def port_is_busy(dev):
+    """True if some other process holds the port (readsb, typically).
+
+    Probing a port readsb is streaming from would steal its bytes, so a busy
+    port is left strictly alone.
+    """
+    try:
+        return subprocess.run(
+            ["fuser", dev], capture_output=True, timeout=5
+        ).returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+class Console:
+    """Minimal AT console over the ADSBee's USB CDC port.
+
+    Once provisioned the console also carries the binary Beast stream, so every
+    reply is parsed line-wise out of a noisy buffer rather than read whole.
+    """
+
+    def __init__(self, dev, timeout=0.3):
+        self.serial = serial.Serial(dev, BAUD, timeout=timeout)
+        self.serial.reset_input_buffer()
+
+    def close(self):
+        try:
+            self.serial.close()
+        except Exception:
+            pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+        return False
+
+    def command(self, cmd, wait=1.5):
+        """Send one AT command; return the reply as decoded text lines."""
+        self.serial.reset_input_buffer()
+        self.serial.write(cmd.encode() + EOL)
+        self.serial.flush()
+        buf = b""
+        end = time.monotonic() + wait
+        while time.monotonic() < end:
+            try:
+                chunk = self.serial.read(4096)
+            except serial.SerialException:
+                # A stalled CDC read is not fatal; keep waiting out the window.
+                time.sleep(0.05)
+                continue
+            if chunk:
+                buf += chunk
+        return buf.decode("latin-1", errors="replace").splitlines()
+
+
+def identify(dev):
+    """Active probe. Returns a device-info dict, or None if this is not an ADSBee."""
+    fields = {
+        "part_code": re.compile(r"^Part Code:\s*(\S+)"),
+        "usb_serial": re.compile(r"^RP2040 Flash Unique ID:\s*(\S+)"),
+        "firmware": re.compile(r"^RP2040 Firmware Version:\s*(\S+)"),
+        "esp32_firmware": re.compile(r"^ESP32 Firmware Version:\s*(\S+)"),
+        "rf_frontend": re.compile(r"^1090MHz RF Frontend Version:\s*(\S+)"),
+    }
+    info = {}
+    try:
+        with Console(dev) as con:
+            for line in con.command("AT+DEVICE_INFO?", wait=2.0):
+                for key, pattern in fields.items():
+                    match = pattern.match(line.strip())
+                    if match:
+                        info[key] = match.group(1)
+    except (OSError, serial.SerialException) as exc:
+        log(f"{dev}: probe failed ({exc})")
+        return None
+
+    # The firmware version line is the signature: a bare Pico answers nothing.
+    if "firmware" not in info:
+        return None
+    info["device"] = dev
+    return info
+
+
+def read_settings(dev):
+    """`AT+SETTINGS?DUMP` renders the whole config as AT commands. Parse it.
+
+    Returns {command_key: full_line}, keyed so that settings which take an
+    interface argument (PROTOCOL_OUT, BAUD_RATE, FEED) stay distinct per
+    interface/index instead of overwriting each other.
+    """
+    settings = {}
+    with Console(dev) as con:
+        for line in con.command("AT+SETTINGS?DUMP", wait=3.0):
+            line = line.strip()
+            if not line.startswith("AT+"):
+                continue
+            body = line[3:]
+            name, _, args = body.partition("=")
+            if not args:
+                continue
+            # PROTOCOL_OUT/BAUD_RATE/FEED are per-interface or per-index.
+            if name in ("PROTOCOL_OUT", "BAUD_RATE", "FEED"):
+                key = f"{name}:{args.split(',')[0]}"
+            else:
+                key = name
+            settings[key] = line
+    return settings
+
+
+def desired_settings(current, disable_radio=True):
+    """The configuration AryaOS wants, as {key: AT command}.
+
+    Only what we actually rely on is set, so operator tuning of anything else
+    (trigger level, bias tees, receiver position) is preserved.
+    """
+    wanted = {
+        # Beast on the USB console is the entire point: it carries 1090 Mode S
+        # AND 978 UAT (encapsulated in frame type 0xec), both of which readsb
+        # decodes off the serial port.
+        "PROTOCOL_OUT:CONSOLE": "AT+PROTOCOL_OUT=CONSOLE,BEAST",
+        # Nothing consumes the hardware UART on our builds.
+        "PROTOCOL_OUT:COMMS_UART": "AT+PROTOCOL_OUT=COMMS_UART,NONE",
+        # Debug chatter would be interleaved into the binary Beast stream.
+        "LOG_LEVEL": "AT+LOG_LEVEL=SILENT",
+        # Both bands on -- this is what lets one device retire two dongles.
+        "RX_ENABLE": "AT+RX_ENABLE=1",
+        "SUBG_ENABLE": "AT+SUBG_ENABLE=1",
+        # DO NOT set this to 0, however tempting it looks on a box that will
+        # never use the ADSBee's networking.
+        #
+        # `AT+ESP32_ENABLE=0` silences the device COMPLETELY -- including Beast
+        # on the USB console, which has nothing to do with networking. Measured
+        # on firmware 0.9.0-rc19: 0 bytes in 120 s with the ESP32 disabled,
+        # 63 Beast frames in the next 120 s with it re-enabled, same antenna,
+        # same sky, receivers reporting ENABLED throughout. The reporting
+        # pipeline evidently runs through the ESP32 regardless of transport.
+        #
+        # Pinned to 1 rather than merely left alone, so a box provisioned by an
+        # earlier build that did disable it heals itself on the next boot.
+        "ESP32_ENABLE": "AT+ESP32_ENABLE=1",
+    }
+
+    # OPSEC: clear every aggregator feed slot. Stock firmware ships slots 6-9
+    # pointed at public feeders and marked active.
+    for index in range(10):
+        wanted[f"FEED:{index}"] = f"AT+FEED={index},,0,0,NONE"
+
+    if disable_radio:
+        # We only ever use the USB console, so the ADSBee's own radios are pure
+        # liability: emissions we do not want and power we do not need. Silencing
+        # each interface individually is both necessary and sufficient -- the
+        # ESP32 itself must stay enabled (see ESP32_ENABLE above).
+        # Reversible with ARYAOS_ADSBEE_RADIO=on.
+        wanted["WIFI_STA"] = "AT+WIFI_STA=0,,"
+        wanted["ETHERNET"] = "AT+ETHERNET=0"
+        # WIFI_AP's setter is positional and takes the SSID/password/channel
+        # too, so preserve whatever is there and flip only the enable flag.
+        ap = current.get("WIFI_AP", "")
+        ap_args = ap.partition("=")[2].split(",") if ap else []
+        if len(ap_args) >= 4:
+            ap_args[0] = "0"
+            wanted["WIFI_AP"] = "AT+WIFI_AP=" + ",".join(ap_args[:4])
+        else:
+            wanted["WIFI_AP"] = "AT+WIFI_AP=0,ADSBee,aryaos415,1"
+
+    return wanted
+
+
+def satisfied(key, current_line, wanted_line):
+    """Is this setting already good enough to leave alone?
+
+    Mostly an exact string match, with one exception. Clearing a feed slot with
+    an empty URI deactivates it but does NOT erase the stored hostname: ask for
+        AT+FEED=6,,0,0,NONE
+    and the device afterwards reports
+        AT+FEED=6,feed.whereplane.xyz,0,0,NONE
+    A literal comparison therefore never converges, and we would rewrite and
+    re-flash all four preloaded aggregator slots on every single boot. What
+    actually matters for a feed is that it is inactive and has no protocol, so
+    compare on that. (The leftover hostname is inert: port 0, active 0, protocol
+    NONE. It is cosmetic, not a live feed.)
+    """
+    if current_line is None:
+        return False
+    if not key.startswith("FEED:"):
+        return current_line == wanted_line
+    fields = current_line.partition("=")[2].split(",")
+    if len(fields) < 5:
+        return False
+    active, protocol = fields[3].strip(), fields[4].strip().upper()
+    return active == "0" and protocol == "NONE"
+
+
+def provision(dev, disable_radio=True):
+    """Bring one ADSBee to the AryaOS configuration. Idempotent.
+
+    Writes (and flashes) only when something actually differs -- this runs on
+    every boot and the RP2040's flash has a finite erase budget.
+    """
+    current = read_settings(dev)
+    if not current:
+        log(f"{dev}: could not read settings; leaving device untouched")
+        return False
+
+    wanted = desired_settings(current, disable_radio=disable_radio)
+    changes = [
+        cmd for key, cmd in sorted(wanted.items())
+        if not satisfied(key, current.get(key), cmd)
+    ]
+    if not changes:
+        log(f"{dev}: configuration already correct")
+        return True
+
+    with Console(dev) as con:
+        for cmd in changes:
+            reply = " ".join(con.command(cmd, wait=0.8))
+            if "ERROR" in reply.upper():
+                log(f"{dev}: {cmd} -> {reply.strip()[:120]}")
+            else:
+                log(f"{dev}: {cmd}")
+        con.command("AT+SETTINGS=SAVE", wait=2.0)
+    log(f"{dev}: applied {len(changes)} setting(s) and saved to nonvolatile memory")
+    return True
+
+
+def write_state(info):
+    """Publish the result for run_readsb.sh, the capability scan and Cockpit."""
+    os.makedirs(STATE_DIR, exist_ok=True)
+
+    present = bool(info)
+    tmp = STATE_ENV + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as handle:
+        handle.write("# Written by aryaos-adsbee. Do not edit.\n")
+        handle.write(f"ARYAOS_ADSBEE_PRESENT={1 if present else 0}\n")
+        handle.write(f"ARYAOS_ADSBEE_DEVICE={info.get('device', '') if present else ''}\n")
+    os.replace(tmp, STATE_ENV)
+
+    payload = dict(info or {})
+    payload["present"] = present
+    tmp = STATE_JSON + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True)
+        handle.write("\n")
+    os.replace(tmp, STATE_JSON)
+
+
+def config_value(key, default=""):
+    """Read one key out of /etc/aryaos/aryaos-config.txt."""
+    path = "/etc/aryaos/aryaos-config.txt"
+    try:
+        with open(path, encoding="utf-8") as handle:
+            for line in handle:
+                line = line.strip()
+                if line.startswith(f"{key}="):
+                    return line.split("=", 1)[1].strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return default
+
+
+def find_adsbee():
+    """First confirmed ADSBee, skipping ports another process already owns."""
+    for dev in candidates():
+        if port_is_busy(dev):
+            # Almost certainly readsb already streaming Beast from it. Trust the
+            # previous detection rather than fighting for the port.
+            log(f"{dev}: busy (in use by another process) — not probing")
+            continue
+        info = identify(dev)
+        if info:
+            return info
+    return None
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("action", choices=("detect", "provision", "info"),
+                        nargs="?", default="detect")
+    parser.add_argument("--json", action="store_true", help="machine-readable output")
+    args = parser.parse_args()
+
+    if args.action == "info":
+        try:
+            with open(STATE_JSON, encoding="utf-8") as handle:
+                payload = json.load(handle)
+        except (OSError, ValueError):
+            payload = {"present": False}
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 0 if payload.get("present") else 1
+
+    if serial is None:
+        log("python3-serial is not installed; cannot talk to the ADSBee")
+        return 1
+
+    info = find_adsbee()
+
+    if info and args.action == "provision":
+        if os.geteuid() != 0:
+            log("provision requires root")
+            return 1
+        radio = config_value("ARYAOS_ADSBEE_RADIO", "off").lower()
+        provision(info["device"], disable_radio=(radio != "on"))
+
+    if args.action == "provision":
+        write_state(info)
+
+    if not info:
+        if args.json:
+            print(json.dumps({"present": False}))
+        else:
+            log("no ADSBee found")
+        return 1
+
+    if args.json:
+        print(json.dumps(dict(info, present=True), indent=2, sort_keys=True))
+    else:
+        log(f"ADSBee on {info['device']} "
+            f"(firmware {info.get('firmware', '?')}, part {info.get('part_code', '?')})")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

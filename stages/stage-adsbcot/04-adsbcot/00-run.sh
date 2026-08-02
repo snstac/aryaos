@@ -56,5 +56,11 @@ install -v -m 0644 "${SHARED_FILES}/adsbcot/systemd/readsb.service.d/aryaos-conf
 install -v -m 755 "${SHARED_FILES}/adsbcot/readsb-set-location.sh" "${ROOTFS_DIR}/usr/local/bin/"
 install -v -m 755 "${SHARED_FILES}/adsbcot/readsb-gain.sh" "${ROOTFS_DIR}/usr/local/bin/"
 
+# ADSBee — hardware ADS-B/UAT receiver; replaces the 1090 + 978 RTL-SDR pair.
+install -v -m 755 "${SHARED_FILES}/adsbcot/aryaos-adsbee" "${ROOTFS_DIR}/usr/local/sbin/aryaos-adsbee"
+install -v -m 644 "${SHARED_FILES}/aryaos/systemd/aryaos-adsbee.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/aryaos-adsbee.service"
+install -v -m 644 "${SHARED_FILES}/aryaos/udev/99-aryaos-adsbee.rules" "${ROOTFS_DIR}/etc/udev/rules.d/"
+
 # cockpit-adsbcot installs from the snstac apt repo in 01-run-chroot.sh
 # (repo configured by stage-pytak, which runs earlier in STAGE_LIST).

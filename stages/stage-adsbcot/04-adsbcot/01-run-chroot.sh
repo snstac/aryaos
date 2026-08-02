@@ -59,6 +59,11 @@ sed --follow-symlinks -i -E -e "s/^# (FEED_URL.*)/\1/" /etc/default/adsbcot
 grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/adsbcot.service || sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/adsbcot.service
 
 systemctl daemon-reload || true
+
+# Always on: it is a cheap oneshot that exits 1 when no ADSBee is attached, and
+# readsb needs its verdict (/run/aryaos/adsbee.env) before it picks a receiver.
+systemctl enable aryaos-adsbee.service 2>/dev/null || true
+
 if [[ "${ARYAOS_PROFILE}" == "uas" ]]; then
 	systemctl disable --now adsbcot.service readsb.service dump1090-fa.service dump978-fa.service 2>/dev/null || true
 elif [[ "${ARYAOS_ADSB_DECODER_DEFAULT}" == "dump1090_fa" ]]; then

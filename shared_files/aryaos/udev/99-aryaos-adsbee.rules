@@ -1,0 +1,13 @@
+# AryaOS — ADSBee 1090/1090U hardware ADS-B + UAT receiver.
+#
+# The ADSBee exposes its console on the RP2040's USB CDC port, which enumerates
+# with the STOCK Raspberry Pi Pico id 2e8a:000a. That id is shared with every
+# other RP2040 board, so it CANNOT be used to claim a device: this rule
+# deliberately creates no /dev/adsbee symlink. Identification is an active
+# `AT+DEVICE_INFO?` probe in aryaos-adsbee, and the device is referenced by its
+# unique /dev/serial/by-id/ path.
+#
+# All this rule does is re-run provisioning on hotplug, so an ADSBee plugged in
+# after boot is configured and picked up without a reboot. Firing the probe at
+# some unrelated Pico is harmless: it answers nothing and is ignored.
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="000a", TAG+="systemd", ENV{SYSTEMD_WANTS}="aryaos-adsbee.service", ENV{ID_MM_DEVICE_IGNORE}="1"

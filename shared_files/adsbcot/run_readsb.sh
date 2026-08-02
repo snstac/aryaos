@@ -32,9 +32,36 @@ if [ -f "${READSB_CONFIG}" ]; then
   . "${READSB_CONFIG}"
 fi
 
+# Written by aryaos-adsbee (ordered Before=readsb.service): says whether a
+# hardware ADSBee receiver was found, and on which by-id path.
+ADSBEE_ENV="/run/aryaos/adsbee.env"
+
+if [ -f "${ADSBEE_ENV}" ]; then
+  # shellcheck source=/dev/null
+  . "${ADSBEE_ENV}"
+fi
+
 set +a
 
 : "${ADSB_JSON:=${ARYAOS_ADSB_JSON_DIR:-/run/adsb}}"
+
+# Receiver selection. "auto" (the default) prefers a hardware ADSBee when one is
+# present, and otherwise leaves the SDR RECEIVER_OPTIONS from /etc/default/readsb
+# untouched -- so SDR boxes are unaffected. Pin to rtlsdr/soapysdr to keep using
+# an SDR even with an ADSBee attached.
+use_adsbee=0
+case "${ARYAOS_ADSB_RECEIVER:-auto}" in
+  adsbee) use_adsbee=1 ;;
+  auto)   [ "${ARYAOS_ADSBEE_PRESENT:-0}" = "1" ] && use_adsbee=1 ;;
+esac
+
+if [ "${use_adsbee}" = "1" ] && [ -n "${ARYAOS_ADSBEE_DEVICE:-}" ]; then
+  # The ADSBee demodulates 1090 Mode S and 978 UAT in hardware and emits both as
+  # Mode S Beast (UAT encapsulated in frame type 0xec, which readsb converts via
+  # uat2esnt). readsb reads that straight off the serial port -- no SDR, no socat
+  # shim, and effectively no CPU, because nothing here demodulates.
+  RECEIVER_OPTIONS="--device-type modesbeast --beast-serial ${ARYAOS_ADSBEE_DEVICE}"
+fi
 
 # RECEIVER_OPTIONS etc. are multiple CLI flags; they must be word-split (not one argv).
 # shellcheck disable=SC2086
