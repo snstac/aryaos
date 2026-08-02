@@ -106,6 +106,33 @@ def networks():
         result[name] = stats
     return result
 
+def filesystem_health():
+    result = {}
+    rc, root_source, err = run(["findmnt", "-n", "-o", "SOURCE", "/"])
+    if rc != 0 or not root_source:
+        return {"probe_error": err or "root source not found"}
+    result["root_source"] = root_source
+    rc, tune, err = run(["tune2fs", "-l", root_source], 8)
+    if rc == 0:
+        for line in tune.splitlines():
+            key, sep, value = line.partition(":")
+            if sep and key.strip() == "Filesystem state":
+                result["root_state"] = value.strip()
+                break
+    else:
+        result["root_probe_error"] = err or f"tune2fs rc={rc}"
+    cmdline_path = "/boot/firmware/cmdline.txt"
+    if os.path.exists(cmdline_path):
+        rc, partuuid, _ = run(["lsblk", "-n", "-o", "PARTUUID", root_source])
+        configured = read(cmdline_path).split()
+        root_tokens = [item for item in configured if item.startswith("root=")]
+        result["boot_cmdline_lines"] = len(read(cmdline_path).splitlines())
+        result["boot_root"] = root_tokens[0] if root_tokens else None
+        result["boot_root_matches"] = bool(
+            rc == 0 and partuuid and f"root=PARTUUID={partuuid}" in root_tokens
+        )
+    return result
+
 load = read("/proc/loadavg").split()
 stat = os.statvfs("/")
 disk_total = stat.f_blocks * stat.f_frsize
@@ -146,6 +173,7 @@ print(json.dumps({
     "journal_warning_count_2m": len([x for x in journal_warnings.splitlines() if x.strip()]),
     "journal_warning_tail": journal_warnings.splitlines()[-12:],
     "services": services(), "gateway_status": gateway_status(),
+    "filesystem": filesystem_health(),
     "networks": networks(), "usb": usb.splitlines(), "health": health,
     "top_processes": top.splitlines()[1:13],
 }, separators=(",", ":")))
@@ -195,6 +223,7 @@ def summarize(samples):
             "failed_units": [], "service_nonactive": {}, "restart_range": {},
             "service_state_counts": {}, "journal_warnings": 0, "boot_ids": [],
             "first_mem_pct": None, "last_mem_pct": None, "mem_delta_pct": None,
+            "filesystem_alerts": 0, "filesystem_states": [],
         })
         out["samples"] += 1
         if not sample.get("ok"):
@@ -221,6 +250,16 @@ def summarize(samples):
         boot_id = sample.get("boot_id")
         if boot_id and boot_id not in out["boot_ids"]:
             out["boot_ids"].append(boot_id)
+        filesystem = sample.get("filesystem") or {}
+        fs_state = filesystem.get("root_state")
+        if fs_state and fs_state not in out["filesystem_states"]:
+            out["filesystem_states"].append(fs_state)
+        if (
+            (fs_state and "error" in fs_state.lower())
+            or filesystem.get("boot_root_matches") is False
+            or filesystem.get("boot_cmdline_lines", 1) != 1
+        ):
+            out["filesystem_alerts"] += 1
         for name, state in (sample.get("services") or {}).items():
             active_state = state.get("ActiveState") or "unknown"
             counts = out["service_state_counts"].setdefault(name, {})

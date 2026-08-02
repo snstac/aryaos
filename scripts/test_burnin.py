@@ -17,7 +17,7 @@ burnin = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(burnin)
 
 
-def sample(cycle, memory, state):
+def sample(cycle, memory, state, filesystem=None):
     return {
         "host": "192.0.2.1",
         "cycle": cycle,
@@ -31,6 +31,11 @@ def sample(cycle, memory, state):
         "services": {
             "role-service": {"ActiveState": state, "NRestarts": 0},
             "optional-service": {"ActiveState": "inactive", "NRestarts": 0},
+        },
+        "filesystem": filesystem or {
+            "root_state": "clean",
+            "boot_cmdline_lines": 1,
+            "boot_root_matches": True,
         },
     }
 
@@ -73,6 +78,26 @@ class BurninSummaryTestCase(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, r"samples\.jsonl:2"):
                 burnin.read_samples(path)
+
+    def test_filesystem_damage_and_bad_boot_root_are_counted(self):
+        host = burnin.summarize(
+            [
+                sample(1, 10, "active"),
+                sample(
+                    2,
+                    10,
+                    "active",
+                    {
+                        "root_state": "clean with errors",
+                        "boot_cmdline_lines": 2,
+                        "boot_root_matches": False,
+                    },
+                ),
+            ]
+        )["hosts"]["192.0.2.1"]
+
+        self.assertEqual(host["filesystem_alerts"], 1)
+        self.assertEqual(host["filesystem_states"], ["clean", "clean with errors"])
 
 
 if __name__ == "__main__":
