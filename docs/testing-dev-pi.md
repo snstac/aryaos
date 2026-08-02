@@ -47,7 +47,12 @@ scripts/aryaos-test/
     03-adsb.sh        # readsb SDR flags, aircraft.json
     04-portal.sh      # HTTPS/HTTP CGI + validate_portal.py
     05-packages.sh    # overlay package, calfire tiles
-    06-optional-uas.sh # docker, MQTT, Bluetooth (warn-only)
+    06-optional-uas.sh # docker, MQTT, Bluetooth and UAS role checks
+    07-antsdr.sh       # UAS-profile AntSDR Ethernet/feed health
+    08-tak-dp.sh       # authenticated TAK data-package import boundary
+    09-security.sh     # firewall, SSH, updates, swap, TLS
+    10-storage.sh      # root superblock, kernel media errors, boot PARTUUID
+    11-wifi-rid.sh     # enabled Wi-Fi RID adapter/service/data-path health
 ```
 
 Expectations live in **`expectations.yml`**; update that file when image defaults change.
