@@ -139,6 +139,29 @@ filesystem-repair reboot; physical recovery is still required.
   each node retained exactly 128 sessions (16.4 MiB) and left `/var/log` only
   33% used.
 
+### Source and image validation
+
+- Final local gates on branch `fix/dronecot-ws-recovery` passed: AryaOS Python
+  tests 68 passed/3 skipped, Gutcheck 110 passed, Ansible syntax, CI-equivalent
+  shellcheck, strict MkDocs rendering, YAML parsing, and `git diff --check`.
+- The first workflow dispatch, Actions run `30759152511`, exposed a CI-only
+  filename bug: the raw ref `fix/dronecot-ws-recovery` became part of pi-gen's
+  image name, so `/` was interpreted as a directory separator during export.
+  Commit `20bb47a` sanitizes only the filesystem-facing image name to
+  `aryaos-fix-dronecot-ws-recovery-dev` while preserving the original ref in
+  the image provenance stamp. A second run exported and uploaded the image,
+  proving that fix.
+- The second run (`30759601742`) was then correctly blocked by the image
+  verifier because the signed package repository still served Dronecot
+  `2.3.4-1` while AryaOS requires `>=2.3.7`. Packages workflow run
+  `30760437018` refreshed the repository from the already-published Dronecot
+  `v2.3.7` release; the public arm64 apt index now serves `2.3.7-1`.
+- Final Actions run `30760485704` at commit `20bb47a` passed in 21m37s. The
+  image verifier reported **258 ok, 0 failed**, including Dronecot `2.3.7-1`;
+  image and SBOM artifacts, image hashes, overlay deb, and the prerelease were
+  all published as
+  `v2026.08.02.182711-20bb47af0ffe-dev`.
+
 ### `.60` install-media incident (physical recovery required)
 
 - The deeper kernel/superblock audit found ext4 directory-checksum failures in
