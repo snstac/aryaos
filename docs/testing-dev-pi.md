@@ -50,7 +50,7 @@ scripts/aryaos-test/
     06-optional-uas.sh # docker, MQTT, Bluetooth and UAS role checks
     07-antsdr.sh       # UAS-profile AntSDR Ethernet/feed health
     08-tak-dp.sh       # authenticated TAK data-package import boundary
-    09-security.sh     # firewall, SSH, updates, swap, TLS
+    09-security.sh     # firewall, SSH, updates, swap, sudo log headroom, TLS
     10-storage.sh      # root superblock, kernel media errors, boot PARTUUID
     11-wifi-rid.sh     # enabled Wi-Fi RID adapter/service/data-path health
     12-gutcheck.sh     # enabled capability API/dashboard/auth/runtime health
@@ -75,6 +75,7 @@ Expectations live in **`expectations.yml`**; update that file when image default
 - readsb `--help` includes RTL-SDR, SoapySDR, HackRF
 - `/run/adsb/aircraft.json` exists and is valid JSON
 - Portal CGI returns HTTP 200 JSON with required keys and gateway IDs
+- Sudo I/O audit history is bounded to 128 sessions and `/var/log` is below 95%
 
 ### Warn / skip (exit 0)
 

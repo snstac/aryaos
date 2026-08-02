@@ -16,6 +16,7 @@ image.
 | **RAM-only zram swap** | No swapfile writes ever hit the SD/NVMe. Swap lives in RAM instead (`zstd`-compressed, sized `min(ram / 2, 4096)` MB), so a memory spike from multi-SDR + Node-RED + containers still can't OOM-kill a service — and it costs zero media writes. |
 | **journald volatile (logs in RAM)** | The systemd journal is stored in RAM, not on disk, so the constant log churn from a running sensor stack never touches the media. |
 | **tmpfs for `/tmp`, `/var/tmp`, `/var/log`** | These write-heavy directories are RAM-backed tmpfs mounts (`/tmp` and `/var/tmp` capped at 100 MB, `/var/log` at 50 MB). Scratch files and logs live and die in memory. |
+| **Bounded sudo I/O audit history** | Sudo still records compressed command I/O for troubleshooting, but `Defaults maxseq=128` makes the history wrap after 128 sessions. This prevents audit traffic from exhausting the 50 MB `/var/log` tmpfs. |
 | **`noatime` on the root filesystem** | Reading a file no longer triggers a metadata *write* to update its access time — a huge, invisible source of wear on a busy box. |
 | **Weekly `fstrim` (TRIM)** | `fstrim.timer` is enabled, so the filesystem periodically tells the flash controller which blocks are free. That keeps wear-leveling effective and sustains write performance over the life of the card. |
 
@@ -39,6 +40,44 @@ persistent on-disk history.
     is happening* — generate a [support bundle](./support-bundles.md), which
     snapshots the current journal into a redacted tarball you can attach to a
     field report. A reboot clears the RAM journal, so fresh is always better.
+
+The sudo I/O history is also bounded by **session count, not elapsed time**.
+Busy diagnostic or automation runs may therefore replace old command sessions
+well before a reboot.
+
+## Check and recover `/var/log` capacity
+
+Run these checks when privileged commands start failing, after a long burn-in,
+or as part of routine field validation:
+
+```bash
+df -h /var/log
+sudo -n true
+sudo -n grep '^Defaults maxseq=128$' /etc/sudoers.d/aryaos
+sudo -n find /var/log/sudo-io -mindepth 3 -maxdepth 3 -type d | wc -l
+```
+
+A current image should accept passwordless sudo, report the `maxseq` line, keep
+no more than 128 completed I/O sessions, and leave `/var/log` below 95% use.
+The HIL security module checks the configuration and capacity automatically:
+
+```bash
+ARYAOS_SSH=pi@aryaos-dev-pi ./scripts/aryaos-test/run.sh
+```
+
+The characteristic exhausted-tmpfs error is:
+
+```text
+sudo: unable to write to I/O log file: No space left on device
+sudo: error initializing I/O plugin sudoers_io
+```
+
+Capture a support bundle before recovery if sudo and enough log space remain.
+A controlled reboot is the normal recovery: `/var/log` is RAM-backed, so the
+reboot clears the full tmpfs. If sudo is already unusable, recover from a local
+root console or perform the controlled reboot through the appliance power/UI
+path; do not recursively delete `/var/log`. After recovery, install AryaOS
+overlay `2.0.6` or newer, reboot once, and rerun the security check above.
 
 ## NVMe vs SD cards
 
