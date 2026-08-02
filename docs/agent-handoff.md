@@ -210,8 +210,10 @@ the recovery and post-flash validation are recorded below.
   cache files are mode `0600` under `/var/lib/acarscot`, backed by a local
   `StateDirectory=acarscot` service drop-in so a reboot does not consume the
   enrollment token again. A forced service restart preserved the cache
-  byte-for-byte and reconnected successfully. The complete default HIL suite
-  passed again after enrollment (including 23 security and three storage
+  byte-for-byte and reconnected successfully. A controlled reboot then changed
+  the boot ID while preserving the same cache digest; ACARSCOT automatically
+  re-established WSS with no warnings or restarts. The complete default HIL
+  suite passed again on that boot (including 23 security and three storage
   checks). A 45-second follow-up RF capture was quiet, which is normal for
   sparse ACARS traffic; the earlier live 384-byte decoder datagram remains the
   data-path proof.
