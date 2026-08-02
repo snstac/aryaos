@@ -205,6 +205,30 @@ jobs:
           echo "ARYAOS_BUILD_SHA=${{ github.sha }}" >> "$GITHUB_ENV"
           echo "ARYAOS_BUILD_REF=${{ github.ref_name }}" >> "$GITHUB_ENV"
 
+      - name: Set filesystem-safe image name
+        env:
+          ARYAOS_REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Git branch names may contain '/', but pi-gen uses IMG_NAME as part
+          # of both a work-directory name and an exported image filename.
+          # Keep the original ref in ARYAOS_BUILD_REF and sanitize only the
+          # filesystem-facing name.
+          SAFE_REF="$(
+            printf '%s' "${ARYAOS_REF_NAME}" \
+              | LC_ALL=C sed -E 's/[^A-Za-z0-9._-]+/-/g; s/^-+//; s/-+$//'
+          )"
+          if [ -z "${SAFE_REF}" ]; then
+            echo "Git ref does not contain any filesystem-safe characters" >&2
+            exit 1
+          fi
+          DEV_SUFFIX=""
+          if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
+            DEV_SUFFIX="-dev"
+          fi
+          echo "ARYAOS_IMAGE_NAME=${IMG_NAME}-${SAFE_REF}${DEV_SUFFIX}" >> "$GITHUB_ENV"
+          echo "Image name: ${IMG_NAME}-${SAFE_REF}${DEV_SUFFIX}"
+
       - name: Build offline documentation into the portal
         # Renders the MkDocs site into shared_files/aryaos/html/docs so the
         # overlay deb (install_tree html -> /var/www/html) ships it on the
@@ -235,7 +259,7 @@ jobs:
           disable-first-boot-user-rename: ${{ env.DISABLE_FIRST_BOOT_USER_RENAME }}
           enable-ssh: ${{ env.ENABLE_SSH }}
           username: pi
-          image-name: ${{ env.IMG_NAME }}-${{ github.ref_name }}${{ env.ARYAOS_LAB_ACCESS == '1' && '-dev' || '' }}
+          image-name: ${{ env.ARYAOS_IMAGE_NAME }}
           hostname: ${{ env.TARGET_HOSTNAME }}
           locale: ${{ env.LOCALE_DEFAULT }}
           password: ${{ env.FIRST_USER_PASS }}
