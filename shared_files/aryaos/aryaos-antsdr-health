@@ -4,9 +4,10 @@
 # An AntSDR running the alphafox02 antsdr_dji_droneid firmware detects DJI
 # OcuSync DroneID and PUSHES it over point-to-point Ethernet to dronecot's DJI
 # listener (TCP, default 172.31.100.1:52002). This tool checks that path is
-# healthy — the SDR is reachable and the feed socket is ESTABLISHED — and writes
-# a small JSON status for Cockpit plus a syslog line. It is OBSERVABILITY ONLY:
-# it never restarts or reconfigures anything, so it cannot disrupt a live feed.
+# healthy — the SDR is reachable, the feed socket is ESTABLISHED, and dronecot's
+# TAK WebSocket is connected — then writes a small JSON status for Cockpit plus
+# a syslog line. It is OBSERVABILITY ONLY: it never restarts or reconfigures
+# anything, so it cannot disrupt a live feed.
 #
 # Usage:
 #   aryaos-antsdr-health            # evaluate, write /run/aryaos/antsdr-health.json, log
@@ -31,11 +32,15 @@ BIND="172.31.100.1"
 [[ -n "${DJI_TCP_PORT:-}" ]] && PORT="${DJI_TCP_PORT}"
 [[ -n "${DJI_BIND_ADDRESS:-}" ]] && BIND="${DJI_BIND_ADDRESS}"
 
-# AntSDR peer: explicit override, else the .2 host of the Pi's /24 link net.
+# AntSDR peer: explicit override, then a live feed peer, then the .2 host of the
+# Pi's point-to-point /24 link net.
 ANTSDR_IP="${ANTSDR_IP:-}"
 [[ -r /etc/default/aryaos-antsdr ]] && . <(grep -E '^ANTSDR_IP=' /etc/default/aryaos-antsdr 2>/dev/null | sed 's/^/export /') 2>/dev/null || true
 if [[ -z "${ANTSDR_IP}" ]]; then
-	ANTSDR_IP="${BIND%.*}.2"
+	peer="$(ss -tnH state established "( sport = :${PORT} )" 2>/dev/null | awk 'NR == 1 {print $4}')"
+	ANTSDR_IP="${peer%:*}"
+	ANTSDR_IP="${ANTSDR_IP#[}"; ANTSDR_IP="${ANTSDR_IP%]}"
+	[[ -n "${ANTSDR_IP}" ]] || ANTSDR_IP="${BIND%.*}.2"
 fi
 
 quiet=0; want_json=0
@@ -64,7 +69,65 @@ elif ss -tnH state established "( dport = :${PORT} )" 2>/dev/null | grep -q "${A
 	feed=true
 fi
 
-if $feed; then
+# 3) For WebSocket/tak:// output, does THIS dronecot process still own an
+#    established connection to the resolved TAK port? This catches the failure
+#    mode where WSRXWorker exits but systemd continues to report the process as
+#    active. Never copy COT_URL into output: tak:// URLs can carry enrollment
+#    credentials.
+read_env_value() {
+	local path="$1" key="$2"
+	[[ -r "${path}" ]] || return 0
+	sed -n -E "s/^[[:space:]]*${key}=//p" "${path}" 2>/dev/null | tail -1
+}
+
+COT_URL=""
+for config_path in /etc/aryaos/aryaos-config.txt /etc/default/dronecot; do
+	value="$(read_env_value "${config_path}" COT_URL)"
+	if [[ -n "${value}" ]]; then
+		value="${value#\"}"; value="${value%\"}"
+		value="${value#\'}"; value="${value%\'}"
+		COT_URL="${value}"
+	fi
+done
+
+tak_port=""
+scheme="${COT_URL%%://*}"
+case "${scheme}" in
+	tak)
+		host_param="${COT_URL#*host=}"
+		host_param="${host_param%%&*}"
+		host_param="${host_param//%3A/:}"
+		host_param="${host_param//%3a/:}"
+		if [[ "${host_param}" =~ :([0-9]+)$ ]]; then
+			tak_port="${BASH_REMATCH[1]}"
+		else
+			tak_port=8443
+		fi
+		;;
+	ws|wss)
+		authority="${COT_URL#*://}"
+		authority="${authority%%/*}"
+		authority="${authority##*@}"
+		if [[ "${authority}" =~ :([0-9]+)$ ]]; then
+			tak_port="${BASH_REMATCH[1]}"
+		else
+			tak_port=8443
+		fi
+		;;
+esac
+
+tak_established=null
+if [[ -n "${tak_port}" ]]; then
+	tak_established=false
+	main_pid="$(systemctl show dronecot.service -p MainPID --value 2>/dev/null)"
+	if [[ "${main_pid}" =~ ^[1-9][0-9]*$ ]] && \
+		ss -tnpH state established "( dport = :${tak_port} )" 2>/dev/null | \
+		grep -q "pid=${main_pid},"; then
+		tak_established=true
+	fi
+fi
+
+if $feed && [[ "${tak_established}" != false ]]; then
 	status="ok"
 elif $reachable; then
 	status="degraded"   # SDR is up but not pushing DroneID (idle if no DJI drone, or app stalled)
@@ -79,7 +142,7 @@ prev=""
 [[ -r "${STATE_FILE}" ]] && prev="$(sed -n 's/.*"status":"\([a-z]*\)".*/\1/p' "${STATE_FILE}" 2>/dev/null)"
 
 ts="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo unknown)"
-json="{\"status\":\"${status}\",\"antsdr_ip\":\"${ANTSDR_IP}\",\"feed_port\":${PORT},\"reachable\":${reachable},\"feed_established\":${feed},\"ts\":\"${ts}\"}"
+json="{\"status\":\"${status}\",\"antsdr_ip\":\"${ANTSDR_IP}\",\"feed_port\":${PORT},\"reachable\":${reachable},\"feed_established\":${feed},\"tak_established\":${tak_established},\"ts\":\"${ts}\"}"
 
 mkdir -p "${RUN_DIR}" 2>/dev/null
 # Best-effort state file for Cockpit. Guard the write so a NON-root invocation
@@ -93,7 +156,13 @@ fi
 if [[ "${quiet}" != 1 && "${status}" != "${prev}" ]]; then
 	case "${status}" in
 		ok)       logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} OK — DroneID feed established on :${PORT}" 2>/dev/null || true;;
-		degraded) logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} reachable but NO DroneID feed on :${PORT} (idle if no DJI drone, or firmware stalled)" 2>/dev/null || true;;
+		degraded)
+			if $feed && [[ "${tak_established}" == false ]]; then
+				logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} feed established but dronecot has NO TAK WebSocket connection" 2>/dev/null || true
+			else
+				logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} reachable but NO DroneID feed on :${PORT} (idle if no DJI drone, or firmware stalled)" 2>/dev/null || true
+			fi
+			;;
 		down)     logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} not present on the link (${BIND%.*}.0/24) — expected if this box has no AntSDR" 2>/dev/null || true;;
 	esac
 fi
