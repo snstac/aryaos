@@ -25,7 +25,7 @@ the recovery and post-flash validation are recorded below.
 |---|---|---|---|
 | `192.168.0.13` | `aryaos-36aa` | DJI DroneID; AntSDR at `172.31.100.2`; ESP32-S3 + CH340 | 10 Mb/full |
 | `192.168.0.44` | `aryaos-91bd` | Wi-Fi Remote ID; AR9271 monitor adapter + CH340 + CP2102N | 10 Mb/full |
-| `192.168.0.60` | `aryaos-fad2` | ACARS; LimeSDR Mini + u-blox 7 | 1 Gb/full |
+| `192.168.0.60` | `aryaos-ff84` (reflashed; formerly `aryaos-fad2`) | ACARS; LimeSDR Mini + u-blox 7 | 1 Gb/full |
 | `192.168.0.199` | `aryaos-0f26` | Gutcheck; Pico + PL2303 | 1 Gb/full |
 
 ### Findings already fixed and deployed
@@ -143,7 +143,7 @@ the recovery and post-flash validation are recorded below.
 ### Source and image validation
 
 - Final local gates on branch `fix/dronecot-ws-recovery` passed: AryaOS Python
-  tests 68 passed/3 skipped, Gutcheck 110 passed, Ansible syntax, CI-equivalent
+  tests 69 passed/3 skipped, Gutcheck 110 passed, Ansible syntax, CI-equivalent
   shellcheck, strict MkDocs rendering, YAML parsing, and `git diff --check`.
 - The first workflow dispatch, Actions run `30759152511`, exposed a CI-only
   filename bug: the raw ref `fix/dronecot-ws-recovery` became part of pi-gen's
@@ -162,6 +162,11 @@ the recovery and post-flash validation are recorded below.
   image and SBOM artifacts, image hashes, overlay deb, and the prerelease were
   all published as
   `v2026.08.02.182711-20bb47af0ffe-dev`.
+- The definitive Actions run `30761773782` then built the exact documented head
+  `20a77fb` in 26m32s. Its verifier reported **259 ok, 0 failed**, including the
+  new ACARS role-management assertion and Dronecot `2.3.7-1`. The image, SPDX
+  and CycloneDX SBOMs, hashes, overlay `2.0.7` deb, and prerelease were published
+  as `v2026.08.02.190609-20a77fb8dbb2-dev`.
 
 ### `.60` install-media incident and reflash recovery
 
@@ -198,6 +203,18 @@ the recovery and post-flash validation are recorded below.
   drops, proving live RF-to-gateway data flow. One initial USB 2.0 open attempt
   failed during boot enumeration; the bounded service restart succeeded 20
   seconds later over USB 3.0 and remained error-free.
+- ACARSCOT was subsequently enrolled directly to the operator-supplied TAK
+  server (credentials deliberately omitted). PyTAK resolved the enrollment URL
+  to WSS on port 8443; the socket remained established with both WebSocket
+  workers running and zero ACARSCOT warnings or restarts. The three enrollment
+  cache files are mode `0600` under `/var/lib/acarscot`, backed by a local
+  `StateDirectory=acarscot` service drop-in so a reboot does not consume the
+  enrollment token again. A forced service restart preserved the cache
+  byte-for-byte and reconnected successfully. The complete default HIL suite
+  passed again after enrollment (including 23 security and three storage
+  checks). A 45-second follow-up RF capture was quiet, which is normal for
+  sparse ACARS traffic; the earlier live 384-byte decoder datagram remains the
+  data-path proof.
 
 ## 2026-07-19→21 sweep — HIL hardening + landing-page features (SHIPPED)
 
