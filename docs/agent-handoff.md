@@ -7,7 +7,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
 
-## 2026-08-02 four-node HIL burn-in (SOAK COMPLETE; `.60` RECOVERY BLOCKED)
+## 2026-08-02 four-node HIL burn-in (SOAK COMPLETE; `.60` RECOVERED)
 
 The eight-hour sampler ran from 09:03:45 through 17:03:45 UTC against `.13`,
 `.44`, `.60`, and `.199`: 480 cycles per host and 1,920 records. Raw evidence,
@@ -16,7 +16,8 @@ gitignored `.aryaos-burnin/20260802T090345Z/`. Every `.13`/`.44`/`.199` probe
 failure is explained by a controlled reboot/package intervention or the sudo
 capacity defect found and fixed below. `.60` supplied 164 successful samples,
 then remained offline for cycles 165--480 after its operator-triggered
-filesystem-repair reboot; physical recovery is still required.
+filesystem-repair reboot. It returned later as a freshly initialized image;
+the recovery and post-flash validation are recorded below.
 
 ### Lab inventory and roles
 
@@ -162,7 +163,7 @@ filesystem-repair reboot; physical recovery is still required.
   all published as
   `v2026.08.02.182711-20bb47af0ffe-dev`.
 
-### `.60` install-media incident (physical recovery required)
+### `.60` install-media incident and reflash recovery
 
 - The deeper kernel/superblock audit found ext4 directory-checksum failures in
   `/usr/src/linux-headers-6.18.39+rpt-common-rpi/include/net` and `/srv`. The root
@@ -175,13 +176,28 @@ filesystem-repair reboot; physical recovery is still required.
   `fsck.mode=force`. Redacted configuration and support archives were copied
   off-host into the burn-in evidence directory before intervention.
 - `.60` had not returned by the final 17:11 UTC ping/SSH/mDNS/ARP check after
-  the 11:47 UTC repair reboot. Do not issue another blind reboot. If it remains
-  offline, attach a console or remove
-  the card and run `fsck.fat` on the boot partition plus `e2fsck -f -D` on root
-  from another Linux host, then verify the command-line PARTUUID before booting.
-- Once reachable, capture the fsck journal, prove both filesystems clean, remove
-  `fsck.mode=force`, reboot once normally, verify the RAM-only swap policy, rerun
-  the full HIL suite, and recheck LimeSDR USB resets under ACARS load.
+  the 11:47 UTC repair reboot. It later returned with new host keys, hostname
+  `aryaos-ff84`, and a new machine ID, establishing that it was reflashed rather
+  than resuming the damaged `aryaos-fad2` installation.
+- The fresh image was healthy at the filesystem layer (clean root superblock,
+  matching root PARTUUID, and no current-boot filesystem/media errors), but was
+  still on overlay `2.0.0`. It also had Trixie's file-backed swap loop and had
+  misclassified the LimeSDR as AIS, leaving `ais-catcher` failed. Overlay
+  `2.0.7` and the signed ACARS stack were installed, and the capability was set
+  explicitly to `acars`.
+- That transition exposed and fixed a source bug: `aryaos-role` knew that the
+  `acars` capability maps to `acarsdec acarscot`, but omitted both units from
+  `all_managed_units`, so it could persist the label without enabling the
+  services. Commit `9c9782c` adds both units, a regression test, and an image
+  verifier assertion.
+- After a controlled reboot, `.60` had only RAM-backed zram (no backing device
+  and no `/var/swap`), no failed units, and passed the complete default HIL
+  suite. LimeSDR Mini v2 serial `1DBB4189078E3F` opened over USB 3.0; both
+  `acarsdec` and `acarscot` were enabled/active. The decoder emitted a 384-byte
+  JSON datagram to the gateway on loopback at 19:42:34 BST with zero capture
+  drops, proving live RF-to-gateway data flow. One initial USB 2.0 open attempt
+  failed during boot enumeration; the bounded service restart succeeded 20
+  seconds later over USB 3.0 and remained error-free.
 
 ## 2026-07-19→21 sweep — HIL hardening + landing-page features (SHIPPED)
 
