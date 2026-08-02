@@ -24,6 +24,18 @@ if command -v firewall-cmd >/dev/null 2>&1; then
 	else
 		fail "firewalld installed but not running"
 	fi
+	if dpkg-query -W -f='${Status}' gutcheck 2>/dev/null | grep -q "install ok installed"; then
+		if sudo -n firewall-cmd --zone=public --query-service=aryaos-gutcheck >/dev/null 2>&1; then
+			ok "Gutcheck dashboard reachable on the trusted LAN"
+		else
+			fail "Gutcheck installed but blocked on the trusted LAN"
+		fi
+		if sudo -n firewall-cmd --zone=aryaos-hotspot --query-service=aryaos-gutcheck >/dev/null 2>&1; then
+			fail "Gutcheck exposed to the onboarding hotspot"
+		else
+			ok "Gutcheck withheld from the onboarding hotspot"
+		fi
+	fi
 else
 	warn "firewalld not installed (pre-hardening image?)"
 fi

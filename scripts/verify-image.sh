@@ -344,6 +344,8 @@ require_path /etc/apt/apt.conf.d/52unattended-upgrades-aryaos
 require_path /etc/firewalld/zones/public.xml
 require_path /etc/firewalld/services/aryaos-mesh-sa.xml
 require_grep 'aryaos-mesh-sa' /etc/firewalld/zones/public.xml "firewall zone allows Mesh SA"
+require_path /etc/firewalld/services/aryaos-gutcheck.xml
+require_grep 'aryaos-gutcheck' /etc/firewalld/zones/public.xml "firewall zone allows token-gated Gutcheck on the LAN"
 require_grep 'name="https"' /etc/firewalld/zones/public.xml "firewall zone allows HTTPS"
 require_path /etc/systemd/system/multi-user.target.wants/firewalld.service
 require_path /etc/systemd/system/multi-user.target.wants/fail2ban.service
@@ -515,7 +517,7 @@ require_grep '^NoNewPrivileges=yes' /etc/systemd/system/aryaos-neighbord.service
 # comitup-callback). Must exist, must NOT expose ssh / Node-RED / mesh, and
 # must have no intra-zone forwarding.
 require_path /etc/firewalld/zones/aryaos-hotspot.xml
-if grep -qsE '<service name="(ssh|aryaos-node-red|aryaos-mesh-sa)"' "${MNT}/etc/firewalld/zones/aryaos-hotspot.xml"; then
+if grep -qsE '<service name="(ssh|aryaos-node-red|aryaos-mesh-sa|aryaos-gutcheck)"' "${MNT}/etc/firewalld/zones/aryaos-hotspot.xml"; then
 	fail "aryaos-hotspot zone exposes ssh/node-red/mesh to onboarding clients"
 else
 	ok "aryaos-hotspot zone withholds ssh/node-red/mesh from onboarding clients"

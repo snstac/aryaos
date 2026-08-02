@@ -26,6 +26,21 @@ class OnboardingNetworkTestCase(unittest.TestCase):
         self.assertIn("--tries=1", callback)
         self.assertIn('comitup_callback/${1:-}" || true', callback)
 
+    def test_gutcheck_is_lan_only(self):
+        public = (
+            ROOT / "shared_files/aryaos/firewalld/zones/public.xml"
+        ).read_text()
+        hotspot = (
+            ROOT / "shared_files/aryaos/firewalld/zones/aryaos-hotspot.xml"
+        ).read_text()
+        service = (
+            ROOT / "shared_files/aryaos/firewalld/services/aryaos-gutcheck.xml"
+        ).read_text()
+
+        self.assertIn('service name="aryaos-gutcheck"', public)
+        self.assertNotIn('service name="aryaos-gutcheck"', hotspot)
+        self.assertIn('protocol="tcp" port="8181"', service)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

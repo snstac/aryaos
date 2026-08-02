@@ -32,6 +32,9 @@ Docker's own container forwarding is unaffected (it lives in the docker zone).
        the flow editor (arbitrary code execution) on the wired LAN is unnecessary
        attack surface for a field appliance. -->
   <service name="aryaos-ais-catcher"/>
+  <!-- Gutcheck's API is token-gated. Expose its documented LAN dashboard on
+       trusted interfaces, but deliberately omit it from aryaos-hotspot. -->
+  <service name="aryaos-gutcheck"/>
   <!-- aryaos-comitup (9080 onboarding captive portal) is intentionally NOT opened
        on the wired LAN: it is only needed on the onboarding radios (Wi-Fi hotspot +
        Bluetooth PAN), which get it via the aryaos-hotspot zone. comitup-web binds
