@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Tests for burn-in summary evidence and service-drop detection."""
+
+import importlib.machinery
+import importlib.util
+from pathlib import Path
+import unittest
+
+
+TOOL = Path(__file__).with_name("aryaos-burnin.py")
+spec = importlib.util.spec_from_loader(
+    "aryaos_burnin",
+    importlib.machinery.SourceFileLoader("aryaos_burnin", str(TOOL)),
+)
+burnin = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(burnin)
+
+
+def sample(cycle, memory, state):
+    return {
+        "host": "192.0.2.1",
+        "cycle": cycle,
+        "ok": True,
+        "temperature_c": 40,
+        "load": [0.5, 0.4, 0.3],
+        "memory": {"used_pct": memory},
+        "disk": {"used_pct": 25},
+        "throttled": "throttled=0x0",
+        "failed_units": [],
+        "services": {
+            "role-service": {"ActiveState": state, "NRestarts": 0},
+            "optional-service": {"ActiveState": "inactive", "NRestarts": 0},
+        },
+    }
+
+
+class BurninSummaryTestCase(unittest.TestCase):
+    def test_records_memory_drift_and_service_states(self):
+        host = burnin.summarize(
+            [sample(1, 10.25, "active"), sample(2, 11.75, "inactive")]
+        )["hosts"]["192.0.2.1"]
+
+        self.assertEqual(host["first_mem_pct"], 10.25)
+        self.assertEqual(host["last_mem_pct"], 11.75)
+        self.assertEqual(host["mem_delta_pct"], 1.5)
+        self.assertEqual(
+            host["service_state_counts"]["role-service"],
+            {"active": 1, "inactive": 1},
+        )
+        self.assertEqual(host["service_nonactive"]["role-service"], 1)
+
+    def test_always_inactive_optional_service_is_not_an_alarm(self):
+        host = burnin.summarize(
+            [sample(1, 10, "active"), sample(2, 10, "active")]
+        )["hosts"]["192.0.2.1"]
+
+        self.assertNotIn("optional-service", host["service_nonactive"])
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

@@ -193,7 +193,8 @@ def summarize(samples):
             "samples": 0, "probe_failures": 0, "max_temp_c": None, "max_load1": None,
             "max_mem_pct": None, "max_disk_pct": None, "throttle_events": 0,
             "failed_units": [], "service_nonactive": {}, "restart_range": {},
-            "journal_warnings": 0, "boot_ids": [],
+            "service_state_counts": {}, "journal_warnings": 0, "boot_ids": [],
+            "first_mem_pct": None, "last_mem_pct": None, "mem_delta_pct": None,
         })
         out["samples"] += 1
         if not sample.get("ok"):
@@ -205,6 +206,14 @@ def summarize(samples):
                            ("max_disk_pct", (sample.get("disk") or {}).get("used_pct"))):
             if value is not None:
                 out[key] = value if out[key] is None else max(out[key], value)
+        mem_pct = (sample.get("memory") or {}).get("used_pct")
+        if mem_pct is not None:
+            if out["first_mem_pct"] is None:
+                out["first_mem_pct"] = mem_pct
+            out["last_mem_pct"] = mem_pct
+            out["mem_delta_pct"] = round(
+                out["last_mem_pct"] - out["first_mem_pct"], 2
+            )
         if sample.get("throttled") not in (None, "throttled=0x0"):
             out["throttle_events"] += 1
         out["journal_warnings"] += sample.get("journal_warning_count_2m") or 0
@@ -213,12 +222,25 @@ def summarize(samples):
         if boot_id and boot_id not in out["boot_ids"]:
             out["boot_ids"].append(boot_id)
         for name, state in (sample.get("services") or {}).items():
-            if state.get("ActiveState") not in ("active", "inactive"):
+            active_state = state.get("ActiveState") or "unknown"
+            counts = out["service_state_counts"].setdefault(name, {})
+            counts[active_state] = counts.get(active_state, 0) + 1
+            if active_state not in ("active", "inactive"):
                 out["service_nonactive"][name] = out["service_nonactive"].get(name, 0) + 1
             restarts = state.get("NRestarts")
             if isinstance(restarts, int):
                 limits = out["restart_range"].setdefault(name, [restarts, restarts])
                 limits[0], limits[1] = min(limits[0], restarts), max(limits[1], restarts)
+    # Optional services are legitimately inactive for the whole run. Flag an
+    # inactive sample only when that same service was observed active elsewhere
+    # in the run: that is a role service dropping out, not an unused package.
+    for out in summary["hosts"].values():
+        for name, counts in out["service_state_counts"].items():
+            inactive = counts.get("inactive", 0)
+            if counts.get("active", 0) and inactive:
+                out["service_nonactive"][name] = (
+                    out["service_nonactive"].get(name, 0) + inactive
+                )
     return summary
 
 
