@@ -1,4 +1,4 @@
-# Agent handoff — state as of 2026-07-21
+# Agent handoff — state as of 2026-08-01
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
@@ -6,6 +6,60 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
+
+## 2026-08-01 — ADSBee hardware receiver + AIS-catcher leak (SHIPPED)
+
+Bench-proved on `aryaos-584d` (Pi 5) and verified across a full reboot. Docs:
+[ADSBee](config/adsbee.md), [runbook](operations/adsbee-runbook.md).
+
+**The ADSBee 1090U replaces both RTL dongles.** It demodulates 1090 Mode S and
+978 UAT in hardware and emits Beast over USB serial; `readsb --device-type
+modesbeast` reads it directly — no socat, no TCP hop, and the existing
+`readsb → aircraft.json → adsbcot → CoT` chain is untouched. Measured:
+**readsb CPU ~0%** (0.07 s over 4 min), because nothing on the Pi demodulates.
+UAT confirmed live: the ADSBee sends it as Beast frame type **`0xec`**, readsb
+converts via `uat2esnt`, and aircraft surface as `type=adsr_icao`.
+
+Architecture invariants worth keeping:
+
+- **`/etc/default/readsb` is never rewritten.** `aryaos-adsbee` (oneshot,
+  `Before=readsb.service`) writes `/run/aryaos/adsbee.env`; `run_readsb.sh`
+  overrides `RECEIVER_OPTIONS` at runtime. SDR boxes are unaffected and
+  unplugging the ADSBee reverts with no edit. Don't "fix" the stale RTL line.
+- **Identification is an active `AT+DEVICE_INFO?` probe.** The device enumerates
+  as a stock `2e8a:000a` "Raspberry Pi Pico" (shared with every RP2040 board) and
+  **ships silent**, so neither USB descriptors nor passive sniffing can find it.
+- **The console is a single serial port.** `readsb` and a probe cannot both hold
+  it — stop readsb before probing. That is why `probe_adsbee()` in the capability
+  scan reads the boot snapshot rather than re-probing.
+- `dump978-fa` leaves the `adsb` capability while an ADSBee is in use
+  (`uat_decoder_unit()` in `aryaos-role`); otherwise it crash-loops on a missing
+  978 dongle. An ADSBee also **frees the box's SDR for AIS** — the adsb/ais
+  contention in the capability scan no longer fires.
+
+!!! danger "Two hardware traps, both cost bench time"
+    **Never send `AT+ESP32_ENABLE=0`.** It silences the device *completely*,
+    Beast-over-USB included, despite the console having nothing to do with
+    networking. Measured: 0 bytes in 120 s with it off, 63 Beast frames in the
+    next 120 s with it on — same antenna, receivers reporting `ENABLED`
+    throughout. Provisioning pins it to `1`; EMCON is achieved by disabling each
+    radio individually.
+
+    **Clearing a feed slot does not erase its hostname.** The firmware keeps the
+    string, so exact-string comparison never converges and would re-flash on
+    every boot. Compare semantically (`active==0 and protocol==NONE`).
+
+**AIS-catcher was leaking to a public aggregator.** Root cause finally traced:
+AIS-catcher 0.68 embeds the aiscatcher.org hub (`185.77.96.227:4242`) and enables
+sharing **by default**, while its own `-h` claims `(default: off)`. AryaOS passed
+no `-X`, so it inherited that default. Fixed by hardcoding `-X off`.
+**A bare `-X` does not disable sharing** — so this must never come from a
+`${VAR}` that systemd could expand to nothing. Only `-X off` logs a positive
+confirmation (`Community feed sharing disabled.`).
+
+Still owed: a **same-antenna RF A/B against an RTL box**. The power win is
+proven; sensitivity equivalence is not (traffic was sparse all session, 1–4
+aircraft, which points at the antenna rather than the receiver).
 
 ## 2026-07-19→21 sweep — HIL hardening + landing-page features (SHIPPED)
 

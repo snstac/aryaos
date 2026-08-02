@@ -62,8 +62,8 @@ class AdsbCapabilityTestCase(unittest.TestCase):
             cls.src = fh.read()
         cls.block = _adsb_block(cls.src)
 
-    def decide(self, sdrs, with_pipeline=True):
-        ns = {"sdrs": sdrs, "caps": {}}
+    def decide(self, sdrs, with_pipeline=True, adsbee=None):
+        ns = {"sdrs": sdrs, "caps": {}, "adsbee": adsbee}
         exec(self.block, ns)
         if with_pipeline:
             exec(RECOMPUTE, ns)
@@ -95,6 +95,39 @@ class AdsbCapabilityTestCase(unittest.TestCase):
             self.src,
             "the recomputation this test guards against has changed shape",
         )
+
+    # -- ADSBee: a receiver that needs no SDR at all ----------------------
+    ADSBEE = {
+        "device": "/dev/serial/by-id/usb-Raspberry_Pi_Pico_E4654C6197481B39-if00",
+        "firmware": "0.9.0-rc19",
+    }
+
+    def test_adsbee_alone_is_available(self):
+        """The whole point of the device: ADS-B with no SDR in the box."""
+        cap = self.decide([], adsbee=self.ADSBEE)
+        self.assertTrue(cap["available"])
+        self.assertTrue(cap["auto_apply"])
+        self.assertIn("ADSBee", cap["evidence"])
+        self.assertNotIn("deferred_reason", cap)
+
+    def test_adsbee_reports_both_bands(self):
+        """It replaces the 1090 AND 978 dongles; the evidence should say so."""
+        cap = self.decide([], adsbee=self.ADSBEE)
+        self.assertIn("1090", cap["evidence"])
+        self.assertIn("978", cap["evidence"])
+
+    def test_adsbee_overrides_the_unusable_sdr_deferral(self):
+        """A LimeSDR next to an ADSBee must NOT defer adsb.
+
+        The #222 deferral exists because readsb cannot drive a non-RTL SDR. With
+        an ADSBee, readsb is not driving an SDR at all -- it is reading Beast off
+        a serial port -- so the reasoning does not apply and deferring would
+        switch off a receiver that works perfectly.
+        """
+        cap = self.decide([{"driver": "lime", "label": "LimeSDR Mini"}], adsbee=self.ADSBEE)
+        self.assertTrue(cap["auto_apply"], "the ADSBee works regardless of the SDR")
+        self.assertNotIn("deferred_reason", cap)
+        self.assertFalse(cap.get("manual_only"))
 
     # -- the cases that must keep working --------------------------------
     def test_rtl_only_auto_applies(self):

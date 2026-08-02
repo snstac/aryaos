@@ -146,6 +146,27 @@ require_grep 'decoding' /usr/local/sbin/aryaos-cot-detail "beacon reports decode
 # every box, so it looked authoritative while carrying no information.
 forbid_grep '"product"' /usr/local/sbin/aryaos-cot-detail "beacon does not advertise a product line"
 forbid_grep '^ARYAOS_PRODUCT=' /etc/aryaos/aryaos-config.txt "no product line baked into the shipped config"
+# ADSBee: hardware ADS-B/UAT receiver that replaces the 1090 + 978 RTL pair.
+require_path /usr/local/sbin/aryaos-adsbee
+require_path /etc/systemd/system/aryaos-adsbee.service
+require_path /etc/udev/rules.d/99-aryaos-adsbee.rules
+# Without this, an attached ADSBee is simply ignored and readsb keeps looking for
+# an RTL dongle that is not there.
+require_grep 'adsbee.env' /usr/local/sbin/run_readsb.sh \
+	"run_readsb.sh selects the ADSBee when one is detected"
+require_grep 'modesbeast' /usr/local/sbin/run_readsb.sh \
+	"run_readsb.sh can drive a Beast-on-serial receiver"
+# Disabling the ESP32 silences the device completely, Beast-over-USB included --
+# see docs/config/adsbee.md. Finding that cost a bench session. Asserted
+# positively (pin it to 1) rather than as "never write 0", because the source
+# legitimately mentions the 0 case in the comment that explains this trap.
+require_grep 'AT+ESP32_ENABLE=1' /usr/local/sbin/aryaos-adsbee \
+	"provisioning keeps the ADSBee's ESP32 enabled"
+# Stock firmware ships four PUBLIC aggregator feeds active; provisioning must
+# clear them or a networked ADSBee reports our position to the internet.
+require_grep 'AT+FEED=' /usr/local/sbin/aryaos-adsbee \
+	"provisioning clears the preloaded public aggregator feeds"
+
 require_path /usr/local/sbin/aryaos-time-pps
 require_path /etc/systemd/system/aryaos-time-pps.service
 require_path /etc/udev/rules.d/99-aryaos-pps.rules
@@ -443,6 +464,14 @@ require_path /usr/local/sbin/aryaos-serial-assign
 require_unit aryaos-serial-assign.service
 require_grep '^DEVICES=""' /etc/default/gpsd "gpsd device not hardcoded (aryaos-serial-assign owns it)"
 require_grep '^SERIAL_PORT=$' /etc/default/ais-catcher "ais-catcher serial not hardcoded (aryaos-serial-assign owns it)"
+# AIS-catcher 0.68 ships the public aiscatcher.org community feed ON BY DEFAULT
+# (hub 185.77.96.227:4242 is embedded in the binary). Without an explicit
+# `-X off` a tactical receiver reports its position and traffic to a public
+# website. See the comment in shared_files/aiscot/ais-catcher.service.
+# Pattern deliberately starts with a letter: require_grep passes it positionally
+# to `grep -qsE`, which would read a leading "-X" as an option.
+require_grep 'AIS-catcher -X off' /lib/systemd/system/ais-catcher.service \
+	"ais-catcher does not share to the public community feed"
 
 # Lifecycle helpers (Cockpit -> AryaOS Site: backup/restore, factory reset, zeroize)
 require_path /usr/local/sbin/aryaos-config-backup

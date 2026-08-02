@@ -114,6 +114,7 @@ nav:
       - Site configuration: config/site-config.md
       - Device roles: config/device-roles.md
       - Radios & SDRs: config/radios-sdr.md
+      - ADSBee receiver: config/adsbee.md
       - Network SDR sharing: config/network-sdr.md
   - Network:
       - Wi-Fi & onboarding hotspot: networking/wifi-hotspot.md
@@ -124,6 +125,7 @@ nav:
   - Operate:
       - operations/index.md
       - Updates: operations/updates.md
+      - Runbook — fitting an ADSBee: operations/adsbee-runbook.md
       - Support bundles: operations/support-bundles.md
       - SBOM & supply chain: operations/sbom.md
       - Nearby nodes: operations/neighbors.md

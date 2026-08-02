@@ -28,9 +28,15 @@ adsb_sdr_sn: stx:1090:0
 # Keep in sync with ARYAOS_UAT_RTL_SERIAL in shared_files/aryaos/aryaos-config.txt unless you override only at image build.
 uat_sdr_sn: stx:978:0
 
-# readsb SDR: rtlsdr (RTL EEPROM serial in adsb_sdr_sn) or soapysdr (Airspy, etc. via readsb_soapy_device).
+# readsb receiver: rtlsdr (RTL EEPROM serial in adsb_sdr_sn), soapysdr (Airspy, etc.
+# via readsb_soapy_device), or adsbee (hardware ADSBee over Beast-on-serial).
+# Leave this at rtlsdr for a generic image: an attached ADSBee is detected at boot
+# by aryaos-adsbee and preferred automatically (ARYAOS_ADSB_RECEIVER=auto).
 readsb_device_type: rtlsdr
 readsb_soapy_device: driver=airspy
+# Fallback Beast serial path used only when readsb_device_type is pinned to adsbee
+# at build time. Runtime detection supplies the real unique by-id path instead.
+readsb_beast_serial: /dev/ttyACM0
 readsb_gain: -10
 readsb_ppm: 0
 

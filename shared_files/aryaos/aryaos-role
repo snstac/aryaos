@@ -78,10 +78,32 @@ adsb_decoder_unit() {
 	fi
 }
 
+# The 978 MHz UAT decoder, or nothing when an ADSBee is already doing that job.
+#
+# dump978-fa drives a SECOND RTL dongle. An ADSBee receives 978 UAT in hardware
+# and encapsulates it in its Beast stream (frame type 0xec) alongside 1090 Mode S,
+# so readsb already has the UAT picture. Enabling dump978-fa as well only
+# crash-loops it against an RTL that is not there:
+#     Configuration error: No matching SoapySDR device found
+#     (cause: rtlsdr_get_index_by_serial(stx:978:0) - -2)
+uat_decoder_unit() {
+	local receiver
+	receiver="$(config_get ARYAOS_ADSB_RECEIVER)"
+	if [[ -r /run/aryaos/adsbee.env ]]; then
+		# shellcheck source=/dev/null
+		. /run/aryaos/adsbee.env
+	fi
+	case "${receiver:-auto}" in
+		adsbee) return 0 ;;
+		auto)   [[ "${ARYAOS_ADSBEE_PRESENT:-0}" == "1" ]] && return 0 ;;
+	esac
+	echo "dump978-fa"
+}
+
 # Capability -> systemd sensor units.
 cap_units() {
 	case "$1" in
-		adsb)     echo "$(adsb_decoder_unit) dump978-fa adsbcot gdltak" ;;
+		adsb)     echo "$(adsb_decoder_unit) $(uat_decoder_unit) adsbcot gdltak" ;;
 		ais)      echo "ais-catcher aiscot" ;;
 		# Decoder and gateway, same split as readsb/adsbcot: acarsdec
 		# demodulates VHF, acarscot turns its JSON into CoT.
