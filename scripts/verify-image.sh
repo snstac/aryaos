@@ -548,6 +548,7 @@ require_grep '^\[zram0\]' /etc/systemd/zram-generator.conf "zram swap configured
 require_path /etc/rpi/swap.conf.d/90-aryaos.conf
 require_grep '^Mechanism=zram$' /etc/rpi/swap.conf.d/90-aryaos.conf "rpi-swap cannot create a disk-backed swapfile"
 forbid_path /var/swap
+require_path /etc/modules-load.d/lighttpd-mod-openssl.conf
 
 # Lab access must match the build flavor
 if [[ "${LAB_EXPECTED}" == "1" ]]; then

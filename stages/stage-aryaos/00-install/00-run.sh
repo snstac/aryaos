@@ -136,6 +136,9 @@ install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-time-pps.service" \
 install -v -D -m 0644 \
 	"${SHARED_FILES}/aryaos/systemd/bluetooth.service.d/aryaos-directory-mode.conf" \
 	"${ROOTFS_DIR}/etc/systemd/system/bluetooth.service.d/aryaos-directory-mode.conf"
+install -v -D -m 0644 \
+	"${SHARED_FILES}/aryaos/modules-load.d/lighttpd-mod-openssl.conf" \
+	"${ROOTFS_DIR}/etc/modules-load.d/lighttpd-mod-openssl.conf"
 # Re-trigger the helper when a PPS device appears: a USB GPS enumerates
 # asynchronously, so a boot-time-only run loses the race.
 install -v -D -m 0644 "${SHARED_FILES}/aryaos/udev/99-aryaos-pps.rules" \

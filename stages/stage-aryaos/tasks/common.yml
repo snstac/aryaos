@@ -132,6 +132,14 @@
     mode: "0644"
   notify: Reload systemd
 
+- name: Suppress unavailable optional kTLS module on Raspberry Pi kernels
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/modules-load.d/lighttpd-mod-openssl.conf"
+    dest: /etc/modules-load.d/lighttpd-mod-openssl.conf
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Ensure www-data can use gpspipe (gpsd socket group)
   ansible.builtin.user:
     name: www-data

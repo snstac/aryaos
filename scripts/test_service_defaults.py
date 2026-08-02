@@ -25,6 +25,21 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("ConfigurationDirectoryMode=0755", dropin)
         self.assertIn("bluetooth.service.d/aryaos-directory-mode.conf", builder)
 
+    def test_missing_optional_ktls_module_is_overridden(self):
+        override = (
+            ROOT
+            / "shared_files/aryaos/modules-load.d/lighttpd-mod-openssl.conf"
+        ).read_text()
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        image_stage = (
+            ROOT / "stages/stage-aryaos/00-install/00-run.sh"
+        ).read_text()
+
+        self.assertNotIn("\ntls\n", f"\n{override}\n")
+        self.assertIn("optional kernel TLS module", override)
+        self.assertIn("modules-load.d/lighttpd-mod-openssl.conf", builder)
+        self.assertIn("modules-load.d/lighttpd-mod-openssl.conf", image_stage)
+
     def test_acars_start_limit_is_in_unit_section(self):
         unit = (ROOT / "shared_files/aryaos/systemd/acarsdec.service").read_text()
         unit_section, service_section = unit.split("\n[Service]\n", 1)

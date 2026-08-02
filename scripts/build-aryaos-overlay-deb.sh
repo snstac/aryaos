@@ -105,6 +105,7 @@ install_file 0644 "${SHARED}/aryaos/zram-generator.conf" "/etc/systemd/zram-gene
 install_file 0644 "${SHARED}/aryaos/rpi-swap-aryaos.conf" "/etc/rpi/swap.conf.d/90-aryaos.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/gpsd.socket.d/socket-group.conf" "/etc/systemd/system/gpsd.socket.d/socket-group.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/bluetooth.service.d/aryaos-directory-mode.conf" "/etc/systemd/system/bluetooth.service.d/aryaos-directory-mode.conf"
+install_file 0644 "${SHARED}/aryaos/modules-load.d/lighttpd-mod-openssl.conf" "/etc/modules-load.d/lighttpd-mod-openssl.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf" "/etc/systemd/system/lighttpd.service.d/aryaos-netlink.conf"
 
 # Offline documentation: ship the rendered MkDocs site in the portal so the
