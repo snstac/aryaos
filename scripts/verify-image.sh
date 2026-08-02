@@ -126,6 +126,16 @@ require_pkg() {
 		fail "package $1 not installed"
 	fi
 }
+require_pkg_version() {
+	local pkg="$1" minimum="$2" version
+	version="$(awk -v pkg="${pkg}" 'BEGIN{RS=""} $0 ~ "Package: "pkg"\n" {for (i=1;i<=NF;i++) if ($i=="Version:") {print $(i+1); exit}}' \
+		"${MNT}/var/lib/dpkg/status" 2>/dev/null)"
+	if [[ -n "${version}" ]] && dpkg --compare-versions "${version}" ge "${minimum}"; then
+		ok "package ${pkg} ${version} >= ${minimum}"
+	else
+		fail "package ${pkg} ${version:-missing} is older than ${minimum}"
+	fi
+}
 
 echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 
@@ -256,6 +266,8 @@ require_pkg python3-gps
 require_pkg ais-catcher
 require_pkg sikw00fcot
 require_pkg gdltak
+require_pkg_version pytak 7.4.1
+require_pkg_version dronecot 2.3.3
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
@@ -270,6 +282,7 @@ require_grep '303a' /etc/udev/rules.d/99-aryaos-dronescout.rules "DS101 udev sym
 require_path /usr/local/sbin/aryaos-antsdr-console
 require_path /usr/local/sbin/aryaos-antsdr-health
 require_path /etc/systemd/system/aryaos-antsdr-health.timer
+require_grep 'tak_established' /usr/local/sbin/aryaos-antsdr-health "AntSDR health reports DroneCOT TAK egress"
 require_grep '1a86' /etc/udev/rules.d/99-aryaos-antsdr-console.rules "AntSDR console udev rule present"
 require_path /usr/bin/tio
 # Wi-Fi Remote ID: opt-in dronecot instance (802.11 monitor-mode ODID capture).

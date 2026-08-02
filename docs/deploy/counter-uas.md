@@ -73,7 +73,7 @@ Each detector emits CoT to the Charontak hub at `udp+wo://127.0.0.1:28087`; Char
 
 An **AntSDR E200** running the [alphafox02 DJI DroneID firmware](https://github.com/alphafox02/antsdr_dji_droneid) detects DJI OcuSync DroneID and **pushes it to `dronecot` over point-to-point Ethernet** (TCP `172.31.100.1:52002`). That Ethernet link is the data path; the AntSDR's **USB-serial is its Zynq config/recovery console, not a data feed**.
 
-- **Health at a glance.** AryaOS polls the feed every 30 s (`aryaos-antsdr-health`) and, when an AntSDR is present, shows an **AntSDR (DJI DroneID)** card in Cockpit: green when the feed socket is established, amber when the SDR is reachable but silent (normal with no DJI drone in range; otherwise the firmware may have stalled). The card is hidden on boxes with no AntSDR. Check it by hand any time:
+- **Health at a glance.** AryaOS polls the feed every 30 s (`aryaos-antsdr-health`) and, when an AntSDR is present, shows an **AntSDR (DJI DroneID)** card in Cockpit: green when both the feed socket and DroneCOT's TAK WebSocket are established, amber when either side is missing. A missing feed can be normal with no DJI drone in range; `tak_established: false` means TAK egress is actually degraded even if systemd still calls DroneCOT active. The card is hidden on boxes with no AntSDR. Check it by hand any time:
 
     ```bash
     aryaos-antsdr-health --json

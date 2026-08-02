@@ -66,4 +66,18 @@ else
 	warn "ANTSDR TCP session not established"
 fi
 
+if [[ -x /usr/local/sbin/aryaos-antsdr-health ]]; then
+	HEALTH_JSON="$(sudo -n /usr/local/sbin/aryaos-antsdr-health --quiet --json 2>/dev/null || true)"
+	if python3 -c '
+import json, sys
+doc = json.load(sys.stdin)
+assert "tak_established" in doc
+assert doc["tak_established"] in (True, False, None)
+' <<<"${HEALTH_JSON}" 2>/dev/null; then
+		ok "ANTSDR health reports TAK egress state"
+	else
+		fail "ANTSDR health missing valid tak_established state"
+	fi
+fi
+
 print_summary
