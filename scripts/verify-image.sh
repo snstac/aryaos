@@ -540,8 +540,12 @@ require_path /etc/chrony/conf.d/aryaos.conf
 require_grep '<service name="ntp"' /etc/firewalld/zones/public.xml "NTP served on the AryaOS (LAN) zone"
 
 # Media longevity: zram swap config + periodic TRIM
+require_pkg systemd-zram-generator
 require_path /etc/systemd/zram-generator.conf
 require_grep '^\[zram0\]' /etc/systemd/zram-generator.conf "zram swap configured"
+require_path /etc/rpi/swap.conf.d/90-aryaos.conf
+require_grep '^Mechanism=zram$' /etc/rpi/swap.conf.d/90-aryaos.conf "rpi-swap cannot create a disk-backed swapfile"
+forbid_path /var/swap
 
 # Lab access must match the build flavor
 if [[ "${LAB_EXPECTED}" == "1" ]]; then

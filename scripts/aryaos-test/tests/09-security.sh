@@ -110,6 +110,33 @@ else
 	warn "cockpit-packagekit not installed"
 fi
 
+# --- flash-media longevity ---
+if swapon --noheadings --show=NAME 2>/dev/null | grep -qx '/dev/zram0'; then
+	ok "RAM-only zram swap active"
+else
+	fail "zram swap is not active"
+fi
+if [[ -r /sys/block/zram0/backing_dev ]]; then
+	zram_backing="$(< /sys/block/zram0/backing_dev)"
+	if [[ "${zram_backing}" == "none" ]]; then
+		ok "zram has no install-media writeback device"
+	else
+		fail "zram writes back to ${zram_backing} (want RAM-only)"
+	fi
+fi
+if [[ -e /var/swap ]]; then
+	fail "/var/swap exists despite the RAM-only swap policy"
+else
+	ok "no install-media swapfile"
+fi
+if dpkg-query -W -f='${Status}' rpi-swap 2>/dev/null | grep -q "install ok installed"; then
+	if grep -qs '^Mechanism=zram$' /etc/rpi/swap.conf.d/90-aryaos.conf; then
+		ok "rpi-swap explicitly pinned to file-free zram"
+	else
+		fail "rpi-swap can fall back to disk-backed zram+file"
+	fi
+fi
+
 # --- TLS key hygiene ---
 if [[ -f /etc/aryaos/.web-tls-regenerated ]]; then
 	ok "per-device web TLS cert regenerated at first boot"

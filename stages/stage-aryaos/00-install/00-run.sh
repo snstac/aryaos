@@ -297,6 +297,8 @@ rm -rf "${SPYSERVER_TMP}"
 ## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
 ## the packaged charontak.ini default (source of truth for factory reset).
 install -v -m 0644 "${SHARED_FILES}/aryaos/zram-generator.conf" "${ROOTFS_DIR}/etc/systemd/zram-generator.conf"
+install -v -D -m 0644 "${SHARED_FILES}/aryaos/rpi-swap-aryaos.conf" \
+	"${ROOTFS_DIR}/etc/rpi/swap.conf.d/90-aryaos.conf"
 install -v -D -m 0644 "${SHARED_FILES}/charontak/charontak.ini" "${ROOTFS_DIR}/usr/share/aryaos/defaults/charontak.ini"
 
 ## gpsd: USB GNSS defaults (see shared_files/aryaos/gpsd.default)

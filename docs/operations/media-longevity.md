@@ -13,17 +13,18 @@ image.
 
 | Technique | What it saves |
 | --- | --- |
-| **`dphys-swapfile` disabled + zram swap** | No swapfile writes ever hit the SD/NVMe. Swap lives in RAM instead (`zstd`-compressed, sized `min(ram / 2, 4096)` MB), so a memory spike from multi-SDR + Node-RED + containers still can't OOM-kill a service — and it costs zero media writes. |
+| **RAM-only zram swap** | No swapfile writes ever hit the SD/NVMe. Swap lives in RAM instead (`zstd`-compressed, sized `min(ram / 2, 4096)` MB), so a memory spike from multi-SDR + Node-RED + containers still can't OOM-kill a service — and it costs zero media writes. |
 | **journald volatile (logs in RAM)** | The systemd journal is stored in RAM, not on disk, so the constant log churn from a running sensor stack never touches the media. |
 | **tmpfs for `/tmp`, `/var/tmp`, `/var/log`** | These write-heavy directories are RAM-backed tmpfs mounts (`/tmp` and `/var/tmp` capped at 100 MB, `/var/log` at 50 MB). Scratch files and logs live and die in memory. |
 | **`noatime` on the root filesystem** | Reading a file no longer triggers a metadata *write* to update its access time — a huge, invisible source of wear on a busy box. |
 | **Weekly `fstrim` (TRIM)** | `fstrim.timer` is enabled, so the filesystem periodically tells the flash controller which blocks are free. That keeps wear-leveling effective and sustains write performance over the life of the card. |
 
 !!! info "zram is swap in RAM, not on disk"
-    `dphys-swapfile` is disabled at build time; the AryaOS
-    `zram-generator.conf` overlay replaces it with a compressed RAM swap device
-    (`zram0`, priority 100). The box tolerates memory spikes without an
-    OOM-kill, and without a single write to the install media. See the source
+    `dphys-swapfile` is disabled on older Raspberry Pi OS releases. On Trixie,
+    AryaOS explicitly pins `rpi-swap` to its file-free `zram` mechanism instead
+    of the upstream `zram+file` default. The `zram-generator.conf` overlay
+    creates `zram0` at priority 100. The box tolerates memory spikes without an
+    OOM-kill, and without a writeback file on the install media. See the source
     tuning in `stages/stage-adsbcot/00-sys-tweaks/00-run-chroot.sh`.
 
 ## The tradeoff: logs live in RAM
