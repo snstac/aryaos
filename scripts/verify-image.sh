@@ -147,6 +147,7 @@ require_path /etc/aryaos-release
 require_path /etc/aryaos-version
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
+require_grep '^Defaults maxseq=128$' /etc/sudoers.d/aryaos "sudo I/O audit history bounded for /var/log tmpfs"
 require_path /usr/local/sbin/aryaos-firstboot.sh
 require_path /usr/local/sbin/aryaos-lincot-remarks
 require_path /usr/local/sbin/aryaos-cot-detail

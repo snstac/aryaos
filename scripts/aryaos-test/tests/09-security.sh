@@ -148,6 +148,17 @@ if dpkg-query -W -f='${Status}' rpi-swap 2>/dev/null | grep -q "install ok insta
 		fail "rpi-swap can fall back to disk-backed zram+file"
 	fi
 fi
+if sudo -n grep -qs '^Defaults maxseq=128$' /etc/sudoers.d/aryaos; then
+	ok "sudo I/O audit history bounded for RAM-backed /var/log"
+else
+	fail "sudo I/O logs are unbounded and can fill RAM-backed /var/log"
+fi
+log_used_pct="$(df --output=pcent /var/log 2>/dev/null | tail -n 1 | tr -dc '0-9')"
+if [[ "${log_used_pct}" =~ ^[0-9]+$ && "${log_used_pct}" -lt 95 ]]; then
+	ok "/var/log has headroom (${log_used_pct}% used)"
+else
+	fail "/var/log is full or unavailable (${log_used_pct:-unknown}% used)"
+fi
 
 # --- TLS key hygiene ---
 if [[ -f /etc/aryaos/.web-tls-regenerated ]]; then
