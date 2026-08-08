@@ -1,5 +1,29 @@
 ## AryaOS (Unreleased)
 
+- **ADSBee hardware ADS-B receiver support** (see
+  [docs/config/adsbee.md](docs/config/adsbee.md)). An ADSBee 1090U replaces *both*
+  RTL-SDR dongles: it demodulates 1090 Mode S and 978 UAT in its own silicon and
+  emits Beast over USB serial, which `readsb --device-type modesbeast` reads
+  directly. Measured on hardware: `readsb` CPU drops to ~0%, and the box's single
+  SDR is freed for AIS. Plug it in — `aryaos-adsbee` identifies and provisions the
+  device at boot (before `readsb`), and `run_readsb.sh` selects the receiver from
+  `/run/aryaos/adsbee.env`. `/etc/default/readsb` is never rewritten, so SDR boxes
+  are unaffected and unplugging the device reverts to the SDR configuration.
+  `dump978-fa` is dropped from the `adsb` capability while an ADSBee is in use.
+  New knobs `ARYAOS_ADSB_RECEIVER` (auto|adsbee|rtlsdr|soapysdr) and
+  `ARYAOS_ADSBEE_RADIO` (off|on), plus `scripts/readsb-use-adsbee.sh`.
+- **Security: AIS-catcher no longer shares to the public community feed.**
+  AIS-catcher 0.68 embeds the aiscatcher.org hub (185.77.96.227:4242) and enables
+  sharing **by default**, contradicting its own `-h` text. AryaOS passed no `-X`,
+  so a deployed unit was reporting its position and received traffic to a public
+  website. `ais-catcher.service` now passes `-X off` explicitly. A bare `-X` does
+  *not* disable sharing, so this must never be driven from an environment
+  variable. Asserted in `verify-image.sh`.
+- **Security: ADSBee provisioning disables the device's hostile defaults.** Stock
+  firmware ships with its Wi-Fi AP enabled (`ADSBee1090-<serial>` /
+  `yummyflowers`) and four public aggregator feeds preconfigured and active.
+  Provisioning turns off Wi-Fi AP, Wi-Fi station and Ethernet, and clears all ten
+  feed slots, on every boot.
 - dhbridge (DroneHone Bluetooth bridge) and kraktak removed from public builds
   while their source is private. The Bluetooth PAN phone-to-box link stays:
   `stage-dhbridge` is now `stage-bt-pan` (payload in `shared_files/bt-pan/`),

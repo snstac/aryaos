@@ -214,6 +214,32 @@ def probe_antsdr():
     return None
 
 
+def probe_adsbee():
+    """Is a hardware ADSBee ADS-B/UAT receiver attached? Returns its info dict or None.
+
+    Identification itself lives in aryaos-adsbee, which runs at boot
+    (Before=readsb.service) and leaves its result in /run/aryaos/adsbee.json.
+    Prefer that snapshot: by the time this scan runs readsb usually holds the
+    serial port, and re-probing would steal bytes out of its Beast stream. Fall
+    back to a live probe only when there is no snapshot at all -- e.g. an ADSBee
+    plugged in after boot, before udev has re-triggered provisioning.
+    """
+    snapshot = _read("/run/aryaos/adsbee.json")
+    if snapshot:
+        try:
+            info = json.loads(snapshot)
+        except ValueError:
+            return None
+        return info if info.get("present") else None
+
+    out = _run(["/usr/local/sbin/aryaos-adsbee", "detect", "--json"], timeout=20)
+    try:
+        info = json.loads(out)
+    except ValueError:
+        return None
+    return info if info.get("present") else None
+
+
 def _is_gnss(port):
     """Does udev identify this serial port as a GNSS receiver?"""
     props = _run(["/usr/bin/udevadm", "info", "-q", "property", "-n", port], timeout=5)
@@ -251,6 +277,7 @@ def scan():
     esp32 = probe_esp32_serial()
     antsdr = probe_antsdr()
     ais_serial = probe_ais_serial()
+    adsbee = probe_adsbee()
 
     caps = {}
 
@@ -278,13 +305,26 @@ def scan():
     def _labels(ds):
         return ", ".join(d.get("label") or d.get("driver", "?") for d in ds)
 
-    caps["adsb"] = {
-        "available": bool(sdrs),
-        "evidence": (
-            f"{len(sdrs)} SDR(s): " + _labels(sdrs) if sdrs else "no SDR detected"
-        ),
-    }
-    if sdrs and not rtl_sdrs:
+    # An ADSBee settles all of the above: it is a dedicated ADS-B/UAT receiver
+    # that readsb drives directly over Beast-on-serial, covering BOTH 1090 and
+    # 978 with no SDR involved at all. When one is present it is the receiver,
+    # and none of the SDR reasoning below applies.
+    if adsbee:
+        caps["adsb"] = {
+            "available": True,
+            "evidence": (
+                f"ADSBee on {adsbee.get('device', '?')} "
+                f"(firmware {adsbee.get('firmware', '?')}) — 1090 Mode S + 978 UAT"
+            ),
+        }
+    else:
+        caps["adsb"] = {
+            "available": bool(sdrs),
+            "evidence": (
+                f"{len(sdrs)} SDR(s): " + _labels(sdrs) if sdrs else "no SDR detected"
+            ),
+        }
+    if not adsbee and sdrs and not rtl_sdrs:
         # manual_only, NOT auto_apply.
         #
         # My first version of this set auto_apply=False directly, and it did
@@ -318,7 +358,10 @@ def scan():
         "available": ais_available,
         "evidence": "; ".join(ais_ev) or "no AIS receiver detected",
     }
-    if sdrs and not ais_serial and len(sdrs) < 2:
+    # Only a contention when adsb is actually competing for the radio. An ADSBee
+    # does ADS-B in its own silicon, so the box's single SDR is free for AIS --
+    # which is much of the point of fitting one.
+    if sdrs and not ais_serial and len(sdrs) < 2 and not adsbee:
         caps["ais"]["contended_with"] = ["adsb"]
         caps["adsb"]["contended_with"] = ["ais"]
 

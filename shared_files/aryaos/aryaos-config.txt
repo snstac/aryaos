@@ -61,6 +61,24 @@ AOS_SERVICES="charontak gpstak aiscot lincot adsbcot dronecot adsbxcot aprscot s
 # system, then: sudo systemctl restart dump978-fa
 ARYAOS_UAT_RTL_SERIAL=stx:978:0
 
+# ADS-B receiver selection: auto | adsbee | rtlsdr | soapysdr
+#   auto    - use a hardware ADSBee if one is detected at boot, else the SDR
+#             RECEIVER_OPTIONS in /etc/default/readsb. This is what you want.
+#   adsbee  - always expect an ADSBee; readsb will not fall back to an SDR.
+#   rtlsdr / soapysdr - keep using the SDR even with an ADSBee attached.
+# An ADSBee covers BOTH 1090 Mode S and 978 UAT in hardware, so when it is in use
+# dump978-fa and the 978 RTL dongle are not needed and are left disabled.
+ARYAOS_ADSB_RECEIVER=auto
+
+# ADSBee onboard radios (Wi-Fi AP, Wi-Fi station, Ethernet, ESP32): off | on
+# Default off. AryaOS only uses the ADSBee's USB console, so its radios are pure
+# liability: the stock firmware enables a Wi-Fi AP (SSID ADSBee1090-<serial>,
+# password "yummyflowers") and preloads four PUBLIC aggregator feeds that would
+# report this receiver's position the moment it has a network. Set to "on" only
+# if you deliberately want the ADSBee on a network, then re-run:
+#   sudo aryaos-adsbee provision
+ARYAOS_ADSBEE_RADIO=off
+
 
 # Device identity — set on first boot by aryaos-firstboot.sh; do not modify. NO STEP.
 # DEVICE_SUFFIX: last 4 hex of machine-id (or MAC); hostname aryaos-xxxx and WiFi AryaOS-xxxx.

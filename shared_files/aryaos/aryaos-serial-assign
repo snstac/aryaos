@@ -79,6 +79,20 @@ is_rid_device() {
 	[[ "$vid" == "303a" ]]  # Espressif
 }
 
+# True for an ADSBee hardware ADS-B/UAT receiver. It speaks Mode S Beast (binary)
+# or nothing at all -- never NMEA -- so it must not be probed or swept into the
+# "leftover" pile, where assignment by elimination would hand it to ais-catcher.
+#
+# Matched by the stock RP2040 CDC id, which is NOT unique to the ADSBee. That is
+# deliberately fine here: the cost of skipping some unrelated Pico is nil (a Pico
+# is not a GPS or a dAISy either), whereas mis-assigning a live ADS-B receiver to
+# ais-catcher would break both. Positive identification is aryaos-adsbee's job.
+is_adsbee_device() {
+	local dev="$1" props
+	props="$(udevadm info -q property -n "$dev" 2>/dev/null)"
+	grep -qE '^ID_VENDOR_ID=2e8a$' <<<"$props" && grep -qE '^ID_MODEL_ID=000a$' <<<"$props"
+}
+
 # True for a GNSS receiver, identified by udev rather than by what it is saying.
 #
 # This matters because a GPS is NOT always talking: gpsd is deliberately stopped
@@ -156,6 +170,10 @@ main() {
 		fi
 		if is_antsdr_console "$dev"; then
 			log "skip $dev (AntSDR serial console — not a GPS/AIS receiver)"
+			continue
+		fi
+		if is_adsbee_device "$dev"; then
+			log "skip $dev (ADSBee ADS-B/UAT receiver — Beast, handled by readsb, not GPS/AIS)"
 			continue
 		fi
 		cls="$(classify "$dev")"
