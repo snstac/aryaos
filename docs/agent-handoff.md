@@ -34,6 +34,27 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `>= 0.1.1`, and verifies persistent state. HIL checks assert active ACARS
   units, zero systemd restarts, persistent HOME/state, no leaked PEMs, and
   headroom on `/tmp`, `/var/tmp`, and `/var/log`.
+- PyTAK `v7.4.3` and ACARSCOT `v0.1.1` are published GitHub releases. Packages
+  workflow run `31415323491` rebuilt and deployed the signed repository from
+  `snstac/packages` main commit `2423630`; the public arm64 index was then
+  signature-verified with the vendored key and confirmed to serve
+  `pytak 7.4.3-1` and `acarscot 0.1.1-1` (which depends on
+  `pytak >= 7.4.3`).
+- Source validation passed: PyTAK 233 tests on the development interpreter and
+  its Python 3.7--3.12 CI matrix; ACARSCOT 46 tests; AryaOS 69 tests with three
+  intentional skips; Ansible syntax, strict MkDocs, shellcheck, Bash syntax,
+  and Debian package inspection. The complete `.60` HIL suite passed all 12
+  modules on the hardened packages.
+- AryaOS Actions run `31415495113` built commit `08f3654` in 22m56s. The
+  finished-image verifier reported **264 ok, 0 failed**, explicitly confirming
+  `pytak 7.4.3-1`, `acarscot 0.1.1-1`, persistent ACARSCOT state/HOME, and the
+  intended default-disabled role policy. The image, SPDX/CycloneDX SBOMs,
+  checksums, and overlay deb are published in prerelease
+  `v2026.08.10.180238-08f3654475b8-dev`.
+- A final live outage check on `.60` found `acarsdec` and `acarscot` both
+  active/enabled, ACARSCOT still on PID `937080` with zero systemd restarts,
+  zero leaked PEMs, zero failed units, no credential-pattern matches in its
+  outage logs, and `/tmp`/`/var/tmp` at 2%/1% used.
 
 ## 2026-08-02 four-node HIL burn-in (SOAK COMPLETE; `.60` RECOVERED)
 
