@@ -78,7 +78,15 @@ if command -v apt-get >/dev/null 2>&1 && ping -c1 -W2 deb.debian.org >/dev/null 
 		-o Dpkg::Options::=--force-confmiss -o Dpkg::Options::=--force-confask \
 		install adsbcot aiscot dronecot lincot gpstak gdltak charontak >/dev/null 2>&1 \
 		&& echo "reinstalled sensor package defaults" \
-		|| echo "note: sensor package reinstall skipped/failed (offline?) — /etc/default left as-is"
+		|| {
+			echo "note: sensor package reinstall skipped/failed — /etc/default may be left as-is"
+			# apt can fail after unpacking one or more gateways. Never carry a
+			# half-configured dpkg database into the reset reboot: finish any
+			# pending postinst work even though restoring defaults was best-effort.
+			DEBIAN_FRONTEND=noninteractive dpkg --configure -a >/dev/null 2>&1 \
+				&& echo "recovered pending package configuration" \
+				|| echo "warning: pending package configuration could not be recovered"
+		}
 else
 	echo "note: offline — per-gateway /etc/default/<svc> left as-is (reset online to restore package defaults)"
 fi

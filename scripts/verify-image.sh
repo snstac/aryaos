@@ -481,6 +481,7 @@ require_path /usr/local/sbin/aryaos-factory-reset
 require_grep '\.capabilities-autodetected' /usr/local/sbin/aryaos-factory-reset "factory reset re-arms hardware discovery"
 require_grep 'aryaos-role caps none' /usr/local/sbin/aryaos-factory-reset "factory reset releases sensor devices before discovery"
 require_grep 'aryaos-safe-mode reset-for-factory' /usr/local/sbin/aryaos-factory-reset "factory reset clears false crash-loop state"
+require_grep 'dpkg --configure -a' /usr/local/sbin/aryaos-factory-reset "factory reset recovers interrupted gateway configuration"
 require_path /usr/local/sbin/aryaos-zeroize
 require_path /etc/systemd/system/aryaos-factory-reset.service
 require_path /etc/systemd/system/aryaos-zeroize.service

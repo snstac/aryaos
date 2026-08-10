@@ -40,6 +40,12 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   ADSBee and DroneScout transports were correct, and no units failed. The final
   complete HIL suite passed all modules; its short ADS-B sample happened to be
   quiet, while Remote ID heartbeat/payload checks remained live.
+- The reset's best-effort gateway reinstall failed after unpacking ADSBCOT,
+  DroneCOT, and LINCOT, leaving them pending in dpkg even though their running
+  services looked healthy. The packages configured cleanly when resumed.
+  Overlay `2.0.15` therefore runs a bounded noninteractive `dpkg --configure -a`
+  recovery on the apt failure path so reset never knowingly reboots with an
+  inconsistent package database.
 
 ## 2026-08-10 TAK outage resilience (`.60`)
 
