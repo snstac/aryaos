@@ -7,6 +7,40 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
 
+## 2026-08-10 `.199` reboot and factory-reset HIL
+
+- The reflashed `192.168.0.199` returned as `aryaos-d600` with overlay `2.0.10`,
+  the ADSBee, DroneScout, and SiRF GPS all attached. Its fresh first boot wrote
+  `ARYAOS_CAPABILITIES="adsb rid"` but left readsb on the RTL-SDR default and
+  enabled `dump978-fa`; readsb, ADSBCOT, and UAT consequently failed. The
+  scanner itself correctly protocol-verified both serial sensors.
+- First boot accumulated capability names across its bounded scans but invoked
+  the plain `aryaos-role caps` setter, bypassing the transport wiring used by
+  `discover --apply`. Overlay `2.0.14` adds `apply-detected`: first boot keeps
+  its multi-pass union while configuring the ADSBee Mode-S Beast by-id path and
+  colon-safe `/dev/dronescout` feed before enabling services.
+- Factory-reset HIL exposed two more lifecycle gaps. The helper now disables
+  sensor units and removes both capability-autodetection markers before reboot,
+  so scanners see unclaimed ports. It also clears the crash-guard counter and
+  sticky safe-mode flag and restores USB power; an intentional reset reboot no
+  longer becomes the third "short boot" and falsely powers off every sensor.
+- The OTA overlay builder had omitted `aryaos-safe-mode`, its units, and sensor
+  drop-ins even though full images installed them. They are now packaged, so
+  deployed boxes receive the factory-reset/safe-mode fix rather than only new
+  images. Static image verification and regression coverage assert all three
+  lifecycle contracts.
+- A controlled reboot changed the boot ID while preserving hostname/machine ID,
+  the installed root PARTUUID matched the boot command line, all ADS-B/RID/GPS
+  services recovered, and the full default HIL suite passed. readsb decoded
+  live ADS-B traffic and DroneCOT processed the lab Remote ID beacon.
+- The final network-preserving reset returned as `aryaos-265b` with a new
+  machine ID and web certificate. The lab authorized-key and sudoers digests
+  were unchanged, `.199` remained reachable, safe mode stayed off, GPS was
+  reassigned to its stable PL2303 by-id path, `adsb rid` was rediscovered,
+  ADSBee and DroneScout transports were correct, and no units failed. The final
+  complete HIL suite passed all modules; its short ADS-B sample happened to be
+  quiet, while Remote ID heartbeat/payload checks remained live.
+
 ## 2026-08-10 TAK outage resilience (`.60`)
 
 - A prolonged outage of the dedicated ACARSCOT TAK endpoint exposed two coupled

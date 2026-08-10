@@ -78,6 +78,7 @@ install_file 0755 "${SHARED}/aryaos/dronecot-serial-ready" "/usr/local/libexec/a
 install_file 0755 "${SHARED}/aryaos/aryaos-config-backup" "/usr/local/sbin/aryaos-config-backup"
 install_file 0755 "${SHARED}/aryaos/aryaos-factory-reset" "/usr/local/sbin/aryaos-factory-reset"
 install_file 0755 "${SHARED}/aryaos/aryaos-zeroize" "/usr/local/sbin/aryaos-zeroize"
+install_file 0755 "${SHARED}/aryaos/aryaos-safe-mode" "/usr/local/sbin/aryaos-safe-mode"
 install_file 0755 "${SHARED}/aryaos/aryaos-radio" "/usr/local/sbin/aryaos-radio"
 # Offline image backup: pull down this box's own release .img.xz.
 install_file 0755 "${SHARED}/aryaos/aryaos-image-download" "/usr/local/sbin/aryaos-image-download"
@@ -96,6 +97,12 @@ install_file 0644 "${SHARED}/lincot/systemd/lincot.service.d/aryaos-config.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-update.service" "/etc/systemd/system/aryaos-update.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-factory-reset.service" "/etc/systemd/system/aryaos-factory-reset.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-zeroize.service" "/etc/systemd/system/aryaos-zeroize.service"
+for unit in aryaos-crash-guard.service aryaos-safe-mode.service aryaos-boot-stable.service aryaos-boot-stable.timer; do
+	install_file 0644 "${SHARED}/aryaos/systemd/${unit}" "/etc/systemd/system/${unit}"
+done
+for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot aprscot dronecot sikw00fcot sapientcot; do
+	install_file 0644 "${SHARED}/aryaos/systemd/safe-mode.conf" "/etc/systemd/system/${svc}.service.d/safe-mode.conf"
+done
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-radio-silence.service" "/etc/systemd/system/aryaos-radio-silence.service"
 # EMCON gate: keep the radio users from starting (and un-blocking the radios)
 # while /etc/aryaos/emcon exists.

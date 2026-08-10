@@ -478,6 +478,9 @@ require_grep '^SERIAL_PORT=$' /etc/default/ais-catcher "ais-catcher serial not h
 # Lifecycle helpers (Cockpit -> AryaOS Site: backup/restore, factory reset, zeroize)
 require_path /usr/local/sbin/aryaos-config-backup
 require_path /usr/local/sbin/aryaos-factory-reset
+require_grep '\.capabilities-autodetected' /usr/local/sbin/aryaos-factory-reset "factory reset re-arms hardware discovery"
+require_grep 'aryaos-role caps none' /usr/local/sbin/aryaos-factory-reset "factory reset releases sensor devices before discovery"
+require_grep 'aryaos-safe-mode reset-for-factory' /usr/local/sbin/aryaos-factory-reset "factory reset clears false crash-loop state"
 require_path /usr/local/sbin/aryaos-zeroize
 require_path /etc/systemd/system/aryaos-factory-reset.service
 require_path /etc/systemd/system/aryaos-zeroize.service

@@ -214,6 +214,47 @@ class AcarsCapabilityTestCase(unittest.TestCase):
 
 
 class SerialRoleWiringTestCase(unittest.TestCase):
+    def test_factory_reset_rearms_hardware_discovery(self):
+        import pathlib
+
+        reset = (
+            pathlib.Path(__file__).parent.parent
+            / "shared_files/aryaos/aryaos-factory-reset"
+        ).read_text()
+        self.assertIn(".capabilities-autodetected", reset)
+        self.assertIn(".capabilities-autodetect-tries", reset)
+        self.assertIn("aryaos-role caps none", reset)
+        self.assertIn("aryaos-safe-mode reset-for-factory", reset)
+
+        safe_mode = (
+            pathlib.Path(__file__).parent.parent
+            / "shared_files/aryaos/aryaos-safe-mode"
+        ).read_text()
+        self.assertIn("cmd_reset_for_factory", safe_mode)
+        self.assertIn("reset-for-factory) cmd_reset_for_factory", safe_mode)
+
+        overlay_builder = (
+            pathlib.Path(__file__).parent.parent
+            / "scripts/build-aryaos-overlay-deb.sh"
+        ).read_text()
+        self.assertIn('aryaos-safe-mode" "/usr/local/sbin/aryaos-safe-mode', overlay_builder)
+        self.assertIn("aryaos-crash-guard.service", overlay_builder)
+
+    def test_firstboot_applies_detected_transport_wiring(self):
+        import pathlib
+
+        root = pathlib.Path(__file__).parent.parent / "shared_files/aryaos"
+        firstboot = (root / "aryaos-firstboot.sh").read_text()
+        role = (root / "aryaos-role").read_text()
+        self.assertIn("aryaos-role apply-detected $DETECTED", firstboot)
+        self.assertRegex(
+            role,
+            re.compile(
+                r"apply_detected_caps\(\).*?configure_detected_inputs.*?set_caps",
+                re.S,
+            ),
+        )
+
     def test_adsbee_selection_uses_modesbeast_and_skips_uat(self):
         import pathlib
 

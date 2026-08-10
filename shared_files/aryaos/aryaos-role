@@ -16,6 +16,8 @@
 #   list                 JSON: capabilities, available caps/units, roles.
 #   caps CAP...          Set the active capability set (space/comma separated).
 #                        Use "none" to disable every sensor (bare CoT node).
+#   apply-detected CAP... Configure protocol-verified transports, then set the
+#                        detected capability set. Used by first boot/discovery.
 #   discover [--apply]   Detect attached hardware and report which capabilities
 #                        it supports; --apply enables them.
 #   set ROLE             Back-compat: apply a legacy role as a capability preset.
@@ -40,7 +42,7 @@ CAPS="adsb ais acars dji wifi-rid ble-rid rid sik sapient"
 LEGACY_ROLES="multi air maritime cuas relay"
 
 usage() {
-	echo "usage: aryaos-role {list | discover [--apply] | caps CAP... | set ROLE}" >&2
+	echo "usage: aryaos-role {list | discover [--apply] | caps CAP... | apply-detected CAP... | set ROLE}" >&2
 	echo "  caps:     ${CAPS}  (or 'none' for a bare CoT node)" >&2
 	echo "  roles:    ${LEGACY_ROLES}  (legacy presets)" >&2
 	exit 2
@@ -327,6 +329,23 @@ configure_detected_inputs() {
 	fi
 }
 
+# Apply a capability set that came from aryaos-capability-scan. Unlike the
+# operator-facing `caps` command, this also wires device-specific transports
+# (for example ADSBee Beast serial and the colon-safe DroneScout alias) before
+# any newly selected service starts.
+apply_detected_caps() {
+	local caps="$1" cap
+	caps="$(normalize_caps "${caps}")"
+	for cap in ${caps}; do
+		cap_units "${cap}" >/dev/null 2>&1 || {
+			echo "aryaos-role: unknown capability '${cap}' (caps: ${CAPS})" >&2
+			exit 2
+		}
+	done
+	configure_detected_inputs "${caps}"
+	set_caps "${caps}"
+}
+
 # Detect attached hardware and (optionally) enable the capabilities it supports.
 # Report-only by default: seeing what a box COULD do should never change what it
 # IS doing without being asked.
@@ -354,8 +373,7 @@ discover() {
 		return 0
 	fi
 	echo
-	configure_detected_inputs "${detected}"
-	set_caps "${detected}"
+	apply_detected_caps "${detected}"
 }
 
 set_role() {
@@ -405,6 +423,12 @@ case "${cmd}" in
 		[[ $# -ge 2 ]] || usage
 		shift
 		set_caps "$*"
+		;;
+	apply-detected)
+		require_root
+		[[ $# -ge 2 ]] || usage
+		shift
+		apply_detected_caps "$*"
 		;;
 	set)
 		require_root

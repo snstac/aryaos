@@ -142,6 +142,7 @@ sudo aryaos-factory-reset --no-reboot      # reset but don't reboot (testing)
 
 - **Not a secure erase** — it restores/clears config but does not sanitize the media. For decommission use [`aryaos-zeroize`](#aryaos-zeroize).
 - Per-gateway `/etc/default/<svc>` files are reset via `apt-get --reinstall` **only when online**; offline they're left as-is.
+- Sensor services are stopped, hardware autodetection is re-armed, and safe-mode/crash-counter state is cleared so the intentional reboot returns with attached hardware freshly detected.
 - Same action as the **Factory reset** card. See [Factory reset](../operations/factory-reset.md).
 
 ## aryaos-zeroize {#aryaos-zeroize}
