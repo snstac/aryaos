@@ -303,6 +303,10 @@ require_grep 'SENSOR_TYPE' /etc/default/dronecot-wifi "dronecot-wifi carries SIG
 require_grep 'ARYAOS_CAPABILITIES' /usr/local/sbin/aryaos-role "aryaos-role has the capability model"
 require_grep 'acarsdec acarscot' /usr/local/sbin/aryaos-role "aryaos-role manages the ACARS decoder and gateway"
 require_path /usr/local/sbin/aryaos-capability-scan
+require_grep 'ADSBEE_VID_PID' /usr/local/sbin/aryaos-capability-scan "capability scan protocol-probes generic Pico ADSBee hardware"
+require_grep 'device-type modesbeast' /usr/local/sbin/aryaos-role "aryaos-role configures ADSBee Beast serial input"
+require_path /usr/local/libexec/aryaos/dronecot-serial-ready
+require_grep 'ExecCondition=/usr/local/libexec/aryaos/dronecot-serial-ready' /etc/systemd/system/dronecot-dronescout.service "DroneScout missing serial device skips cleanly"
 require_grep 'discover' /usr/local/sbin/aryaos-role "aryaos-role can discover hardware capabilities"
 require_grep 'capability-scan' /usr/local/sbin/aryaos-firstboot.sh "firstboot auto-detects capabilities"
 require_unit gdltak.service

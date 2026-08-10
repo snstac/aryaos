@@ -56,6 +56,44 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   zero leaked PEMs, zero failed units, no credential-pattern matches in its
   outage logs, and `/tmp`/`/var/tmp` at 2%/1% used.
 
+## 2026-08-10 ADSBee / DroneScout discovery HIL (`.199`)
+
+- The newly flashed `aryaos-f069` at `192.168.0.199` has an ADSBee 1090 on
+  `/dev/serial/by-id/usb-Raspberry_Pi_Pico_E4654C6197481B39-if00` and a claimed
+  DroneScout DS110 connected through a Prolific PL2303 UART adapter. Generic USB
+  identities are not treated as product identities.
+- ADSBee detection is protocol-verified with the read-only
+  `AT+BIAS_TEE_ENABLE?` query. Five consecutive probes succeeded. Discovery
+  configured readsb as `--device-type modesbeast` on the stable by-id path,
+  recorded `ARYAOS_ADSB_SOURCE=adsbee`, and deliberately kept `dump978-fa`
+  disabled. Repeated `discover --apply` is idempotent while readsb owns the tty.
+- Live receiver queries reported 1090 and sub-G receivers enabled, console
+  output `BEAST`, trigger level `1569mV (-45 dBm)`, offset `600mV (-104 dBm)`,
+  and more than 5,100 seconds of uninterrupted receiver uptime. After an
+  initially quiet several-minute sample, readsb decoded 451 valid messages,
+  six tracks, and 50 position updates in 9.4 minutes; three aircraft were
+  current and ADSBCOT consumed them. `readsb`, `adsbcot`, and `gdltak` are
+  enabled/active. readsb and gdltak have zero restarts; ADSBCOT restarted once
+  after the controlled test stopped readsb and removed its runtime JSON tree,
+  then recovered normally.
+- The PL2303 path emitted no checksum-valid MAVLink at 4,800, 9,600, 19,200,
+  38,400, 57,600, 115,200, or 230,400 baud. At the documented 115,200 rate its
+  receive line was continuously zero/stuck-low. Discovery therefore reports
+  `rid` as `AMBIGUOUS` and does not enable it. Check DS110 power, common ground,
+  TX-to-RX wiring, 3.3 V logic level, and receiver/UART output mode.
+- `dronecot-dronescout.service` now uses an `ExecCondition` that validates its
+  configured serial character device. A missing/unconfigured receiver produces
+  a clean inactive/skipped unit (start result success, no failed unit) rather
+  than a `Restart=always` loop.
+- The closing HIL suite passed 87 checks; the only deferred failure is the known
+  corrupt binary `/boot/firmware/cmdline.txt`. Do not reboot this node until the
+  separate command-line repair is completed.
+- Package HIL also found a zero-corrupted `/var/lib/apt/listchanges` pickle at
+  byte 983,261. The original is preserved on-host as
+  `listchanges.corrupt-20260810` and in the gitignored HIL evidence directory;
+  Debian's `apt-listchanges.service` rebuilt a valid database and completed
+  successfully. This did not touch the boot cmdline.
+
 ## 2026-08-02 four-node HIL burn-in (SOAK COMPLETE; `.60` RECOVERED)
 
 The eight-hour sampler ran from 09:03:45 through 17:03:45 UTC against `.13`,

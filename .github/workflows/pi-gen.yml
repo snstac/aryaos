@@ -97,6 +97,7 @@ jobs:
             shared_files/aryaos/aryaos-set-nodered-password \
             shared_files/aryaos/aryaos-sdr \
             shared_files/aryaos/aryaos-role \
+            shared_files/aryaos/dronecot-serial-ready \
             shared_files/aryaos/aryaos-config-backup \
             shared_files/aryaos/aryaos-factory-reset \
             shared_files/aryaos/aryaos-zeroize \

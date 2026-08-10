@@ -62,14 +62,16 @@ if [[ -f "${ROOTFS_DIR}/lib/systemd/system/dronecot.service" ]]; then
 		sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=-/etc/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/lib/systemd/system/dronecot.service"
 fi
 
-# DroneScout DS101: a SECOND dronecot instance reading MAVLink Remote ID from the
-# DS101's USB-serial (dronecot >= 2.2.3 handles OpenDroneID packs + ADSB_VEHICLE).
-# Off by default (opt-in for a DS101 laydown; guarded by ConditionPathExists on
-# the serial device). Feeds the same charontak hub as the AntSDR/DJI dronecot.
+# DroneScout DS101/DS110: a SECOND dronecot instance reading MAVLink Remote ID
+# from a protocol-verified USB serial path. The ExecCondition helper keeps a
+# missing/unplugged receiver inactive rather than letting it restart-loop.
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/dronecot-dronescout.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/dronecot-dronescout.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/dronecot-dronescout.default" \
 	"${ROOTFS_DIR}/etc/default/dronecot-dronescout"
+install -d -m 0755 "${ROOTFS_DIR}/usr/local/libexec/aryaos"
+install -v -m 0755 "${SHARED_FILES}/aryaos/dronecot-serial-ready" \
+	"${ROOTFS_DIR}/usr/local/libexec/aryaos/dronecot-serial-ready"
 
 # Wi-Fi Remote ID: an opt-in dronecot instance that decodes Open Drone ID from
 # 802.11 (ASTM Beacon + Wi-Fi Alliance NAN) via a monitor-mode adapter (ath9k_htc

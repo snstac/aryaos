@@ -81,7 +81,17 @@ adsb_decoder_unit() {
 # Capability -> systemd sensor units.
 cap_units() {
 	case "$1" in
-		adsb)     echo "$(adsb_decoder_unit) dump978-fa adsbcot gdltak" ;;
+		adsb)
+			# ADSBee is a 1090 MHz Beast source. Do not start the independent
+			# dump978 UAT decoder when discovery selected it: there is no RTL-SDR
+			# for dump978 to open, and doing so would create a permanent restart
+			# loop on an otherwise healthy ADSBee box.
+			if [[ "$(config_get ARYAOS_ADSB_SOURCE)" == "adsbee" ]]; then
+				echo "$(adsb_decoder_unit) adsbcot gdltak"
+			else
+				echo "$(adsb_decoder_unit) dump978-fa adsbcot gdltak"
+			fi
+			;;
 		ais)      echo "ais-catcher aiscot" ;;
 		# Decoder and gateway, same split as readsb/adsbcot: acarsdec
 		# demodulates VHF, acarscot turns its JSON into CoT.
@@ -255,6 +265,54 @@ set_caps() {
 
 CAP_SCAN="/usr/local/sbin/aryaos-capability-scan"
 
+# Apply transport details that cannot be expressed by a capability name alone.
+# Every path comes from a protocol-verified scanner result, not a generic USB id.
+configure_detected_inputs() {
+	local caps="$1" adsbee="" rid_port=""
+
+	if [[ " ${caps} " == *" adsb "* ]]; then
+		adsbee="$("${CAP_SCAN}" --adsbee-port 2>/dev/null | head -1 || true)"
+		if [[ -n "${adsbee}" ]]; then
+			if [[ ! "${adsbee}" =~ ^/dev/serial/by-id/[A-Za-z0-9._:+-]+$ ]]; then
+				echo "aryaos-role: refusing unsafe ADSBee path '${adsbee}'" >&2
+				return 1
+			fi
+			if [[ -f /etc/default/readsb ]]; then
+				if grep -q '^RECEIVER_OPTIONS=' /etc/default/readsb; then
+					sed -i -E "s|^RECEIVER_OPTIONS=.*|RECEIVER_OPTIONS=\"--device-type modesbeast --beast-serial ${adsbee} --beast-baudrate 115200\"|" /etc/default/readsb
+				else
+					printf 'RECEIVER_OPTIONS="--device-type modesbeast --beast-serial %s --beast-baudrate 115200"\n' "${adsbee}" >> /etc/default/readsb
+				fi
+			fi
+			config_set ARYAOS_ADSB_DECODER readsb
+			config_set ARYAOS_ADSB_SOURCE adsbee
+			echo "configure readsb <- ADSBee ${adsbee} (Mode-S Beast)"
+		else
+			# Clear a stale discovery marker. Deliberate/manual readsb options are
+			# left untouched; aryaos-sdr owns RTL/Soapy receiver selection.
+			config_set ARYAOS_ADSB_SOURCE ""
+		fi
+	fi
+
+	if [[ " ${caps} " == *" rid "* ]]; then
+		rid_port="$("${CAP_SCAN}" --rid-port 2>/dev/null | head -1 || true)"
+		if [[ -n "${rid_port}" ]]; then
+			if [[ ! "${rid_port}" =~ ^/dev/serial/by-id/[A-Za-z0-9._:+-]+$ ]]; then
+				echo "aryaos-role: refusing unsafe DroneScout path '${rid_port}'" >&2
+				return 1
+			fi
+			if [[ -f /etc/default/dronecot-dronescout ]]; then
+				if grep -q '^FEED_URL=' /etc/default/dronecot-dronescout; then
+					sed -i -E "s|^FEED_URL=.*|FEED_URL=serial://${rid_port}:115200|" /etc/default/dronecot-dronescout
+				else
+					printf 'FEED_URL=serial://%s:115200\n' "${rid_port}" >> /etc/default/dronecot-dronescout
+				fi
+			fi
+			echo "configure dronecot-dronescout <- ${rid_port} (MAVLink 2 @ 115200)"
+		fi
+	fi
+}
+
 # Detect attached hardware and (optionally) enable the capabilities it supports.
 # Report-only by default: seeing what a box COULD do should never change what it
 # IS doing without being asked.
@@ -282,6 +340,7 @@ discover() {
 		return 0
 	fi
 	echo
+	configure_detected_inputs "${detected}"
 	set_caps "${detected}"
 }
 

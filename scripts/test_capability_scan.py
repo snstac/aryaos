@@ -62,8 +62,8 @@ class AdsbCapabilityTestCase(unittest.TestCase):
             cls.src = fh.read()
         cls.block = _adsb_block(cls.src)
 
-    def decide(self, sdrs, with_pipeline=True):
-        ns = {"sdrs": sdrs, "caps": {}}
+    def decide(self, sdrs, with_pipeline=True, adsbee=None):
+        ns = {"sdrs": sdrs, "adsbee": adsbee or [], "caps": {}}
         exec(self.block, ns)
         if with_pipeline:
             exec(RECOMPUTE, ns)
@@ -117,6 +117,14 @@ class AdsbCapabilityTestCase(unittest.TestCase):
         self.assertFalse(cap["available"])
         self.assertFalse(cap["auto_apply"])
 
+    def test_adsbee_without_sdr_is_available_and_auto_applied(self):
+        cap = self.decide(
+            [], adsbee=["/dev/serial/by-id/usb-Raspberry_Pi_Pico_ADSBee-if00"]
+        )
+        self.assertTrue(cap["available"])
+        self.assertTrue(cap["auto_apply"])
+        self.assertIn("ADSBee", cap["evidence"])
+
     def test_driver_match_is_case_insensitive(self):
         cap = self.decide([{"driver": "RTLSDR", "label": "RTL2838UHIDIR"}])
         self.assertTrue(cap["auto_apply"])
@@ -127,10 +135,6 @@ class AdsbCapabilityTestCase(unittest.TestCase):
         reason = cap["deferred_reason"]
         self.assertIn("LimeSDR Mini", reason)
         self.assertIn("aryaos-role caps", reason)
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class AcarsCapabilityTestCase(unittest.TestCase):
@@ -207,3 +211,31 @@ class AcarsCapabilityTestCase(unittest.TestCase):
         managed = match.group("body")
         self.assertIn("acarsdec", managed)
         self.assertIn("acarscot", managed)
+
+
+class SerialRoleWiringTestCase(unittest.TestCase):
+    def test_adsbee_selection_uses_modesbeast_and_skips_uat(self):
+        import pathlib
+
+        role = (
+            pathlib.Path(__file__).parent.parent / "shared_files/aryaos/aryaos-role"
+        ).read_text()
+        self.assertIn("--device-type modesbeast", role)
+        self.assertIn("ARYAOS_ADSB_SOURCE", role)
+        self.assertRegex(
+            role,
+            re.compile(r'ARYAOS_ADSB_SOURCE\).*?adsbee.*?adsbcot gdltak', re.S),
+        )
+
+    def test_dronescout_unit_has_missing_device_guard(self):
+        import pathlib
+
+        root = pathlib.Path(__file__).parent.parent / "shared_files/aryaos"
+        unit = (root / "systemd/dronecot-dronescout.service").read_text()
+        helper = (root / "dronecot-serial-ready").read_text()
+        self.assertIn("ExecCondition=/usr/local/libexec/aryaos/dronecot-serial-ready", unit)
+        self.assertIn('[[ -c "${device}" && -r "${device}" ]]', helper)
+
+
+if __name__ == "__main__":
+    unittest.main()

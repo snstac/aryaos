@@ -102,10 +102,16 @@ worse than enabling nothing:
 - **Contended radios.** One SDR cannot serve ADS-B *and* AIS at once, so only
   the higher-priority capability (`adsb`) is auto-enabled; the other is reported
   as available with the reason it was held back.
-- **DS110 vs SiKW00F.** Both are ESP32-S3 (`303a:1001`) — the USB id cannot tell
-  them apart. The scanner probes the port for MAVLink framing (a DS110 speaks
-  it); if the port is silent or in use it reports `AMBIGUOUS` rather than
-  guessing.
+- **Generic serial adapters.** DroneScout receivers can appear as generic
+  ESP32-S3 USB CDC (`303a:1001`) or behind a generic USB-UART bridge such as a
+  PL2303. AryaOS validates complete MAVLink frames and requires `ADSB_VEHICLE`
+  or `OPEN_DRONE_ID_MESSAGE_PACK`. A silent, stuck-low,
+  busy, or unrelated MAVLink port is `AMBIGUOUS`, never auto-enabled.
+- **Generic Raspberry Pi Picos.** ADSBee uses the stock Pico USB identity
+  (`2e8a:000a`), so that identity alone is not sufficient. The scanner sends a
+  read-only ADSBee bias-tee query and requires the device-specific response.
+  `discover --apply` then selects readsb's `modesbeast` serial input and does not
+  start the independent 978 MHz decoder.
 - **SAPIENT.** A network sensor with no local hardware signature; never
   auto-detected.
 

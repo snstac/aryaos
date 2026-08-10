@@ -1,4 +1,4 @@
-# AryaOS dronecot (DroneScout DS101) config — /etc/default/dronecot-dronescout
+# AryaOS dronecot (DroneScout DS101/DS110) config — /etc/default/dronecot-dronescout
 #
 # A BlueMark DroneScout DS101 / DroneBeacon emits detected Remote ID as MAVLink
 # over its USB-serial. dronecot's SerialWorker reads it (OPEN_DRONE_ID_MESSAGE_PACK
@@ -15,6 +15,9 @@
 # /dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_<MAC>-if00 path
 # (see `ls -l /dev/serial/by-id/`). Live-verified 2026-07-24 against a DroneBeacon
 # DB120 (OPEN_DRONE_ID_MESSAGE_PACK @115200 on the ESP32-S3 CDC port).
+# A DS110 connected through a USB-UART adapter is written here automatically by
+# `aryaos-role discover --apply`, but only after checksum-valid Remote-ID MAVLink
+# is observed. The adapter's generic USB identity is not sufficient evidence.
 
 FEED_URL=serial:///dev/dronescout:115200
 SENSOR_ID=dronescout

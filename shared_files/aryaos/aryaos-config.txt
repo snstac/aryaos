@@ -47,6 +47,10 @@ ARYAOS_CAPABILITIES=""
 # (vars.yml aryaos_adsb_decoder). Changing this alone does not reconfigure systemd — see docs/config.md.
 ARYAOS_ADSB_DECODER=readsb
 
+# Set by `aryaos-role discover --apply` when a protocol-verified ADSBee is the
+# 1090 MHz source. Empty means the normal RTL/Soapy receiver configuration.
+ARYAOS_ADSB_SOURCE=""
+
 # 1090 MHz ADS-B JSON directory (readsb --write-json and dump1090-fa --write-json). adsbcot FEED_URL uses aircraft.json here.
 ARYAOS_ADSB_JSON_DIR=/run/adsb
 

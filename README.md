@@ -38,7 +38,7 @@ is capable of.
 
 | Capability | Enable with | What appears on the map | Hardware needed |
 |------------|-------------|-------------------------|-----------------|
-| **ADS-B / UAT** | `adsb` | Crewed aircraft on 1090 MHz and 978 MHz | **SDR** — RTL-SDR, or any SoapySDR device |
+| **ADS-B / UAT** | `adsb` | Crewed aircraft on 1090 MHz and 978 MHz | **ADSBee** or an SDR — RTL-SDR, or any SoapySDR device |
 | **AIS** | `ais` | Ships and vessels | dAISy NMEA receiver, or a spare **SDR** |
 | **Remote ID** — Wi-Fi | `wifi-rid` | ASTM F3411 Remote ID over 802.11, plus operator location | Monitor-mode Wi-Fi adapter (e.g. Atheros AR9271) |
 | **Remote ID** — Bluetooth | `ble-rid` | ASTM F3411 Remote ID over Bluetooth LE | **None** — the board's own radio |

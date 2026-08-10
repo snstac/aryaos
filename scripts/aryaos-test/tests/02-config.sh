@@ -53,8 +53,16 @@ fi
 if [[ -f /etc/default/readsb ]]; then
 	if grep -q 'device-type rtlsdr' /etc/default/readsb; then
 		ok "readsb device-type rtlsdr"
+	elif grep -q 'device-type modesbeast' /etc/default/readsb \
+			&& grep -Eq "^ARYAOS_ADSB_SOURCE=(adsbee|\"adsbee\"|'adsbee')$" /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+		adsbee_port="$(sed -n -E 's|.*--beast-serial ([^ ]+).*|\1|p' /etc/default/readsb | head -1)"
+		if [[ -n "${adsbee_port}" && -c "${adsbee_port}" ]]; then
+			ok "readsb modesbeast input uses detected ADSBee (${adsbee_port})"
+		else
+			fail "readsb ADSBee source has no readable Beast serial device"
+		fi
 	else
-		warn "readsb not configured for rtlsdr (Soapy/HackRF lab?)"
+		warn "readsb uses a non-RTL receiver without a verified ADSBee marker (Soapy/HackRF lab?)"
 	fi
 else
 	warn "/etc/default/readsb missing"
