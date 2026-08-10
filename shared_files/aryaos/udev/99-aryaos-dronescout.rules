@@ -9,7 +9,7 @@
 #
 # CAVEAT: 303a:1001 is the GENERIC ESP32-S3 native-USB id, shared by ANY ESP32-S3
 # board (including a SiKW00F). On a box carrying more than one ESP32-S3, this
-# symlink is ambiguous — disambiguate by the per-unit serial and point
-# dronecot-dronescout's FEED_URL at the specific /dev/serial/by-id/... path
-# instead (see `ls -l /dev/serial/by-id/`).
+# symlink is ambiguous. Disambiguate with a serial-specific udev rule that makes
+# another colon-free symlink. Do not use the raw Espressif by-id path as
+# FEED_URL: its MAC-address colons make pymavlink mistake it for a UDP endpoint.
 SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="1001", SYMLINK+="dronescout", ENV{ID_MM_DEVICE_IGNORE}="1"

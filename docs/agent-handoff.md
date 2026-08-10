@@ -94,11 +94,24 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   configured serial character device. A missing/unconfigured receiver produces
   a clean inactive/skipped unit (start result success, no failed unit) rather
   than a `Restart=always` loop.
-- Overlay 2.0.9 was installed on the box. The post-update closing HIL suite
+- Overlay 2.0.9 was initially installed on the box. The post-update closing HIL suite
   passed 88 checks, including live GPS/portal data, GPSTAK, and ADSBee traffic;
   there are no failed units. The only deferred failure is the known corrupt
   binary `/boot/firmware/cmdline.txt`. Do not reboot this node until the
   separate command-line repair is completed.
+- After the DroneScout was attached, discovery verified `HEARTBEAT` and
+  `OPEN_DRONE_ID_MESSAGE_PACK` on its unique ESP32 CDC port. The first applied
+  configuration exposed a pymavlink edge case: the MAC-address colons in the
+  stable by-id path made pymavlink treat the tty as UDP while systemd still
+  reported DroneCOT active. AryaOS now selects `/dev/dronescout` only when it
+  resolves to the protocol-verified port, and refuses an unsafe colon-bearing
+  fallback. Live HIL then received the MAVLink heartbeat, processed the lab
+  beacon, and emitted both UAS and operator CoT with `sensor_id=dronescout`.
+  A 68.8-second runtime sample counted 411 received RID records and 819 emitted
+  events with zero write errors; a separate 10-second wire capture saw 63 UAS
+  CoTs reach Charontak ingress. Overlay 2.0.10 is installed, and the closing HIL
+  suite passed 94 checks. Its only failure remains the deliberately deferred
+  corrupt boot cmdline; do not reboot this node.
 - Package HIL also found a zero-corrupted `/var/lib/apt/listchanges` pickle at
   byte 983,261. The original is preserved on-host as
   `listchanges.corrupt-20260810` and in the gitignored HIL evidence directory;

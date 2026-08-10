@@ -10,11 +10,12 @@
 # PORT: the DS101 is an ESP32-S3 (udev "Espressif USB JTAG/serial debug unit",
 # 303a:1001). Its /dev/serial/by-id path embeds the per-unit MAC, so AryaOS pins
 # a stable /dev/dronescout symlink via 99-aryaos-dronescout.rules — that is what
-# FEED_URL points at below. If the box has more than one ESP32-S3 (e.g. a DS101
-# AND a SiKW00F), the symlink is ambiguous: set FEED_URL to the specific
-# /dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_<MAC>-if00 path
-# (see `ls -l /dev/serial/by-id/`). Live-verified 2026-07-24 against a DroneBeacon
-# DB120 (OPEN_DRONE_ID_MESSAGE_PACK @115200 on the ESP32-S3 CDC port).
+# FEED_URL points at below. Do not put the raw Espressif by-id path here: its MAC
+# contains colons, and pymavlink mistakes any colon-bearing device name for a UDP
+# endpoint. If the box has multiple ESP32-S3 devices (e.g. a DS101 and SiKW00F),
+# give the selected serial a unique, colon-free udev symlink and use that path.
+# Live-verified 2026-08-10 against a DroneScout receiving
+# OPEN_DRONE_ID_MESSAGE_PACK at 115200 baud on the ESP32-S3 CDC port.
 # A DS110 connected through a USB-UART adapter is written here automatically by
 # `aryaos-role discover --apply`, but only after checksum-valid Remote-ID MAVLink
 # is observed. The adapter's generic USB identity is not sufficient evidence.

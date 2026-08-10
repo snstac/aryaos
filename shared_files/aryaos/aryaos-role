@@ -268,7 +268,7 @@ CAP_SCAN="/usr/local/sbin/aryaos-capability-scan"
 # Apply transport details that cannot be expressed by a capability name alone.
 # Every path comes from a protocol-verified scanner result, not a generic USB id.
 configure_detected_inputs() {
-	local caps="$1" adsbee="" rid_port=""
+	local caps="$1" adsbee="" rid_port="" rid_feed_port=""
 
 	if [[ " ${caps} " == *" adsb "* ]]; then
 		adsbee="$("${CAP_SCAN}" --adsbee-port 2>/dev/null | head -1 || true)"
@@ -301,14 +301,28 @@ configure_detected_inputs() {
 				echo "aryaos-role: refusing unsafe DroneScout path '${rid_port}'" >&2
 				return 1
 			fi
+			rid_feed_port="${rid_port}"
+			# Espressif's stable by-id name embeds a MAC address with colons.
+			# pymavlink treats ANY device string containing ':' as UDP before it
+			# checks whether that string names a tty, so the apparently-correct
+			# serial URL leaves dronecot active but retrying forever. Prefer the
+			# colon-free udev alias only when it resolves to the exact port whose
+			# MAVLink Remote-ID payload the scanner verified.
+			if [[ -e /dev/dronescout ]] \
+				&& [[ "$(readlink -f /dev/dronescout 2>/dev/null)" == "$(readlink -f "${rid_port}" 2>/dev/null)" ]]; then
+				rid_feed_port="/dev/dronescout"
+			elif [[ "${rid_port}" == *:* ]]; then
+				echo "aryaos-role: verified DroneScout path contains ':' and no matching colon-free /dev/dronescout alias exists" >&2
+				return 1
+			fi
 			if [[ -f /etc/default/dronecot-dronescout ]]; then
 				if grep -q '^FEED_URL=' /etc/default/dronecot-dronescout; then
-					sed -i -E "s|^FEED_URL=.*|FEED_URL=serial://${rid_port}:115200|" /etc/default/dronecot-dronescout
+					sed -i -E "s|^FEED_URL=.*|FEED_URL=serial://${rid_feed_port}:115200|" /etc/default/dronecot-dronescout
 				else
-					printf 'FEED_URL=serial://%s:115200\n' "${rid_port}" >> /etc/default/dronecot-dronescout
+					printf 'FEED_URL=serial://%s:115200\n' "${rid_feed_port}" >> /etc/default/dronecot-dronescout
 				fi
 			fi
-			echo "configure dronecot-dronescout <- ${rid_port} (MAVLink 2 @ 115200)"
+			echo "configure dronecot-dronescout <- ${rid_feed_port} (verified as ${rid_port}; MAVLink 2 @ 115200)"
 		fi
 	fi
 }

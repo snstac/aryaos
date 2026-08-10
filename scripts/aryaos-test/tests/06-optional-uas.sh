@@ -90,4 +90,46 @@ if unit_loaded dronecot; then
 	fi
 fi
 
+if capability_enabled rid; then
+	RID_UNIT=dronecot-dronescout
+	RID_CONFIG=/etc/default/dronecot-dronescout
+	if unit_active "${RID_UNIT}"; then
+		ok "${RID_UNIT} active for rid capability"
+	else
+		fail "${RID_UNIT} not active for rid capability"
+	fi
+	RID_FEED="$(sed -n 's/^FEED_URL=//p' "${RID_CONFIG}" 2>/dev/null | tail -n 1)"
+	RID_DEVICE="${RID_FEED#serial://}"
+	RID_DEVICE="${RID_DEVICE%:*}"
+	if [[ -c "${RID_DEVICE}" ]]; then
+		ok "DroneScout serial device ${RID_DEVICE} present"
+	else
+		fail "DroneScout serial device ${RID_DEVICE:-unset} missing"
+	fi
+	RID_PID="$(systemctl show "${RID_UNIT}.service" -p MainPID --value 2>/dev/null || true)"
+	RID_OWNER="$(sudo -n fuser "${RID_DEVICE}" 2>/dev/null | xargs || true)"
+	if [[ -n "${RID_PID}" && "${RID_PID}" != 0 && " ${RID_OWNER} " == *" ${RID_PID} "* ]]; then
+		ok "DroneCOT owns the configured DroneScout tty"
+	else
+		fail "DroneCOT PID ${RID_PID:-missing} does not own ${RID_DEVICE:-missing}"
+	fi
+	RID_LOG="$(journalctl "_PID=${RID_PID}" --no-pager 2>/dev/null || true)"
+	if grep -q 'MAVLink heartbeat received' <<<"${RID_LOG}"; then
+		ok "DroneScout MAVLink heartbeat received"
+	else
+		fail "DroneScout MAVLink heartbeat not observed"
+	fi
+	if grep -q 'Processing RID data' <<<"${RID_LOG}"; then
+		ok "DroneScout Remote ID payloads processed"
+	else
+		fail "DroneScout Remote ID payloads not observed"
+	fi
+	RID_RESTARTS="$(systemctl show "${RID_UNIT}.service" -p NRestarts --value 2>/dev/null || true)"
+	if [[ "${RID_RESTARTS}" == 0 ]]; then
+		ok "${RID_UNIT} has not restarted"
+	else
+		fail "${RID_UNIT} restart count ${RID_RESTARTS:-unknown}"
+	fi
+fi
+
 print_summary

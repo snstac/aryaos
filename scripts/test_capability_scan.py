@@ -236,6 +236,17 @@ class SerialRoleWiringTestCase(unittest.TestCase):
         self.assertIn("ExecCondition=/usr/local/libexec/aryaos/dronecot-serial-ready", unit)
         self.assertIn('[[ -c "${device}" && -r "${device}" ]]', helper)
 
+    def test_dronescout_discovery_avoids_colons_in_pymavlink_device(self):
+        import pathlib
+
+        role = (
+            pathlib.Path(__file__).parent.parent / "shared_files/aryaos/aryaos-role"
+        ).read_text()
+        self.assertIn("readlink -f /dev/dronescout", role)
+        self.assertIn('rid_feed_port="/dev/dronescout"', role)
+        self.assertIn('[[ "${rid_port}" == *:* ]]', role)
+        self.assertIn("FEED_URL=serial://${rid_feed_port}:115200", role)
+
 
 if __name__ == "__main__":
     unittest.main()
