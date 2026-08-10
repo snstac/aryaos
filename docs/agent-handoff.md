@@ -1,4 +1,4 @@
-# Agent handoff — state as of 2026-08-02
+# Agent handoff — state as of 2026-08-10
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
@@ -6,6 +6,34 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
+
+## 2026-08-10 TAK outage resilience (`.60`)
+
+- A prolonged outage of the dedicated ACARSCOT TAK endpoint exposed two coupled
+  failures on `aryaos-ff84` (`.60`): the WebSocket receive worker exited after
+  the server closed it, and repeated PKCS#12 loads leaked three extracted PEMs
+  per attempt. After 12,723 files, both 100 MiB `/tmp` and `/var/tmp` mounts
+  were full; ACARSCOT then entered a 12,272-restart systemd loop with
+  `No usable temporary directory`.
+- PyTAK `7.4.3` supervises transient TCP/TLS/WebSocket failures within one
+  process, rebuilding bounded worker queues per attempt and retrying with a
+  jittered 5-to-120-second exponential delay. A five-minute stable session
+  resets the delay. Configuration errors remain fatal. Temporary PKCS#12 PEMs
+  are removed immediately after `SSLContext.load_cert_chain()`, including
+  partial-conversion failure paths.
+- ACARSCOT `0.1.1` requires PyTAK `>= 7.4.3` and packages
+  `StateDirectory=acarscot` plus `HOME=/var/lib/acarscot`, keeping enrollment
+  state across reboots without a local drop-in.
+- On `.60`, only the 12,723 confirmed root-level temporary PEMs owned by
+  `acarscot` were removed; the three persistent enrollment-cache files were
+  preserved. A bounded fixture test proved initial outage, recovery,
+  server-initiated close, and second recovery on one PID with zero systemd
+  restarts and zero leaked PEMs. The operator's real TAK endpoint remains
+  unreachable as of this handoff, but ACARSCOT stays active and retries safely.
+- The image now installs ACARS packages, requires PyTAK `>= 7.4.3` and ACARSCOT
+  `>= 0.1.1`, and verifies persistent state. HIL checks assert active ACARS
+  units, zero systemd restarts, persistent HOME/state, no leaked PEMs, and
+  headroom on `/tmp`, `/var/tmp`, and `/var/log`.
 
 ## 2026-08-02 four-node HIL burn-in (SOAK COMPLETE; `.60` RECOVERED)
 

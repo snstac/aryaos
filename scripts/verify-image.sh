@@ -267,12 +267,17 @@ require_pkg python3-gps
 require_pkg ais-catcher
 require_pkg sikw00fcot
 require_pkg gdltak
-require_pkg_version pytak 7.4.1
+require_pkg_version pytak 7.4.3
+require_pkg_version acarscot 0.1.1
+require_pkg acarsdec
 require_pkg_version dronecot 2.3.7
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
 require_unit sikw00fcot.service
+require_unit acarscot.service
+require_grep '^StateDirectory=acarscot$' /usr/lib/systemd/system/acarscot.service "acarscot enrollment state survives reboot"
+require_grep '^Environment=HOME=/var/lib/acarscot$' /usr/lib/systemd/system/acarscot.service "acarscot uses persistent home"
 # DroneScout DS101: 2nd dronecot instance (MAVLink Remote ID over serial), opt-in.
 # The DS101 is an ESP32-S3 (303a:1001) pinned to /dev/dronescout by udev, NOT a
 # CH340 — verified live 2026-07-24 against a DroneBeacon DB120.

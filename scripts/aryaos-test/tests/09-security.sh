@@ -159,6 +159,14 @@ if [[ "${log_used_pct}" =~ ^[0-9]+$ && "${log_used_pct}" -lt 95 ]]; then
 else
 	fail "/var/log is full or unavailable (${log_used_pct:-unknown}% used)"
 fi
+for tmp_mount in /tmp /var/tmp; do
+	tmp_used_pct="$(df --output=pcent "${tmp_mount}" 2>/dev/null | tail -n 1 | tr -dc '0-9')"
+	if [[ "${tmp_used_pct}" =~ ^[0-9]+$ && "${tmp_used_pct}" -lt 95 ]]; then
+		ok "${tmp_mount} has headroom (${tmp_used_pct}% used)"
+	else
+		fail "${tmp_mount} is full or unavailable (${tmp_used_pct:-unknown}% used)"
+	fi
+done
 
 # --- TLS key hygiene ---
 if [[ -f /etc/aryaos/.web-tls-regenerated ]]; then

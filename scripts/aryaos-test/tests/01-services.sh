@@ -78,6 +78,40 @@ for svc in charontak lincot adsbcot aiscot dronecot sikw00fcot; do
 	fi
 done
 
+# ACARSCOT >= 0.1.1/PyTAK >= 7.4.3 owns reconnects inside one long-running
+# process. A TAK server outage must not become a systemd crash loop, exhaust the
+# RAM-backed temporary filesystems, or discard the enrollment certificate.
+if capability_enabled acars; then
+	for svc in acarsdec acarscot; do
+		if unit_active "${svc}"; then
+			ok "${svc} active for acars capability"
+		else
+			fail "${svc} not active for acars capability"
+		fi
+	done
+	acarscot_restarts="$(systemctl show acarscot.service -p NRestarts --value 2>/dev/null || true)"
+	if [[ "${acarscot_restarts}" == "0" ]]; then
+		ok "acarscot has not entered a systemd restart loop"
+	else
+		fail "acarscot has ${acarscot_restarts:-unknown} systemd restarts"
+	fi
+	if systemctl show acarscot.service -p StateDirectory --value 2>/dev/null | grep -qw acarscot; then
+		ok "acarscot enrollment state is persistent"
+	else
+		fail "acarscot StateDirectory is not configured"
+	fi
+	if systemctl show acarscot.service -p Environment --value 2>/dev/null | grep -q 'HOME=/var/lib/acarscot'; then
+		ok "acarscot HOME uses persistent state"
+	else
+		fail "acarscot HOME is not /var/lib/acarscot"
+	fi
+	if [[ -z "$(sudo -n find /tmp /var/tmp -maxdepth 1 -type f -user acarscot -name 'tmp*.pem' -print -quit 2>/dev/null)" ]]; then
+		ok "acarscot has not leaked temporary certificate PEMs"
+	else
+		fail "acarscot leaked temporary certificate PEMs"
+	fi
+fi
+
 if unit_loaded aryaos-bt-pan; then
 	if unit_active aryaos-bt-pan; then
 		ok "aryaos-bt-pan active"

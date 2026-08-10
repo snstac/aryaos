@@ -45,21 +45,30 @@ The sudo I/O history is also bounded by **session count, not elapsed time**.
 Busy diagnostic or automation runs may therefore replace old command sessions
 well before a reboot.
 
-## Check and recover `/var/log` capacity
+TAK clients can also be exposed to very long remote outages. PyTAK `7.4.3` and
+newer retries transient connection and WebSocket failures inside one process
+with bounded, jittered exponential backoff. PKCS#12 client certificates are
+loaded from short-lived extracted PEM files that are removed immediately, so a
+week-long outage cannot fill `/tmp` or `/var/tmp` with reconnect artifacts.
+
+## Check and recover tmpfs capacity
 
 Run these checks when privileged commands start failing, after a long burn-in,
 or as part of routine field validation:
 
 ```bash
 df -h /var/log
+df -h /tmp /var/tmp
 sudo -n true
 sudo -n grep '^Defaults maxseq=128$' /etc/sudoers.d/aryaos
 sudo -n find /var/log/sudo-io -mindepth 3 -maxdepth 3 -type d | wc -l
+sudo -n find /tmp /var/tmp -maxdepth 1 -type f -user acarscot -name 'tmp*.pem'
 ```
 
 A current image should accept passwordless sudo, report the `maxseq` line, keep
-no more than 128 completed I/O sessions, and leave `/var/log` below 95% use.
-The HIL security module checks the configuration and capacity automatically:
+no more than 128 completed I/O sessions, leave all three tmpfs mounts below 95%
+use, and produce no ACARSCOT PEM listing. The HIL service and security modules
+check the configuration and capacity automatically:
 
 ```bash
 ARYAOS_SSH=pi@aryaos-dev-pi ./scripts/aryaos-test/run.sh
@@ -71,6 +80,14 @@ The characteristic exhausted-tmpfs error is:
 sudo: unable to write to I/O log file: No space left on device
 sudo: error initializing I/O plugin sudoers_io
 ```
+
+For a TAK client, the equivalent symptom is `No usable temporary directory`
+or `No space left on device` during certificate loading, often accompanied by
+many root-level `tmp*.pem` files owned by the gateway account. Upgrade PyTAK to
+`7.4.3` or newer before restarting the gateway. If cleanup is required, stop
+the affected unit and remove only the confirmed root-level temporary PEMs owned
+by that service account; never remove its persistent certificate cache under
+`/var/lib/<service>/.pytak/certs`.
 
 Capture a support bundle before recovery if sudo and enough log space remain.
 A controlled reboot is the normal recovery: `/var/log` is RAM-backed, so the

@@ -164,21 +164,19 @@ sudo chmod 0600 /etc/default/acarscot
 ```
 
 PyTAK resolves that URL to WSS and caches the issued client certificate below
-the service account's home. The packaged account normally lives under `/run`,
-so make that cache persistent before restarting:
+the service account's home. ACARSCOT `0.1.1` and newer create persistent state
+under `/var/lib/acarscot`; no local systemd drop-in is required. PyTAK `7.4.3`
+and newer retry an unavailable TAK endpoint in the same process with bounded,
+jittered exponential backoff. A server outage therefore leaves the unit active
+instead of driving a systemd restart storm, and extracted certificate PEMs are
+removed after every connection attempt instead of accumulating in tmpfs.
 
-```ini title="/etc/systemd/system/acarscot.service.d/state-directory.conf"
-[Service]
-StateDirectory=acarscot
-StateDirectoryMode=0750
-Environment=HOME=/var/lib/acarscot
-```
-
-Then run `sudo systemctl daemon-reload && sudo systemctl restart acarscot`.
-`systemctl is-active acarscot` should report `active`, and the journal should
-show a resolved `wss://.../takproto/1` destination plus both `WSTXWorker` and
-`WSRXWorker`. Keep the enrollment URL and cached certificate files private; do
-not put either in a support bundle or source control.
+Run `sudo systemctl restart acarscot`. `systemctl is-active acarscot` should
+remain `active` even while the server is unavailable; the journal will show the
+next retry delay. Once reachable, it should show a resolved
+`wss://.../takproto/1` destination plus both `WSTXWorker` and `WSRXWorker`.
+Keep the enrollment URL and cached certificate files private; do not put either
+in a support bundle or source control.
 
 ### Audio-band decoders (APRS, pagers)
 
