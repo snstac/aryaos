@@ -59,9 +59,10 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 ## 2026-08-10 ADSBee / DroneScout discovery HIL (`.199`)
 
 - The newly flashed `aryaos-f069` at `192.168.0.199` has an ADSBee 1090 on
-  `/dev/serial/by-id/usb-Raspberry_Pi_Pico_E4654C6197481B39-if00` and a claimed
-  DroneScout DS110 connected through a Prolific PL2303 UART adapter. Generic USB
-  identities are not treated as product identities.
+  `/dev/serial/by-id/usb-Raspberry_Pi_Pico_E4654C6197481B39-if00` and a SiRF
+  GSD4e GPS connected through a Prolific PL2303 UART adapter. The GPS is on
+  `/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0`.
+  Generic USB identities are not treated as product identities.
 - ADSBee detection is protocol-verified with the read-only
   `AT+BIAS_TEE_ENABLE?` query. Five consecutive probes succeeded. Discovery
   configured readsb as `--device-type modesbeast` on the stable by-id path,
@@ -76,17 +77,27 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   enabled/active. readsb and gdltak have zero restarts; ADSBCOT restarted once
   after the controlled test stopped readsb and removed its runtime JSON tree,
   then recovered normally.
-- The PL2303 path emitted no checksum-valid MAVLink at 4,800, 9,600, 19,200,
-  38,400, 57,600, 115,200, or 230,400 baud. At the documented 115,200 rate its
-  receive line was continuously zero/stuck-low. Discovery therefore reports
-  `rid` as `AMBIGUOUS` and does not enable it. Check DS110 power, common ground,
-  TX-to-RX wiring, 3.3 V logic level, and receiver/UART output mode.
+- The PL2303 path was initially tested as a claimed DS110 and emitted no
+  checksum-valid MAVLink. A binary-safe capture then found checksum-valid SiRF
+  frames at 4,800 baud. gpsd identifies it as `SiRF`, subtype
+  `GSD4e_4.1.2-B2_RPATCH.02-F-GPS-4R`. It acquired a live 3D fix with 12
+  satellites in view and 7 used. `/etc/default/gpsd` now pins the stable by-id
+  path. AryaOS serial discovery now validates SiRF binary framing in addition
+  to NMEA, and capability discovery excludes an assigned GPS from PL2303/DS110
+  probing.
+- The box exposed a second GPS-path defect: `gpstak.service` was installed but
+  disabled even though GPSTAK is documented as role-independent core plumbing.
+  Overlay 2.0.9 enables/starts GPSTAK during installation, and HIL now asserts
+  that it stays active. The package also reruns serial assignment after
+  refreshing gpsd defaults, avoiding a blank `DEVICES` setting after update.
 - `dronecot-dronescout.service` now uses an `ExecCondition` that validates its
   configured serial character device. A missing/unconfigured receiver produces
   a clean inactive/skipped unit (start result success, no failed unit) rather
   than a `Restart=always` loop.
-- The closing HIL suite passed 87 checks; the only deferred failure is the known
-  corrupt binary `/boot/firmware/cmdline.txt`. Do not reboot this node until the
+- Overlay 2.0.9 was installed on the box. The post-update closing HIL suite
+  passed 88 checks, including live GPS/portal data, GPSTAK, and ADSBee traffic;
+  there are no failed units. The only deferred failure is the known corrupt
+  binary `/boot/firmware/cmdline.txt`. Do not reboot this node until the
   separate command-line repair is completed.
 - Package HIL also found a zero-corrupted `/var/lib/apt/listchanges` pickle at
   byte 983,261. The original is preserved on-host as

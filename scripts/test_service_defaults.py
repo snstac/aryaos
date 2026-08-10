@@ -48,6 +48,19 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("StartLimitBurst=5", unit_section)
         self.assertNotIn("StartLimit", service_section)
 
+    def test_overlay_packages_binary_serial_discovery(self):
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+
+        self.assertIn('aryaos-serial-classify" "/usr/local/libexec/aryaos/', builder)
+        self.assertIn('aryaos-serial-assign" "/usr/local/sbin/aryaos-serial-assign', builder)
+        self.assertIn("aryaos-serial-assign.service", builder)
+
+    def test_overlay_keeps_network_gps_core_active(self):
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+
+        self.assertIn("systemctl enable --now gpstak.service", postinst)
+        self.assertIn("systemctl restart aryaos-serial-assign.service", postinst)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

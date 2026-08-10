@@ -38,6 +38,7 @@ import subprocess
 import sys
 import glob
 import selectors
+import shlex
 import termios
 import time
 
@@ -396,7 +397,40 @@ def probe_adsbee_serial():
 
 def probe_ds110_uart_candidates():
     """PL2303 cables need protocol evidence; the USB id alone is never enough."""
-    return _serial_ports_by_id(PL2303_VID_PID)
+    gps_ports = configured_gps_ports()
+    return [
+        port
+        for port in _serial_ports_by_id(PL2303_VID_PID)
+        if not any(_same_serial_device(port, gps_port) for gps_port in gps_ports)
+    ]
+
+
+def configured_gps_ports():
+    """Return devices deliberately assigned to gpsd.
+
+    This is also protocol evidence: aryaos-serial-assign only writes DEVICES
+    after its binary-safe classifier sees valid NMEA or SiRF GNSS frames. An
+    operator's explicit gpsd assignment must likewise keep the RID scanner from
+    changing baud and consuming the live GPS stream.
+    """
+    for line in _read("/etc/default/gpsd").splitlines():
+        if not line.startswith("DEVICES="):
+            continue
+        try:
+            words = shlex.split(line.split("=", 1)[1])
+            return [port for word in words for port in word.split()]
+        except ValueError:
+            return []
+    return []
+
+
+def _same_serial_device(left, right):
+    if not left or not right:
+        return False
+    try:
+        return os.path.realpath(left) == os.path.realpath(right)
+    except OSError:
+        return left == right
 
 
 def probe_antsdr():
@@ -420,7 +454,9 @@ def probe_antsdr():
 
 
 def _is_gnss(port):
-    """Does udev identify this serial port as a GNSS receiver?"""
+    """Does config or udev identify this serial port as a GNSS receiver?"""
+    if any(_same_serial_device(port, gps_port) for gps_port in configured_gps_ports()):
+        return True
     props = _run(["/usr/bin/udevadm", "info", "-q", "property", "-n", port], timeout=5)
     if re.search(r"^ID_VENDOR_ID=1546$", props, re.M):
         return True

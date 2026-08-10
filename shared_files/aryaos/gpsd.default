@@ -21,9 +21,9 @@ GPSD_OPTIONS="-n"
 # the latter even though AryaOS does not use it, avoiding an unset-environment
 # warning on every service start.
 OPTIONS=""
-# DEVICES is set at boot by aryaos-serial-assign, which identifies the GPS by the
-# $GPxxx/$GNxxx NMEA it emits (any adapter chipset) — do not hardcode a specific
-# puck's by-id here; it breaks on any unit whose GNSS is a different make.
+# DEVICES is set at boot by aryaos-serial-assign, which identifies checksum-valid
+# NMEA or binary SiRF GNSS output (any adapter chipset) — do not hardcode a
+# specific puck's by-id here; it breaks on a unit whose GNSS is a different make.
 # USBAUTO stays on as a fallback for udev-recognised GNSS receivers.
 DEVICES=""
 USBAUTO="true"

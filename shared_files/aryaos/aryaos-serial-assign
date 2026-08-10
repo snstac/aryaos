@@ -1,9 +1,9 @@
 #!/bin/bash
 # aryaos-serial-assign — identify GPS vs AIS (dAISy) USB-serial receivers by the
-# NMEA they emit and wire gpsd / ais-catcher to the right device. Robust to the
+# protocol they emit and wire gpsd / ais-catcher to the right device. Robust to the
 # adapter chipset and USB enumeration order, so a laydown survives swapping the
 # GPS puck or the dAISy for a different make — the analogue of aryaos-sdr's
-# EEPROM-serial pinning, but for NMEA serial.
+# EEPROM-serial pinning, but for serial receivers.
 #
 # GPS emits $GPxxx/$GNxxx; a dAISy emits !AIVDM/!AIVDO. A dAISy with no vessels
 # in range is silent, so when AIS is intended (ais-catcher enabled) and exactly
@@ -21,8 +21,7 @@ set -uo pipefail
 GPSD_DEF="/etc/default/gpsd"
 AIS_DEF="/etc/default/ais-catcher"
 AIS_BAUD_DEFAULT=38400
-BAUDS=(9600 38400 4800 115200)
-PROBE_SECS=3
+CLASSIFIER="/usr/local/libexec/aryaos/aryaos-serial-classify"
 
 log() { logger -t aryaos-serial-assign "$*" 2>/dev/null || true; echo "aryaos-serial-assign: $*"; }
 
@@ -32,8 +31,8 @@ require_root() {
 
 # Wait briefly for USB-serial devices to enumerate at boot.
 wait_for_serial() {
-	local i
-	for i in $(seq 1 10); do
+	local _
+	for _ in {1..10}; do
 		compgen -G "/dev/serial/by-id/*" >/dev/null 2>&1 && return 0
 		sleep 1
 	done
@@ -112,19 +111,14 @@ is_antsdr_console() {
 	[[ -n "$a" && "$a" == "$b" ]]
 }
 
-# Classify one device: prints "gps:<baud>", "ais:<baud>", "busy", or "" (silent).
+# Classify one device: prints "gps:<baud>:<protocol>", "ais:<baud>:nmea",
+# "busy", or "" (silent). The Python helper is required because Bash command
+# substitution discards NUL bytes and therefore corrupts SiRF binary frames.
 classify() {
-	local dev="$1" b data
+	local dev="$1"
 	if fuser "$dev" >/dev/null 2>&1; then echo "busy"; return; fi
-	for b in "${BAUDS[@]}"; do
-		stty -F "$dev" "$b" raw -echo >/dev/null 2>&1 || continue
-		# Stream via cat|head so a timeout-killed read still yields its partial
-		# data (head -c under timeout drops its buffer when killed).
-		data="$(timeout "$PROBE_SECS" cat "$dev" 2>/dev/null | head -c 512 | tr -c '[:print:]\n' ' ')"
-		if grep -qE '!AI(VDM|VDO)' <<<"$data"; then echo "ais:$b"; return; fi
-		if grep -qE '\$G[PNLA](GGA|RMC|GLL|VTG|GSV|ZDA)' <<<"$data"; then echo "gps:$b"; return; fi
-	done
-	echo ""
+	[[ -x "$CLASSIFIER" ]] || { log "serial classifier missing: $CLASSIFIER" >&2; echo ""; return; }
+	"$CLASSIFIER" "$dev"
 }
 
 set_kv() {  # set_kv <file> <KEY> <value-unquoted>
@@ -161,15 +155,23 @@ main() {
 		cls="$(classify "$dev")"
 		case "$cls" in
 			busy)  log "skip $dev (held by a running service)";;
-			gps:*) [[ -z "$gps_dev" ]] && { gps_dev="$dev"; log "GPS on $dev (${cls#gps:} baud)"; };;
-			ais:*) [[ -z "$ais_dev" ]] && { ais_dev="$dev"; ais_baud="${cls#ais:}"; log "AIS/dAISy on $dev (${cls#ais:} baud)"; };;
+			gps:*)
+				[[ -z "$gps_dev" ]] && { gps_dev="$dev"; log "GPS on $dev (${cls#gps:})"; }
+				;;
+			ais:*)
+				[[ -z "$ais_dev" ]] && { ais_dev="$dev"; ais_baud="${cls#ais:}"; ais_baud="${ais_baud%%:*}"; log "AIS/dAISy on $dev (${cls#ais:})"; }
+				;;
 			"")
 				# A silent port that udev says is a GNSS receiver is a GPS, not a
 				# candidate dAISy. Never let it reach "leftover" -- assignment by
 				# elimination would hand the GPS to ais-catcher.
 				if is_gps_device "$dev"; then
-					[[ -z "$gps_dev" ]] && { gps_dev="$dev"; log "GPS on $dev (silent during probe; identified by udev)"; } \
-						|| log "skip $dev (additional GNSS receiver)"
+					if [[ -z "$gps_dev" ]]; then
+						gps_dev="$dev"
+						log "GPS on $dev (silent during probe; identified by udev)"
+					else
+						log "skip $dev (additional GNSS receiver)"
+					fi
 				else
 					leftover+=("$dev"); log "silent/unknown serial: $dev"
 				fi

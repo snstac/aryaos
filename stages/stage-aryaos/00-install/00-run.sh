@@ -225,9 +225,9 @@ for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot aprsc
 		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done
 
-## Serial assignment: identify GPS vs AIS/dAISy by the NMEA they emit and wire
+## Serial assignment: identify GPS vs AIS/dAISy by their serial protocol and wire
 ## gpsd/ais-catcher to the right by-id device at boot (robust to adapter/enum
-## changes) — the NMEA-serial analogue of aryaos-sdr's EEPROM-serial pinning.
+## changes) — the serial analogue of aryaos-sdr's EEPROM-serial pinning.
 # Operator handle on locally recorded CoT tracks (charontak recorder): how much
 # is stored, over what period, and purge on demand. Recordings are also cleared
 # by aryaos-factory-reset and aryaos-zeroize.
@@ -235,6 +235,8 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tracks" "${ROOTFS_DIR}/usr/loc
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tracks-query" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tracks-query"
 
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-serial-assign" "${ROOTFS_DIR}/usr/local/sbin/aryaos-serial-assign"
+install -v -D -m 0755 "${SHARED_FILES}/aryaos/aryaos-serial-classify" \
+	"${ROOTFS_DIR}/usr/local/libexec/aryaos/aryaos-serial-classify"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-serial-assign.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-serial-assign.service"
 

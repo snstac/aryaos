@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""Classify a USB serial receiver without losing binary GNSS frames.
+
+Prints one of ``gps:<baud>:<protocol>``, ``ais:<baud>:nmea``, or an empty
+line.  aryaos-serial-assign owns service coordination; this helper only does
+bounded, read-only serial sampling and always restores the original tty mode.
+
+Copyright Sensors & Signals LLC https://www.snstac.com/
+SPDX-License-Identifier: Apache-2.0
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import select
+import sys
+import termios
+import time
+
+BAUDS = (4800, 9600, 38400, 115200)
+PROBE_SECONDS = 3
+READ_LIMIT = 8192
+
+
+def valid_sirf_frame(data: bytes) -> bool:
+    """Return true when *data* contains a checksum-valid SiRF binary frame."""
+    offset = 0
+    while True:
+        start = data.find(b"\xa0\xa2", offset)
+        if start < 0 or start + 8 > len(data):
+            return False
+        length = int.from_bytes(data[start + 2 : start + 4], "big")
+        # SiRF payloads are bounded to 2**10 - 1 bytes by the protocol.
+        if length > 1023:
+            offset = start + 2
+            continue
+        end = start + 4 + length
+        if end + 4 > len(data):
+            return False
+        payload = data[start + 4 : end]
+        checksum = int.from_bytes(data[end : end + 2], "big")
+        if data[end + 2 : end + 4] == b"\xb0\xb3" and checksum == (sum(payload) & 0x7FFF):
+            return True
+        offset = start + 2
+
+
+def nmea_sentences(data: bytes):
+    """Yield checksum-valid NMEA sentence bodies from a binary-safe sample."""
+    for match in re.finditer(rb"(?m)^[!$]([^\r\n*]{3,250})\*([0-9A-Fa-f]{2})\r?$", data):
+        body, encoded_checksum = match.groups()
+        checksum = 0
+        for byte in body:
+            checksum ^= byte
+        if checksum == int(encoded_checksum, 16):
+            yield match.group(0)
+
+
+def classify_sample(data: bytes):
+    if valid_sirf_frame(data):
+        return "gps:sirf"
+    for sentence in nmea_sentences(data):
+        if re.match(rb"\$G[PNLBAQ](GGA|RMC|GLL|VTG|GSV|GSA|ZDA),", sentence):
+            return "gps:nmea"
+        if re.match(rb"!AI(VDM|VDO),", sentence):
+            return "ais:nmea"
+    return ""
+
+
+def sample(device: str, baud: int, seconds: float = PROBE_SECONDS) -> bytes:
+    fd = os.open(device, os.O_RDONLY | os.O_NONBLOCK | os.O_NOCTTY)
+    old = termios.tcgetattr(fd)
+    attrs = termios.tcgetattr(fd)
+    attrs[0] = 0
+    attrs[1] = 0
+    attrs[2] = termios.CS8 | termios.CREAD | termios.CLOCAL
+    attrs[3] = 0
+    speed = getattr(termios, f"B{baud}")
+    attrs[4] = speed
+    attrs[5] = speed
+    attrs[6][termios.VMIN] = 0
+    attrs[6][termios.VTIME] = 0
+    data = bytearray()
+    try:
+        termios.tcsetattr(fd, termios.TCSANOW, attrs)
+        termios.tcflush(fd, termios.TCIFLUSH)
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline and len(data) < READ_LIMIT:
+            ready, _, _ = select.select(
+                [fd], [], [], min(0.5, max(0, deadline - time.monotonic()))
+            )
+            if ready:
+                try:
+                    chunk = os.read(fd, READ_LIMIT - len(data))
+                except BlockingIOError:
+                    continue
+                if not chunk:
+                    break
+                data.extend(chunk)
+    finally:
+        try:
+            termios.tcsetattr(fd, termios.TCSANOW, old)
+        finally:
+            os.close(fd)
+    return bytes(data)
+
+
+def classify_device(device: str) -> str:
+    for baud in BAUDS:
+        try:
+            result = classify_sample(sample(device, baud))
+        except (OSError, termios.error):
+            continue
+        if result:
+            kind, protocol = result.split(":", 1)
+            return f"{kind}:{baud}:{protocol}"
+    return ""
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        print(f"usage: {sys.argv[0]} DEVICE", file=sys.stderr)
+        return 2
+    print(classify_device(sys.argv[1]))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

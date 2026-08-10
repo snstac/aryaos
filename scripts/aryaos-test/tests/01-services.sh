@@ -15,7 +15,7 @@ else
 	ok "no failed systemd units"
 fi
 
-CORE_SERVICES=(lighttpd gpsd)
+CORE_SERVICES=(lighttpd gpsd gpstak)
 if capability_enabled adsb; then
 	CORE_SERVICES=(readsb adsbcot "${CORE_SERVICES[@]}")
 fi

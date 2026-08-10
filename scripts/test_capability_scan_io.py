@@ -84,6 +84,32 @@ class ProtocolDetectionTestCase(unittest.TestCase):
         ):
             self.assertEqual(scanner.probe_adsbee_serial(), [port])
 
+    def test_configured_gps_is_not_a_ds110_candidate(self):
+        gps = "/dev/serial/by-id/usb-Prolific_GPS-if00"
+        ds110 = "/dev/serial/by-id/usb-Prolific_DS110-if00"
+        with mock.patch.object(
+            scanner, "_serial_ports_by_id", return_value=[gps, ds110]
+        ), mock.patch.object(scanner, "configured_gps_ports", return_value=[gps]), mock.patch.object(
+            scanner.os.path, "realpath", side_effect=lambda path: path
+        ):
+            self.assertEqual(scanner.probe_ds110_uart_candidates(), [ds110])
+
+    def test_gpsd_device_list_accepts_debian_quoted_multi_device_form(self):
+        defaults = 'DEVICES="/dev/serial/by-id/gps-a /dev/serial/by-id/gps-b"\n'
+        with mock.patch.object(scanner, "_read", return_value=defaults):
+            self.assertEqual(
+                scanner.configured_gps_ports(),
+                ["/dev/serial/by-id/gps-a", "/dev/serial/by-id/gps-b"],
+            )
+
+    def test_configured_pl2303_is_gnss_even_with_generic_udev_identity(self):
+        gps = "/dev/serial/by-id/usb-Prolific_GPS-if00"
+        with mock.patch.object(scanner, "configured_gps_ports", return_value=[gps]), mock.patch.object(
+            scanner.os.path, "realpath", side_effect=lambda path: path
+        ), mock.patch.object(scanner, "_run") as run:
+            self.assertTrue(scanner._is_gnss(gps))
+        run.assert_not_called()
+
     def _scan(self, mavlink_result):
         patches = (
             mock.patch.object(scanner, "probe_sdrs", return_value=[]),

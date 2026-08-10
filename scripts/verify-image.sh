@@ -466,9 +466,11 @@ for z in public aryaos-hotspot; do
 	fi
 done
 
-# Robust NMEA-serial assignment (GPS vs AIS/dAISy by sentence sniffing) — no
+# Robust serial assignment (GPS vs AIS/dAISy by protocol sniffing) — no
 # hardcoded ttyUSB*/single-make by-id, which broke on differing adapters.
 require_path /usr/local/sbin/aryaos-serial-assign
+require_path /usr/local/libexec/aryaos/aryaos-serial-classify
+require_grep 'valid_sirf_frame' /usr/local/libexec/aryaos/aryaos-serial-classify "binary SiRF GPS protocol detection"
 require_unit aryaos-serial-assign.service
 require_grep '^DEVICES=""' /etc/default/gpsd "gpsd device not hardcoded (aryaos-serial-assign owns it)"
 require_grep '^SERIAL_PORT=$' /etc/default/ais-catcher "ais-catcher serial not hardcoded (aryaos-serial-assign owns it)"

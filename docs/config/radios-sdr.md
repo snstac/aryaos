@@ -90,16 +90,18 @@ Edit them with Cockpit's file editor or over SSH, then `sudo systemctl restart <
 ## See also
 
 - [Site configuration](./site-config.md) — `ARYAOS_ADSB_DECODER`, `ARYAOS_UAT_RTL_SERIAL`, `ARYAOS_ADSB_JSON_DIR`
-## Serial (NMEA) receivers — GPS and AIS
+## Serial receivers — GPS and AIS
 
 USB-serial receivers — a **GPS puck** and a **dAISy** (or equivalent serial AIS receiver) — are
-assigned the same way in spirit, but by the **NMEA they emit** rather than an EEPROM serial,
+assigned the same way in spirit, but by the **protocol they emit** rather than an EEPROM serial,
 since serial adapters (CP210x, CH340, FTDI, Prolific…) have no consistent identity.
 
 At boot, **`aryaos-serial-assign`** probes each USB-serial device and classifies it:
 
-- **GPS** if it emits `$GPxxx`/`$GNxxx` → written to `gpsd` (`/etc/default/gpsd` `DEVICES`).
-- **AIS** if it emits `!AIVDM`/`!AIVDO` → written to `ais-catcher` (`SERIAL_PORT`).
+- **GPS** if it emits checksum-valid `$GPxxx`/`$GNxxx` NMEA or checksum-valid
+  **SiRF binary** frames → written to `gpsd` (`/etc/default/gpsd` `DEVICES`).
+- **AIS** if it emits checksum-valid `!AIVDM`/`!AIVDO` NMEA → written to
+  `ais-catcher` (`SERIAL_PORT`).
 - A **dAISy with no vessels in range is silent**; when AIS is intended and it's the only
   non-GPS serial left, it's assigned by **elimination** at 38400 baud.
 
@@ -107,6 +109,11 @@ It writes stable `by-id` paths and runs before `gpsd`/`ais-catcher`, so a laydow
 swapping the GPS puck or dAISy for a different make. Re-run by hand with
 `sudo aryaos-serial-assign`. To pin a device manually instead, set `DEVICES`/`SERIAL_PORT`
 yourself and disable `aryaos-serial-assign.service`.
+
+A generic PL2303 adapter may front either a GPS or a DroneScout DS110. Once
+valid GPS output assigns that adapter to gpsd, Remote ID discovery excludes it
+from DS110 probing so it cannot change the live GPS baud or report a false RID
+candidate.
 
 ## Re-tasking an SDR
 
