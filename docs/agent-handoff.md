@@ -101,6 +101,10 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   strict HIL suite passed every module. Expected warnings were limited to
   deliberately disabled AIS/SiK, the absent unauthenticated TAK configuration
   pointer, and a brief RF-quiet ADS-B sample. Remote ID remained live.
+- Actions run `31465778187` built commit `643f5c2` in 24m13s. Finished-image
+  verification reported **281 ok, 0 failed**. The image, overlay `2.0.19`,
+  image metadata, and SPDX/CycloneDX SBOMs are published in prerelease
+  `v2026.08.11.065730-643f5c2d0baa-dev`.
 
 - The reflashed `192.168.0.199` returned as `aryaos-d600` with overlay `2.0.10`,
   the ADSBee, DroneScout, and SiRF GPS all attached. Its fresh first boot wrote
