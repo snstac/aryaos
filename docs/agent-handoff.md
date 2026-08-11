@@ -36,6 +36,11 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   rules and versions, live ADSBee/GNSS/DroneScout paths, Remote ID heartbeat and
   payload processing, portal power/branding/capability checks, storage, and
   security. The update did not change gateway service enablement or config.
+- AryaOS image run `31517168556` completed successfully from `eec008f`; the
+  mount-based image verifier passed the new package floors and the complete
+  image content slate. Release
+  `v2026.08.11.174209-eec008f09b26-dev` includes the 1.62 GB compressed image,
+  `image-info.json`, SPDX/CycloneDX SBOMs, and overlay package.
 
 ## 2026-08-10 `.44` AIS HIL
 
