@@ -112,6 +112,10 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   character device. `.199` now reports `throttled=0x0` / POWER **OK** through
   the HTTPS CGI. HIL asserts the telemetry block on Pi, and the UI explicitly
   says **UNKNOWN** instead of remaining blank if it becomes unavailable.
+  Actions run `31502191920` built commit `c8fbead` in 21m22s; finished-image
+  verification reported **281 ok, 0 failed**. Prerelease
+  `v2026.08.11.145102-c8fbead1c1e2-dev` contains the image, overlay, image
+  metadata, and SPDX/CycloneDX SBOMs.
 
 - The reflashed `192.168.0.199` returned as `aryaos-d600` with overlay `2.0.10`,
   the ADSBee, DroneScout, and SiRF GPS all attached. Its fresh first boot wrote
