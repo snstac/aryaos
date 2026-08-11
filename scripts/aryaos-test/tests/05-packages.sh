@@ -35,6 +35,20 @@ require_cockpit_root_scroll() {
 	fi
 }
 
+require_cockpit_stylesheets() {
+	local plugin="$1" html="/usr/share/cockpit/${plugin}/index.html"
+	if [[ ! -r "${html}" ]]; then
+		fail "cockpit-${plugin} index.html is missing"
+		return
+	fi
+	if grep -Fq 'href="index.css"' "${html}" && \
+	   grep -Fq 'href="../../static/branding.css"' "${html}"; then
+		ok "cockpit-${plugin} loads plugin CSS and shared AryaOS branding"
+	else
+		fail "cockpit-${plugin} does not load plugin CSS and shared AryaOS branding"
+	fi
+}
+
 if command -v dhbridge >/dev/null || dpkg -s dhbridge >/dev/null 2>&1; then
 	warn "dhbridge present (private package; expected absent on public images)"
 else
@@ -67,11 +81,12 @@ require_package_version cockpit-aiscot 1.2.3
 require_package_version cockpit-aprscot 0.1.1
 require_package_version cockpit-charontak 1.2.2
 require_package_version cockpit-dronecot 1.1.3
-require_package_version cockpit-lincot 1.1.2
+require_package_version cockpit-lincot 1.1.3
 require_package_version cockpit-sapientcot 0.1.1
 
 for plugin in adsbcot aiscot aprscot charontak dronecot lincot sapientcot; do
 	require_cockpit_root_scroll "${plugin}"
+	require_cockpit_stylesheets "${plugin}"
 done
 
 print_summary

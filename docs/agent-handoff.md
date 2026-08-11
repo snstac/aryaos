@@ -9,6 +9,24 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 
 ## 2026-08-11 Cockpit gateway scrolling sweep
 
+### LINCOT stylesheet follow-up
+
+- LINCOT had the same design-kit SCSS and React layout as the other gateways,
+  but its shipped `index.html` was the only one that did not load `index.css`
+  or Cockpit's shared `branding.css`. The UI therefore looked legacy/unstyled
+  even though the correct CSS and fonts were present in the package.
+- `cockpit-lincot` **1.1.3** adds both links and a source regression. AryaOS HIL
+  now verifies the two stylesheet links for all seven gateway plugins, in
+  addition to checking their compiled CSS and root scroll containers.
+- LINCOT release run `31529704293` and signed repository publish run
+  `31529773872` completed successfully. The public arm64 index advertises
+  `cockpit-lincot 1.1.3-1` under the existing verified packaging key.
+- `.199` was upgraded only from `cockpit-lincot 1.1.2-1` to `1.1.3-1`.
+  `/etc/default/lincot` retained SHA-256
+  `46554bbb6b92be73e92de33ab80b8bef79d4ffdc0d04dfee470eb3f7bb82d7b8`,
+  `lincot.service` stayed active, and the complete strict HIL suite passed,
+  including all seven new installed-HTML stylesheet checks.
+
 - Cockpit fixes non-index page bodies in place, but the seven plain-root gateway
   plugins did not provide their own scroll container. Expanding **Debug Logs**
   or **Advanced Details** could therefore expose content below the viewport with
@@ -20,7 +38,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   versions and the installed (possibly gzip-compressed) CSS rule.
 - Fixed release floor: cockpit-adsbcot **1.2.3**, cockpit-aiscot **1.2.3**,
   cockpit-aprscot **0.1.1**, cockpit-charontak **1.2.2**, cockpit-dronecot
-  **1.1.3**, cockpit-lincot **1.1.2**, cockpit-sapientcot **0.1.1**. The three
+  **1.1.3**, cockpit-lincot **1.1.3**, cockpit-sapientcot **0.1.1**. The three
   direct GitHub download pins in `stage-aiscot` match those releases; the other
   plugins are sourced from the signed snstac apt repository.
 - The first APRSCOT/SAPIENTCOT tag builds exposed a workflow bug: they built the

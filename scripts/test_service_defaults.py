@@ -23,7 +23,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             "cockpit-aprscot": "0.1.1",
             "cockpit-charontak": "1.2.2",
             "cockpit-dronecot": "1.1.3",
-            "cockpit-lincot": "1.1.2",
+            "cockpit-lincot": "1.1.3",
             "cockpit-sapientcot": "0.1.1",
         }
 
@@ -35,6 +35,9 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             )
 
         self.assertIn("overflow-y:[[:space:]]*auto", hil_check)
+        self.assertIn("require_cockpit_stylesheets", hil_check)
+        self.assertIn('href="index.css"', hil_check)
+        self.assertIn('href="../../static/branding.css"', hil_check)
         self.assertIn("v1.2.3/cockpit-aiscot_1.2.3_all.deb", aiscot_stage)
         self.assertIn("v0.1.1/cockpit-aprscot_0.1.1-1_all.deb", aiscot_stage)
         self.assertIn("v0.1.1/cockpit-sapientcot_0.1.1-1_all.deb", aiscot_stage)

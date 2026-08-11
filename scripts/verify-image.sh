@@ -266,7 +266,7 @@ require_pkg_version cockpit-adsbcot 1.2.3
 require_pkg cockpit-aiscot
 require_pkg_version cockpit-aiscot 1.2.3
 require_pkg cockpit-lincot
-require_pkg_version cockpit-lincot 1.1.2
+require_pkg_version cockpit-lincot 1.1.3
 require_pkg cockpit-aiscatcher
 require_pkg cockpit-dronecot
 require_pkg_version cockpit-dronecot 1.1.3

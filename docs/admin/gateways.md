@@ -66,6 +66,11 @@ Advanced Details therefore remains scrollable inside Cockpit even when the
 card extends below the initial viewport. This behavior is covered by package
 and browser regressions across all seven gateway plugins listed above.
 
+If one gateway suddenly appears unstyled while the others retain the AryaOS
+palette, first hard-refresh the page to discard cached HTML and CSS. Current
+packages also verify that every gateway HTML file explicitly loads both its
+bundled `index.css` and Cockpit's shared AryaOS branding stylesheet.
+
 ### Advanced card
 
 An **Advanced Details** card shows the raw contents of the service's `/etc/default/<svc>` file for reference.
