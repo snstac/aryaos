@@ -54,6 +54,10 @@ case "$1" in
       install -d -m 0755 /usr/share/cockpit/branding/debian /usr/share/cockpit/branding/default
       install -m 0644 -o root -g root /usr/share/aryaos/cockpit/branding.css /usr/share/cockpit/branding/debian/branding.css
       install -m 0644 -o root -g root /usr/share/aryaos/cockpit/branding.css /usr/share/cockpit/branding/default/branding.css
+      if [ -f /usr/share/aryaos/cockpit/mark-aryaos-rev.svg ]; then
+        install -m 0644 -o root -g root /usr/share/aryaos/cockpit/mark-aryaos-rev.svg /usr/share/cockpit/branding/debian/mark-aryaos-rev.svg
+        install -m 0644 -o root -g root /usr/share/aryaos/cockpit/mark-aryaos-rev.svg /usr/share/cockpit/branding/default/mark-aryaos-rev.svg
+      fi
     fi
 
     if command -v systemctl >/dev/null 2>&1; then

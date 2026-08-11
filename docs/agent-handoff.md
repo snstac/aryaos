@@ -116,6 +116,19 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   verification reported **281 ok, 0 failed**. Prerelease
   `v2026.08.11.145102-c8fbead1c1e2-dev` contains the image, overlay, image
   metadata, and SPDX/CycloneDX SBOMs.
+- Overlay `2.0.21` replaces Cockpit's legacy rounded teal tile and generated
+  `A` at `/admin/` with the exact reverse AryaOS Signal Block from the design
+  guide. The stylesheet now uses the Console Ink, Paper, Field Green, and
+  Signal Orange tokens, and the overlay installs the canonical SVG into both
+  Cockpit OS-brand directories. On `.199`, both the served CSS and SVG match
+  the repository byte for byte; the mark is publicly available before login
+  at `/admin/cockpit/static/mark-aryaos-rev.svg`. The portal HIL module asserts
+  the live asset, color, and CSS reference. The full local 107-test suite and
+  Ansible syntax check pass. The strict HIL branding, portal, service, storage,
+  and hardware checks pass. The first post-install run recorded one transient
+  DroneScout UDP `EPERM` while the overlay reloaded the firewall; the service
+  recovered, its counter was cleared after confirming the cause, and the full
+  strict rerun passed with continued live RID processing and zero restarts.
 
 - The reflashed `192.168.0.199` returned as `aryaos-d600` with overlay `2.0.10`,
   the ADSBee, DroneScout, and SiRF GPS all attached. Its fresh first boot wrote

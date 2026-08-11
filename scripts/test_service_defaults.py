@@ -99,6 +99,20 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("DeviceAllow=/dev/vcio_gencmd rw", dropin)
         self.assertNotIn("PrivateDevices=false", dropin)
 
+    def test_cockpit_branding_packages_canonical_aryaos_mark(self):
+        css = (ROOT / "shared_files/aryaos/cockpit/branding.css").read_text()
+        mark = (ROOT / "docs/brand/logo/mark-aryaos-rev.svg").read_text()
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+
+        self.assertIn('url("mark-aryaos-rev.svg")', css)
+        self.assertIn("#e4610f", css.lower())
+        self.assertNotIn('content: "A"', css)
+        self.assertIn('viewBox="0 0 78 50"', mark)
+        self.assertIn("#E4610F", mark)
+        self.assertIn("docs/brand/logo/mark-aryaos-rev.svg", builder)
+        self.assertEqual(postinst.count("mark-aryaos-rev.svg"), 5)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

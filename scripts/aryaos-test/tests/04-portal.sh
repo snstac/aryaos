@@ -86,4 +86,15 @@ else
 	skip "vcgencmd absent; Raspberry Pi power telemetry not applicable"
 fi
 
+COCKPIT_BRANDING="$(curl -gk --max-time 8 -sS https://127.0.0.1/admin/cockpit/static/branding.css 2>/dev/null || true)"
+COCKPIT_MARK="$(curl -gk --max-time 8 -sS https://127.0.0.1/admin/cockpit/static/mark-aryaos-rev.svg 2>/dev/null || true)"
+if grep -q 'url("mark-aryaos-rev.svg")' <<<"${COCKPIT_BRANDING}" \
+	&& grep -qi '#e4610f' <<<"${COCKPIT_BRANDING}" \
+	&& grep -q '<svg' <<<"${COCKPIT_MARK}" \
+	&& grep -qi '#E4610F' <<<"${COCKPIT_MARK}"; then
+	ok "Cockpit serves canonical AryaOS reverse mark and Signal Orange branding"
+else
+	fail "Cockpit AryaOS branding asset unavailable or non-canonical"
+fi
+
 print_summary

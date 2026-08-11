@@ -188,6 +188,14 @@ require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.
 require_path /var/www/html/index.html
 require_path /usr/lib/cgi-bin/aryaos-portal-status
 require_path /usr/lib/cgi-bin/aryaos-neighbors
+require_path /usr/share/cockpit/branding/debian/branding.css
+require_path /usr/share/cockpit/branding/debian/mark-aryaos-rev.svg
+require_path /usr/share/cockpit/branding/default/branding.css
+require_path /usr/share/cockpit/branding/default/mark-aryaos-rev.svg
+require_grep 'mark-aryaos-rev\.svg' /usr/share/cockpit/branding/debian/branding.css \
+	"Cockpit branding uses the canonical AryaOS reverse mark"
+require_grep '#E4610F' /usr/share/cockpit/branding/debian/mark-aryaos-rev.svg \
+	"Cockpit AryaOS mark uses Signal Orange"
 require_path /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
 # The mutating TAK data-package import must NOT be an unauthenticated portal CGI:
 # it moved to the authenticated Cockpit backend. Fail the build if the CGI ships

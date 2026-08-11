@@ -25,8 +25,14 @@ flowchart LR
 | Status CGI | `/usr/lib/cgi-bin/aryaos-portal-status` | [`shared_files/aryaos/cgi-bin/aryaos-portal-status`](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/cgi-bin/aryaos-portal-status) |
 | HTTPS + CGI enable | `95-aryaos-cockpit-https.conf`, `10-cgi.conf` | [`shared_files/aryaos/`](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/) via [`scripts/sync-portal-review.sh`](https://github.com/snstac/aryaos/blob/main/scripts/sync-portal-review.sh) |
 | `www-data` + gpsd / video | `gpsd` + `video` groups (gpspipe, vcgencmd) | pi-gen stage-aryaos + sync script |
+| Cockpit `/admin/` branding | `/usr/share/cockpit/branding/{debian,default}/` | `shared_files/aryaos/cockpit/branding.css` + canonical `docs/brand/logo/mark-aryaos-rev.svg` via the overlay package |
 
 **Client:** [`portal-landing.js`](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/html/js/portal-landing.js) polls **`GET /cgi-bin/aryaos-portal-status`** every **8s** (`cache: no-store`).
+
+The Cockpit login and shell at **`/admin/`** use the canonical reverse AryaOS
+Signal Block from the brand guide. The overlay installs both the stylesheet and
+SVG into Cockpit's `debian` and `default` branding directories so the mark is
+consistent across OS-brand selection and remains available before login.
 
 ## Landing page features (current)
 

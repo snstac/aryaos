@@ -144,6 +144,7 @@ install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-neighbors" "/usr/lib/cgi-bin/
 install_file 0644 "${SHARED}/aryaos/cockpit.conf" "/etc/cockpit/cockpit.conf"
 install_file 0644 "${SHARED}/aryaos/cockpit.socket-listen.conf" "/etc/systemd/system/cockpit.socket.d/listen.conf"
 install_file 0644 "${SHARED}/aryaos/cockpit/branding.css" "/usr/share/aryaos/cockpit/branding.css"
+install_file 0644 "${REPO_ROOT}/docs/brand/logo/mark-aryaos-rev.svg" "/usr/share/aryaos/cockpit/mark-aryaos-rev.svg"
 install_file 0644 "${SHARED}/aryaos/94-aryaos-setenv-module.conf" "/etc/lighttpd/conf-available/94-aryaos-setenv-module.conf"
 install_file 0644 "${SHARED}/aryaos/95-aryaos-cockpit-https.conf" "/etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf"
 install_file 0644 "${SHARED}/aryaos/99-aryaos-recorder.conf" "/etc/lighttpd/conf-available/99-aryaos-recorder.conf"
