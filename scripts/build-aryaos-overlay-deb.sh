@@ -52,6 +52,8 @@ install_file 0440 "${SHARED}/aryaos/aryaos.sudoers" "/etc/sudoers.d/aryaos"
 install_file 0644 "${SHARED}/aryaos/aryaos-config.txt" "/usr/share/aryaos/defaults/aryaos-config.txt"
 install_file 0644 "${SHARED}/aryaos/gpsd.default" "/usr/share/aryaos/defaults/gpsd.default"
 install_file 0644 "${SHARED}/charontak/charontak.ini" "/usr/share/aryaos/defaults/charontak.ini"
+install_file 0755 "${SHARED}/aryaos/initramfs/set_partuuid" "/usr/share/aryaos/initramfs/set_partuuid"
+install_file 0755 "${SHARED}/aryaos/initramfs/zz-aryaos-set-partuuid-hook" "/etc/initramfs-tools/hooks/zz-aryaos-set-partuuid"
 
 install_file 0755 "${SHARED}/aryaos/aryaos-import-tak-dp" "/usr/local/sbin/aryaos-import-tak-dp"
 install_file 0755 "${SHARED}/aryaos/aryaos-tak-dp-importd" "/usr/local/sbin/aryaos-tak-dp-importd"

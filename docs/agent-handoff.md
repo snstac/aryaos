@@ -9,6 +9,42 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 
 ## 2026-08-10 `.199` reboot and factory-reset HIL
 
+### Replacement-image media failure (do not reboot `.199`)
+
+- The exact `22e7a12` CI image returned as `aryaos-025f` with overlay `2.0.15`.
+  First boot correctly detected and configured ADSBee, DroneScout, and the SiRF
+  GPS; the default HIL suite passed every enabled software/hardware path except
+  storage. Live DroneScout heartbeat and Remote ID payload checks passed, all
+  enabled services were active with no failed units, and the short ADS-B sample
+  was simply RF-quiet.
+- `/boot/firmware/cmdline.txt` was again 132 bytes of AArch64 instructions.
+  The pristine release image contains the correct 139-byte command line. The
+  corrupt bytes match `/usr/bin/node` at file offset `0x19f8000` exactly. On the
+  card, boot LBA `35008` and root LBA `2510784` returned the same complete
+  512-byte Node sector despite belonging to different partitions. The card
+  identifies as `SD32G` with invalid manufacturer ID `0x000000`.
+- An offline FAT check then found corrupt directory entries and reclaimed
+  42,062,848 bytes in seven orphaned chains. It exposed missing/corrupt Pi 5
+  boot artifacts, including `kernel_2712.img` and `initramfs_2712`. The running
+  root filesystem and services remain healthy, but **do not reboot or factory
+  reset this node**. Replace the microSD card with reputable endurance media,
+  flash the current image, and rerun HIL. Forensic evidence is gitignored under
+  `.aryaos-burnin/20260810T-new-firmware-forensics/`.
+- Overlay `2.0.16` replaces the upstream initramfs `set_partuuid` payload at
+  build time. The replacement constructs the new command line in tmpfs, writes
+  a separate FAT candidate, syncs and remounts the boot filesystem, and
+  requires byte-for-byte candidate and final-path readback (up to five
+  allocations) before continuing. HIL now also
+  rejects zero manufacturer IDs, binary command lines, and missing/implausibly
+  small model-specific kernel/initramfs files.
+- A 15-minute post-diagnosis burn-in collected 30/30 successful probes with one
+  boot ID, no throttling, no failed units, no service drops or restarts, 33.65 C
+  maximum temperature, 0.26 maximum one-minute load, and 0.06 percentage-point
+  memory drift. All 30 samples correctly retained the storage alert. The only
+  repeated journal message was the known Broadcom onboarding-AP vendor-IE
+  warning (`-52`). The enhanced sampler then proved it records the invalid
+  manufacturer ID, binary cmdline, and both missing Pi 5 boot artifacts.
+
 - The reflashed `192.168.0.199` returned as `aryaos-d600` with overlay `2.0.10`,
   the ADSBee, DroneScout, and SiRF GPS all attached. Its fresh first boot wrote
   `ARYAOS_CAPABILITIES="adsb rid"` but left readsb on the RTL-SDR default and

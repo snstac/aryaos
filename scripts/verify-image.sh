@@ -566,6 +566,10 @@ require_path /etc/rpi/swap.conf.d/90-aryaos.conf
 require_grep '^Mechanism=zram$' /etc/rpi/swap.conf.d/90-aryaos.conf "rpi-swap cannot create a disk-backed swapfile"
 forbid_path /var/swap
 require_path /etc/modules-load.d/lighttpd-mod-openssl.conf
+require_path /usr/share/aryaos/initramfs/set_partuuid
+require_path /etc/initramfs-tools/hooks/zz-aryaos-set-partuuid
+require_grep 'write_verified' /usr/share/aryaos/initramfs/set_partuuid "first-boot cmdline rewrite verifies FAT readback"
+require_grep 'cmp -s.*destination' /usr/share/aryaos/initramfs/set_partuuid "first-boot cmdline verifies the final boot path"
 
 # Lab access must match the build flavor
 if [[ "${LAB_EXPECTED}" == "1" ]]; then

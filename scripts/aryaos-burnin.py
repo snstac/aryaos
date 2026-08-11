@@ -121,16 +121,43 @@ def filesystem_health():
                 break
     else:
         result["root_probe_error"] = err or f"tune2fs rc={rc}"
+    rc, root_parent, _ = run(["lsblk", "-n", "-o", "PKNAME", root_source])
+    if rc == 0 and root_parent:
+        manfid = read(f"/sys/class/block/{root_parent}/device/manfid")
+        if manfid:
+            result["media_manfid"] = manfid.lower()
+            result["media_manfid_valid"] = manfid.lower() not in (
+                "0x0", "0x00", "0x000000"
+            )
     cmdline_path = "/boot/firmware/cmdline.txt"
     if os.path.exists(cmdline_path):
         rc, partuuid, _ = run(["lsblk", "-n", "-o", "PARTUUID", root_source])
-        configured = read(cmdline_path).split()
+        cmdline_bytes = Path(cmdline_path).read_bytes()
+        configured = cmdline_bytes.decode("utf-8", errors="replace").split()
         root_tokens = [item for item in configured if item.startswith("root=")]
-        result["boot_cmdline_lines"] = len(read(cmdline_path).splitlines())
+        result["boot_cmdline_lines"] = len(cmdline_bytes.splitlines())
+        result["boot_cmdline_printable"] = all(
+            byte in (9, 10, 13) or 32 <= byte <= 126 for byte in cmdline_bytes
+        )
         result["boot_root"] = root_tokens[0] if root_tokens else None
         result["boot_root_matches"] = bool(
             rc == 0 and partuuid and f"root=PARTUUID={partuuid}" in root_tokens
         )
+    model = read("/proc/device-tree/model")
+    if "Raspberry Pi 5" in model or "Compute Module 5" in model:
+        artifact_names = ("kernel_2712.img", "initramfs_2712")
+    else:
+        artifact_names = ("kernel8.img", "initramfs8")
+    artifacts = {}
+    for name in artifact_names:
+        try:
+            artifacts[name] = os.path.getsize(f"/boot/firmware/{name}")
+        except OSError:
+            artifacts[name] = None
+    result["boot_artifacts"] = artifacts
+    result["boot_artifacts_ok"] = all(
+        isinstance(size, int) and size >= 1048576 for size in artifacts.values()
+    )
     return result
 
 load = read("/proc/loadavg").split()
@@ -300,6 +327,9 @@ def summarize(samples):
             (fs_state and "error" in fs_state.lower())
             or filesystem.get("boot_root_matches") is False
             or filesystem.get("boot_cmdline_lines", 1) != 1
+            or filesystem.get("boot_cmdline_printable") is False
+            or filesystem.get("media_manfid_valid") is False
+            or filesystem.get("boot_artifacts_ok") is False
         ):
             out["filesystem_alerts"] += 1
         for name, state in (sample.get("services") or {}).items():

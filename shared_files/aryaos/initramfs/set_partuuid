@@ -1,0 +1,141 @@
+#!/bin/sh
+
+# AryaOS replacement for raspberrypi-sys-mods' initramfs set_partuuid script.
+# Keep the upstream resize/disk-ID behavior, but never replace cmdline.txt until
+# a newly allocated FAT file has survived sync and byte-for-byte readback.
+
+set -e
+
+case "$1" in
+  prereqs)
+    exit 0
+    ;;
+esac
+
+# shellcheck disable=SC1091
+. /scripts/functions
+
+if ! grep -q ' resize' /proc/cmdline; then
+  exit 0
+fi
+
+ROOT_RW=0
+BOOT_MOUNTED=0
+WORK_DIR=/run/new_diskid
+
+cleanup () {
+  rc=$?
+  trap - EXIT HUP INT TERM
+  if [ "$BOOT_MOUNTED" -eq 1 ]; then
+    umount "$WORK_DIR" 2>/dev/null || true
+  fi
+  if [ "$ROOT_RW" -eq 1 ]; then
+    mount -o remount,ro "$ROOT" "${rootmnt?}/" 2>/dev/null || true
+  fi
+  rmdir "$WORK_DIR" 2>/dev/null || true
+  exit "$rc"
+}
+trap cleanup EXIT HUP INT TERM
+
+get_variables () {
+  if ! BOOT_PART_DEV=$(findmnt -n -o SOURCE -s -F "${rootmnt?}/etc/fstab" /boot/firmware); then
+    exit 0
+  fi
+
+  ROOT_DEV_NAME="$(lsblk -no pkname "$ROOT")"
+  ROOT_DEV="/dev/$ROOT_DEV_NAME"
+
+  ROOT_PART_NAME="$(lsblk -no kname "$ROOT")"
+  ROOT_PART_NUM="$(cat "/sys/block/$ROOT_DEV_NAME/$ROOT_PART_NAME/partition")"
+}
+
+remount_boot_for_readback () {
+  umount "$WORK_DIR"
+  BOOT_MOUNTED=0
+  mount -o rw "$BOOT_DEVICE" "$WORK_DIR/"
+  BOOT_MOUNTED=1
+}
+
+write_verified () {
+  source_file="$1"
+  destination="$2"
+  attempt=1
+
+  while [ "$attempt" -le 5 ]; do
+    candidate="${destination}.aryaos-${attempt}"
+    rm -f "$candidate"
+    cp "$source_file" "$candidate"
+    sync
+    remount_boot_for_readback
+
+    if cmp -s "$source_file" "$candidate"; then
+      mv -f "$candidate" "$destination"
+      sync
+      remount_boot_for_readback
+      if cmp -s "$source_file" "$destination"; then
+        rm -f \
+          "${destination}.aryaos-1" \
+          "${destination}.aryaos-2" \
+          "${destination}.aryaos-3" \
+          "${destination}.aryaos-4" \
+          "${destination}.aryaos-5"
+        return 0
+      fi
+    fi
+
+    log_warning_msg "Boot cmdline write/readback mismatch (attempt $attempt)"
+    attempt=$((attempt + 1))
+  done
+
+  return 1
+}
+
+fix_diskid () {
+  OLD_DISKID="$(dd if="$ROOT_DEV" bs=4 count=1 skip=110 status=none | od -An -tx4 | cut -c2-9)"
+  dd if=/dev/hwrng "of=$ROOT_DEV" bs=4 seek=110 count=1 conv=notrunc status=none
+  DISKID="$(dd if="$ROOT_DEV" bs=4 count=1 skip=110 status=none | od -An -tx4 | cut -c2-9)"
+
+  sed -i "s/$OLD_DISKID/$DISKID/g" "${rootmnt?}/etc/fstab"
+  sed -i "s/$OLD_DISKID/$DISKID/" "$EXPECTED_CMDLINE"
+
+  log_success_msg "Disk ID set to $DISKID (was $OLD_DISKID)"
+}
+
+get_variables
+
+log_begin_msg "Setting new disk ID with verified boot-media write..."
+
+mkdir -p "$WORK_DIR"
+mount -o remount,rw "$ROOT" "${rootmnt?}/"
+ROOT_RW=1
+BOOT_DEVICE="$(resolve_device "$BOOT_PART_DEV")"
+mount -o rw "$BOOT_DEVICE" "$WORK_DIR/"
+BOOT_MOUNTED=1
+
+EXPECTED_CMDLINE=/run/cmdline.txt.aryaos-expected
+cp "$WORK_DIR/cmdline.txt" "$EXPECTED_CMDLINE"
+
+if [ "$ROOT_PART_NUM" -eq 2 ]; then
+  fix_diskid
+else
+  log_warning_msg "Disk ID setup skipped due to unexpected partition table"
+fi
+
+sed -i 's| resize||g' "$EXPECTED_CMDLINE"
+if ! write_verified "$EXPECTED_CMDLINE" "$WORK_DIR/cmdline.txt"; then
+  log_failure_msg "Could not verify boot cmdline after five writes; refusing to continue"
+  exit 1
+fi
+
+rm -f "$EXPECTED_CMDLINE"
+
+unset DISKID
+unset OLD_DISKID
+unset ROOT_PART_NUM
+unset ROOT_PART_NAME
+unset ROOT_DEV
+unset ROOT_DEV_NAME
+unset BOOT_PART_DEV
+log_end_msg
+
+exit 0

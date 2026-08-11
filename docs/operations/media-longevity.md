@@ -123,6 +123,26 @@ itself matters:
     - For a long-lived fixed installation, consider moving to an
       [NVMe/eMMC box](../purchase.md).
 
+### Validate a newly flashed card before reboot/reset testing
+
+Run the full HIL suite after the first boot and before any reset burn-in:
+
+```bash
+ARYAOS_SSH=pi@<box-address> ./scripts/aryaos-test/run.sh
+```
+
+The storage module rejects an SD device that reports a zero manufacturer ID,
+a binary or wrong-root `cmdline.txt`, or missing/implausibly small kernel and
+initramfs files. Treat any of those as a media failure: capture a support bundle
+while the box is still running, do not reboot it, and replace the card. Repeated
+reflashing does not rehabilitate counterfeit or failing flash.
+
+AryaOS `2.0.16` also verifies the first-boot FAT command-line rewrite before
+the initramfs continues. It writes a separate candidate, syncs and remounts the
+boot filesystem, reads the candidate back byte-for-byte, then remounts and
+verifies the final path; a bad write is retried on a new allocation instead of
+silently leaving an unbootable appliance.
+
 !!! note "This is why logs and swap moved off disk"
     Every one of these techniques exists to keep write traffic off the install
     media so the card outlives the deployment. It's the same philosophy as the

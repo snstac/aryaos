@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Replace raspberrypi-sys-mods' unverified FAT rewrite in every generated
+# initramfs without modifying the package-owned source on the root filesystem.
+
+set -e
+
+PREREQ=""
+
+prereqs () {
+  echo "${PREREQ}"
+}
+
+case "${1}" in
+  prereqs)
+    prereqs
+    exit 0
+    ;;
+esac
+
+install -m 0755 \
+  /usr/share/aryaos/initramfs/set_partuuid \
+  "${DESTDIR}/scripts/local-bottom/set_partuuid"
+
+exit 0

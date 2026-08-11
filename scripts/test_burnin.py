@@ -99,6 +99,21 @@ class BurninSummaryTestCase(unittest.TestCase):
         self.assertEqual(host["filesystem_alerts"], 1)
         self.assertEqual(host["filesystem_states"], ["clean", "clean with errors"])
 
+    def test_invalid_media_identity_and_boot_artifacts_are_counted(self):
+        damaged = sample(2, 10, "active")
+        damaged["filesystem"].update(
+            media_manfid="0x000000",
+            media_manfid_valid=False,
+            boot_cmdline_printable=False,
+            boot_artifacts_ok=False,
+        )
+
+        host = burnin.summarize(
+            [sample(1, 10, "active"), damaged]
+        )["hosts"]["192.0.2.1"]
+
+        self.assertEqual(host["filesystem_alerts"], 1)
+
     def test_overlapping_journal_windows_count_unique_events_once(self):
         first = sample(1, 10, "active")
         second = sample(2, 10, "active")

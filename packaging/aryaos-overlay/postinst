@@ -98,6 +98,12 @@ case "$1" in
     if [ -x /usr/local/sbin/patch-cockpit-aryaos-dp ]; then
       /usr/local/sbin/patch-cockpit-aryaos-dp >/dev/null 2>&1 || true
     fi
+    # raspberrypi-sys-mods rewrites cmdline.txt on the first resize boot. Build
+    # our read-back-verified replacement into every installed initramfs before
+    # the appliance is allowed to reboot.
+    if command -v update-initramfs >/dev/null 2>&1; then
+      update-initramfs -u -k all
+    fi
     rm -rf /var/lib/cockpit/*/cache 2>/dev/null || true
     ;;
 esac

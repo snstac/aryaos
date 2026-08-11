@@ -50,5 +50,43 @@ class SwapPolicyTestCase(unittest.TestCase):
         self.assertNotIn("systemd-zram-generator || true", tweaks)
 
 
+class BootMediaSafetyTestCase(unittest.TestCase):
+    def test_initramfs_rewrites_cmdline_only_after_verified_readback(self):
+        script = (
+            ROOT / "shared_files/aryaos/initramfs/set_partuuid"
+        ).read_text()
+
+        self.assertIn("write_verified", script)
+        self.assertIn('cmp -s "$source_file" "$candidate"', script)
+        self.assertIn('cmp -s "$source_file" "$destination"', script)
+        self.assertIn("remount_boot_for_readback", script)
+        self.assertIn('EXPECTED_CMDLINE=/run/', script)
+        self.assertNotIn("sed -i 's| resize||g' \"$WORK_DIR/cmdline.txt\"", script)
+        self.assertIn('attempt" -le 5', script)
+
+    def test_overlay_rebuilds_initramfs_with_verified_writer(self):
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        hook = (
+            ROOT / "shared_files/aryaos/initramfs/zz-aryaos-set-partuuid-hook"
+        ).read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        control = (ROOT / "packaging/aryaos-overlay/control").read_text()
+
+        self.assertIn("zz-aryaos-set-partuuid-hook", builder)
+        self.assertIn('${DESTDIR}/scripts/local-bottom/set_partuuid', hook)
+        self.assertIn("update-initramfs -u -k all", postinst)
+        self.assertIn("initramfs-tools", control)
+
+    def test_hil_rejects_invalid_sd_identity_and_missing_boot_files(self):
+        storage_test = (
+            ROOT / "scripts/aryaos-test/tests/10-storage.sh"
+        ).read_text()
+
+        self.assertIn("install media reports invalid manufacturer ID", storage_test)
+        self.assertIn("boot cmdline contains non-printable data", storage_test)
+        self.assertIn("kernel_2712.img initramfs_2712", storage_test)
+        self.assertIn("required boot artifact", storage_test)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

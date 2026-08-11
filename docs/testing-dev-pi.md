@@ -51,7 +51,7 @@ scripts/aryaos-test/
     07-antsdr.sh       # UAS-profile AntSDR Ethernet/feed health
     08-tak-dp.sh       # authenticated TAK data-package import boundary
     09-security.sh     # firewall, SSH, updates, swap, sudo log headroom, TLS
-    10-storage.sh      # root superblock, kernel media errors, boot PARTUUID
+    10-storage.sh      # root/FAT symptoms, SD identity, cmdline, boot artifacts
     11-wifi-rid.sh     # enabled Wi-Fi RID adapter/service/data-path health
     12-gutcheck.sh     # enabled capability API/dashboard/auth/runtime health
 ```
@@ -76,6 +76,9 @@ Expectations live in **`expectations.yml`**; update that file when image default
 - `/run/adsb/aircraft.json` exists and is valid JSON
 - Portal CGI returns HTTP 200 JSON with required keys and gateway IDs
 - Sudo I/O audit history is bounded to 128 sessions and `/var/log` is below 95%
+- Install media has a valid manufacturer identity; the boot command line is
+  printable and names the mounted root PARTUUID; model-specific kernel and
+  initramfs files are present and plausibly sized
 
 ### Warn / skip (exit 0)
 
