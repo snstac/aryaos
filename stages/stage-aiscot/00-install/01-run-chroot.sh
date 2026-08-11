@@ -26,9 +26,9 @@ usermod -aG plugdev,dialout ais-catcher
 # amd64+arm64 debs via upstream's build-debian.sh). Binary: /usr/bin/AIS-catcher.
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ais-catcher
 
-COCKPIT_AISCOT_DEB_URL='https://github.com/snstac/cockpit-aiscot/releases/download/v1.1.0/cockpit-aiscot_1.1.0_all.deb'
-curl -fsSL -o /usr/src/cockpit-aiscot_1.1.0_all.deb "${COCKPIT_AISCOT_DEB_URL}"
-dpkg -i /usr/src/cockpit-aiscot_1.1.0_all.deb
+COCKPIT_AISCOT_DEB_URL='https://github.com/snstac/cockpit-aiscot/releases/download/v1.2.3/cockpit-aiscot_1.2.3_all.deb'
+curl -fsSL -o /usr/src/cockpit-aiscot_1.2.3_all.deb "${COCKPIT_AISCOT_DEB_URL}"
+dpkg -i /usr/src/cockpit-aiscot_1.2.3_all.deb
 
 # cockpit-spyserver: SpyServer SDR-share admin page (drives `aryaos-sdr share
 # N spyserver`, shipped by the AryaOS overlay). Installed here — the last heavy
@@ -40,13 +40,13 @@ dpkg -i /usr/src/cockpit-spyserver.deb || apt-get install -f -y
 
 # cockpit-aprscot: APRS-to-TAK gateway admin page (manages the aprscot service
 # used by `aryaos-sdr task N aprs`). Same install idiom as the other plugins.
-COCKPIT_APRSCOT_DEB_URL='https://github.com/snstac/cockpit-aprscot/releases/download/v0.1.0/cockpit-aprscot_0.1.0-1_all.deb'
+COCKPIT_APRSCOT_DEB_URL='https://github.com/snstac/cockpit-aprscot/releases/download/v0.1.1/cockpit-aprscot_0.1.1-1_all.deb'
 curl -fsSL -o /usr/src/cockpit-aprscot.deb "${COCKPIT_APRSCOT_DEB_URL}"
 dpkg -i /usr/src/cockpit-aprscot.deb || apt-get install -f -y
 
 # cockpit-sapientcot: SAPIENT (BSI Flex 335) C-UAS/ISR gateway admin page
 # (manages the sapientcot service). Same install idiom as the other plugins.
-COCKPIT_SAPIENTCOT_DEB_URL='https://github.com/snstac/cockpit-sapientcot/releases/download/v0.1.0/cockpit-sapientcot_0.1.0-1_all.deb'
+COCKPIT_SAPIENTCOT_DEB_URL='https://github.com/snstac/cockpit-sapientcot/releases/download/v0.1.1/cockpit-sapientcot_0.1.1-1_all.deb'
 curl -fsSL -o /usr/src/cockpit-sapientcot.deb "${COCKPIT_SAPIENTCOT_DEB_URL}"
 dpkg -i /usr/src/cockpit-sapientcot.deb || apt-get install -f -y
 

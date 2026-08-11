@@ -20,9 +20,6 @@ Open any of them from Cockpit's left menu.
 
 The AIS receiver (`ais-catcher`) demodulates RF AIS and hands messages to `aiscot`; `aiscot` is the CoT feeder. Likewise `readsb`/`dump1090-fa`/`dump978-fa` decode ADS-B/UAT and `adsbcot` feeds the CoT.
 
-!!! note "cockpit-lincot packaging"
-    On some images a `cockpit-lincot` plugin may not be published yet; until it lands, edit `/etc/default/lincot` with Cockpit's generic file editor or over SSH. See [Software suite](../reference/software-suite.md).
-
 ## The common layout
 
 ![The aiscot gateway page in Cockpit — service controls, TLS certificates, iconset, and the configuration form over /etc/default/aiscot](../media/screenshots/gateway-aiscot.png)
@@ -63,6 +60,11 @@ The other gateways expose their own variables, but the mechanics are identical.
 ### Debug / logs card
 
 A **Debug Logs** card shows live `systemctl status` output and gives you **Show Logs**, **Follow Logs**, and **Stop Following** buttons that stream the service's journal (`journalctl -u <svc>`).
+
+The gateway page itself is the scroll container. Expanding Debug Logs or
+Advanced Details therefore remains scrollable inside Cockpit even when the
+card extends below the initial viewport. This behavior is covered by package
+and browser regressions across all seven gateway plugins listed above.
 
 ### Advanced card
 

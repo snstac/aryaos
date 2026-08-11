@@ -262,10 +262,16 @@ forbid_path /etc/systemd/system/dhbridge.service.d
 # Sensor / CoT stack
 require_pkg cockpit-gps
 require_pkg cockpit-adsbcot
+require_pkg_version cockpit-adsbcot 1.2.3
+require_pkg cockpit-aiscot
+require_pkg_version cockpit-aiscot 1.2.3
 require_pkg cockpit-lincot
+require_pkg_version cockpit-lincot 1.1.2
 require_pkg cockpit-aiscatcher
 require_pkg cockpit-dronecot
+require_pkg_version cockpit-dronecot 1.1.3
 require_pkg cockpit-charontak
+require_pkg_version cockpit-charontak 1.2.2
 require_pkg cockpit-gpstak
 require_pkg cockpit-aryaos
 require_pkg cockpit-spyserver
@@ -443,6 +449,7 @@ require_grep 'aprs' /usr/local/sbin/aryaos-sdr "aryaos-sdr aprs task job"
 require_pkg direwolf
 require_pkg aprscot
 require_pkg cockpit-aprscot
+require_pkg_version cockpit-aprscot 0.1.1
 require_path /usr/share/cockpit/aprscot/manifest.json
 require_unit aryaos-direwolf@.service
 require_path /etc/aryaos/direwolf.conf
@@ -451,6 +458,7 @@ require_grep 'KISS_HOST=127.0.0.1' /etc/default/aprscot "aprscot reads local KIS
 # sapient-msg protobuf binding is pip-installed (not in Debian apt).
 require_pkg sapientcot
 require_pkg cockpit-sapientcot
+require_pkg_version cockpit-sapientcot 0.1.1
 require_path /usr/share/cockpit/sapientcot/manifest.json
 require_path /etc/default/sapientcot
 require_grep 'SAPIENT_HOST' /etc/default/sapientcot "sapientcot SAPIENT node config"

@@ -7,6 +7,36 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
 
+## 2026-08-11 Cockpit gateway scrolling sweep
+
+- Cockpit fixes non-index page bodies in place, but the seven plain-root gateway
+  plugins did not provide their own scroll container. Expanding **Debug Logs**
+  or **Advanced Details** could therefore expose content below the viewport with
+  no way to reach it. `#app` now owns vertical scrolling in ADSBCOT, AISCOT,
+  APRSCOT, Charontak, DroneCOT, LINCOT, and SAPIENTCOT.
+- Every plugin has a compiled-Sass regression for the viewport-height root and
+  `overflow-y: auto`; the browser-enabled gateway suites also expand Debug Logs
+  and prove the root can scroll. AryaOS HIL checks both the minimum fixed package
+  versions and the installed (possibly gzip-compressed) CSS rule.
+- Fixed release floor: cockpit-adsbcot **1.2.3**, cockpit-aiscot **1.2.3**,
+  cockpit-aprscot **0.1.1**, cockpit-charontak **1.2.2**, cockpit-dronecot
+  **1.1.3**, cockpit-lincot **1.1.2**, cockpit-sapientcot **0.1.1**. The three
+  direct GitHub download pins in `stage-aiscot` match those releases; the other
+  plugins are sourced from the signed snstac apt repository.
+- The first APRSCOT/SAPIENTCOT tag builds exposed a workflow bug: they built the
+  packages and then tried to upload into a Release that did not exist. Their
+  workflows now create the GitHub Release on demand before uploading assets;
+  the fixed tag jobs were rerun successfully.
+- All seven releases were ingested by `snstac/packages` publish run
+  `31516851407`. The public arm64 index contains the exact release floor above,
+  and its `InRelease` has a good signature from packaging key
+  `C34ED9FEFE38916133DC7B614F0D93E47D24D367`.
+- `.199` (`aryaos-d628`) was upgraded in place from the signed repository. The
+  complete strict default-profile HIL suite passed: all seven installed CSS
+  rules and versions, live ADSBee/GNSS/DroneScout paths, Remote ID heartbeat and
+  payload processing, portal power/branding/capability checks, storage, and
+  security. The update did not change gateway service enablement or config.
+
 ## 2026-08-10 `.44` AIS HIL
 
 - `192.168.0.44` returned as `aryaos-c2cb` on image `22e7a12` and overlay

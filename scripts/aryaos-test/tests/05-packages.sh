@@ -6,6 +6,35 @@ set -euo pipefail
 # shellcheck source=../lib.sh
 source "$(dirname "$0")/../lib.sh"
 
+require_package_version() {
+	local package="$1" minimum="$2" version
+	version="$(dpkg-query -W -f='${Version}' "${package}" 2>/dev/null || true)"
+	if [[ -n "${version}" ]] && dpkg --compare-versions "${version}" ge "${minimum}"; then
+		ok "${package} ${version} >= ${minimum}"
+	else
+		fail "${package} ${version:-missing} is older than ${minimum}"
+	fi
+}
+
+require_cockpit_root_scroll() {
+	local plugin="$1" css="/usr/share/cockpit/${plugin}/index.css"
+	if [[ -r "${css}" ]]; then
+		if tr -d '\r\n' < "${css}" | grep -E '#app[[:space:]]*\{[^}]*overflow-y:[[:space:]]*auto' >/dev/null; then
+			ok "cockpit-${plugin} provides its Cockpit root scroller"
+		else
+			fail "cockpit-${plugin} CSS does not provide #app overflow-y:auto"
+		fi
+	elif [[ -r "${css}.gz" ]]; then
+		if gzip -cd "${css}.gz" | tr -d '\r\n' | grep -E '#app[[:space:]]*\{[^}]*overflow-y:[[:space:]]*auto' >/dev/null; then
+			ok "cockpit-${plugin} provides its Cockpit root scroller"
+		else
+			fail "cockpit-${plugin} compressed CSS does not provide #app overflow-y:auto"
+		fi
+	else
+		fail "cockpit-${plugin} index.css is missing"
+	fi
+}
+
 if command -v dhbridge >/dev/null || dpkg -s dhbridge >/dev/null 2>&1; then
 	warn "dhbridge present (private package; expected absent on public images)"
 else
@@ -29,5 +58,20 @@ if [[ -f /etc/aryaos-release || -f /etc/aryaos-version ]]; then
 else
 	warn "aryaos release metadata missing"
 fi
+
+# Cockpit pins the document body and expects each page to supply its own scroll
+# container. These versions include the common #app root scroller, preventing
+# expanded Debug Logs and Advanced Details cards from being clipped.
+require_package_version cockpit-adsbcot 1.2.3
+require_package_version cockpit-aiscot 1.2.3
+require_package_version cockpit-aprscot 0.1.1
+require_package_version cockpit-charontak 1.2.2
+require_package_version cockpit-dronecot 1.1.3
+require_package_version cockpit-lincot 1.1.2
+require_package_version cockpit-sapientcot 0.1.1
+
+for plugin in adsbcot aiscot aprscot charontak dronecot lincot sapientcot; do
+	require_cockpit_root_scroll "${plugin}"
+done
 
 print_summary

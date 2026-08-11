@@ -9,6 +9,36 @@ ROOT = Path(__file__).parents[1]
 
 
 class ServiceDefaultsTestCase(unittest.TestCase):
+    def test_gateway_plugin_scroll_release_floor_is_enforced(self):
+        image_check = (ROOT / "scripts/verify-image.sh").read_text()
+        hil_check = (
+            ROOT / "scripts/aryaos-test/tests/05-packages.sh"
+        ).read_text()
+        aiscot_stage = (
+            ROOT / "stages/stage-aiscot/00-install/01-run-chroot.sh"
+        ).read_text()
+        minimums = {
+            "cockpit-adsbcot": "1.2.3",
+            "cockpit-aiscot": "1.2.3",
+            "cockpit-aprscot": "0.1.1",
+            "cockpit-charontak": "1.2.2",
+            "cockpit-dronecot": "1.1.3",
+            "cockpit-lincot": "1.1.2",
+            "cockpit-sapientcot": "0.1.1",
+        }
+
+        for package, version in minimums.items():
+            requirement = f"require_pkg_version {package} {version}"
+            self.assertIn(requirement, image_check)
+            self.assertIn(
+                f"require_package_version {package} {version}", hil_check
+            )
+
+        self.assertIn("overflow-y:[[:space:]]*auto", hil_check)
+        self.assertIn("v1.2.3/cockpit-aiscot_1.2.3_all.deb", aiscot_stage)
+        self.assertIn("v0.1.1/cockpit-aprscot_0.1.1-1_all.deb", aiscot_stage)
+        self.assertIn("v0.1.1/cockpit-sapientcot_0.1.1-1_all.deb", aiscot_stage)
+
     def test_gpsd_defines_both_option_variables_used_by_vendor_unit(self):
         defaults = (ROOT / "shared_files/aryaos/gpsd.default").read_text()
 
