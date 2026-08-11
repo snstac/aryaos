@@ -104,6 +104,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         mark = (ROOT / "docs/brand/logo/mark-aryaos-rev.svg").read_text()
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        workflow = (ROOT / ".github/workflows/pi-gen.yml").read_text()
 
         self.assertIn('url("mark-aryaos-rev.svg")', css)
         self.assertIn("#e4610f", css.lower())
@@ -112,6 +113,10 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("#E4610F", mark)
         self.assertIn("docs/brand/logo/mark-aryaos-rev.svg", builder)
         self.assertEqual(postinst.count("mark-aryaos-rev.svg"), 5)
+        self.assertIn(
+            "${{ github.workspace }}/docs/brand:${{ github.workspace }}/docs/brand:ro",
+            workflow,
+        )
 
 
 if __name__ == "__main__":
