@@ -129,6 +129,12 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   DroneScout UDP `EPERM` while the overlay reloaded the firewall; the service
   recovered, its counter was cleared after confirming the cause, and the full
   strict rerun passed with continued live RID processing and zero restarts.
+  The first CI attempt (`31508617396`) correctly failed when pi-gen's container
+  could not see the canonical `docs/brand` source; commit `ad682b1` adds that
+  directory as a read-only build input and regression-tests the mount. Rerun
+  `31509326669` succeeded in 23m07s with **287 ok, 0 failed** from finished-image
+  verification. Prerelease `v2026.08.11.161055-ad682b1257fe-dev` contains the
+  image, overlay `2.0.21`, image metadata, and SPDX/CycloneDX SBOMs.
 
 - The reflashed `192.168.0.199` returned as `aryaos-d600` with overlay `2.0.10`,
   the ADSBee, DroneScout, and SiRF GPS all attached. Its fresh first boot wrote
