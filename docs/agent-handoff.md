@@ -1,4 +1,4 @@
-# Agent handoff — state as of 2026-08-10
+# Agent handoff — state as of 2026-08-11
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
@@ -42,7 +42,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 
 ## 2026-08-10 `.199` reboot and factory-reset HIL
 
-### Replacement-image media failure (do not reboot `.199`)
+### Replacement-image media failure (historical; card replaced)
 
 - The exact `22e7a12` CI image returned as `aryaos-025f` with overlay `2.0.15`.
   First boot correctly detected and configured ADSBee, DroneScout, and the SiRF
@@ -77,6 +77,30 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   repeated journal message was the known Broadcom onboarding-AP vendor-IE
   warning (`-52`). The enhanced sampler then proved it records the invalid
   manufacturer ID, binary cmdline, and both missing Pi 5 boot artifacts.
+
+### Current `.199` replacement card and live portal capabilities
+
+- `.199` is now `aryaos-d628` on a replacement `GB1QT` card with valid media
+  manufacturer ID `0x00001b`. A controlled reboot completed normally. The boot
+  command line is printable and names the installed root PARTUUID;
+  `kernel_2712.img` and `initramfs_2712` pass the HIL size checks. The prior
+  no-reboot restriction applied only to the discarded `SD32G` card.
+- First boot discovered `ARYAOS_CAPABILITIES="adsb rid"`: ADSBee feeds readsb
+  over its stable Mode-S Beast serial path, DroneScout feeds
+  `dronecot-dronescout` through `/dev/dronescout`, and the PL2303 GPS has a live
+  3D fix. The strict suite confirms Remote ID heartbeat and payload processing,
+  zero failed units, clean storage, and no service restart loop.
+- Overlay `2.0.19` fixes the HTTPS landing page's UAS state. The page used to
+  inspect only legacy `dronecot.service`, so a live DroneScout, Wi-Fi/BLE RID,
+  or SAPIENT gateway appeared disabled. The UAS item now aggregates all of
+  those live implementations and exposes their member-unit states in portal
+  JSON. The hero SENSORS count considers only activated sensor gateways, not
+  disabled capabilities or the always-on CoT/GNSS core. On `.199`, the portal
+  now reports ADS-B and UAS/Remote ID active and healthy.
+- The packaged overlay was installed on `.199`; the complete post-install
+  strict HIL suite passed every module. Expected warnings were limited to
+  deliberately disabled AIS/SiK, the absent unauthenticated TAK configuration
+  pointer, and a brief RF-quiet ADS-B sample. Remote ID remained live.
 
 - The reflashed `192.168.0.199` returned as `aryaos-d600` with overlay `2.0.10`,
   the ADSBee, DroneScout, and SiRF GPS all attached. Its fresh first boot wrote

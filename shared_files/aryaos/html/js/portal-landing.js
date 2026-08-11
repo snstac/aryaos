@@ -616,9 +616,14 @@
     else setStat("aos-hero-power", "pending", "…");
     var tg = d && d.tak_gateways;
     if (tg && tg.items && tg.items.length) {
-      var total = tg.items.length, up = 0;
-      tg.items.forEach(function (it) { if (it && it.state === "up") up++; });
-      setStat("aos-hero-sensors", up === total ? "ok" : up === 0 ? "bad" : "warn", up + "/" + total);
+      var sensors = tg.items.filter(function (it) {
+        return it && it.id !== "charontak" && it.id !== "lincot" &&
+          it.state !== "disabled" && it.state !== "absent" && it.state !== "unavailable";
+      });
+      var total = sensors.length, up = 0;
+      sensors.forEach(function (it) { if (it.state === "up") up++; });
+      if (total === 0) setStat("aos-hero-sensors", "pending", "NONE");
+      else setStat("aos-hero-sensors", up === total ? "ok" : up === 0 ? "bad" : "warn", up + "/" + total);
     } else {
       setStat("aos-hero-sensors", "pending", "—");
     }

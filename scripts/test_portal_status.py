@@ -78,5 +78,55 @@ class GpsdReadTestCase(unittest.TestCase):
         self.assertEqual(error, "gpsd unavailable")
 
 
+class TakGatewayTestCase(unittest.TestCase):
+    @staticmethod
+    def systemctl_run(states):
+        def fake_run(argv, timeout=8):
+            del timeout
+            unit = Path(argv[2]).stem
+            load, active, enabled = states.get(unit, ("not-found", "inactive", "disabled"))
+            return (
+                f"LoadState={load}\nActiveState={active}\nUnitFileState={enabled}",
+                0,
+                "",
+            )
+
+        return fake_run
+
+    def test_uas_is_up_when_dronescout_instance_is_active(self):
+        states = {
+            "dronecot": ("loaded", "inactive", "disabled"),
+            "dronecot-dronescout": ("loaded", "active", "enabled"),
+        }
+        with mock.patch.object(PORTAL, "run", side_effect=self.systemctl_run(states)):
+            item = PORTAL._gateway_item(
+                "dronecot",
+                "UAS / Remote ID→TAK",
+                "UAS",
+                ("dronecot", "dronecot-wifi", "dronecot-ble", "dronecot-dronescout"),
+            )
+
+        self.assertEqual(item["state"], "up")
+        self.assertEqual(item["active_state"], "active")
+        self.assertEqual(item["unit_file_state"], "enabled")
+        self.assertIn("dronecot-dronescout active=active", item["title"])
+
+    def test_uas_is_degraded_when_one_enabled_instance_failed(self):
+        states = {
+            "dronecot-wifi": ("loaded", "failed", "enabled"),
+            "dronecot-dronescout": ("loaded", "active", "enabled"),
+        }
+        with mock.patch.object(PORTAL, "run", side_effect=self.systemctl_run(states)):
+            item = PORTAL._gateway_item(
+                "dronecot",
+                "UAS / Remote ID→TAK",
+                "UAS",
+                ("dronecot-wifi", "dronecot-dronescout"),
+            )
+
+        self.assertEqual(item["state"], "degraded")
+        self.assertEqual(item["active_state"], "degraded")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
