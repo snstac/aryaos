@@ -26,6 +26,10 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `46554bbb6b92be73e92de33ab80b8bef79d4ffdc0d04dfee470eb3f7bb82d7b8`,
   `lincot.service` stayed active, and the complete strict HIL suite passed,
   including all seven new installed-HTML stylesheet checks.
+- AryaOS image run `31530016764` completed successfully from `4b21257`; its
+  mount-based verifier enforced `cockpit-lincot >= 1.1.3`. Release
+  `v2026.08.11.201034-4b212576cac2-dev` contains the 1.62 GB compressed image,
+  image hashes, overlay package, and SPDX/CycloneDX SBOMs.
 
 - Cockpit fixes non-index page bodies in place, but the seven plain-root gateway
   plugins did not provide their own scroll container. Expanding **Debug Logs**
