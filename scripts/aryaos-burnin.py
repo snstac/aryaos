@@ -22,7 +22,7 @@ from pathlib import Path
 SERVICES = (
     "charontak", "lincot", "dronecot", "dronecot-wifi",
     "dronecot-dronescout", "acarscot", "acarsdec", "readsb",
-    "adsbcot", "aiscot", "gutcheck", "aryaos-neighbord",
+    "adsbcot", "ais-catcher", "aiscot", "gutcheck", "aryaos-neighbord",
     "aryaos-bt-pan", "cockpit.socket",
 )
 

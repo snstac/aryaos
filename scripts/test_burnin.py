@@ -41,6 +41,9 @@ def sample(cycle, memory, state, filesystem=None):
 
 
 class BurninSummaryTestCase(unittest.TestCase):
+    def test_probe_tracks_both_ais_pipeline_services(self):
+        self.assertIn('"ais-catcher", "aiscot"', burnin.REMOTE_PROBE)
+
     def test_records_memory_drift_and_service_states(self):
         host = burnin.summarize(
             [sample(1, 10.25, "active"), sample(2, 11.75, "inactive")]

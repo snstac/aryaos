@@ -35,6 +35,10 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `aryaos-serial-assign.service` is ordered before AIS-catcher/GPSD but called
   blocking `try-restart` jobs for those same units. The restarts are now queued
   with `--no-block`, allowing the oneshot to finish before its dependents run.
+- A ten-minute post-fix burn-in passed 60/60 probes with one boot ID, no failed
+  units, no service drops/restarts, no throttling or filesystem alerts, 58.4 C
+  maximum temperature, 0.24 maximum one-minute load, and 0.1 percentage-point
+  memory drift. The sampler now tracks `ais-catcher` itself as well as AISCOT.
 
 ## 2026-08-10 `.199` reboot and factory-reset HIL
 
