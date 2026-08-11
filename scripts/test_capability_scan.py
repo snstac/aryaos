@@ -214,6 +214,30 @@ class AcarsCapabilityTestCase(unittest.TestCase):
 
 
 class SerialRoleWiringTestCase(unittest.TestCase):
+    def test_ais_serial_is_assigned_before_services_start(self):
+        import pathlib
+        import re
+
+        role = (
+            pathlib.Path(__file__).parent.parent / "shared_files/aryaos/aryaos-role"
+        ).read_text()
+        self.assertRegex(
+            role,
+            re.compile(
+                r"set_caps\(\).*?prepare_serial_ais \"\$\{wanted\}\".*?"
+                r"apply_units \"\$\{wanted\}\"",
+                re.S,
+            ),
+        )
+        self.assertRegex(
+            role,
+            re.compile(
+                r"prepare_serial_ais\(\).*?systemctl enable ais-catcher\.service"
+                r".*?aryaos-serial-assign",
+                re.S,
+            ),
+        )
+
     def test_factory_reset_rearms_hardware_discovery(self):
         import pathlib
 

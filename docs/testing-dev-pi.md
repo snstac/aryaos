@@ -54,6 +54,7 @@ scripts/aryaos-test/
     10-storage.sh      # root/FAT symptoms, SD identity, cmdline, boot artifacts
     11-wifi-rid.sh     # enabled Wi-Fi RID adapter/service/data-path health
     12-gutcheck.sh     # enabled capability API/dashboard/auth/runtime health
+    13-ais.sh          # enabled AIS serial isolation, ports, privacy, live NMEA
 ```
 
 Expectations live in **`expectations.yml`**; update that file when image defaults change.
@@ -79,6 +80,9 @@ Expectations live in **`expectations.yml`**; update that file when image default
 - Install media has a valid manufacturer identity; the boot command line is
   printable and names the mounted root PARTUUID; model-specific kernel and
   initramfs files are present and plausibly sized
+- When the AIS capability is enabled: AIS-catcher/AISCOT are stable, the
+  receiver uses a present by-id path distinct from GPS, local ports are open,
+  and AIS-catcher explicitly disables its internet community feed
 
 ### Warn / skip (exit 0)
 

@@ -19,6 +19,9 @@ CORE_SERVICES=(lighttpd gpsd gpstak)
 if capability_enabled adsb; then
 	CORE_SERVICES=(readsb adsbcot "${CORE_SERVICES[@]}")
 fi
+if capability_enabled ais; then
+	CORE_SERVICES=(ais-catcher aiscot "${CORE_SERVICES[@]}")
+fi
 
 for svc in "${CORE_SERVICES[@]}"; do
 	if unit_active "${svc}"; then

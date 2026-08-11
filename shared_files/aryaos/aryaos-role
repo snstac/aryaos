@@ -226,20 +226,28 @@ apply_units() {
 	done
 }
 
-# Persist caps + a nearest-legacy-role alias, clear SDR re-tasks, re-run
-# serial-assign when AIS is now active (its dAISy elimination guard runs at boot
-# before the capability set is known).
+# A silent dAISy can only be assigned by elimination when ais-catcher is enabled.
+# Enable (but do not start) the unit and assign the serial input before
+# apply_units starts it. Starting first makes AIS-catcher parse an empty -e port,
+# exit, and enter a restart cycle until assignment catches up.
+prepare_serial_ais() {
+	local wanted="$1"
+	[[ " ${wanted} " == *" ais-catcher "* ]] || return 0
+	unit_exists ais-catcher || return 0
+	[[ -x /usr/local/sbin/aryaos-serial-assign ]] || return 0
+	systemctl enable ais-catcher.service >/dev/null 2>&1 || true
+	/usr/local/sbin/aryaos-serial-assign || true
+}
+
+# Persist caps + a nearest-legacy-role alias and clear SDR re-tasks.
 persist_and_settle() {
-	local caps="$1" wanted="$2"
+	local caps="$1"
 	config_set ARYAOS_CAPABILITIES "${caps}"
 	local r
 	for r in ${LEGACY_ROLES}; do
 		[[ "$(role_caps "${r}")" == "${caps}" ]] && { config_set ARYAOS_ROLE "${r}"; break; }
 	done
 	rm -f /etc/aryaos/sdr-tasks 2>/dev/null || true
-	if [[ " ${wanted} " == *" ais-catcher "* ]] && [[ -x /usr/local/sbin/aryaos-serial-assign ]]; then
-		/usr/local/sbin/aryaos-serial-assign || true
-	fi
 }
 
 set_caps() {
@@ -259,9 +267,10 @@ set_caps() {
 	done
 	local wanted
 	wanted="$(units_for_caps "${caps}" | xargs || true)"
+	prepare_serial_ais "${wanted}"
 	apply_units "${wanted}"
 	if [[ " ${caps} " == *" wifi-rid "* ]]; then wifi_rid_nm_unmanage 1; else wifi_rid_nm_unmanage 0; fi
-	persist_and_settle "${caps}" "${wanted}"
+	persist_and_settle "${caps}"
 	echo "Capabilities set to: ${caps:-<none>}"
 }
 

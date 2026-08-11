@@ -48,12 +48,40 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("StartLimitBurst=5", unit_section)
         self.assertNotIn("StartLimit", service_section)
 
+    def test_ais_receiver_is_private_and_fails_cleanly_when_unassigned(self):
+        serial_unit = (ROOT / "shared_files/aiscot/ais-catcher.service").read_text()
+        rtl_unit = (
+            ROOT / "shared_files/aryaos/systemd/ais-catcher-rtl@.service"
+        ).read_text()
+        sdr_unit = (
+            ROOT / "shared_files/aryaos/systemd/aryaos-ais-sdr.service"
+        ).read_text()
+        overlay_override = (
+            ROOT
+            / "shared_files/aryaos/systemd/ais-catcher.service.d/aryaos-private.conf"
+        ).read_text()
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        unit_section, service_section = serial_unit.split("\n[Service]\n", 1)
+
+        self.assertIn("StartLimitIntervalSec=300", unit_section)
+        self.assertIn("StartLimitBurst=5", unit_section)
+        self.assertNotIn("StartLimit", service_section)
+        self.assertIn("ExecCondition=/bin/sh -c", service_section)
+        for unit in (serial_unit, rtl_unit, sdr_unit, overlay_override):
+            self.assertIn("AIS-catcher -X off", unit)
+        self.assertIn("ais-catcher.service.d/aryaos-private.conf", builder)
+        self.assertIn("ais-catcher-rtl@.service", builder)
+        self.assertIn("aryaos-ais-sdr.service", builder)
+
     def test_overlay_packages_binary_serial_discovery(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        assign = (ROOT / "shared_files/aryaos/aryaos-serial-assign").read_text()
 
         self.assertIn('aryaos-serial-classify" "/usr/local/libexec/aryaos/', builder)
         self.assertIn('aryaos-serial-assign" "/usr/local/sbin/aryaos-serial-assign', builder)
         self.assertIn("aryaos-serial-assign.service", builder)
+        self.assertIn("--no-block try-restart gpsd.service", assign)
+        self.assertIn("--no-block try-restart ais-catcher.service", assign)
 
     def test_overlay_keeps_network_gps_core_active(self):
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()

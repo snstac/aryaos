@@ -60,7 +60,10 @@ resume_gpsd() {
 	# Start the socket (it is enabled; this is just early) and let anything that
 	# was already using gpsd pick the new device up.
 	systemctl start gpsd.socket >/dev/null 2>&1 || true
-	systemctl try-restart gpsd.service >/dev/null 2>&1 || true
+	# This helper is also run by aryaos-serial-assign.service, which is ordered
+	# Before=gpsd.service. A blocking restart from inside the ordered predecessor
+	# deadlocks the job graph. Queue it and let systemd run it after we exit.
+	systemctl --no-block try-restart gpsd.service >/dev/null 2>&1 || true
 	# Stopping gpsd also SIGTERMs the udev-launched gpsdctl@<tty> units that
 	# were registering devices with it, leaving them "failed" on every GPS box
 	# even though gpsd itself is healthy. Their work is redone by the restart
@@ -217,7 +220,9 @@ main() {
 
 	# Pick up new assignments if the consumers are already running.
 	if [[ "$changed" == 1 ]]; then
-		systemctl try-restart ais-catcher.service >/dev/null 2>&1 || true
+		# The oneshot is Before=ais-catcher.service. Queueing avoids waiting on a
+		# service whose start is itself waiting for this script to finish.
+		systemctl --no-block try-restart ais-catcher.service >/dev/null 2>&1 || true
 	fi
 }
 

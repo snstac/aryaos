@@ -7,6 +7,35 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
 
+## 2026-08-10 `.44` AIS HIL
+
+- `192.168.0.44` returned as `aryaos-c2cb` on image `22e7a12` and overlay
+  `2.0.15`. Its CP2102N emitted checksum-valid GPS NMEA at 9600 baud; its one
+  remaining CH340 serial device was silent and was therefore safely assigned as
+  the intended dAISy by elimination when the maritime role was applied.
+- AIS-catcher and AISCOT ran with zero steady-state restarts. Live RF produced
+  checksum-valid `!AIVDM` traffic for MMSI `3669708`. A synthetic type-1
+  position report exercised the complete UDP/5050 path and produced a valid
+  `MMSI-366967102` CoT event at Charontak's loopback ingress, proving
+  `serial receiver -> AIS-catcher -> AISCOT -> Charontak` end to end.
+- The strict HIL suite passed every module. Storage was clean, media manufacturer
+  ID `0x000027` was valid, the boot PARTUUID matched, and the Pi 5 kernel and
+  initramfs artifacts passed size checks. The node had no failed units or
+  throttling and retained a 3D GPS fix.
+- HIL exposed two defects fixed in overlay `2.0.18`: role application used to
+  start AIS-catcher with an empty serial argument before assignment, producing
+  two avoidable exits, and AIS-catcher 0.68 enabled its internet community feed
+  by default. AryaOS now enables-but-does-not-start the unit, assigns the serial
+  receiver first, refuses to start cleanly when the assigned device is absent,
+  bounds failures in the unit's `[Unit]` section, and passes `-X off` on serial,
+  RTL, and generic-SDR AIS paths. HIL now requires both AIS services, stable
+  isolated serial assignment, zero restart loops, local ports, and explicit
+  community sharing opt-out.
+- Installing the overlay with AIS already active exposed an ordering deadlock:
+  `aryaos-serial-assign.service` is ordered before AIS-catcher/GPSD but called
+  blocking `try-restart` jobs for those same units. The restarts are now queued
+  with `--no-block`, allowing the oneshot to finish before its dependents run.
+
 ## 2026-08-10 `.199` reboot and factory-reset HIL
 
 ### Replacement-image media failure (do not reboot `.199`)

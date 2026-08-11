@@ -420,12 +420,15 @@ require_path /etc/firewalld/services/aryaos-soapyremote.xml
 # AIS via a dedicated unit; persisted jobs re-applied at boot.
 require_grep 'task INDEX' /usr/local/sbin/aryaos-sdr "aryaos-sdr task subcommand"
 require_unit ais-catcher-rtl@.service
+require_grep 'AIS-catcher -X off' /lib/systemd/system/ais-catcher.service "serial AIS community sharing disabled"
+require_grep 'AIS-catcher -X off' /etc/systemd/system/ais-catcher-rtl@.service "RTL AIS community sharing disabled"
 require_unit aryaos-sdr-tasks.service
 # Universal SDR (DragonEgg): aryaos-sdr enumerates/tasks any SoapySDR device
 # (Airspy/HackRF/Lime), not just RTL. Generic AIS unit for non-RTL SDRs.
 require_grep 'SoapySDRUtil' /usr/local/sbin/aryaos-sdr "aryaos-sdr universal SoapySDR enumeration"
 require_grep 'device-type soapy' /usr/local/sbin/aryaos-sdr "aryaos-sdr tasks non-RTL SDRs via SoapySDR"
 require_unit aryaos-ais-sdr.service
+require_grep 'AIS-catcher -X off' /etc/systemd/system/aryaos-ais-sdr.service "generic SDR AIS community sharing disabled"
 require_pkg soapysdr-tools
 # APRS over RF (aryaos-sdr task N aprs): rtl_fm + Dire Wolf -> KISS -> aprscot -> CoT.
 require_grep 'aprs' /usr/local/sbin/aryaos-sdr "aryaos-sdr aprs task job"
