@@ -374,7 +374,7 @@
     });
   }
 
-  function setPowerPill(throttle) {
+  function setPowerPill(throttle, loaded) {
     var el = document.getElementById("aos-sys-power-pill");
     if (!el) return;
     PILL_CLASSES.forEach(function (c) {
@@ -382,9 +382,9 @@
     });
     el.classList.add("aos-pill");
     if (!throttle) {
-      el.classList.add("aos-pill--pending");
-      el.textContent = "…";
-      el.title = "";
+      el.classList.add(loaded ? "aos-pill--warn" : "aos-pill--pending");
+      el.textContent = loaded ? "Unavailable" : "…";
+      el.title = loaded ? "Power telemetry unavailable" : "";
       return;
     }
     var state = throttle.state || "ok";
@@ -413,7 +413,7 @@
     if (!s) {
       set("aos-sys-temp", "—");
       set("aos-sys-load", "—");
-      setPowerPill(null);
+      setPowerPill(null, false);
       return;
     }
     var temp = s.cpu_temp_c;
@@ -433,7 +433,7 @@
     } else {
       set("aos-sys-load", "—");
     }
-    setPowerPill(s.throttle || null);
+    setPowerPill(s.throttle || null, true);
   }
 
   function fillRadios(r) {
@@ -613,6 +613,7 @@
     if (thr && thr.state === "bad") setStat("aos-hero-power", "bad", "UNDER-VOLT");
     else if (thr && thr.state === "warn") setStat("aos-hero-power", "warn", "WARN");
     else if (thr) setStat("aos-hero-power", "ok", "OK");
+    else if (d && d.system) setStat("aos-hero-power", "warn", "UNKNOWN");
     else setStat("aos-hero-power", "pending", "…");
     var tg = d && d.tak_gateways;
     if (tg && tg.items && tg.items.length) {

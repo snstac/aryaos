@@ -89,6 +89,16 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("systemctl enable --now gpstak.service", postinst)
         self.assertIn("systemctl restart aryaos-serial-assign.service", postinst)
 
+    def test_lighttpd_private_devices_exposes_only_pi_firmware_commands(self):
+        dropin = (
+            ROOT
+            / "shared_files/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf"
+        ).read_text()
+
+        self.assertIn("BindReadOnlyPaths=-/dev/vcio_gencmd", dropin)
+        self.assertIn("DeviceAllow=/dev/vcio_gencmd rw", dropin)
+        self.assertNotIn("PrivateDevices=false", dropin)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

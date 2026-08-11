@@ -69,4 +69,21 @@ assert 'satellites_visible' in g and 'satellites_used' in g
 " "${JSON}" && ok "portal JSON minimal schema" || fail "portal JSON schema"
 fi
 
+if [[ -x /usr/bin/vcgencmd ]]; then
+	if python3 -c "
+import json, sys
+d = json.loads(sys.argv[1])
+t = (d.get('system') or {}).get('throttle')
+assert isinstance(t, dict)
+assert isinstance(t.get('raw'), int)
+assert t.get('state') in ('ok', 'warn', 'bad')
+" "${JSON}"; then
+		ok "portal power telemetry available inside lighttpd sandbox"
+	else
+		fail "portal power telemetry unavailable inside lighttpd sandbox"
+	fi
+else
+	skip "vcgencmd absent; Raspberry Pi power telemetry not applicable"
+fi
+
 print_summary

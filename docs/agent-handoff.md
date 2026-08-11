@@ -105,6 +105,13 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   verification reported **281 ok, 0 failed**. The image, overlay `2.0.19`,
   image metadata, and SPDX/CycloneDX SBOMs are published in prerelease
   `v2026.08.11.065730-643f5c2d0baa-dev`.
+- Overlay `2.0.20` restores the landing page's POWER status. Debian's lighttpd
+  sandbox has `PrivateDevices=yes`, which hid `/dev/vcio_gencmd` even though
+  `www-data` was already in the `video` group. The AryaOS drop-in retains the
+  private device namespace and bind-mounts/allows only that firmware-command
+  character device. `.199` now reports `throttled=0x0` / POWER **OK** through
+  the HTTPS CGI. HIL asserts the telemetry block on Pi, and the UI explicitly
+  says **UNKNOWN** instead of remaining blank if it becomes unavailable.
 
 - The reflashed `192.168.0.199` returned as `aryaos-d600` with overlay `2.0.10`,
   the ADSBee, DroneScout, and SiRF GPS all attached. Its fresh first boot wrote

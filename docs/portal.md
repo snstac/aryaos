@@ -31,7 +31,7 @@ flowchart LR
 ## Landing page features (current)
 
 - **Hero — TAK gateways:** `charontak`, `adsbcot`, `aiscot`, `lincot`, UAS, and `sikw00fcot` via `tak_gateways` in JSON; colored tiles (green / amber / red / gray) from `systemctl show`. The UAS tile aggregates every live UAS gateway (`dronecot`, Wi-Fi/BLE RID, DroneScout RID, and SAPIENT), so any active receiver is represented rather than only the legacy `dronecot.service`. The SENSORS count includes activated sensor gateways only; disabled capabilities and the always-on CoT/GNSS core are excluded.
-- **Hero — system health:** CPU temp, load (1/5/15), power/throttle pill from `system` in JSON (`vcgencmd` on Pi; `/proc` + thermal sysfs fallback).
+- **Hero — system health:** CPU temp, load (1/5/15), power/throttle pill from `system` in JSON (`vcgencmd` on Pi; `/proc` + thermal sysfs fallback). The lighttpd sandbox retains `PrivateDevices=yes` and receives only `/dev/vcio_gencmd`, the narrow firmware-command device required for temperature and throttle telemetry. If telemetry is unavailable, the UI says **UNKNOWN** rather than leaving the chip pending.
 - **Connection & status:** hostname, FQDN, primary IP, IPv4 block, uptime; grouped rows (`.aos-status-group--meta|net`) with left accent.
 - **GNSS:** gpsd snapshot — position, **MSL** (`alt_m`), **HAE** (`altHAE` → `alt_hae_m`), **CE/LE** (`eph` or √(epx²+epy²), `epv` → `le_m`), grid, sats, motion; status **pill** from fix quality.
 - **Copy:** icon-only clipboard buttons (SVG); feedback via `.aos-copy-btn--ok` / `--fail` (do not set `textContent` on the button).
