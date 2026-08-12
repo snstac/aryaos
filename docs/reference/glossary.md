@@ -1,14 +1,14 @@
 # Glossary
 
-Definitions of the terms used throughout the AryaOS documentation. Each term has a stable anchor so other pages can deep-link to it — for example [`#device_suffix`](#device_suffix) or [`#cot`](#cot).
+Definitions of the terms used throughout the AryaOS documentation. Each term has a stable anchor so other pages can deep-link to it - for example [`#device_suffix`](#device_suffix) or [`#cot`](#cot).
 
 ## ADS-B {#ads-b}
 
-**Automatic Dependent Surveillance–Broadcast.** Aircraft broadcast their GPS-derived position, altitude, velocity, and identity, typically on **1090 MHz** (worldwide) or **978 MHz** UAT (US, low-altitude). AryaOS decodes ADS-B with `readsb` or `dump1090-fa` and turns it into TAK tracks via [ADSBCOT](../reference/software-suite.md). See [Aircraft (ADS-B)](../deploy/air-adsb.md).
+**Automatic Dependent Surveillance-Broadcast.** Aircraft broadcast their GPS-derived position, altitude, velocity, and identity, typically on **1090 MHz** (worldwide) or **978 MHz** UAT (US, low-altitude). AryaOS decodes ADS-B with `readsb` or `dump1090-fa` and turns it into TAK tracks via [ADSBCOT](../reference/software-suite.md). See [Aircraft (ADS-B)](../deploy/air-adsb.md).
 
 ## AIS {#ais}
 
-**Automatic Identification System.** Ships and other vessels broadcast their position, course, speed, and identity over VHF (161–162 MHz). AryaOS decodes AIS with `ais-catcher` and publishes vessels to TAK via [AISCOT](../reference/software-suite.md). See [Maritime vessels (AIS)](../deploy/maritime-ais.md).
+**Automatic Identification System.** Ships and other vessels broadcast their position, course, speed, and identity over VHF (161-162 MHz). AryaOS decodes AIS with `ais-catcher` and publishes vessels to TAK via [AISCOT](../reference/software-suite.md). See [Maritime vessels (AIS)](../deploy/maritime-ais.md).
 
 ## ATAK {#atak}
 
@@ -24,11 +24,11 @@ The open-source, browser-based server management UI that AryaOS uses as its **si
 
 ## COP {#cop}
 
-**Common Operating Picture.** A single, shared, real-time view of a situation — the aircraft, vessels, drones, and friendly positions relevant to a mission — assembled from multiple sensors. Building a COP for TAK is AryaOS's core purpose. See [Multi-sensor COP](../deploy/multi-sensor.md).
+**Common Operating Picture.** A single, shared, real-time view of a situation - the aircraft, vessels, drones, and friendly positions relevant to a mission - assembled from multiple sensors. Building a COP for TAK is AryaOS's core purpose. See [Multi-sensor COP](../deploy/multi-sensor.md).
 
 ## CoT {#cot}
 
-**Cursor on Target.** The XML (and Protobuf) message format TAK uses to represent an "event" — an aircraft, vessel, drone, marker, or friendly position — with a location, type, and time. Every AryaOS gateway produces CoT. Written **Cursor on Target (CoT)** on first use per page.
+**Cursor on Target.** The XML (and Protobuf) message format TAK uses to represent an "event" - an aircraft, vessel, drone, marker, or friendly position - with a location, type, and time. Every AryaOS gateway produces CoT. Written **Cursor on Target (CoT)** on first use per page.
 
 ## cUAS {#cuas}
 
@@ -76,7 +76,7 @@ The regulatory broadcast standard (Open Drone ID / ASTM Remote ID) by which dron
 
 ## TAK Server {#tak-server}
 
-The central server component of TAK that relays CoT between many clients, manages users and channels, and issues client certificates for TLS. AryaOS can forward its CoT to a TAK Server — via a data package or a `tak://` enrollment link — in addition to (or instead of) [Mesh SA](#mesh-sa). See [Connect to a TAK Server](../deploy/connect-tak-server.md).
+The central server component of TAK that relays CoT between many clients, manages users and channels, and issues client certificates for TLS. AryaOS can forward its CoT to a TAK Server - via a data package or a `tak://` enrollment link - in addition to (or instead of) [Mesh SA](#mesh-sa). See [Connect to a TAK Server](../deploy/connect-tak-server.md).
 
 ## UAT {#uat}
 
@@ -86,8 +86,8 @@ The central server component of TAK that relays CoT between many clients, manage
 
 <div class="grid cards" markdown>
 
-- :material-package: **Software suite** — Every gateway and plugin. [Software suite](software-suite.md)
-- :material-lan: **Ports & protocols** — Where these protocols listen. [Ports & protocols](ports.md)
-- :material-file-document: **Specifications** — Standards and identity. [Specifications](../specs.md)
+- :material-package: **Software suite** - Every gateway and plugin. [Software suite](software-suite.md)
+- :material-lan: **Ports & protocols** - Where these protocols listen. [Ports & protocols](ports.md)
+- :material-file-document: **Specifications** - Standards and identity. [Specifications](../specs.md)
 
 </div>

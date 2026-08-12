@@ -6,14 +6,14 @@ closed browser, and never restart your sensors without you saying so.
 
 ## One-click updates in Cockpit
 
-The **Software updates** card on **Cockpit → AryaOS Site** is the operator path.
+The **Software updates** card on **Cockpit > AryaOS Site** is the operator path.
 
-1. Open **Cockpit → AryaOS Site → Software updates**.
+1. Open **Cockpit > AryaOS Site > Software updates**.
 2. Click **Check for updates**. The card shows the current AryaOS version and
    lists every upgradable package (with current and candidate versions).
 3. Click **Install all updates**. Sensor services may restart briefly while the
    upgrade applies.
-4. If a reboot is required afterward, the card tells you — reboot at a
+4. If a reboot is required afterward, the card tells you - reboot at a
    convenient time.
 
 ```mermaid
@@ -28,7 +28,7 @@ flowchart LR
 
 !!! tip "The upgrade survives a closed browser"
     The card starts the apply step under **`aryaos-update.service`**, not inside
-    the browser session. Close the tab, lose Wi-Fi, walk away — the upgrade
+    the browser session. Close the tab, lose Wi-Fi, walk away - the upgrade
     keeps running on the box, and the card picks the result back up when you
     return.
 
@@ -84,7 +84,7 @@ sudo aryaos-update status    # last check/apply results + reboot-required (JSON)
     upgrade ran from the browser or the shell.
 
 !!! warning "`apply` requires root"
-    `aryaos-update` refuses to run its privileged subcommands as a normal user —
+    `aryaos-update` refuses to run its privileged subcommands as a normal user -
     always `sudo aryaos-update apply`. The Cockpit card handles privilege for
     you.
 
@@ -92,9 +92,9 @@ sudo aryaos-update status    # last check/apply results + reboot-required (JSON)
 
 <div class="grid cards" markdown>
 
-- :material-file-certificate: **SBOM & supply chain** — the signed-repo trust anchor and per-build SBOMs. [SBOM & supply chain](sbom.md)
-- :material-shield-lock: **Security posture** — how the update split fits the hardening story. [Security posture](../security.md)
-- :material-briefcase-search: **Support bundles** — capture state if an update goes sideways. [Support bundles](support-bundles.md)
-- :material-tune: **AryaOS Site** — the admin page hosting the updates card. [AryaOS Site](../admin/aryaos-site.md)
+- :material-file-certificate: **SBOM & supply chain** - the signed-repo trust anchor and per-build SBOMs. [SBOM & supply chain](sbom.md)
+- :material-shield-lock: **Security posture** - how the update split fits the hardening story. [Security posture](../security.md)
+- :material-briefcase-search: **Support bundles** - capture state if an update goes sideways. [Support bundles](support-bundles.md)
+- :material-tune: **AryaOS Site** - the admin page hosting the updates card. [AryaOS Site](../admin/aryaos-site.md)
 
 </div>

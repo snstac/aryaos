@@ -24,10 +24,10 @@ stateDiagram-v2
     CONNECTED --> HOTSPOT: known Wi-Fi disappears
 ```
 
-- **`CONNECTED`** — the box has joined a Wi-Fi network it has credentials for
+- **`CONNECTED`** - the box has joined a Wi-Fi network it has credentials for
   and behaves as a normal client. The onboarding portal is not served in this
   state.
-- **`HOTSPOT`** — no known network is in range, so the box broadcasts its own
+- **`HOTSPOT`** - no known network is in range, so the box broadcasts its own
   access point named **`AryaOS-xxxx`** (the `xxxx` is the per-device suffix set
   at first boot, matching the hostname `aryaos-xxxx`). Connect to that AP and
   the onboarding portal appears so you can hand the box a network.
@@ -37,7 +37,7 @@ stateDiagram-v2
     at first boot and uses it for the hostname (`aryaos-xxxx`) and the hotspot
     SSID (`AryaOS-xxxx`). Comitup fills the `<nnn>` token in `ap_name` from its
     own persistent instance number, so the exact SSID is printed on the box's
-    label — trust the label.
+    label - trust the label.
 
 ## Configuration
 
@@ -46,15 +46,15 @@ Comitup is configured in `/etc/comitup.conf`. The keys AryaOS sets:
 | Key | Value | Meaning |
 | --- | --- | --- |
 | `ap_name` | `AryaOS-<nnn>` | Hotspot SSID and ZeroConf host name. `<nnn>` is a persistent per-device number. |
-| `ap_password` | *(unset by default)* | If set, the hotspot uses WPA2 (`WPA-psk`) and requires this password. Must be **8–63 characters**. |
+| `ap_password` | *(unset by default)* | If set, the hotspot uses WPA2 (`WPA-psk`) and requires this password. Must be **8-63 characters**. |
 | `primary_wifi_device` | `wlan0` | The Wi-Fi adapter used to spawn the access point. |
 | `external_callback` | `/usr/local/sbin/comitup-callback.sh` | Script run on every state change (`HOTSPOT` / `CONNECTING` / `CONNECTED`) so AryaOS can react (for example, toggle onboarding services). |
 | `enable_appliance_mode` | `false` | AryaOS does not chain a second adapter or NAT hotspot clients to the internet. |
 
 !!! warning "The hotspot is open by default"
-    Out of the box, `ap_password` is unset, so **anyone in range can join the
+    By default, `ap_password` is unset, so **anyone in range can join the
     onboarding hotspot and reach the portal**. Set a WPA2 password before
-    fielding a unit in any area where that matters — see
+    fielding a unit in any area where that matters - see
     [Set a hotspot password](#set-a-hotspot-password) below.
 
 ## Join the box to an existing Wi-Fi
@@ -75,7 +75,7 @@ example, a base-camp router or a vehicle hotspot).
 
 !!! tip "You lose the hotspot once it connects"
     When the box successfully joins your Wi-Fi, the `AryaOS-xxxx` hotspot goes
-    away — that is expected. Find the unit again by its hostname
+    away - that is expected. Find the unit again by its hostname
     (`aryaos-xxxx.local` via mDNS) or by the IP address your router hands it,
     then administer it in [Cockpit](../admin/aryaos-site.md).
 
@@ -93,24 +93,24 @@ service (see [Firewall](firewall.md)); comitup itself stops listening once the
 box has joined a network.
 
 Because it accepts credentials, treat the onboarding portal like any other
-admin surface — do onboarding somewhere you control, and keep the hotspot
+admin surface - do onboarding somewhere you control, and keep the hotspot
 password set (below) so a stranger can't reach the portal in the first place.
 
 ## Set a hotspot password
 
-Protect the onboarding hotspot with a WPA2 pre-shared key from Cockpit — no
+Protect the onboarding hotspot with a WPA2 pre-shared key from Cockpit - no
 shell required.
 
 === "In Cockpit (recommended)"
 
-    1. Open **Cockpit → AryaOS Site**.
+    1. Open **Cockpit > AryaOS Site**.
     2. Scroll to the **Onboarding hotspot password** card.
-    3. Type a password of **8–63 characters** into *Hotspot password* and click
+    3. Type a password of **8-63 characters** into *Hotspot password* and click
        **Save hotspot password**.
     4. To go back to an open AP, click **Remove password (open AP)** and confirm.
 
     The card writes the `ap_password` key into `/etc/comitup.conf`. The new
-    password applies to the *next* hotspot session — **reboot** (or restart
+    password applies to the *next* hotspot session - **reboot** (or restart
     comitup) to force it to take effect immediately.
 
 === "Edit the config file"
@@ -128,7 +128,7 @@ shell required.
     ```
 
 !!! danger "Passwords under 8 or over 63 characters are rejected"
-    WPA2 pre-shared keys must be 8–63 characters. The Cockpit field enforces
+    WPA2 pre-shared keys must be 8-63 characters. The Cockpit field enforces
     this (`minlength="8" maxlength="63"`); if you edit the file by hand, stay in
     range or comitup will refuse to bring up a protected AP.
 
@@ -136,9 +136,9 @@ shell required.
 
 <div class="grid cards" markdown>
 
-- :material-bluetooth: **Bluetooth PAN** — reach the box with no Wi-Fi at all. [Bluetooth PAN](../bluetooth-pan.md)
-- :material-wall-fire: **Firewall** — which inbound ports (including `9080`) are open. [Firewall](firewall.md)
-- :material-vpn: **VPN (Tailscale)** — remote access once the box is on a network. [VPN (Tailscale)](vpn-tailscale.md)
-- :material-shield-lock: **Security posture** — the full hardening picture. [Security posture](../security.md)
+- :material-bluetooth: **Bluetooth PAN** - reach the box with no Wi-Fi at all. [Bluetooth PAN](../bluetooth-pan.md)
+- :material-wall-fire: **Firewall** - which inbound ports (including `9080`) are open. [Firewall](firewall.md)
+- :material-vpn: **VPN (Tailscale)** - remote access once the box is on a network. [VPN (Tailscale)](vpn-tailscale.md)
+- :material-shield-lock: **Security posture** - the full hardening picture. [Security posture](../security.md)
 
 </div>

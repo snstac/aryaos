@@ -14,7 +14,7 @@ apply to every mission.
 ## 1. Flash the card
 
 The short way, on **Windows or Linux**, is
-[**AryaOS Imager**](https://github.com/snstac/aryaos-imager/releases) — a
+[**AryaOS Imager**](https://github.com/snstac/aryaos-imager/releases) - a
 single-purpose build of Raspberry Pi Imager that offers only AryaOS and
 downloads the image itself, so there is nothing to find and no wrong operating
 system to pick by accident.
@@ -22,7 +22,7 @@ system to pick by accident.
 1. Install [AryaOS Imager](https://github.com/snstac/aryaos-imager/releases).
 2. Insert the microSD card, open the imager, and choose
    **AryaOS (latest release)**.
-3. Select the card — **this erases it** — then write and let it verify.
+3. Select the card - **this erases it** - then write and let it verify.
 
 On **macOS**, or if you already have the tools, download the latest
 `aryaos-*.img.xz` from [GitHub Releases](https://github.com/snstac/aryaos/releases)
@@ -51,14 +51,14 @@ set your password.
 === "Phone / tablet (Wi-Fi)"
 
     1. On the phone, join the **`AryaOS-xxxx`** Wi-Fi network.
-    2. The onboarding hotspot is open by default — you can set a
+    2. The onboarding hotspot is open by default - you can set a
        [WPA2 password](../networking/wifi-hotspot.md) later from the web console.
     3. Open your browser to **`https://aryaos-xxxx.local:9090/`** (accept the
-       self-signed certificate warning — the cert is unique to your device).
+       self-signed certificate warning - the cert is unique to your device).
 
     !!! note
         If `aryaos-xxxx.local` does not resolve on your phone, browse to the
-        gateway's IP address instead — the hotspot hands out addresses on
+        gateway's IP address instead - the hotspot hands out addresses on
         `10.41.0.0/24` with the box at `10.41.0.1`.
 
 === "Computer (Wi-Fi or Ethernet)"
@@ -70,26 +70,26 @@ set your password.
 
 ## 4. Point TAK at the gateway
 
-Configure your TAK end-user device to receive **Mesh SA** — the local multicast
+Configure your TAK end-user device to receive **Mesh SA** - the local multicast
 CoT stream AryaOS broadcasts by default.
 
 === "ATAK / iTAK"
 
-    1. **Settings → Network Preferences → Network Connections**.
-    2. Ensure **SA Multicast** (Mesh SA) is enabled — this is on by default in
+    1. **Settings > Network Preferences > Network Connections**.
+    2. Ensure **SA Multicast** (Mesh SA) is enabled - this is on by default in
        most builds.
     3. Return to the map. Aircraft appear as they are received.
 
 === "WinTAK"
 
-    1. Enable multicast SA in **Settings → Network**.
-    2. If your network blocks multicast, use a direct feed instead — see
+    1. Enable multicast SA in **Settings > Network**.
+    2. If your network blocks multicast, use a direct feed instead - see
        [Connect to a TAK Server](../deploy/connect-tak-server.md) or the NMEA/GDL90
        options for [ForeFlight & EFBs](../deploy/foreflight-gdl90.md).
 
 ## 5. Confirm you see tracks
 
-- In the AryaOS web console, open **AryaOS Site → Sensor services** and confirm
+- In the AryaOS web console, open **AryaOS Site > Sensor services** and confirm
   `adsbcot` and `readsb` are **active**.
 - On the TAK map, aircraft icons should appear within a minute if any are in range
   of your antenna. A local ADS-B map is also served on the box (tar1090).
@@ -101,10 +101,10 @@ CoT stream AryaOS broadcasts by default.
 
 <div class="grid cards" markdown>
 
--   :material-airplane: **[Tune the ADS-B setup](../deploy/air-adsb.md)** — decoder choice, UAT, gain, dual SDRs.
--   :material-map-marker-path: **[Other missions](../deploy/index.md)** — maritime, drones, GPS, multi-sensor.
--   :material-server-network: **[Connect a TAK Server](../deploy/connect-tak-server.md)** — forward the picture upstream.
--   :material-application-cog: **[Tour the web console](../admin/index.md)** — everything you can configure.
--   :material-shield-check: **[Harden for the field](../get-started/first-boot.md#secure-the-device)** — passwords, Wi-Fi, VPN.
+-   :material-airplane: **[Tune the ADS-B setup](../deploy/air-adsb.md)** - decoder choice, UAT, gain, dual SDRs.
+-   :material-map-marker-path: **[Other missions](../deploy/index.md)** - maritime, drones, GPS, multi-sensor.
+-   :material-server-network: **[Connect a TAK Server](../deploy/connect-tak-server.md)** - forward the picture upstream.
+-   :material-application-cog: **[Tour the web console](../admin/index.md)** - everything you can configure.
+-   :material-shield-check: **[Harden for the field](../get-started/first-boot.md#secure-the-device)** - passwords, Wi-Fi, VPN.
 
 </div>

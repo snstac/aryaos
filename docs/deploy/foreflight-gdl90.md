@@ -2,17 +2,17 @@
 
 See the TAK air picture in your Electronic Flight Bag (EFB). AryaOS runs **GDLTAK**, which rebroadcasts Cursor on Target (CoT) tracks as **GDL90** over UDP, so **ForeFlight**, **FlyQ EFB**, and **Garmin Pilot** display the same traffic TAK sees.
 
-GDLTAK is the reverse of `adsbcot`: **CoT in, GDL90 out**. It subscribes to the CoT air picture, keeps a table of tracks, and once a second emits GDL90 Heartbeat, Ownship, and Traffic Report datagrams — exactly as a stratux or GDL 90 receiver would. Any traffic on your TAK network shows up in the cockpit: ADS-B via `adsbcot`, drone Remote ID via `dronecot`, even tracks from a TAK Server.
+GDLTAK is the reverse of `adsbcot`: **CoT in, GDL90 out**. It subscribes to the CoT air picture, keeps a table of tracks, and once a second emits GDL90 Heartbeat, Ownship, and Traffic Report datagrams - exactly as a stratux or GDL 90 receiver would. Any traffic on your TAK network shows up in the cockpit: ADS-B via `adsbcot`, drone Remote ID via `dronecot`, even tracks from a TAK Server.
 
 !!! info "Enabled by the air and multi roles"
-    `gdltak` is part of the `air` and `multi` role unit sets, so selecting either role in **Cockpit → AryaOS Site** turns it on automatically. See [Air — ADS-B & UAT](./air-adsb.md) and [Device roles](../config/device-roles.md).
+    `gdltak` is part of the `air` and `multi` role unit sets, so selecting either role in **Cockpit > AryaOS Site** turns it on automatically. See [Air - ADS-B & UAT](./air-adsb.md) and [Device roles](../config/device-roles.md).
 
 ## ForeFlight setup
 
 === "ForeFlight"
 
-    1. Put the iPad/iPhone on the **same Wi-Fi network** as the AryaOS box — join the `AryaOS-xxxx` hotspot.
-    2. That's it. ForeFlight auto-detects GDL90 traffic on **UDP port 4000** and lists the source under **More → Devices**.
+    1. Put the iPad/iPhone on the **same Wi-Fi network** as the AryaOS box - join the `AryaOS-xxxx` hotspot.
+    2. ForeFlight auto-detects GDL90 traffic on **UDP port 4000** and lists the source under **More > Devices**.
 
 === "FlyQ EFB / Garmin Pilot"
 
@@ -40,8 +40,8 @@ GDLTAK is PyTAK-style, configured via `/etc/default/gdltak` (systemd `Environmen
 | `GDL90_URL` | `udp+broadcast://255.255.255.255:4000` | GDL90 egress. Broadcast is the stratux/ForeFlight convention; unicast `udp://host:port` also works. |
 | `STALE_SECS` | `60` | Drop tracks not updated within this many seconds. |
 | `UPDATE_HZ` | `1` | GDL90 update rate (heartbeat convention is 1 Hz). |
-| `OWNSHIP_UID` | — | CoT UID whose track becomes the Ownship Report (e.g. this device's GPSTAK/LINCOT UID). |
-| `OWNSHIP_LAT` / `OWNSHIP_LON` / `OWNSHIP_ALT_FT` | — | Static ownship position fallback. |
+| `OWNSHIP_UID` | - | CoT UID whose track becomes the Ownship Report (e.g. this device's GPSTAK/LINCOT UID). |
+| `OWNSHIP_LAT` / `OWNSHIP_LON` / `OWNSHIP_ALT_FT` | - | Static ownship position fallback. |
 | `CALLSIGN` | `GDLTAK` | Ownship callsign shown in the EFB. |
 
 ### Ownship
@@ -62,10 +62,10 @@ If no ownship is configured, GDLTAK sends heartbeat + traffic only.
 systemctl status gdltak
 ```
 
-Then open ForeFlight and confirm traffic appears under **More → Devices** and on the map. If nothing shows, confirm the EFB device is on the AryaOS hotspot (same subnet) and that traffic exists on the TAK side.
+Then open ForeFlight and confirm traffic appears under **More > Devices** and on the map. If nothing shows, confirm the EFB device is on the AryaOS hotspot (same subnet) and that traffic exists on the TAK side.
 
 ## Related
 
-- [Air — ADS-B & UAT](./air-adsb.md) — feed the aircraft that GDLTAK rebroadcasts.
-- [Own position / GPS](./own-position-gps.md) — supply GDLTAK's ownship.
+- [Air - ADS-B & UAT](./air-adsb.md) - feed the aircraft that GDLTAK rebroadcasts.
+- [Own position / GPS](./own-position-gps.md) - supply GDLTAK's ownship.
 - [Multi-sensor](./multi-sensor.md) · [Device roles](../config/device-roles.md) · [Glossary](../reference/glossary.md)

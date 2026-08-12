@@ -8,13 +8,13 @@ Open any of them from Cockpit's left menu.
 
 | Cockpit plugin | Service | Config file | Feeds |
 |----------------|---------|-------------|-------|
-| adsbcot | `adsbcot` | `/etc/default/adsbcot` | ADS-B aircraft → CoT |
-| aiscot | `aiscot` | `/etc/default/aiscot` | AIS vessels → CoT |
-| dronecot | `dronecot` | `/etc/default/dronecot` | Remote ID drones → CoT |
-| aprscot | `aprscot` | `/etc/default/aprscot` | APRS (KISS TNC / APRS-IS) → CoT |
-| sapientcot | `sapientcot` | `/etc/default/sapientcot` | SAPIENT (BSI Flex 335) C-UAS / ISR → CoT |
-| lincot | `lincot` | `/etc/default/lincot` | This host's position/beacon → CoT |
-| gps | *(gpsd)* | — | On-board GNSS receiver |
+| adsbcot | `adsbcot` | `/etc/default/adsbcot` | ADS-B aircraft > CoT |
+| aiscot | `aiscot` | `/etc/default/aiscot` | AIS vessels > CoT |
+| dronecot | `dronecot` | `/etc/default/dronecot` | Remote ID drones > CoT |
+| aprscot | `aprscot` | `/etc/default/aprscot` | APRS (KISS TNC / APRS-IS) > CoT |
+| sapientcot | `sapientcot` | `/etc/default/sapientcot` | SAPIENT (BSI Flex 335) C-UAS / ISR > CoT |
+| lincot | `lincot` | `/etc/default/lincot` | This host's position/beacon > CoT |
+| gps | *(gpsd)* | - | On-board GNSS receiver |
 | gpstak | `gpstak` | `/etc/default/gpstak` | Network GPS to ATAK/WinTAK |
 | aiscatcher | `ais-catcher` | `/etc/default/ais-catcher` | Over-the-air AIS receiver |
 
@@ -25,7 +25,7 @@ The AIS receiver (`ais-catcher`) demodulates RF AIS and hands messages to `aisco
 
 ## The common layout
 
-![The aiscot gateway page in Cockpit — service controls, TLS certificates, iconset, and the configuration form over /etc/default/aiscot](../media/screenshots/gateway-aiscot.png)
+![The aiscot gateway page in Cockpit - service controls, TLS certificates, iconset, and the configuration form over /etc/default/aiscot](../media/screenshots/gateway-aiscot.png)
 
 Every gateway plugin (using **aiscot** as the representative example) shows the same cards, top to bottom:
 
@@ -42,7 +42,7 @@ A **TLS upload** card installs PEM client credentials for *this* service. For ai
 
 ### Configuration card
 
-The **Configuration** card is a form generated from the gateway's environment-variable definitions. Each row shows the variable name, a description, its default, and an input appropriate to its type (text, number, boolean drop-down, or enum drop-down). Required fields are marked. Values are validated as you type — for example `COT_URL` must match a supported scheme, ports must be in range, and enums must be one of the listed options — and invalid fields block the save.
+The **Configuration** card is a form generated from the gateway's environment-variable definitions. Each row shows the variable name, a description, its default, and an input appropriate to its type (text, number, boolean drop-down, or enum drop-down). Required fields are marked. Values are validated as you type - for example `COT_URL` must match a supported scheme, ports must be in range, and enums must be one of the listed options - and invalid fields block the save.
 
 Tick **Restart *service* after save** and press **Validate & Save** to write `/etc/default/<svc>` and (optionally) restart the service.
 
@@ -78,16 +78,16 @@ This is the key to how AryaOS gateways are configured:
 Because the per-service file is read second, **anything you set on a gateway page overrides the site default** for that one service. Anything you leave unset falls through to the site value.
 
 !!! example "How the default CoT route works"
-    The site config sets `COT_URL=udp+wo://127.0.0.1:28087` (the Charontak hub). Each gateway inherits that, so out of the box **every** feeder sends CoT to Charontak — you did not set `COT_URL` on the gateway page. If you *do* set `COT_URL` on, say, the aiscot page, only aiscot changes; the rest keep going through the hub.
+    The site config sets `COT_URL=udp+wo://127.0.0.1:28087` (the Charontak hub). Each gateway inherits that value, so **every** feeder sends CoT to Charontak without a gateway-specific `COT_URL`. Setting `COT_URL` on the aiscot page changes only aiscot; the other gateways keep using the hub.
 
-This is why the CoT routing invariant holds without per-service configuration: **feeders → charontak → Mesh SA / TAK Server**. Leave each feeder's `COT_URL` unset (inheriting the hub) and control the upstream in the [Charontak lane editor](./charontak-lanes.md).
+This is why the CoT routing invariant holds without per-service configuration: **feeders > charontak > Mesh SA / TAK Server**. Leave each feeder's `COT_URL` unset (inheriting the hub) and control the upstream in the [Charontak lane editor](./charontak-lanes.md).
 
 !!! warning "Setting COT_URL per gateway bypasses Charontak"
     Overriding `COT_URL` on a gateway page routes *that* feeder around the hub. That is occasionally useful for debugging, but it means the feeder no longer benefits from Charontak's fan-out to Mesh SA and TAK Servers. Prefer configuring destinations as Charontak lanes.
 
 ## See also
 
-- [Configuration model](../config/index.md) — the full inheritance picture
-- [Site configuration](../config/site-config.md) — the keys every gateway inherits
-- [Charontak lane editor](./charontak-lanes.md) — where upstream destinations live
-- [Software suite](../reference/software-suite.md) — every gateway and what it does
+- [Configuration model](../config/index.md) - the full inheritance picture
+- [Site configuration](../config/site-config.md) - the keys every gateway inherits
+- [Charontak lane editor](./charontak-lanes.md) - where upstream destinations live
+- [Software suite](../reference/software-suite.md) - every gateway and what it does

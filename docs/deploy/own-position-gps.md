@@ -1,16 +1,16 @@
 # Own position & GPS
 
-Put the AryaOS box itself on the map, and share its GPS with your TAK client. This works in **every** role — the position core always runs — so your sensor gateway is also a self-locating node.
+Put the AryaOS box itself on the map, and share its GPS with your TAK client. This works in **every** role - the position core always runs - so your sensor gateway is also a self-locating node.
 
 AryaOS uses two cooperating tools for position:
 
 - **LINCOT** beacons the *host's own position* to TAK as a CoT marker, so the box shows up on the map like any other unit.
-- **GPSTAK** streams `gpsd` position data to the network as CoT and fans out NMEA for WinTAK — giving a connected phone or laptop a GPS fix even when it has no receiver of its own.
+- **GPSTAK** streams `gpsd` position data to the network as CoT and fans out NMEA for WinTAK - giving a connected phone or laptop a GPS fix even when it has no receiver of its own.
 
 Both feed from **`gpsd`**, which reads a connected GNSS receiver.
 
 !!! note "Always on"
-    `charontak`, `lincot`, `gpstak`, and `gpsd` are part of the CoT core and run regardless of the selected [device role](../config/device-roles.md) — including `relay`. You do not need a special role to share position.
+    `charontak`, `lincot`, `gpstak`, and `gpsd` are part of the CoT core and run regardless of the selected [device role](../config/device-roles.md) - including `relay`. You do not need a special role to share position.
 
 ## Hardware
 
@@ -31,8 +31,8 @@ flowchart LR
     H -->|Mesh SA 239.2.3.1:6969| E
 ```
 
-- **LINCOT → Charontak → Mesh SA:** the box appears as a self-marker on every connected EUD.
-- **GPSTAK → EUD:** a phone or WinTAK laptop on the AryaOS network uses the box's GPS as its own position source.
+- **LINCOT > Charontak > Mesh SA:** the box appears as a self-marker on every connected EUD.
+- **GPSTAK > EUD:** a phone or WinTAK laptop on the AryaOS network uses the box's GPS as its own position source.
 
 ## Share the box's position with TAK
 
@@ -42,7 +42,7 @@ To confirm the pipeline:
 
 ```bash
 systemctl status gpsd lincot gpstak
-gpspipe -w -n 5        # raw gpsd JSON — check for TPV with lat/lon
+gpspipe -w -n 5        # raw gpsd JSON - check for TPV with lat/lon
 ```
 
 !!! tip "Identity on the map"
@@ -64,13 +64,13 @@ See the [GPSTAK](https://github.com/snstac/gpstak) project for client-side setup
 
 ## Static position fallback
 
-If the box has no GNSS receiver — or you want a fixed marker for a base station or repeater — set a static position instead of relying on `gpsd`. LINCOT supports a fixed lat/lon so the host still beacons a location. Configure it from the LINCOT plugin in Cockpit (which edits `/etc/default/lincot`).
+If the box has no GNSS receiver - or you want a fixed marker for a base station or repeater - set a static position instead of relying on `gpsd`. LINCOT supports a fixed lat/lon so the host still beacons a location. Configure it from the LINCOT plugin in Cockpit (which edits `/etc/default/lincot`).
 
 !!! info "Wildland fire & SAR"
     In fire and search-and-rescue deployments, a self-locating gateway lets the incident COP show exactly where each sensor node sits, even when the carrying EUD is offline.
 
 ## Related
 
-- [Offline backpack](./offline-backpack.md) — position sharing over a disconnected hotspot.
-- [ForeFlight / GDL90](./foreflight-gdl90.md) — use this device's position as GDL90 ownship.
+- [Offline backpack](./offline-backpack.md) - position sharing over a disconnected hotspot.
+- [ForeFlight / GDL90](./foreflight-gdl90.md) - use this device's position as GDL90 ownship.
 - [Device roles](../config/device-roles.md) · [Glossary](../reference/glossary.md)

@@ -10,12 +10,12 @@ hide:
 
 AryaOS turns an inexpensive single-board computer into a turn-key gateway that
 puts live aircraft, vessels, and drones onto any [TAK](reference/glossary.md#tak)
-device — ATAK, WinTAK, iTAK, or a TAK Server — with no cloud, no subscription,
+device - ATAK, WinTAK, iTAK, or a TAK Server - with no cloud, no subscription,
 and no command line required. Sensors in, [Cursor on Target](reference/glossary.md#cot)
 out, managed entirely from a touch-friendly web console.
 
 ADS-B and UAT aircraft, AIS vessels, drone Remote ID over Wi-Fi and Bluetooth,
-DJI DroneID, APRS, and your own GPS position — on one box, in one picture.
+DJI DroneID, APRS, and your own GPS position - on one box, in one picture.
 
 [Get started in 15 minutes](get-started/quickstart.md){ .md-button .md-button--primary }
 [What is AryaOS?](get-started/overview.md){ .md-button }
@@ -30,7 +30,7 @@ DJI DroneID, APRS, and your own GPS position — on one box, in one picture.
 
     ---
 
-    Display ADS-B and UAT air traffic in TAK. The original AirTAK use case —
+    Display ADS-B and UAT air traffic in TAK. The original AirTAK use case -
     proven in wildland fire and SAR.
 
     [:octicons-arrow-right-24: Aircraft (ADS-B)](deploy/air-adsb.md)
@@ -47,7 +47,7 @@ DJI DroneID, APRS, and your own GPS position — on one box, in one picture.
 
     ---
 
-    Detect and track drones by Remote ID — over Wi-Fi *and* over Bluetooth — plus
+    Detect and track drones by Remote ID - over Wi-Fi *and* over Bluetooth - plus
     DJI DroneID. Reports the aircraft and the operator's location.
 
     [:octicons-arrow-right-24: Counter-UAS](deploy/counter-uas.md)
@@ -56,7 +56,7 @@ DJI DroneID, APRS, and your own GPS position — on one box, in one picture.
 
     ---
 
-    Fuse air, maritime, and drone feeds into one picture — or relay CoT between
+    Fuse air, maritime, and drone feeds into one picture - or relay CoT between
     networks and a TAK Server.
 
     [:octicons-arrow-right-24: Multi-sensor](deploy/multi-sensor.md)
@@ -65,22 +65,22 @@ DJI DroneID, APRS, and your own GPS position — on one box, in one picture.
 
 ## What it can hear
 
-Capabilities are named after the signal, not after a product — `adsb`, `ais`,
+Capabilities are named after the signal, not after a product - `adsb`, `ais`,
 `wifi-rid`, `ble-rid`, `rid`, `dji`, `sik`, `sapient`. They are exactly the names
 you type, the names the box reports, and the names on the map.
 
 The image ships with every sensor **switched off**; on first boot the box works
 out what is actually plugged in and enables what it finds, then reports anything
-it could do but did not turn on. Mix them freely — it will tell you when two
+it could do but did not turn on. Mix them freely - it will tell you when two
 capabilities want the same radio.
 
 | Capability | Enable with | What appears on the map | Hardware needed |
 |------------|-------------|-------------------------|-----------------|
-| **ADS-B / UAT** | `adsb` | Crewed aircraft on 1090 MHz and 978 MHz | **SDR** — RTL-SDR, or any SoapySDR device |
+| **ADS-B / UAT** | `adsb` | Crewed aircraft on 1090 MHz and 978 MHz | **SDR** - RTL-SDR, or any SoapySDR device |
 | **AIS** | `ais` | Ships and vessels | dAISy NMEA receiver, or a spare **SDR** |
-| **Remote ID** — Wi-Fi | `wifi-rid` | ASTM F3411 Remote ID over 802.11, plus operator location | Monitor-mode Wi-Fi adapter (e.g. Atheros AR9271) |
-| **Remote ID** — Bluetooth | `ble-rid` | ASTM F3411 Remote ID over Bluetooth LE | **None** — the board's own radio |
-| **Remote ID** — receiver | `rid` | Remote ID via a dedicated receiver, over **MAVLink** | BlueMark DroneScout DS110 |
+| **Remote ID** - Wi-Fi | `wifi-rid` | ASTM F3411 Remote ID over 802.11, plus operator location | Monitor-mode Wi-Fi adapter (e.g. Atheros AR9271) |
+| **Remote ID** - Bluetooth | `ble-rid` | ASTM F3411 Remote ID over Bluetooth LE | **None** - the board's own radio |
+| **Remote ID** - receiver | `rid` | Remote ID via a dedicated receiver, over **MAVLink** | BlueMark DroneScout DS110 |
 | **DJI DroneID** | `dji` | DJI aircraft and the pilot's position | AntSDR E200 |
 | **MAVLink telemetry** | `sik` | Drone telemetry from a SiK radio | SiK / SiKW00F radio |
 | **SAPIENT C-UAS** | `sapient` | Counter-UAS sensors speaking BSI Flex 335 | Networked sensor |
@@ -109,7 +109,7 @@ Two things are **not** capabilities, because they are not optional receivers:
     ---
 
     Write AryaOS to a microSD card with AryaOS Imager, which fetches the image
-    for you — or Raspberry Pi Imager or Etcher.
+    for you - or Raspberry Pi Imager or Etcher.
 
     [:octicons-arrow-right-24: Flash the image](get-started/flash-the-image.md)
 
@@ -117,7 +117,7 @@ Two things are **not** capabilities, because they are not optional receivers:
 
     ---
 
-    Everything is configurable from the browser — no SSH needed.
+    Everything is configurable from the browser - no SSH needed.
 
     [:octicons-arrow-right-24: Tour the web console](admin/index.md)
 
@@ -138,7 +138,7 @@ Two things are **not** capabilities, because they are not optional receivers:
 - **Never touch a terminal.** Network, radios, TAK certificates, VPN, updates,
   device role, and diagnostics all live in the web console.
 - **Quiet by default.** A stock image ships with every sensor disabled and only starts
-  what the attached hardware supports, so a box with no radios is a working TAK node —
+  what the attached hardware supports, so a box with no radios is a working TAK node -
   not a wall of errors.
 - **Built on open standards.** Every gateway is powered by
   [PyTAK](reference/glossary.md#pytak) and speaks Cursor on Target to the whole

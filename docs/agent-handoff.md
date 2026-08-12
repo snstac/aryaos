@@ -1,4 +1,4 @@
-# Agent handoff — state as of 2026-07-21
+# Agent handoff - state as of 2026-07-21
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
@@ -7,19 +7,19 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
 
-## 2026-07-19→21 sweep — HIL hardening + landing-page features (SHIPPED)
+## 2026-07-19 to 21 sweep - HIL hardening + landing-page features (SHIPPED)
 
 Two arcs, both merged and in a green image: **`v2026.07.21.211313-4e5923568c11-dev`**
-(`verify-image`: 135 ok, 0 failed). User is flashing it now for HIL testing —
+(`verify-image`: 135 ok, 0 failed). User is flashing it now for HIL testing -
 **resume by testing this release on the box.**
 
-### Arc 1 — HIL security hardening (radios / EMCON / isolation)
+### Arc 1 - HIL security hardening (radios / EMCON / isolation)
 Hardware-in-the-loop pentest of the appliance. Landed (aryaos, all asserted in
 `verify-image.sh`):
 - **Wi-Fi/AP isolation**: `public.xml` dropped `<forward/>` so the onboarding AP/PAN
   can't gateway to wired ethernet; new **`aryaos-hotspot` firewalld zone** withholds
   ssh/node-red/mesh from onboarding clients; NM owns the zone via `connection.zone`
-  (`comitup-callback.sh` uses `nmcli connection modify … + device reapply`, NOT
+  (`comitup-callback.sh` uses `nmcli connection modify ... + device reapply`, NOT
   `firewall-cmd --change-interface`, which NM reverts). `pan0` statically bound.
 - **EMCON / radio silence** (`aryaos-radio`): `ap {on|off}`, `silence {on|off}` does
   `nmcli radio wifi off` + `rfkill block wifi bluetooth`; `--boot` re-applies from
@@ -27,15 +27,15 @@ Hardware-in-the-loop pentest of the appliance. Landed (aryaos, all asserted in
   `ConditionPathExists=!/etc/aryaos/emcon` drop-ins. Ethernet + SDR RX unaffected.
 - **Node-RED unauth-root closed**: drop-in runs it `User=node-red` (was root); default
   publicly-known password (`aryaos415`) rotated on first boot; cockpit-aryaos card to reset.
-- **XXE/billion-laughs guards** + systemd sandboxing on `aryaos-neighbord` (score 9→3),
+- **XXE/billion-laughs guards** + systemd sandboxing on `aryaos-neighbord` (score reduced from 9 to 3),
   socket `0600`; TAK data-package import moved off CGI to a root CLI over an AF_UNIX
   socket with SSRF host-blocking. **Zeroize stays best-effort sanitize (usable box), NOT
   scorched-earth.** SSH password auth intentionally STAYS ON (don't lock users out).
 - **chrony NTP server** (`local stratum 10`, gpsd SHM refclock, `allow`) served on the LAN zone.
 
-### Arc 2 — landing-page features + style fix (cockpit-aryaos v1.5.0 + plugin patches)
+### Arc 2 - landing-page features + style fix (cockpit-aryaos v1.5.0 + plugin patches)
 - **Unstyled plugins fixed**: React/esbuild plugins bundle SCSS to `dist/index.css` but
-  `index.html` never linked it → completely unstyled in Cockpit. Added
+  `index.html` never linked it > completely unstyled in Cockpit. Added
   `<link rel="stylesheet" href="index.css">` + shared `branding.css` (matching
   cockpit-gps/aiscatcher) to **cockpit-charontak/adsbcot/dronecot/aiscot/sdrconnect**.
 - **Landing-page location chip** (cockpit-aryaos): offline **North America** base map +
@@ -49,58 +49,58 @@ Hardware-in-the-loop pentest of the appliance. Landed (aryaos, all asserted in
 
 ### Build/release gotchas learned this sweep (IMPORTANT)
 - **image-commit stamp**: pi-gen runs inside a **Docker container** (`usimd/pi-gen-action`).
-  `GITHUB_ENV` vars do NOT cross into it — `ARYAOS_BUILD_SHA` must be passed via
+  `GITHUB_ENV` vars do NOT cross into it - `ARYAOS_BUILD_SHA` must be passed via
   `docker-opts: -e` (fixed #164). A prior "fix" using GITHUB_ENV silently left the stamp
   `unknown` and failed the gate. Same rule for any new build-time env a stage needs.
 - **Plugin debs publish on TAGS ONLY** (`build.yml` steps are `if: startsWith(github.ref,
-  'refs/tags/')`). Merging a plugin PR to `main` only runs validation — it does NOT
+  'refs/tags/')`). Merging a plugin PR to `main` only runs validation - it does NOT
   produce a new deb. To ship a plugin change: **push a `vX.Y.Z` git tag** (git push, not
-  `gh release create` — the workflow triggers on `push: tags`, not the `release` event) →
-  build.yml packages the deb + creates the release → then publish the apt repo.
+  `gh release create` - the workflow triggers on `push: tags`, not the `release` event) >
+  build.yml packages the deb + creates the release > then publish the apt repo.
 - **apt repo path** is `https://snstac.github.io/packages/apt` (note the `/apt` subpath),
-  suite `stable`, component `main`, index at `…/apt/dists/stable/main/binary-arm64/Packages`.
+  suite `stable`, component `main`, index at `.../apt/dists/stable/main/binary-arm64/Packages`.
   Ingest new debs by dispatching **`snstac/packages` `publish.yml`** (`gh workflow run
-  publish.yml --repo snstac/packages`; also runs daily 06:17 UTC) — it pulls each product's
+  publish.yml --repo snstac/packages`; also runs daily 06:17 UTC) - it pulls each product's
   *latest* GitHub Release assets. THEN rebuild the aryaos image so apt pulls the new versions.
-- Correct order to land a plugin change in an image: merge PR → tag release → publish.yml →
+- Correct order to land a plugin change in an image: merge PR > tag release > publish.yml >
   image build. Skipping any step ships the old deb (and `verify-image` now catches the
   cockpit-aryaos case: `card-location` + `aryaos-basemap.js`).
 
 This sweep's plugin releases: cockpit-aryaos **v1.5.0**, cockpit-charontak **v1.2.1**,
 cockpit-aiscot **v1.2.2**, cockpit-dronecot **v1.1.2**, cockpit-adsbcot **v1.2.2**.
-(cockpit-sdrconnect CSS fix merged but unreleased — not in the image manifest / apt index.)
+(cockpit-sdrconnect CSS fix merged but unreleased - not in the image manifest / apt index.)
 
-## 2026-07-15/17 sweep — "never SSH" + fleet dedup (SHIPPED)
+## 2026-07-15/17 sweep - "never SSH" + fleet dedup (SHIPPED)
 
 Full review + implementation sweep. **All 11 PRs merged and released** (2026-07-17,
-in dependency order: packages → aryaos → cockpit-aryaos → plugins). What landed:
+in dependency order: packages > aryaos > cockpit-aryaos > plugins). What landed:
 
 - **aryaos overlay helpers** (all driven by cockpit-aryaos cards, no SSH):
   `aryaos-support-bundle` (redacted diagnostics tarball, `/var/lib/aryaos/support/`),
-  `aryaos-set-nodered-password` (rotates the publicly-known default; `settings.js`
-  → `root:node-red 0640`), `aryaos-sdr` (RTL-SDR enumerate + EEPROM re-serial; this
-  added the `rtl-sdr` package — only `librtlsdr0` shipped before), `aryaos-role`
+  `aryaos-set-nodered-password` (rotates the publicly-known default and sets
+  `settings.js` to `root:node-red 0640`), `aryaos-sdr` (RTL-SDR enumerate + EEPROM re-serial; this
+  added the `rtl-sdr` package - only `librtlsdr0` shipped before), `aryaos-role`
   (runtime device roles **multi/air/maritime/cuas/relay**; CoT core charontak/lincot/
   gpstak/gpsd never touched; ADS-B decoder follows `ARYAOS_ADSB_DECODER`). Installed
   via overlay deb + chroot stage + Ansible; asserted in `verify-image.sh`; all four
-  now in the CI shellcheck list (they have **no `.sh` suffix** — the globs missed them,
+  now in the CI shellcheck list (they have **no `.sh` suffix** - the globs missed them,
   don't re-break that).
-- **SBOMs** — `scripts/generate-sbom.sh` + pinned syft, every image build emits
+- **SBOMs** - `scripts/generate-sbom.sh` + pinned syft, every image build emits
   SPDX + CycloneDX attached to the release. The step runs **before the tag push** on
   purpose (an SBOM failure must not strand a tag). CAUTION: it runs syft under `sudo`,
-  so it chowns `deploy/` back to the runner afterward — a prior version stranded a tag
+  so it chowns `deploy/` back to the runner afterward - a prior version stranded a tag
   by leaving `deploy/` root-owned (fixed in #131).
-- **cockpit-aryaos v1.3.0** — six new cards: support bundle, Node-RED password,
+- **cockpit-aryaos v1.3.0** - six new cards: support bundle, Node-RED password,
   Radios (RTL-SDR), Device role, comitup hotspot password, Tailscale join. The four
   helper-backed cards need aryaos-overlay ≥ the 2026-07 helpers; on older images they
   show a clear error toast.
-- **cockpit-charontak v1.2.0** — React/TS rewrite + **structured lane editor**.
+- **cockpit-charontak v1.2.0** - React/TS rewrite + **structured lane editor**.
   `src/cotUrl.ts` is a differentially-tested port of `charontak/src/charontak/config.py`
-  — **keep the two in sync** if lane/URL validation changes.
-- **gdltak** (new repo, v1.0.0) — CoT → GDL90 UDP broadcast so ForeFlight/EFBs display
+  - **keep the two in sync** if lane/URL validation changes.
+- **gdltak** (new repo, v1.0.0) - CoT > GDL90 UDP broadcast so ForeFlight/EFBs display
   the TAK air picture. In the sensor manifest + air/multi roles; egress-only (no
   inbound firewall service). 48 tests incl. the GDL90-spec CRC known-answer.
-- **@snstac/cockpit-shared** (new repo, v1.1.0) — shared `serviceCard`/`tlsCard`/
+- **@snstac/cockpit-shared** (new repo, v1.1.0) - shared `serviceCard`/`tlsCard`/
   `envDefaultFile`/`types`. **Source-shipping model**: consumers depend on
   `github:snstac/cockpit-shared#vX.Y.Z` and esbuild bundles the `.ts/.tsx` directly
   (no npm registry, no build step); `cockpit` resolves from each consumer's `pkg/lib`.
@@ -108,10 +108,10 @@ in dependency order: packages → aryaos → cockpit-aryaos → plugins). What l
   though the lockfile `resolved` says `git+ssh`). **All five family-B plugins consume
   it** (aiscot v1.2.1, adsbcot v1.2.1, dronecot v1.1.1, lincot v1.1.1, charontak v1.2.0).
   Bumping the shared package = bump its tag, then bump the `#vX.Y.Z` ref in each consumer.
-- **README** amd64 claim softened (arm64 today, amd64 planned) — tracking #129
+- **README** amd64 claim softened (arm64 today, amd64 planned) - tracking #129
   (installer-script path first: the apt repo + overlay deb already run on any Debian host).
 
-Issue tracker triaged **42 → 11 open** (each closure commented with what superseded it).
+Issue tracker triaged **42 > 11 open** (each closure commented with what superseded it).
 
 **Next hardware session**: flash the milestone image below and exercise all six
 cockpit-aryaos cards + verify the Cockpit expired-password first-login flow (the
@@ -121,7 +121,7 @@ plugins still on vanilla-JS could adopt cockpit-shared patterns.
 
 ## Current known-good build
 
-- Latest successful dev image: `v2026.07.17.165541-5fa79a7bfae5-dev` — **the milestone
+- Latest successful dev image: `v2026.07.17.165541-5fa79a7bfae5-dev` - **the milestone
   build**: first image with gdltak, the four field-support helpers, device roles, and
   working SBOM attachment.
 - Release: https://github.com/snstac/aryaos/releases/tag/v2026.07.17.165541-5fa79a7bfae5-dev
@@ -130,7 +130,7 @@ plugins still on vanilla-JS could adopt cockpit-shared patterns.
 - Notes: **dev/lab image** (`aryaos-dev-lab` SSH key, passwordless `pi` sudo, no
   first-boot password expiry). Do not field it. For a release image, dispatch the
   Pi-gen workflow with the `release` input checked.
-- Watch: the apt index refreshes on the packages repo's daily/push publish — the new
+- Watch: the apt index refreshes on the packages repo's daily/push publish - the new
   plugin deb versions (cockpit-aryaos 1.3.0 etc.) reach deployed units via one-click
   updates once that runs.
 
@@ -153,18 +153,18 @@ Recent build blockers fixed:
 
 AryaOS is the **master consumer of the PyTAK stack**. Three pillars landed in June 2026:
 
-1. **Everything installs from the signed apt repo** — https://snstac.github.io/packages,
+1. **Everything installs from the signed apt repo** - https://snstac.github.io/packages,
    built by [snstac/packages](https://github.com/snstac/packages) from each product's
    *latest GitHub release* (repos listed in its `products.txt`). No vendored sensor
    binaries remain in this repo; the only vendored artifacts are trust anchors
    (`shared_files/aryaos/snstac-packages/`, FlightAware repo deb).
-2. **Cockpit is the single admin surface** — nine standalone `cockpit-*` plugin
+2. **Cockpit is the single admin surface** - nine standalone `cockpit-*` plugin
    repos/debs (adsbcot, aiscot, aiscatcher, dronecot, lincot, gps, charontak, gpstak,
    aryaos). `cockpit-aryaos` ("AryaOS Site") manages the site-wide layer:
    `/etc/aryaos/aryaos-config.txt` (site `COT_URL` etc.) and one-shot TAK TLS cert
    upload to `/etc/aryaos/tls` (key `0640 root:tak-certs`; group reconciled by
    `aryaos-firstboot.sh` every boot). Per-tool plugins edit `/etc/default/<svc>`.
-3. **CI builds dev images by default** — every push to `main` produces a
+3. **CI builds dev images by default** - every push to `main` produces a
    `v<ts>-<sha>-dev` **prerelease** with lab access baked (dev SSH key, pi NOPASSWD,
    no password expiry) for burn-and-test. Hardened release images require dispatching
    the Pi-gen workflow with the **`release`** input checked. `scripts/verify-image.sh`
@@ -175,7 +175,7 @@ AryaOS is the **master consumer of the PyTAK stack**. Three pillars landed in Ju
 
 - **Site-config inheritance**: every gateway unit loads
   `EnvironmentFile=-/etc/aryaos/aryaos-config.txt` *before* its own
-  `/etc/default/<svc>` — site sets defaults, per-service values override. The
+  `/etc/default/<svc>` - site sets defaults, per-service values override. The
   injection happens in each stage's chroot script (sed after `[Service]`); drop-in
   files would invert the precedence (drop-ins parse *after* the unit file).
 - **CoT routing hub**: `adsbcot`, `aiscot`, `dronecot`, `lincot`, and other local
@@ -185,13 +185,13 @@ AryaOS is the **master consumer of the PyTAK stack**. Three pillars landed in Ju
   feeder independently at the same TAK Server except for deliberate legacy/debug bypass.
 - **apt pinning**: `install-sensor-debs.sh` pins `release o=snstac` at **995** because
   stage-adsbcot pins trixie at 990 and Debian ships an SDR-less readsb that must never
-  win. readsb is also `apt-mark hold` (status `hold ok installed` — verify-image
+  win. readsb is also `apt-mark hold` (status `hold ok installed` - verify-image
   accepts both hold and install).
 - **Exactly one `EXPORT_IMAGE`** stage, last in every `STAGE_LIST` (PR validation
-  enforces). `ARYAOS_CI_TRIM_WORK=1` (CI only) deletes stale stage rootfs trees —
+  enforces). `ARYAOS_CI_TRIM_WORK=1` (CI only) deletes stale stage rootfs trees -
   pi-gen full-copies per stage and 72 GB arm64 runners can't hold ~15 copies
   (the fleet has 72 GB *and* 145 GB VMs; never rely on runner luck).
-  `increase-runner-disk-size` is broken on arm64 runners — keep it false.
+  `increase-runner-disk-size` is broken on arm64 runners - keep it false.
 - **Release publication on immutable-release repos**: use `gh release create` for
   releases with image assets. Do not go back to `softprops/action-gh-release` unless
   it is configured to keep the release draft until after asset upload.
@@ -230,8 +230,8 @@ See [security.md](security.md) for the full posture. Summary of what landed:
 
 - **firewalld** enabled with an explicit allowlist in the default zone
   (`shared_files/aryaos/firewalld/`); AntSDR link pinned to the trusted zone
-  via `zone=trusted` in `aryaos-antsdr.nmconnection`. Operators use Cockpit →
-  Networking → Firewall. If a new service opens a port, add a firewalld
+  via `zone=trusted` in `aryaos-antsdr.nmconnection`. Operators use Cockpit >
+  Networking > Firewall. If a new service opens a port, add a firewalld
   service XML + zone entry + verify-image assert, or it will be unreachable.
 - **fail2ban** (sshd jail), **sshd drop-in** (`50-aryaos.conf`, password auth
   deliberately stays on), **sysctl** hardening, **unattended-upgrades**
@@ -239,7 +239,7 @@ See [security.md](security.md) for the full posture. Summary of what landed:
 - **Per-device web TLS**: `aryaos-firstboot.sh` regenerates the snakeoil key
   and `/etc/lighttpd/ssl/snakeoil-combined.pem` once per device (marker
   `/etc/aryaos/.web-tls-regenerated`). Firstboot also stopped `chown -R
-  node-red /etc/aryaos` — Node-RED now owns only the config file, and
+  node-red /etc/aryaos` - Node-RED now owns only the config file, and
   `/etc/aryaos/tls` is `root:tak-certs 0750` with the key `0640`.
 - **One-click updates**: `/usr/local/sbin/aryaos-update {check|apply|status}`
   + `aryaos-update.service` (oneshot, survives browser close), driven by the
@@ -248,17 +248,17 @@ See [security.md](security.md) for the full posture. Summary of what landed:
   `/var/lib/aryaos/update-*.json`.
 - **aryaos-overlay 2.1** is built by CI and attached to releases as a deb
   asset, so units can upgrade the overlay itself once `snstac/aryaos` is in
-  the packages repo `products.txt` (see open items — sequencing matters).
+  the packages repo `products.txt` (see open items - sequencing matters).
 - New verify-image asserts cover all of the above; runtime checks are in
   `scripts/aryaos-test/tests/09-security.sh`.
 
 ## GPSTAK (new, 2026-06-12)
 
-`gpstak` package → `/usr/bin/gpstak`: feeds onboard GNSS to TAK
-devices per https://ampledata.org/network_gps.html — CoT position events to `COT_URL`
+`gpstak` package > `/usr/bin/gpstak`: feeds onboard GNSS to TAK
+devices per https://ampledata.org/network_gps.html - CoT position events to `COT_URL`
 (default `udp+broadcast://255.255.255.255:4349`, ATAK's *External or Network GPS*) and
 raw-NMEA passthrough for WinTAK (`NMEA_TARGETS`). Reads gpsd's JSON socket; pytak for
-transport (so `PYTAK_TLS_*` applies). Ships **disabled**; managed in Cockpit → GPSTAK
+transport (so `PYTAK_TLS_*` applies). Ships **disabled**; managed in Cockpit > GPSTAK
 ([cockpit-gpstak](https://github.com/snstac/cockpit-gpstak)). Verified live on the dev
 Pi. Source and Debian/RPM release packaging live in https://github.com/snstac/gpstak.
 
@@ -273,7 +273,7 @@ Pi. Source and Debian/RPM release packaging live in https://github.com/snstac/gp
 | readsb | 3.16.15-2 | synced to wiedehopf dev; build debs in `debian:trixie` containers because Ubuntu builds depend on `librtlsdr2`, uninstallable on Debian |
 | AIS-catcher fork | 0.68 | release workflow runs upstream `build-debian.sh` as root; upstream CI workflows disabled on the fork |
 | windtak 1.0.0, takline 0.1.1 | Jun 2026 | |
-| cockpit-* ×9 | 1.0.0+ | Cockpit plugins use the dark AryaOS/GPSTAK visual style; watch for regressions to white-on-white UI |
+| cockpit-* x9 | 1.0.0+ | Cockpit plugins use the dark AryaOS/GPSTAK visual style; watch for regressions to white-on-white UI |
 
 ## LINCOT / Host Beacon
 
@@ -290,16 +290,16 @@ for `/cgi-bin/aryaos-neighbors` and the landing-page neighbor table.
 
 ## Recurring gotchas (each cost a build this month)
 
-- `gh release upload` fails on fresh tags — `gh release view || gh release create` first.
+- `gh release upload` fails on fresh tags - `gh release view || gh release create` first.
 - Immutable GitHub releases reject assets uploaded after publication. Use
   `gh release create <tag> <asset> ...`, not a create-then-upload flow that publishes
   first.
-- `dpkg-deb -c | grep | head` → SIGPIPE kills dpkg-deb under `set -e`.
+- `dpkg-deb -c | grep | head` > SIGPIPE kills dpkg-deb under `set -e`.
 - `dh_install` treats destinations as directories (`foo.conf` becomes a *dir*).
 - stdeb deb names default to `python3-<name>` without `stdeb.cfg` `Package3:`.
 - A single private/release-less repo in `products.txt` kills the whole publish
   ("release not found"); publishes racing a just-pushed tag fail the same way.
-- This repo has `core.fileMode=false` — `git update-index --chmod=+x` for scripts.
+- This repo has `core.fileMode=false` - `git update-index --chmod=+x` for scripts.
 - GitHub GraphQL intermittently 401s here; use REST (`gh api`) with retries.
 
 ## Dev lab
@@ -331,10 +331,10 @@ After flashing the latest dev image, first checks should include:
 0. **Hardening burn-in (2026-07-02)**: flash the first post-hardening dev
    image and run the integration suite (esp. `09-security.sh`). Watch for
    firewalld regressions: comitup hotspot onboarding, Bluetooth PAN DHCP,
-   Mesh SA neighbor discovery, AntSDR → dronecot, Docker-published CloudTAK
+   Mesh SA neighbor discovery, AntSDR > dronecot, Docker-published CloudTAK
    ports, Node-RED/AIS-catcher dashboards. Then, **after the first release
    with the `aryaos-overlay_*_all.deb` asset exists**, add `snstac/aryaos` to
-   packages `products.txt` (adding it earlier breaks the whole publish —
+   packages `products.txt` (adding it earlier breaks the whole publish -
    `gh release download` fails on a release with no deb assets).
 1. **Flash and test the latest dev image**: burn
    `v2026.06.23.212757-abe8e41bf5e2-dev`, then run the integration suite against the
@@ -350,7 +350,7 @@ After flashing the latest dev image, first checks should include:
 4. **Release hygiene**: for dev builds, verify published prereleases have the image
    asset attached. Delete empty prereleases immediately if publish fails after tag
    creation.
-5. **takline + windtak are private** — the packages publish token can't read them;
+5. **takline + windtak are private** - the packages publish token can't read them;
    flip public (`gh repo edit snstac/<r> --visibility public
    --accept-visibility-change-consequences`), then add to `products.txt`.
 6. **Archive** `spotcot` (pre-pytak-5, dormant since 2022) and `cockpit-sdrconnect`
@@ -358,7 +358,7 @@ After flashing the latest dev image, first checks should include:
 7. **Delete** stray fork `snstac/AIS-catcher-1` (accidental duplicate).
 8. adsbcot PyPI job needs a **trusted publisher** configured on PyPI (release works
    regardless; the job just reads red).
-9. Possible next plugins: charontak *lane editor* (structured `charontak.ini` UI —
+9. Possible next plugins: charontak *lane editor* (structured `charontak.ini` UI -
    current plugin is a raw editor), windtak/aprscot pages; backport SIGPIPE
    fixes everywhere `dpkg-deb -c | head` survives.
 10. Node-RED runtime check after the worldmap 5.x / tfr2cot 2.0 major bumps

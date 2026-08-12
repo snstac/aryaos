@@ -1,15 +1,15 @@
 # Device roles
 
-A **device role** selects which sensor pipelines run on an AryaOS unit — aircraft, vessels, drones, all of them, or none. Roles are runtime-selectable and persisted, so you can repurpose a box in the field without re-flashing. Set the role from the [Device role](../admin/aryaos-site.md#device-role) card or with the `aryaos-role` CLI helper.
+A **device role** selects which sensor pipelines run on an AryaOS unit - aircraft, vessels, drones, all of them, or none. Roles are runtime-selectable and persisted, so you can repurpose a box in the field without re-flashing. Set the role from the [Device role](../admin/aryaos-site.md#device-role) card or with the `aryaos-role` CLI helper.
 
 ## The CoT core is always on
 
 Whatever role you choose, the **CoT core never stops**:
 
-- `charontak` — the CoT hub / router
-- `lincot` — this host's own beacon
-- `gpstak` — network GPS to TAK clients
-- `gpsd` — the GNSS receiver
+- `charontak` - the CoT hub / router
+- `lincot` - this host's own beacon
+- `gpstak` - network GPS to TAK clients
+- `gpsd` - the GNSS receiver
 
 Roles only toggle the **sensor** units on top of that core. This means a unit always beacons its position and routes CoT, even in the sensor-free `relay` role.
 
@@ -34,12 +34,12 @@ The exact unit sets, from `aryaos-role`:
 | Drones / C-UAS (`cuas`, `multi`) | `dronecot`, `sikw00fcot`, `sapientcot` |
 
 !!! note "Units missing from your image are skipped"
-    Applying a role enables the role's units and disables all other managed units. Optional units that are not installed on your image (for example a decoder you did not build) are simply skipped — not errors. The full managed set the helper touches is: `readsb`, `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdltak`, `ais-catcher`, `aiscot`, `dronecot`, `sikw00fcot`, `sapientcot`.
+    Applying a role enables the role's units and disables all other managed units. Missing optional units are skipped without error. The full managed set is: `readsb`, `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdltak`, `ais-catcher`, `aiscot`, `dronecot`, `sikw00fcot`, `sapientcot`.
 
-    `sapientcot` bridges a [SAPIENT (BSI Flex 335)](https://github.com/snstac/sapientcot) C-UAS sensor/fusion network into TAK. Point `SAPIENT_HOST`/`SAPIENT_PORT` in `/etc/default/sapientcot` at your SAPIENT node; with no reachable node it simply retries.
+    `sapientcot` bridges a [SAPIENT (BSI Flex 335)](https://github.com/snstac/sapientcot) C-UAS sensor/fusion network into TAK. Point `SAPIENT_HOST`/`SAPIENT_PORT` in `/etc/default/sapientcot` at your SAPIENT node. It retries while the node is unreachable.
 
 !!! tip "The unused ADS-B decoder is always disabled"
-    Applying a role also disables whichever 1090 MHz decoder you are *not* using. That is why re-applying the role is the way to make a decoder change in the site config take effect — see [Radios & SDRs](./radios-sdr.md).
+    Applying a role also disables whichever 1090 MHz decoder you are *not* using. That is why re-applying the role is the way to make a decoder change in the site config take effect - see [Radios & SDRs](./radios-sdr.md).
 
 ## How switching works
 
@@ -52,7 +52,7 @@ Applying a role does three things, in order:
 Because the units are *disabled*, the role sticks across reboots.
 
 === "Web console"
-    On the [AryaOS Site page](../admin/aryaos-site.md#device-role), choose a role from the **Role** drop-down. The card previews the exact units that will be enabled ("Sensor services for this role: …"). Press **Apply role** and confirm — services outside the role are stopped and disabled.
+    On the [AryaOS Site page](../admin/aryaos-site.md#device-role), choose a role from the **Role** drop-down. The card previews the exact units that will be enabled ("Sensor services for this role: ..."). Press **Apply role** and confirm - services outside the role are stopped and disabled.
 
 === "CLI"
     ```bash
@@ -65,7 +65,7 @@ Because the units are *disabled*, the role sticks across reboots.
     The helper prints each `enable`/`disable` action it takes. See [CLI helpers](../reference/cli-helpers.md).
 
 !!! warning "Applying a role disables other sensors"
-    Switching to `air` stops and disables the AIS and drone units; switching to `relay` stops **all** sensor units. This is intentional — pick the role that matches the mission. The CoT core keeps running regardless.
+    Switching to `air` stops and disables the AIS and drone units; switching to `relay` stops **all** sensor units. This is intentional - pick the role that matches the mission. The CoT core keeps running regardless.
 
 ## Capability discovery
 
@@ -86,7 +86,7 @@ Detected hardware capabilities: adsb
                        * shares a radio with 'adsb'; enable manually with
                          `aryaos-role caps ais` (or add a second receiver)
   wifi-rid  no         no external Wi-Fi adapter
-  sapient   manual     network sensor — configure deliberately, never auto-detected
+  sapient   manual     network sensor - configure deliberately, never auto-detected
 ```
 
 **This runs automatically once, at first boot.** The image ships every sensor
@@ -102,7 +102,7 @@ worse than enabling nothing:
 - **Contended radios.** One SDR cannot serve ADS-B *and* AIS at once, so only
   the higher-priority capability (`adsb`) is auto-enabled; the other is reported
   as available with the reason it was held back.
-- **DS110 vs SiKW00F.** Both are ESP32-S3 (`303a:1001`) — the USB id cannot tell
+- **DS110 vs SiKW00F.** Both are ESP32-S3 (`303a:1001`) - the USB id cannot tell
   them apart. The scanner probes the port for MAVLink framing (a DS110 speaks
   it); if the port is silent or in use it reports `AMBIGUOUS` rather than
   guessing.
@@ -119,11 +119,11 @@ off, or a service running that nobody declared.
 ## Persistence and precedence
 
 - The current role lives in `ARYAOS_ROLE` in the site config. When unset, the effective role is `multi`.
-- Editing `ARYAOS_ROLE` by hand does **not** change which units run — the enable/disable actions happen when you *apply* a role. Always apply through the card or `aryaos-role set` so systemd state and the config key stay in sync.
+- Editing `ARYAOS_ROLE` by hand does **not** change which units run - the enable/disable actions happen when you *apply* a role. Always apply through the card or `aryaos-role set` so systemd state and the config key stay in sync.
 
 ## See also
 
-- [Multi-sensor COP](../deploy/multi-sensor.md) — running all pipelines at once
-- [Relay & routing](../deploy/relay-routing.md) — the `relay` role in practice
-- [Site configuration](./site-config.md) — `ARYAOS_ROLE` and the decoder key
-- [Radios & SDRs](./radios-sdr.md) — decoder selection
+- [Multi-sensor COP](../deploy/multi-sensor.md) - running all pipelines at once
+- [Relay & routing](../deploy/relay-routing.md) - the `relay` role in practice
+- [Site configuration](./site-config.md) - `ARYAOS_ROLE` and the decoder key
+- [Radios & SDRs](./radios-sdr.md) - decoder selection
