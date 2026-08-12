@@ -114,10 +114,14 @@ if capability_enabled rid; then
 		fail "DroneCOT PID ${RID_PID:-missing} does not own ${RID_DEVICE:-missing}"
 	fi
 	RID_LOG="$(journalctl "_PID=${RID_PID}" --no-pager 2>/dev/null || true)"
-	if grep -q 'MAVLink heartbeat received' <<<"${RID_LOG}"; then
-		ok "DroneScout MAVLink heartbeat received"
+	# DroneCOT logs the heartbeat once when it establishes the MAVLink session.
+	# On a long-running, high-rate receiver that startup line can rotate out of
+	# the RAM journal while current RID payloads continue to prove the same live
+	# session. Treat either observation as valid transport evidence.
+	if grep -qE 'MAVLink heartbeat received|Processing RID data' <<<"${RID_LOG}"; then
+		ok "DroneScout MAVLink session observed"
 	else
-		fail "DroneScout MAVLink heartbeat not observed"
+		fail "DroneScout MAVLink session not observed"
 	fi
 	if grep -q 'Processing RID data' <<<"${RID_LOG}"; then
 		ok "DroneScout Remote ID payloads processed"

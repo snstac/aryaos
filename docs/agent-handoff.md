@@ -1,4 +1,4 @@
-# Agent handoff — state as of 2026-08-11
+# Agent handoff — state as of 2026-08-12
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
@@ -6,6 +6,51 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
+
+## 2026-08-12 AryaAir/AryaSea eight-hour burn-in
+
+- `192.168.0.199` (`aryaos-d628`, AryaAir) and `192.168.0.44`
+  (`aryaos-c2cb`, AryaSea) completed an eight-hour mixed hardware-in-the-loop
+  acceptance run. The sampler collected 960 successful probes (480 per host)
+  with no probe failures, failed units, required-service drops, restart-count
+  growth, throttling, filesystem alerts, or boot-ID changes. The role services
+  were active in all 480 samples on each host: ADS-B/DroneScout on AryaAir and
+  AIS on AryaSea.
+- AryaAir peaked at 61.15 C, load 4.46, 21.66% memory, and 23.15% disk usage;
+  memory moved -0.29 percentage points. AryaSea peaked at 78.75 C, load 2.06,
+  17.62% memory, and 23.93% disk usage; memory moved +1.31 points. The only
+  repeated kernel warning was the known Broadcom Wi-Fi management-IE `-52`
+  message.
+- Two 512 MiB discard-only network passes measured AryaAir at 30.84--35.64
+  MiB/s upload and 56.66--63.09 MiB/s download, and AryaSea at 32.51--37.88
+  MiB/s upload and 54.85--62.16 MiB/s download. AryaAir completed both
+  15-minute 4-worker/512 MiB load phases at no more than 62.8 C. AryaSea's
+  guarded tests intentionally stopped four workers at 78.2 C and two workers
+  at 78.75 C, with no throttling or service fault; its 15-minute
+  1-worker/512 MiB phase passed at 73.8 C. Treat one sustained CPU worker as
+  the safe current thermal envelope for the installed AryaSea enclosure.
+- Live DroneScout traffic exposed a GDLTAK crash loop: legitimate unknown CoT
+  fields arrived as `hae="nan"` and `speed="nan"`, and GDLTAK attempted to
+  convert them to integers. GDLTAK 1.0.1 rejects non-finite coordinates and
+  treats non-finite altitude/motion as unknown. Its 60-test suite and flake8
+  pass, upstream PR 2 is merged as `b57f35c`, release/package `1.0.1-1` is in
+  the signed repository, and both live hosts now carry it without changing
+  their local configuration. AryaAir processed the same Remote ID stream with
+  zero subsequent GDLTAK restarts; AryaSea retains GDLTAK disabled/inactive as
+  intended for its role.
+- A long-running DroneScout receiver can rotate its one-time MAVLink heartbeat
+  line out of the RAM journal even while processing current Remote ID payloads.
+  HIL now accepts either the startup heartbeat or live `Processing RID data`
+  as MAVLink session proof. The final strict HIL suite passes every module on
+  both hosts; ADS-B and AIS were RF-quiet during the final short windows, but
+  service ownership, ports, role state, and restart checks passed. Earlier in
+  the run, live/synthetic role traffic exercised both complete pipelines.
+- AryaOS commit `4c6f0c3` requires `gdltak >= 1.0.1` in HIL and mounted-image
+  verification. Image run `31557202979` passed and published prerelease
+  `v2026.08.12.025132-4c6f0c3fd912-dev`. Detailed gitignored evidence is under
+  `.aryaos-burnin/20260812T020135Z-aryaair-aryasea/`; the authoritative sampler
+  result is `acceptance-sampler/summary.json` and the final strict-suite logs
+  are `final-hil-aryaair.log` and `final-hil-aryasea.log`.
 
 ## 2026-08-11 `chronos` GPSTAK provisioning
 

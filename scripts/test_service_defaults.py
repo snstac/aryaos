@@ -129,6 +129,14 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         )
         self.assertIn('if [[ "$ais_changed" == 1 ]]', assign)
 
+    def test_dronescout_hil_survives_rotated_startup_heartbeat(self):
+        hil = (
+            ROOT / "scripts/aryaos-test/tests/06-optional-uas.sh"
+        ).read_text()
+        self.assertIn(
+            "MAVLink heartbeat received|Processing RID data", hil
+        )
+
     def test_overlay_keeps_network_gps_core_active(self):
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
 
