@@ -31,7 +31,18 @@ fi
 export SHARED_FILES
 
 mkdir -p "${ROOTFS_DIR}/usr/src"
-curl -fsSL "${NODE_RED_LINUX_INSTALLER_URL}" -o "${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb"
+# GitHub release assets occasionally return a short-lived 5xx response. A
+# single request made an otherwise healthy multi-stage image build fail after
+# several minutes of work. Retry bounded transient HTTP and transport errors;
+# the pinned SHA-256 below still rejects a wrong or incomplete payload.
+curl -fsSL \
+	--retry 5 \
+	--retry-all-errors \
+	--retry-delay 5 \
+	--connect-timeout 20 \
+	--max-time 300 \
+	"${NODE_RED_LINUX_INSTALLER_URL}" \
+	-o "${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb"
 echo "${NODE_RED_LINUX_INSTALLER_SHA256}  ${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb" | sha256sum -c -
 chmod +x "${ROOTFS_DIR}/usr/src/update-nodejs-and-nodered-deb"
 

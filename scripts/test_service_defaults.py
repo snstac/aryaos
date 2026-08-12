@@ -114,6 +114,16 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("require_pkg_version aiscot 7.3.1", verifier)
         self.assertIn("require_package_version aiscot 7.3.1", hil)
 
+    def test_node_red_installer_retries_transient_release_asset_failures(self):
+        stage = (
+            ROOT / "stages/stage-node-red/00-install/00-run.sh"
+        ).read_text()
+
+        self.assertIn("--retry-all-errors", stage)
+        self.assertIn("--retry 5", stage)
+        self.assertIn("NODE_RED_LINUX_INSTALLER_SHA256", stage)
+        self.assertIn("sha256sum -c -", stage)
+
     def test_overlay_packages_binary_serial_discovery(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
         assign = (ROOT / "shared_files/aryaos/aryaos-serial-assign").read_text()
