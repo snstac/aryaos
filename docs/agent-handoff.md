@@ -33,6 +33,32 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   unit, and reboot. Restoring the originals re-enables the serial console and
   returns the PL011 to Bluetooth.
 
+## 2026-08-11 `.44` refresh and AIS restart hardening
+
+- `192.168.0.44` (`aryaos-c2cb`, Raspberry Pi 5) was refreshed from overlay
+  `2.0.18` to `2.0.23`, and all available OS and Cockpit gateway package updates
+  were installed. The host now has the fixed scrolling/branding gateway builds
+  documented below. Its GPS, AIS, and site configuration hashes were unchanged.
+- Repeated first-boot serial discovery exposed a live-service race: the helper
+  rewrote already-correct AIS values and requested another AIS-catcher restart
+  while its first start was still probing optional backends. AIS-catcher deferred
+  SIGTERM, so the unit remained `deactivating` until systemd's 90-second default
+  stop timeout. Serial assignment now detects exact no-op writes, tracks AIS
+  changes independently from GPS, and restarts AIS-catcher only when its port or
+  baud actually changes. A 15-second stop timeout bounds a genuine reassignment.
+- A clean reboot retained the stable CP2102N GPS and CH340 dAISy paths. GPSD had
+  a 3D fix, AIS-catcher/AISCOT/Charontak were active with zero restarts, the AIS
+  dashboard answered on TCP/8100, and no systemd unit failed. A checksum-valid
+  synthetic type-1 report produced `MMSI-366967102` CoT at Charontak's UDP/28087
+  ingress, exercising the complete decoder-to-CoT path while RF was quiet.
+- Strict HIL passed all 13 modules. A three-minute, 12-sample burn-in had zero
+  probe failures, service drops, restart increments, throttling events, storage
+  alerts, or boot-ID changes; peak temperature was 60.05 C, peak load was 0.34,
+  and memory moved 0.39 percentage points. Remaining warnings were boot-time
+  Docker/firewalld stale-chain cleanup, normal Broadcom Wi-Fi driver noise, two
+  recovered CP210x setup timeouts, and chrony correctly rejecting the NMEA-only
+  GPS clock's 333 ms offset in favor of network time.
+
 ## 2026-08-11 Cockpit gateway scrolling sweep
 
 ### LINCOT stylesheet follow-up

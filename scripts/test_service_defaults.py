@@ -102,6 +102,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("ExecCondition=/bin/sh -c", service_section)
         for unit in (serial_unit, rtl_unit, sdr_unit, overlay_override):
             self.assertIn("AIS-catcher -X off", unit)
+        self.assertIn("TimeoutStopSec=15s", overlay_override)
         self.assertIn("ais-catcher.service.d/aryaos-private.conf", builder)
         self.assertIn("ais-catcher-rtl@.service", builder)
         self.assertIn("aryaos-ais-sdr.service", builder)
@@ -115,6 +116,18 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("aryaos-serial-assign.service", builder)
         self.assertIn("--no-block try-restart gpsd.service", assign)
         self.assertIn("--no-block try-restart ais-catcher.service", assign)
+        self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
+        self.assertIn(
+            'set_kv "$GPSD_DEF" DEVICES "$gps_dev" || true', assign
+        )
+        self.assertIn(
+            'set_kv "$AIS_DEF" SERIAL_PORT "$ais_dev" && ais_changed=1', assign
+        )
+        self.assertIn(
+            'set_kv "$AIS_DEF" SERIAL_BAUDRATE "$ais_baud" bare && ais_changed=1',
+            assign,
+        )
+        self.assertIn('if [[ "$ais_changed" == 1 ]]', assign)
 
     def test_overlay_keeps_network_gps_core_active(self):
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()

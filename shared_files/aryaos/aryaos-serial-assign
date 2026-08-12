@@ -124,14 +124,24 @@ classify() {
 	"$CLASSIFIER" "$dev"
 }
 
-set_kv() {  # set_kv <file> <KEY> <value-unquoted>
-	local f="$1" k="$2" v="$3"
-	[[ -f "$f" ]] || return 0
-	if grep -qE "^${k}=" "$f"; then
-		sed -i "s|^${k}=.*|${k}=\"${v}\"|" "$f"
+set_kv() {  # set_kv <file> <KEY> <value-unquoted> [bare]
+	local f="$1" k="$2" v="$3" style="${4:-quoted}" current desired
+	[[ -f "$f" ]] || return 1
+	if [[ "$style" == "bare" ]]; then
+		desired="${k}=${v}"
 	else
-		printf '%s="%s"\n' "$k" "$v" >>"$f"
+		desired="${k}=\"${v}\""
 	fi
+	current="$(grep -m1 -E "^${k}=" "$f" 2>/dev/null || true)"
+	# A repeated hardware scan is normal during firstboot. Do not bounce a live
+	# receiver when its stable by-id assignment is already exactly right.
+	[[ "$current" == "$desired" ]] && return 1
+	if [[ -n "$current" ]]; then
+		sed -i "s|^${k}=.*|${desired}|" "$f"
+	else
+		printf '%s\n' "$desired" >>"$f"
+	fi
+	return 0
 }
 
 main() {
@@ -198,18 +208,15 @@ main() {
 		ais_dev=""
 	fi
 
-	local changed=0
+	local ais_changed=0
 	if [[ -n "$gps_dev" ]]; then
-		set_kv "$GPSD_DEF" DEVICES "$gps_dev"; changed=1
+		set_kv "$GPSD_DEF" DEVICES "$gps_dev" || true
 		log "gpsd DEVICES -> $gps_dev"
 	fi
 	if [[ -n "$ais_dev" ]]; then
-		set_kv "$AIS_DEF" SERIAL_PORT "$ais_dev"
-		# baud key is written bare (no quotes) to match the shipped default
-		if grep -qE '^SERIAL_BAUDRATE=' "$AIS_DEF" 2>/dev/null; then
-			sed -i "s|^SERIAL_BAUDRATE=.*|SERIAL_BAUDRATE=${ais_baud}|" "$AIS_DEF"
-		fi
-		changed=1
+		set_kv "$AIS_DEF" SERIAL_PORT "$ais_dev" && ais_changed=1
+		# Keep the baud key bare to match the shipped default.
+		set_kv "$AIS_DEF" SERIAL_BAUDRATE "$ais_baud" bare && ais_changed=1
 		log "ais-catcher SERIAL_PORT -> $ais_dev @ ${ais_baud}"
 	fi
 	[[ -z "$gps_dev$ais_dev" ]] && log "no GPS or AIS serial identified"
@@ -219,7 +226,7 @@ main() {
 	resume_gpsd
 
 	# Pick up new assignments if the consumers are already running.
-	if [[ "$changed" == 1 ]]; then
+	if [[ "$ais_changed" == 1 ]]; then
 		# The oneshot is Before=ais-catcher.service. Queueing avoids waiting on a
 		# service whose start is itself waiting for this script to finish.
 		systemctl --no-block try-restart ais-catcher.service >/dev/null 2>&1 || true
