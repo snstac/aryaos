@@ -33,10 +33,11 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   services were active with zero restarts, no failed units or throttling, and
   all 13 strict HIL modules passed. The final RF window was quiet.
 - The first 2.0.24 image attempt, run `31639680637`, reached the Node-RED stage
-  and received a transient HTTP 503 from the pinned GitHub release asset. The
-  stage now retries bounded HTTP and transport failures while retaining the
-  pinned SHA-256 verification, so a temporary release-asset outage cannot waste
-  the complete image build.
+  and received HTTP 503 from the pinned GitHub release asset. Run `31640434386`
+  proved that the browser-facing release CDN remained unavailable through all
+  bounded retries. The stage now fetches the same immutable asset through its
+  GitHub release API id, retains retry and pinned SHA-256 verification, and CI
+  downloads and verifies the payload during its preflight.
 
 ## 2026-08-12 AryaAir/AryaSea eight-hour burn-in
 

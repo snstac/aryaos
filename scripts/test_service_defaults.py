@@ -121,8 +121,15 @@ class ServiceDefaultsTestCase(unittest.TestCase):
 
         self.assertIn("--retry-all-errors", stage)
         self.assertIn("--retry 5", stage)
+        self.assertIn("api.github.com/repos/node-red/linux-installers/releases/assets/", stage)
+        self.assertIn("Accept: application/octet-stream", stage)
         self.assertIn("NODE_RED_LINUX_INSTALLER_SHA256", stage)
         self.assertIn("sha256sum -c -", stage)
+
+        workflow = (ROOT / ".github/workflows/pi-gen.yml").read_text()
+        self.assertIn("Accept: application/octet-stream", workflow)
+        self.assertIn("/tmp/node-red-installer", workflow)
+        self.assertIn("sha256sum -c -", workflow)
 
     def test_overlay_packages_binary_serial_discovery(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()

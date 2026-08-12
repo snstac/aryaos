@@ -143,8 +143,10 @@ jobs:
         # (e.g. node-red/linux-installers v2.0.0 renamed the deb installer asset).
         run: |
           set -euo pipefail
-          url="$(grep -Eo "https://github.com/node-red/linux-installers/[^']+" stages/stage-node-red/00-install/00-run.sh)"
-          curl -fsSIL --max-time 30 -o /dev/null "$url"
+          url="$(sed -n "s/^NODE_RED_LINUX_INSTALLER_URL='\([^']*\)'$/\1/p" stages/stage-node-red/00-install/00-run.sh)"
+          curl -fsSL -H 'Accept: application/octet-stream' --max-time 30 -o /tmp/node-red-installer "$url"
+          expected="$(sed -n "s/^NODE_RED_LINUX_INSTALLER_SHA256='\([^']*\)'$/\1/p" stages/stage-node-red/00-install/00-run.sh)"
+          echo "${expected}  /tmp/node-red-installer" | sha256sum -c -
           echo "ok: $url"
           # snstac apt repo must be serving (sensor stack installs from it mid-build)
           curl -fsSIL --max-time 30 -o /dev/null "https://snstac.github.io/packages/apt/dists/stable/Release"

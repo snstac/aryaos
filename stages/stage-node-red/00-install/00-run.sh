@@ -17,7 +17,11 @@
 # Pinned release + checksum: "latest" broke when upstream v2.0.0 renamed the deb asset
 # (update-nodejs-and-nodered-deb → install-update-nodered-deb). v1.1.2 is the last release
 # with the script this stage and 01-run-chroot.sh expect. Bump tag and sha256 together.
-NODE_RED_LINUX_INSTALLER_URL='https://github.com/node-red/linux-installers/releases/download/v1.1.2/update-nodejs-and-nodered-deb'
+# The browser_download_url for this asset can return persistent 503 responses
+# from GitHub's release CDN on hosted arm64 runners. Fetch the same immutable
+# asset through its release API id; application/octet-stream selects the asset
+# body instead of JSON metadata.
+NODE_RED_LINUX_INSTALLER_URL='https://api.github.com/repos/node-red/linux-installers/releases/assets/432002327'
 NODE_RED_LINUX_INSTALLER_SHA256='ccea2dc0c21046182fdac9101e1578793f83b00479e9688f283ced8ce2db5093'
 
 # Same pattern as stage-aryaos: pi-gen does not always export SHARED_FILES into NN-run.sh.
@@ -36,6 +40,7 @@ mkdir -p "${ROOTFS_DIR}/usr/src"
 # several minutes of work. Retry bounded transient HTTP and transport errors;
 # the pinned SHA-256 below still rejects a wrong or incomplete payload.
 curl -fsSL \
+	-H 'Accept: application/octet-stream' \
 	--retry 5 \
 	--retry-all-errors \
 	--retry-delay 5 \
