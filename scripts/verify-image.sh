@@ -281,6 +281,7 @@ require_pkg python3-gps
 require_pkg ais-catcher
 require_pkg sikw00fcot
 require_pkg gdltak
+require_pkg_version gdltak 1.0.1
 require_pkg_version pytak 7.4.3
 require_pkg_version acarscot 0.1.1
 require_pkg acarsdec
