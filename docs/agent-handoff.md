@@ -46,8 +46,10 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   service ownership, ports, role state, and restart checks passed. Earlier in
   the run, live/synthetic role traffic exercised both complete pipelines.
 - AryaOS commit `4c6f0c3` requires `gdltak >= 1.0.1` in HIL and mounted-image
-  verification. Image run `31557202979` passed and published prerelease
-  `v2026.08.12.025132-4c6f0c3fd912-dev`. Detailed gitignored evidence is under
+  verification; `965013e` adds the journal-safe DroneScout HIL assertion and
+  this handoff. Final image run `31612196240` passed every build, verification,
+  SBOM, and publication step and released
+  `v2026.08.12.154348-965013ee9dd1-dev`. Detailed gitignored evidence is under
   `.aryaos-burnin/20260812T020135Z-aryaair-aryasea/`; the authoritative sampler
   result is `acceptance-sampler/summary.json` and the final strict-suite logs
   are `final-hil-aryaair.log` and `final-hil-aryasea.log`.
