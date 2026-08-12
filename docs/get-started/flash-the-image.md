@@ -7,13 +7,13 @@ Write the AryaOS image to a microSD card, then boot your Raspberry Pi from it. T
 
 ## Before you begin
 
-- A supported Raspberry Pi and a microSD card of at least **16 GB** (32 GB recommended) — see [Hardware & requirements](hardware.md).
+- A supported Raspberry Pi and a microSD card of at least **16 GB** (32 GB recommended) - see [Hardware & requirements](hardware.md).
 - A workstation running Windows, macOS, or Linux.
 - The AryaOS image file (next section).
 
 ## Get the image
 
-**If you use AryaOS Imager you can skip this section** — it fetches the current image itself.
+**If you use AryaOS Imager you can skip this section** - it fetches the current image itself.
 
 | Source | Where | When to use |
 |---|---|---|
@@ -21,7 +21,7 @@ Write the AryaOS image to a microSD card, then boot your Raspberry Pi from it. T
 | GitHub Releases | [github.com/snstac/aryaos/releases](https://github.com/snstac/aryaos/releases) | Downloading the `.img.xz` by hand |
 | CI artifacts | GitHub Actions build artifacts on the repo | Testing an unreleased build your team pointed you to |
 
-Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads `.img.xz` directly — you do not need to decompress it first.
+Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads `.img.xz` directly - you do not need to decompress it first.
 
 !!! info "Every release is signed and bill-of-materials'd"
     Each image build attaches an SPDX and CycloneDX software bill of materials (SBOM) to its GitHub Release, and all AryaOS packages install from the [signed apt repository](https://snstac.github.io/packages). See [SBOM & supply chain](../operations/sbom.md).
@@ -35,19 +35,19 @@ Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads 
     | Platform | Download |
     |---|---|
     | Windows | `AryaOS-Imager-Setup-*.exe` (installer) or `aryaos-imager.exe` (portable) |
-    | Linux | `aryaos-imager` — an x86-64 binary |
-    | macOS | **not built yet** — use Raspberry Pi Imager or balenaEtcher |
+    | Linux | `aryaos-imager` - an x86-64 binary |
+    | macOS | **not built yet** - use Raspberry Pi Imager or balenaEtcher |
 
     1. Download and install AryaOS Imager.
     2. Insert the microSD card into your workstation.
-    3. Open AryaOS Imager and choose **AryaOS (latest release)**. A **latest dev** build is also offered — that one bakes in lab access and is not for field use.
-    4. Under storage, select the microSD card. **Confirm the device — this erases the card.**
+    3. Open AryaOS Imager and choose **AryaOS (latest release)**. A **latest dev** build is also offered - that one bakes in lab access and is not for field use.
+    4. Under storage, select the microSD card. **Confirm the device - this erases the card.**
     5. Write, and wait for the verify step to finish.
 
     !!! warning "Windows shows a SmartScreen warning, and you cannot yet checksum the fix"
-        The installer is not code-signed, so Windows displays *"Windows protected your PC"*. Click **More info → Run anyway**.
+        The installer is not code-signed, so Windows displays *"Windows protected your PC"*. Click **More info > Run anyway**.
 
-        Releases publish a `SHA256SUMS.txt`, but as of `v1.0.0` it covers **only the Linux binary** — the Windows installer, the portable `.exe` and the callback relay have no published checksum. So on Windows there is currently no way to verify the download, and the "run anyway" step is a genuine trust decision. Prefer the Linux build where you have the choice, and re-check `SHA256SUMS.txt` on newer releases.
+        Releases publish a `SHA256SUMS.txt`, but as of `v1.0.0` it covers **only the Linux binary** - the Windows installer, the portable `.exe` and the callback relay have no published checksum. So on Windows there is currently no way to verify the download, and the "run anyway" step is a genuine trust decision. Prefer the Linux build where you have the choice, and re-check `SHA256SUMS.txt` on newer releases.
 
     The image itself is a separate matter and *is* verifiable: every AryaOS release publishes an SBOM and an uncompressed-image SHA, and the imager verifies what it wrote after writing it.
 
@@ -61,7 +61,7 @@ Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads 
     2. Insert the microSD card into your workstation.
     3. Open Raspberry Pi Imager.
     4. Under **Choose OS**, scroll to the bottom and select **Use custom**, then pick the downloaded AryaOS `.img.xz`.
-    5. Under **Choose Storage**, select the microSD card. **Confirm the device — this erases the card.**
+    5. Under **Choose Storage**, select the microSD card. **Confirm the device - this erases the card.**
     6. Click **Next**, confirm, and wait for the write and verify steps to finish.
 
     !!! warning "Skip the OS customization prompt"
@@ -98,6 +98,6 @@ Within a few seconds the AryaOS device flashes its green and red LEDs as it star
 
 <div class="grid cards" markdown>
 
-- :material-power: **First boot & first login** — Connect to the hotspot, log in, and secure the device. [First boot & first login](first-boot.md)
+- :material-power: **First boot & first login** - Connect to the hotspot, log in, and secure the device. [First boot & first login](first-boot.md)
 
 </div>

@@ -13,14 +13,14 @@ implicitly accepted by firewalld.
 
 | Service | Port(s) | Purpose |
 | --- | --- | --- |
-| `ssh` | 22/tcp | SSH administration (sshd hardened — see [Security](../security.md)). |
+| `ssh` | 22/tcp | SSH administration (sshd hardened - see [Security](../security.md)). |
 | `http` | 80/tcp | Web portal (lighttpd) and Cockpit proxy. |
 | `https` | 443/tcp | TLS portal; lighttpd terminates TLS and proxies `/admin` to Cockpit. |
 | `mdns` | 5353/udp | mDNS/ZeroConf so the box is findable as `aryaos-xxxx.local`. |
-| `dhcp` | 67/udp | DHCP leases — served only while the comitup hotspot runs; also leases [Bluetooth PAN](../bluetooth-pan.md) clients. |
+| `dhcp` | 67/udp | DHCP leases - served only while the comitup hotspot runs; also leases [Bluetooth PAN](../bluetooth-pan.md) clients. |
 | `dhcpv6-client` | 546/udp | DHCPv6 client. |
-| `dns` | 53/tcp+udp | DNS — answered only while the comitup onboarding hotspot is up (dnsmasq is not otherwise active). |
-| `aryaos-mesh-sa` | 6969/udp | TAK **Mesh SA** multicast — Charontak egress/ingress and `aryaos-neighbord` on `239.2.3.1:6969`. |
+| `dns` | 53/tcp+udp | DNS - answered only while the comitup onboarding hotspot is up (dnsmasq is not otherwise active). |
+| `aryaos-mesh-sa` | 6969/udp | TAK **Mesh SA** multicast - Charontak egress/ingress and `aryaos-neighbord` on `239.2.3.1:6969`. |
 | `aryaos-node-red` | 1880/tcp | Node-RED low-code editor and dashboards (admin API is `adminAuth`-protected). |
 | `aryaos-ais-catcher` | 8100/tcp | AIS-catcher live map / statistics dashboard. |
 | `aryaos-comitup` | 9080/tcp | Comitup captive Wi-Fi onboarding portal (listens only in hotspot mode). |
@@ -48,7 +48,7 @@ the box's own services (the allowlist above) but is **never routed or bridged
 onto `eth0` or the upstream network.**
 
 Because the rule is enforced in the firewall's `FORWARD` path, it holds **even
-when `net.ipv4.ip_forward` is enabled** on the host — which happens whenever
+when `net.ipv4.ip_forward` is enabled** on the host - which happens whenever
 Docker is running. Without this, a hotspot client could otherwise be routed
 straight onto the wired LAN. Docker's own container networking is unaffected (it
 lives in a separate `docker` zone with its own forwarding rules).
@@ -64,7 +64,7 @@ The AntSDR point-to-point link (`eth1`, `aryaos-antsdr.nmconnection`) is placed
 in firewalld's **`trusted`** zone rather than the default `AryaOS` zone, so the
 drone-detection sensor can reach the dronecot listener over that dedicated
 cable without you poking a hole in the field-facing allowlist. This is a private
-sensor link, not a general network — treat the `trusted` zone as reserved for
+sensor link, not a general network - treat the `trusted` zone as reserved for
 it.
 
 !!! info "Docker-published ports are separate"
@@ -74,9 +74,9 @@ it.
 
 ## Manage the firewall in Cockpit
 
-Everything is editable from the browser — no shell needed.
+Everything is editable from the browser - no shell needed.
 
-1. Open **Cockpit → Networking → Firewall**.
+1. Open **Cockpit > Networking > Firewall**.
 2. The active zone (`AryaOS`) lists its allowed services. Toggle a service off
    to close its ports, or on to reopen them.
 3. Add a service (below) to open a new capability.
@@ -92,7 +92,7 @@ Say you want to expose a new dashboard on TCP `8200`.
 
 === "In Cockpit"
 
-    1. Open **Cockpit → Networking → Firewall**.
+    1. Open **Cockpit > Networking > Firewall**.
     2. Click **Add services** on the `AryaOS` zone.
     3. Pick a predefined service, or choose **Custom ports** and enter
        `8200/tcp`.
@@ -131,9 +131,9 @@ Say you want to expose a new dashboard on TCP `8200`.
 
 <div class="grid cards" markdown>
 
-- :material-lan: **Ports & protocols** — the full port reference. [Ports & protocols](../reference/ports.md)
-- :material-shield-lock: **Security posture** — sshd, fail2ban, sysctl, TLS. [Security posture](../security.md)
-- :material-wifi: **Wi-Fi & onboarding** — why `9080`/DHCP/DNS come and go. [Wi-Fi & onboarding hotspot](wifi-hotspot.md)
-- :material-access-point-network: **Nearby nodes** — the Mesh SA `6969/udp` traffic. [Nearby nodes](../operations/neighbors.md)
+- :material-lan: **Ports & protocols** - the full port reference. [Ports & protocols](../reference/ports.md)
+- :material-shield-lock: **Security posture** - sshd, fail2ban, sysctl, TLS. [Security posture](../security.md)
+- :material-wifi: **Wi-Fi & onboarding** - why `9080`/DHCP/DNS come and go. [Wi-Fi & onboarding hotspot](wifi-hotspot.md)
+- :material-access-point-network: **Nearby nodes** - the Mesh SA `6969/udp` traffic. [Nearby nodes](../operations/neighbors.md)
 
 </div>

@@ -4,10 +4,10 @@ Use a dedicated Raspberry Pi on your LAN to try changes from this repository bef
 
 ## Default lab target (team convention)
 
-- **SSH:** `pi@aryaos-dev-pi` (via `~/.ssh/config`, see **`./scripts/setup-dev-ssh.sh`**) — resolves to **`172.17.2.158`**.
+- **SSH:** `pi@aryaos-dev-pi` (via `~/.ssh/config`, see **`./scripts/setup-dev-ssh.sh`**) - resolves to **`172.17.2.158`**.
 - **Password (fallback):** keep out of git. Use **gitignored** `scripts/.dev-pi-creds.local` or export `ARYAOS_DEV_PI_PASSWORD` when you cannot use the dev key below.
 
-**New images:** user **`pi`** has **passwordless sudo** (see `shared_files/aryaos/aryaos.sudoers`) so agents and scripts can run remote fixes over SSH without an interactive password. This matches the lab SSH key profile — anyone with **`aryaos-dev-lab`** can become root.
+**New images:** user **`pi`** has **passwordless sudo** (see `shared_files/aryaos/aryaos.sudoers`) so agents and scripts can run remote fixes over SSH without an interactive password. This matches the lab SSH key profile - anyone with **`aryaos-dev-lab`** can become root.
 
 **Existing Pi (already flashed):** apply once on the device (needs current `pi` password):
 
@@ -19,7 +19,7 @@ sudo visudo -c
 
 ## Lab SSH key (passwordless, preferred)
 
-The repo ships **`shared_files/aryaos/ssh/aryaos-dev-lab.pub`**; new AryaOS images append it to **`pi`**’s **`authorized_keys`**. The matching **private** key is **gitignored** at **`shared_files/aryaos/ssh/aryaos-dev-lab`** (generate once in the repo with `ssh-keygen`; see [shared_files/aryaos/ssh/README.md](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/ssh/README.md)).
+The repo ships **`shared_files/aryaos/ssh/aryaos-dev-lab.pub`**; new AryaOS images append it to **`pi`**'s **`authorized_keys`**. The matching **private** key is **gitignored** at **`shared_files/aryaos/ssh/aryaos-dev-lab`** (generate once in the repo with `ssh-keygen`; see [shared_files/aryaos/ssh/README.md](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/ssh/README.md)).
 
 **One-time on your workstation** (from repo root, after the private key exists):
 
@@ -36,7 +36,7 @@ That adds **`Host aryaos-dev-pi`** to `~/.ssh/config` pointing at **`172.17.2.15
 ssh-copy-id -i shared_files/aryaos/ssh/aryaos-dev-lab.pub pi@aryaos-dev-pi
 ```
 
-(`~/.ssh/config` must already contain **`Host aryaos-dev-pi`** with **`HostName 172.17.2.158`** — run **`./scripts/setup-dev-ssh.sh`** first, or add that block by hand.)
+(`~/.ssh/config` must already contain **`Host aryaos-dev-pi`** with **`HostName 172.17.2.158`** - run **`./scripts/setup-dev-ssh.sh`** first, or add that block by hand.)
 
 (or append the `.pub` line manually to `/home/pi/.ssh/authorized_keys` on the Pi).
 
@@ -44,7 +44,7 @@ ssh-copy-id -i shared_files/aryaos/ssh/aryaos-dev-lab.pub pi@aryaos-dev-pi
 
 ## USB power (multiple SDRs)
 
-If the Pi browns out USB devices under several dongles, run **`./scripts/enable-pi-usb-current.sh`** on the Pi from a synced repo (or after `scp` of that script plus `shared_files/aryaos/boot/firmware/aryaos-usb-power.fragment`). It appends **`max_usb_current=1`** (Pi 3–class) and **`usb_max_current_enable=1`** (Pi 5) to **`/boot/firmware/config.txt`**, then **reboot**. New AryaOS images apply the same fragment during **stage-aryaos** pi-gen.
+If the Pi browns out USB devices under several dongles, run **`./scripts/enable-pi-usb-current.sh`** on the Pi from a synced repo (or after `scp` of that script plus `shared_files/aryaos/boot/firmware/aryaos-usb-power.fragment`). It appends **`max_usb_current=1`** (Pi 3-class) and **`usb_max_current_enable=1`** (Pi 5) to **`/boot/firmware/config.txt`**, then **reboot**. New AryaOS images apply the same fragment during **stage-aryaos** pi-gen.
 
 ## Mirror the whole repo tree to the Pi
 
@@ -62,7 +62,7 @@ This mirrors the working tree to **`~/aryaos-sync/`** on the Pi (default **`pi@a
 
 ```bash
 cp scripts/dev-pi-creds.local.example scripts/.dev-pi-creds.local
-# edit scripts/.dev-pi-creds.local — it is gitignored
+# edit scripts/.dev-pi-creds.local - it is gitignored
 ./scripts/sync-to-dev-pi.sh
 ```
 

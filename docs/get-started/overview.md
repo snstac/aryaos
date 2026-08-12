@@ -3,8 +3,8 @@
 AryaOS is a Linux operating system that turns a small, inexpensive computer into
 a **situational-awareness gateway** for [TAK](../reference/glossary.md#tak). It
 ingests data from radios and sensors, converts it to
-[Cursor on Target (CoT)](../reference/glossary.md#cot) — the native language of
-ATAK, WinTAK, iTAK, and TAK Server — and delivers it to the operators who need
+[Cursor on Target (CoT)](../reference/glossary.md#cot) - the native language of
+ATAK, WinTAK, iTAK, and TAK Server - and delivers it to the operators who need
 it, whether they are standing next to the box or across a wide-area network.
 
 Everything is pre-installed and pre-wired. You flash a card, power it on, and
@@ -26,9 +26,9 @@ A single AryaOS box can run one of these missions or all of them at once, and ca
 relay the combined picture to a TAK Server for the wider force.
 
 !!! example "Proven in the field"
-    In its original **AirTAK** configuration — an AryaOS box and an ADS-B antenna
+    In its original **AirTAK** configuration - an AryaOS box and an ADS-B antenna
     in a backpack, powered by a USB battery, paired to a phone over Wi-Fi with no
-    internet — operators have tracked aircraft at ranges past 50 miles. AryaOS is
+    internet - operators have tracked aircraft at ranges past 50 miles. AryaOS is
     in daily use for wildland fire, security, and search-and-rescue.
 
 ## How it works
@@ -77,11 +77,11 @@ AryaOS is designed so an operator **never needs to SSH in**. A hardened
 [Cockpit](https://cockpit-project.org/) web console on port 9090 (reachable over
 HTTPS) exposes:
 
-- **The AryaOS Site page** — TAK destination, TLS certificates, TAK Server
+- **The AryaOS Site page** - TAK destination, TLS certificates, TAK Server
   enrollment, device role, radios, updates, VPN, hotspot password, support
   bundles, and Node-RED admin password. See [AryaOS Site](../admin/aryaos-site.md).
-- **The Charontak lane editor** — a structured editor for where CoT flows.
-- **Per-gateway pages** — one for each sensor (adsbcot, aiscot, dronecot, …).
+- **The Charontak lane editor** - a structured editor for where CoT flows.
+- **Per-gateway pages** - one for each sensor (adsbcot, aiscot, dronecot, ...).
 
 SSH is still available for advanced work, but it is never required for normal
 operation.
@@ -89,8 +89,8 @@ operation.
 ## Device roles
 
 Rather than shipping a different image per mission, one AryaOS image adapts at
-runtime. Pick a **[device role](../config/device-roles.md)** in the web console —
-Air, Maritime, Counter-UAS, Multi-sensor, or Relay — and AryaOS enables the right
+runtime. Pick a **[device role](../config/device-roles.md)** in the web console -
+Air, Maritime, Counter-UAS, Multi-sensor, or Relay - and AryaOS enables the right
 sensor pipelines and disables the rest. The CoT routing core always runs.
 
 ## What's in the box
@@ -108,9 +108,9 @@ sensor pipelines and disables the rest. The CoT routing core always runs.
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch: **[Quickstart](quickstart.md)** — from flash to first track.
--   :material-chip: **[Hardware & requirements](hardware.md)** — what to buy.
--   :material-map-marker-path: **[Choose a deployment](../deploy/index.md)** — mission-by-mission guides.
--   :material-book-open-variant: **[Glossary](../reference/glossary.md)** — TAK, CoT, ADS-B, and friends.
+-   :material-rocket-launch: **[Quickstart](quickstart.md)** - from flash to first track.
+-   :material-chip: **[Hardware & requirements](hardware.md)** - what to buy.
+-   :material-map-marker-path: **[Choose a deployment](../deploy/index.md)** - mission-by-mission guides.
+-   :material-book-open-variant: **[Glossary](../reference/glossary.md)** - TAK, CoT, ADS-B, and friends.
 
 </div>

@@ -4,8 +4,8 @@ Turn AryaOS into a standalone airspace picture: attach an SDR and antenna, selec
 
 Aircraft broadcast their position on two frequencies:
 
-- **1090 MHz — ADS-B (Mode S Extended Squitter).** The global standard; airliners and most turbine aircraft.
-- **978 MHz — UAT (Universal Access Transceiver).** A US-only band used by many general-aviation aircraft below 18,000 ft.
+- **1090 MHz - ADS-B (Mode S Extended Squitter).** The global standard; airliners and most turbine aircraft.
+- **978 MHz - UAT (Universal Access Transceiver).** A US-only band used by many general-aviation aircraft below 18,000 ft.
 
 AryaOS decodes both and feeds them to your COP through `adsbcot`.
 
@@ -25,8 +25,8 @@ AryaOS decodes both and feeds them to your COP through `adsbcot`.
 
 === "Web console"
 
-    1. Open **Cockpit → AryaOS Site** (browse to `https://<host>/admin/` or `https://aryaos.local`).
-    2. In the **Device role** card, choose **Air — ADS-B 1090/978 aircraft**.
+    1. Open **Cockpit > AryaOS Site** (browse to `https://<host>/admin/` or `https://aryaos.local`).
+    2. In the **Device role** card, choose **Air - ADS-B 1090/978 aircraft**.
     3. Click **Apply role**.
 
     AryaOS enables the ADS-B decoder, `dump978-fa`, `adsbcot`, and `gdltak`, and stops the maritime and drone pipelines.
@@ -67,7 +67,7 @@ AryaOS selects dongles by their **EEPROM serial** so the right SDR handles the r
 The 978 MHz serial is configurable from the **UAT (978 MHz) RTL-SDR serial** field on the **TAK destination** card, or via `ARYAOS_UAT_RTL_SERIAL` in the site config (default `stx:978:0`, which matches the Nooelec NESDR Nano 3 "978" EEPROM preset).
 
 !!! danger "Never share a serial between bands"
-    The 978 MHz SDR must not use the same serial as the 1090 MHz path, or the decoders will fight over the same dongle. If your dongles ship blank or duplicated, re-serial them from the **Radios** card or with `aryaos-sdr set-serial IDX SERIAL`. Writing a serial briefly stops SDR services — **replug the dongle (or reboot)** before the new serial is visible.
+    The 978 MHz SDR must not use the same serial as the 1090 MHz path, or the decoders will fight over the same dongle. If your dongles ship blank or duplicated, re-serial them from the **Radios** card or with `aryaos-sdr set-serial IDX SERIAL`. Writing a serial briefly stops SDR services - **replug the dongle (or reboot)** before the new serial is visible.
 
 For SDR discovery, EEPROM re-serialing, and antenna wiring, see the [Radios](../config/radios-sdr.md) page.
 
@@ -92,7 +92,7 @@ flowchart LR
 ## Verify tracks
 
 1. Connect your EUD to the AryaOS Wi-Fi hotspot (`AryaOS-xxxx`) or the same network.
-2. Open ATAK/WinTAK/iTAK — with Mesh SA enabled, aircraft appear automatically.
+2. Open ATAK/WinTAK/iTAK - with Mesh SA enabled, aircraft appear automatically.
 3. On the box, confirm the pipeline:
 
     ```bash
@@ -107,7 +107,7 @@ flowchart LR
 
 ## Related
 
-- [Multi-sensor](./multi-sensor.md) — run air alongside maritime and drone.
-- [ForeFlight / GDL90](./foreflight-gdl90.md) — the `air` role also serves the picture to EFB apps.
-- [Connect a TAK Server](./connect-tak-server.md) — forward the air picture upstream.
+- [Multi-sensor](./multi-sensor.md) - run air alongside maritime and drone.
+- [ForeFlight / GDL90](./foreflight-gdl90.md) - the `air` role also serves the picture to EFB apps.
+- [Connect a TAK Server](./connect-tak-server.md) - forward the air picture upstream.
 - [Device roles](../config/device-roles.md) · [Glossary](../reference/glossary.md)

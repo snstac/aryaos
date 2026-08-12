@@ -6,14 +6,14 @@ Use a relay when you need to *carry the picture*, not *make* it: bridge a Mesh S
 
 ## What Charontak is
 
-**Charontak** is the CoT bridge/router at the heart of every AryaOS box (named for the ferryman — it *ferries* CoT). Every local feeder sends to Charontak, and Charontak owns all egress:
+**Charontak** is the CoT bridge/router at the heart of every AryaOS box (named for the ferryman - it *ferries* CoT). Every local feeder sends to Charontak, and Charontak owns all egress:
 
 - It **listens** for CoT on `udp+ro://127.0.0.1:28087` (the site-config `COT_URL` default that feeders target with `udp+wo://127.0.0.1:28087`).
 - It **forwards** to one or more **lanes**. The default lane multicasts to **Mesh SA** at `udp+wo://239.2.3.1:6969`; optional lanes reach a [TAK Server](./connect-tak-server.md) over TLS.
 
-On AryaOS, Charontak is configured at `/etc/charontak.ini` and edited from **Cockpit → Charontak** at `https://<host>/admin/`. See [Charontak lanes](../admin/charontak-lanes.md) for the full editor reference.
+On AryaOS, Charontak is configured at `/etc/charontak.ini` and edited from **Cockpit > Charontak** at `https://<host>/admin/`. See [Charontak lanes](../admin/charontak-lanes.md) for the full editor reference.
 
-## Lanes: ingress → egress
+## Lanes: ingress > egress
 
 A **lane** is a one-directional route with an `ingress_cot_url` (where CoT comes in) and an `egress_cot_url` (where it goes out), plus `mode = forward`. Enable or disable each independently.
 
@@ -38,7 +38,7 @@ PYTAK_NO_HELLO = true
 
 For a pure relay you typically change the **ingress** to a network source rather than loopback. Common patterns:
 
-=== "Mesh → TAK Server"
+=== "Mesh > TAK Server"
 
     Bridge a local ATAK Mesh SA group up to a TAK Server.
 
@@ -51,7 +51,7 @@ For a pure relay you typically change the **ingress** to a network source rather
     PYTAK_NO_HELLO = true
     ```
 
-=== "Feeder network → mesh"
+=== "Feeder network > mesh"
 
     Accept UDP CoT from feeders elsewhere on the network and republish to mesh.
 
@@ -64,7 +64,7 @@ For a pure relay you typically change the **ingress** to a network source rather
     PYTAK_NO_HELLO = true
     ```
 
-=== "Mesh → TAK enrollment"
+=== "Mesh > TAK enrollment"
 
     Egress to a TAK Server via a `tak://` enrollment URL (needs `pytak[with-aiohttp,with-crypto]`).
 
@@ -84,8 +84,8 @@ For a pure relay you typically change the **ingress** to a network source rather
 
 === "Web console"
 
-    1. Open **Cockpit → AryaOS Site** (`https://<host>/admin/`).
-    2. In the **Device role** card, choose **Relay — CoT routing only**.
+    1. Open **Cockpit > AryaOS Site** (`https://<host>/admin/`).
+    2. In the **Device role** card, choose **Relay - CoT routing only**.
     3. Click **Apply role**.
 
     All sensor units are stopped; Charontak (and the position core) keep running.
@@ -102,7 +102,7 @@ For a pure relay you typically change the **ingress** to a network source rather
 ## When to use a relay
 
 - **Uplink node.** A box with backhaul (Ethernet/LTE/satellite) bridges a disconnected team's Mesh SA to a distant TAK Server.
-- **Network bridge.** Join two segments — for example a MANET and a command LAN — passing CoT between them.
+- **Network bridge.** Join two segments - for example a MANET and a command LAN - passing CoT between them.
 - **Fan-out / consolidation.** Collect CoT from several feeders and forward one consolidated stream upstream.
 
 ```mermaid
@@ -117,6 +117,6 @@ flowchart LR
 
 ## Related
 
-- [Charontak lanes](../admin/charontak-lanes.md) — full lane editor reference.
-- [Connect a TAK Server](./connect-tak-server.md) — provision the TLS/enrollment egress lane.
+- [Charontak lanes](../admin/charontak-lanes.md) - full lane editor reference.
+- [Connect a TAK Server](./connect-tak-server.md) - provision the TLS/enrollment egress lane.
 - [Offline backpack](./offline-backpack.md) · [Device roles](../config/device-roles.md) · [Glossary](../reference/glossary.md)

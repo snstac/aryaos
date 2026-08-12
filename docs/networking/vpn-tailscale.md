@@ -1,7 +1,7 @@
 # VPN (Tailscale)
 
 AryaOS ships with [Tailscale](https://tailscale.com/) so you can reach a fielded
-unit from anywhere — no port forwarding, no public IP, no firewall holes. Join
+unit from anywhere - no port forwarding, no public IP, no firewall holes. Join
 the box to your tailnet from the browser and it becomes reachable by its
 tailnet name from any other device you own.
 
@@ -11,7 +11,7 @@ Field units live behind whatever network they can get: a base-camp router, a
 vehicle hotspot, a cellular modem doing carrier-grade NAT. None of those let you
 open an inbound port to the box. Tailscale builds an encrypted WireGuard mesh
 between your devices, so the AryaOS unit dials *out* to the coordination service
-and you connect to it by name — the same whether it's on the next bench or a
+and you connect to it by name - the same whether it's on the next bench or a
 ridge 200 miles away.
 
 !!! info "Tailscale is already in the image"
@@ -21,7 +21,7 @@ ridge 200 miles away.
 
 !!! warning "Tailscale is remote access, not a replacement for hardening"
     A tailnet reaches Cockpit, SSH, and the sensor dashboards on the box. Keep
-    the rest of the [security posture](../security.md) in place — rotate the
+    the rest of the [security posture](../security.md) in place - rotate the
     [Node-RED admin password](../admin/aryaos-site.md), let the
     [default password expire](../security.md), and only invite trusted devices
     to your tailnet.
@@ -29,7 +29,7 @@ ridge 200 miles away.
 ## Connect from Cockpit
 
 Everything happens in the **VPN (Tailscale)** card on
-**Cockpit → AryaOS Site**. The card reads `tailscale status --json` and shows
+**Cockpit > AryaOS Site**. The card reads `tailscale status --json` and shows
 one of a few states, then offers the matching action.
 
 ```mermaid
@@ -51,18 +51,18 @@ stateDiagram-v2
 
 ### First-time connect
 
-1. Open **Cockpit → AryaOS Site → VPN (Tailscale)**.
+1. Open **Cockpit > AryaOS Site > VPN (Tailscale)**.
 2. If you see *Tailscale daemon not running*, click **Start Tailscale service**.
 3. Click **Connect (get login link)**. The card runs `tailscale up` and waits
    for a login URL.
-4. A one-time link of the form `https://login.tailscale.com/…` appears in the
+4. A one-time link of the form `https://login.tailscale.com/...` appears in the
    card. **Open it on any device already signed in to your tailnet** and
    approve the node.
 5. The card flips to **Running** and shows the node's tailnet IP address. The
    box is now reachable from your other tailnet devices.
 
 !!! tip "Authorize from your phone"
-    You don't have to authorize the link on the box itself — that's the point.
+    You don't have to authorize the link on the box itself - that's the point.
     Copy the login link to a phone or laptop that's already signed in to your
     tailnet, approve it there, and the field unit joins. Click **Cancel login**
     in the card if you change your mind before authorizing.
@@ -70,7 +70,7 @@ stateDiagram-v2
 ### Disconnect or leave the tailnet
 
 - **Disconnect** (`tailscale down`) drops the WireGuard link but keeps the node
-  enrolled — reconnect later without a new login link.
+  enrolled - reconnect later without a new login link.
 - **Log out of tailnet** (`tailscale logout`) removes the enrollment entirely.
   The node must get a **new** login link to rejoin. Use this before handing a
   unit to someone else or standing it down.
@@ -80,9 +80,9 @@ stateDiagram-v2
 Once the node is **Running**, use its tailnet identity from any of your
 signed-in devices:
 
-- **Tailnet IP** — shown in the VPN card (a `100.x.y.z` address). Cockpit is at
+- **Tailnet IP** - shown in the VPN card (a `100.x.y.z` address). Cockpit is at
   `https://100.x.y.z:9090/`.
-- **MagicDNS name** — if MagicDNS is enabled on your tailnet, the box is
+- **MagicDNS name** - if MagicDNS is enabled on your tailnet, the box is
   reachable by its hostname (`aryaos-xxxx`) with no IP to remember. Enable
   MagicDNS in the Tailscale admin console; it is a tailnet-wide setting, not an
   AryaOS one.
@@ -96,9 +96,9 @@ signed-in devices:
 
 <div class="grid cards" markdown>
 
-- :material-wifi: **Wi-Fi & onboarding** — get the box onto a network first. [Wi-Fi & onboarding hotspot](wifi-hotspot.md)
-- :material-wall-fire: **Firewall** — what's exposed on the box. [Firewall](firewall.md)
-- :material-shield-lock: **Security posture** — the full hardening picture. [Security posture](../security.md)
-- :material-tune: **AryaOS Site** — the admin page hosting the VPN card. [AryaOS Site](../admin/aryaos-site.md)
+- :material-wifi: **Wi-Fi & onboarding** - get the box onto a network first. [Wi-Fi & onboarding hotspot](wifi-hotspot.md)
+- :material-wall-fire: **Firewall** - what's exposed on the box. [Firewall](firewall.md)
+- :material-shield-lock: **Security posture** - the full hardening picture. [Security posture](../security.md)
+- :material-tune: **AryaOS Site** - the admin page hosting the VPN card. [AryaOS Site](../admin/aryaos-site.md)
 
 </div>

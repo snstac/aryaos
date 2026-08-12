@@ -8,9 +8,9 @@ programs that need a formal posture (RMF / ATO).
 
 Two different things are often conflated:
 
-- **STIG** (DISA Security Technical Implementation Guide) — a **configuration
+- **STIG** (DISA Security Technical Implementation Guide) - a **configuration
   hardening baseline**. Achievable incrementally on the current image.
-- **FIPS 140-3** — use of **NIST-validated cryptographic modules**. Constrained
+- **FIPS 140-3** - use of **NIST-validated cryptographic modules**. Constrained
   by the Debian base and largely a business/re-base decision.
 
 ---
@@ -28,7 +28,7 @@ families (all in both dev and release images):
 | SI (System Integrity) | automatic Debian security updates; signed apt repo | `apt/52unattended-upgrades-aryaos` |
 | CM (Configuration Mgmt) | image content asserted every build; reproducible pi-gen | `scripts/verify-image.sh` |
 | MP (Media Protection) | factory-reset + zeroize (shred/TRIM/overwrite) | `aryaos-zeroize` |
-| AU (Audit) | sudo I/O logging, capped journald | partial — see gaps |
+| AU (Audit) | sudo I/O logging, capped journald | partial - see gaps |
 
 ## Known gaps vs a STIG baseline
 
@@ -40,10 +40,10 @@ Likely findings on a first scan, and the AryaOS disposition:
 - **CM (mount options)**: `/tmp`, `/var/tmp`, `/dev/shm` lack `nodev,nosuid,noexec`; unused kernel modules (cramfs, usb-storage, etc.) not blacklisted. *Fix* (Phase 1).
 - **AC (session)**: no shell idle timeout (`TMOUT`); no login-attempt lockout via `pam_faillock`. *Fix* (Phase 1).
 - **Waivered by the appliance model** (documented exceptions, not silent):
-  - **Password SSH auth stays enabled** — field operators may carry no keys; mitigated by first-boot expiry + `fail2ban` + `MaxAuthTries`. (SRG-OS SSH-key-only requirement.)
-  - **comitup AP / Bluetooth PAN onboarding** — attack surface, mitigated by EMCON (`aryaos-radio`) + firewall zone isolation.
-  - **No FDE by default** — zeroize is best-effort on flash; FDE + crypto-erase is on the roadmap.
-  - **Headless** — GUI/screen-lock STIGs are N/A.
+  - **Password SSH auth stays enabled** - field operators may carry no keys; mitigated by first-boot expiry + `fail2ban` + `MaxAuthTries`. (SRG-OS SSH-key-only requirement.)
+  - **comitup AP / Bluetooth PAN onboarding** - attack surface, mitigated by EMCON (`aryaos-radio`) + firewall zone isolation.
+  - **No FDE by default** - zeroize is best-effort on flash; FDE + crypto-erase is on the roadmap.
+  - **Headless** - GUI/screen-lock STIGs are N/A.
 
 ---
 
@@ -53,9 +53,9 @@ There is **no official DISA STIG for Debian**. The practical baselines are the
 **CIS Debian 12 Benchmark** and the **General Purpose OS SRG**, both shipped as
 OpenSCAP content in the **SCAP Security Guide** (`ssg-debian`). (If a program
 mandates a real DISA STIG, the closest validated path is a **Canonical Ubuntu
-STIG** — see the re-base note under FIPS.)
+STIG** - see the re-base note under FIPS.)
 
-**Phase 1 — measure (non-invasive, do first).**
+**Phase 1 - measure (non-invasive, do first).**
 Add an OpenSCAP scan to the test harness so every image gets a baseline score:
 
 ```bash
@@ -71,13 +71,13 @@ Triage findings into: already-met · will-fix · **waivered-with-rationale**
 (captured in an OpenSCAP **tailoring file**, `aryaos-stig-tailoring.xml`, so the
 appliance exceptions above are explicit and re-scored automatically).
 
-**Phase 2 — remediate.** Land the Phase-1 gap fixes (auditd, AIDE,
+**Phase 2 - remediate.** Land the Phase-1 gap fixes (auditd, AIDE,
 pam_pwquality/faillock, mount options, module blacklist, `TMOUT`) as
 hardening drop-ins, each asserted by `verify-image.sh`. Target a documented CIS
 score and publish the report + tailoring with each release.
 
-**Phase 3 — surface.** A Cockpit → *Compliance* card showing the last scan
-score, top open findings, and the waiver list — so an operator/assessor sees
+**Phase 3 - surface.** A Cockpit > *Compliance* card showing the last scan
+score, top open findings, and the waiver list - so an operator/assessor sees
 posture without a shell.
 
 ---
@@ -87,7 +87,7 @@ posture without a shell.
 **The honest reality:** Debian's OpenSSL/libgcrypt are **not NIST-validated**.
 Booting with `fips=1` does **not** confer compliance without validated modules.
 FIPS 140-3 is therefore a **module-sourcing** problem, and largely a re-base /
-procurement decision — not a config change.
+procurement decision - not a config change.
 
 **Options, roughly in order of effort:**
 
@@ -96,14 +96,14 @@ procurement decision — not a config change.
    primitives and document the inventory. This is immediately shippable and is
    usually a prerequisite line-item anyway:
    - **sshd**: pin `Ciphers`/`MACs`/`KexAlgorithms` to the FIPS set
-     (`aes256-gcm`, `hmac-sha2-512`, `ecdh-sha2-nistp384`, …) in
+     (`aes256-gcm`, `hmac-sha2-512`, `ecdh-sha2-nistp384`, ...) in
      `sshd/50-aryaos.conf`.
    - **lighttpd/cockpit TLS**: TLS 1.2+ only, FIPS cipher suites (AES-GCM,
      SHA-2, ECDHE-RSA/ECDSA).
-   - **pytak → TAK Server TLS**, **chrony**, **charontak**: confirm AES-GCM /
+   - **pytak > TAK Server TLS**, **chrony**, **charontak**: confirm AES-GCM /
      SHA-2 / RSA-2048+ or P-256/384 throughout.
-   - Deliverable: a **crypto inventory** table (component → library → algorithms
-     → key sizes) maintained in this repo.
+   - Deliverable: a **crypto inventory** table covering each component, library,
+     algorithm, and key size maintained in this repo.
 2. **OpenSSL 3 FIPS provider.** Build and activate the OpenSSL FIPS provider
    module. Gets the *architecture* right; a genuine certificate still requires a
    validated build.
@@ -114,7 +114,7 @@ procurement decision — not a config change.
 4. **Targeted commercial module (wolfSSL FIPS).** For a narrow validated crypto
    boundary (e.g. the TAK TLS path) without a full re-base.
 
-**Recommendation:** do (1) now — it is real hardening with no re-base — and hold
+**Recommendation:** do (1) now - it is real hardening with no re-base - and hold
 (3) behind an actual ATO requirement, since re-basing the whole image is a large
 program decision.
 

@@ -1,22 +1,22 @@
 # Site configuration
 
-`/etc/aryaos/aryaos-config.txt` is the **site configuration** file: the site-wide defaults inherited by every PyTAK sensor gateway on the device. This page is the complete key reference. Edit it through the [AryaOS Site page](../admin/aryaos-site.md) — the form updates known keys in place and preserves comments and everything else — or, for keys the form does not surface, through that page's **Raw site config** editor.
+`/etc/aryaos/aryaos-config.txt` is the **site configuration** file: the site-wide defaults inherited by every PyTAK sensor gateway on the device. This page is the complete key reference. Edit it through the [AryaOS Site page](../admin/aryaos-site.md) - the form updates known keys in place and preserves comments and everything else - or, for keys the form does not surface, through that page's **Raw site config** editor.
 
 !!! info "How it is applied"
     Each gateway's systemd unit loads this file via `EnvironmentFile=` **before** its own `/etc/default/<svc>`, so these are *defaults*: a per-service value overrides the site value. See the [configuration model](./index.md).
 
 ## The CoT routing invariant
 
-The single most important thing this file sets is where local feeders send CoT — and the AryaOS default keeps them all flowing through one hub:
+The single most important thing this file sets is where local feeders send CoT - and the AryaOS default keeps them all flowing through one hub:
 
 ```mermaid
 flowchart LR
-  feeders[Feeders<br/>adsbcot, aiscot, dronecot, lincot, gpstak, …] -->|COT_URL<br/>udp+wo://127.0.0.1:28087| charontak[(Charontak hub)]
+  feeders[Feeders<br/>adsbcot, aiscot, dronecot, lincot, gpstak, ...] -->|COT_URL<br/>udp+wo://127.0.0.1:28087| charontak[(Charontak hub)]
   charontak -->|lane| mesh[Mesh SA<br/>239.2.3.1:6969]
   charontak -.->|lane| tak[TAK Server]
 ```
 
-**Feeders → Charontak → Mesh SA (and/or TAK Server).** Keep `COT_URL` pointed at the Charontak hub and configure upstream destinations as [Charontak lanes](../admin/charontak-lanes.md). Only change `COT_URL` when you are deliberately bypassing the hub.
+**Feeders > Charontak > Mesh SA (and/or TAK Server).** Keep `COT_URL` pointed at the Charontak hub and configure upstream destinations as [Charontak lanes](../admin/charontak-lanes.md). Only change `COT_URL` when you are deliberately bypassing the hub.
 
 ## TAK / CoT
 
@@ -31,7 +31,7 @@ TLS material for TAK Server connections is written to this file by the [Site-wid
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `ARYAOS_ADSB_DECODER` | `readsb` | 1090 MHz decoder: `readsb` or `dump1090_fa` (only one may run). Must match the image build. Changing this alone does not reconfigure systemd — re-apply the [device role](./device-roles.md). |
+| `ARYAOS_ADSB_DECODER` | `readsb` | 1090 MHz decoder: `readsb` or `dump1090_fa` (only one may run). Must match the image build. Changing this alone does not reconfigure systemd - re-apply the [device role](./device-roles.md). |
 | `ARYAOS_ADSB_JSON_DIR` | `/run/adsb` | Directory where the decoder writes `aircraft.json`; `adsbcot` reads `aircraft.json` from here. |
 | `ARYAOS_UAT_RTL_SERIAL` | `stx:978:0` | RTL-SDR EEPROM serial for `dump978-fa` (UAT / 978 MHz). Must differ from the 1090 MHz serial. Restart `dump978-fa` after changing. |
 
@@ -87,7 +87,7 @@ For the normal case, leave `COT_URL` alone and edit lanes:
     Point upstream destinations at the [Charontak lane editor](../admin/charontak-lanes.md). Feeders keep `COT_URL=udp+wo://127.0.0.1:28087`; Charontak forwards to Mesh SA and/or a TAK Server. For TAK Servers, the [TAK connection](../admin/aryaos-site.md#tak-connection) card wires the lane and certs automatically.
 
 === "Bypass Charontak (advanced)"
-    Set `COT_URL` directly on the Site page (or per-gateway) to route feeders around the hub — for example `tls://takserver.example.com:8089` or `udp+wo://239.2.3.1:6969`. This forgoes Charontak's fan-out and is normally used only for debugging.
+    Set `COT_URL` directly on the Site page (or per-gateway) to route feeders around the hub - for example `tls://takserver.example.com:8089` or `udp+wo://239.2.3.1:6969`. This forgoes Charontak's fan-out and is normally used only for debugging.
 
 ## Editing over SSH
 

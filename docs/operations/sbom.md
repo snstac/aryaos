@@ -1,7 +1,7 @@
 # SBOM & supply chain
 
-Every AryaOS image build emits a **Software Bill of Materials (SBOM)** — a
-machine-readable inventory of everything installed in the image — in both SPDX
+Every AryaOS image build emits a **Software Bill of Materials (SBOM)** - a
+machine-readable inventory of everything installed in the image - in both SPDX
 and CycloneDX formats, attached to the GitHub Release. This page explains what
 an SBOM is, why it matters for government deployments, and how to fetch and read
 one.
@@ -14,18 +14,18 @@ label for the OS image. When a new vulnerability is announced against some
 library, an SBOM lets you answer *"is that library in our fielded units, and at
 what version?"* in seconds instead of guessing.
 
-!!! info "Why AryaOS ships one — the government context"
+!!! info "Why AryaOS ships one - the government context"
     AryaOS is funded by the Colorado Center of Excellence and the USDA Forest
     Service and is deployed on wildland fire and other public-safety missions.
     US federal guidance (Executive Order 14028 and the NTIA minimum elements)
     directs agencies to obtain SBOMs for the software they field. Shipping an
-    SBOM with every image is table stakes for that context — and it's simply
-    good supply-chain hygiene for anyone.
+    An SBOM is required in that context and provides a useful software inventory
+    for every deployment.
 
 ## What each build produces
 
-The SBOM covers the **full rootfs** of the loop-mounted image — Debian packages,
-Python site-packages, and the Node-RED npm tree — generated with
+The SBOM covers the **full rootfs** of the loop-mounted image - Debian packages,
+Python site-packages, and the Node-RED npm tree - generated with
 [syft](https://github.com/anchore/syft) by `scripts/generate-sbom.sh`:
 
 | File | Format | Notes |
@@ -81,14 +81,14 @@ grype sbom:aryaos.cdx.json
     # writes out/aryaos.spdx.json and out/aryaos.cdx.json
     ```
 
-    It loop-mounts the image read-only and runs syft over the rootfs — set
+    It loop-mounts the image read-only and runs syft over the rootfs - set
     `SYFT_BIN` to point at a specific syft binary if it isn't on `PATH`.
 
 ## The trust anchor
 
 An SBOM tells you *what* is installed; the signed apt repository tells you it
-came from a source you trust. AryaOS installs every package — at build time and
-during [updates](updates.md) — from the **GPG-signed snstac apt repository**,
+came from a source you trust. AryaOS installs every package - at build time and
+during [updates](updates.md) - from the **GPG-signed snstac apt repository**,
 [`https://snstac.github.io/packages`](https://snstac.github.io/packages). A unit
 only installs packages it can cryptographically verify came from Sensors &
 Signals, and the SBOM lets you audit exactly what those packages were.
@@ -97,8 +97,8 @@ Signals, and the SBOM lets you audit exactly what those packages were.
 
 <div class="grid cards" markdown>
 
-- :material-update: **Updates** — the signed repo in the update path. [Updates](updates.md)
-- :material-shield-lock: **Security posture** — image verification and the broader trust story. [Security posture](../security.md)
-- :material-briefcase-search: **Support bundles** — capture the installed-package state from a live unit. [Support bundles](support-bundles.md)
+- :material-update: **Updates** - the signed repo in the update path. [Updates](updates.md)
+- :material-shield-lock: **Security posture** - image verification and the broader trust story. [Security posture](../security.md)
+- :material-briefcase-search: **Support bundles** - capture the installed-package state from a live unit. [Support bundles](support-bundles.md)
 
 </div>
