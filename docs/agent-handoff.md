@@ -7,6 +7,24 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
 
+## 2026-08-12 latest-firmware AryaAir/AryaSea regression follow-up
+
+- Fresh-image testing on `192.168.0.44` exposed a discovery dependency: its
+  quiet CH340 dAISy could only be assigned after AIS was already enabled, while
+  first boot only enabled AIS after discovering an assigned receiver. The
+  capability scanner now recognizes the constrained AryaSea layout of one
+  CH340 beside a separately verified GPS, and explicitly refuses that guess
+  when an AntSDR is present. Live HIL with the AIS assignment temporarily
+  cleared returned `ais` as an auto-applied capability and selected the correct
+  stable by-id path.
+- The same boot produced one AISCOT restart. PyTAK correctly rebuilt the client
+  after a refused Charontak connection, but AISCOT did not close its UDP/5050
+  listener before the replacement worker bound the same port. AISCOT 7.3.1
+  retains and closes the datagram transport through the PyTAK worker cleanup
+  hook. Its regression starts a replacement worker on the same port in the same
+  process. AryaOS 2.0.24 and both image/runtime checks require AISCOT 7.3.1 or
+  newer.
+
 ## 2026-08-12 AryaAir/AryaSea eight-hour burn-in
 
 - `192.168.0.199` (`aryaos-d628`, AryaAir) and `192.168.0.44`

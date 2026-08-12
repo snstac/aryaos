@@ -107,6 +107,11 @@ worse than enabling nothing:
   PL2303. AryaOS validates complete MAVLink frames and requires `ADSB_VEHICLE`
   or `OPEN_DRONE_ID_MESSAGE_PACK`. A silent, stuck-low,
   busy, or unrelated MAVLink port is `AMBIGUOUS`, never auto-enabled.
+- **Silent dAISy receivers.** A quiet AIS channel produces no NMEA evidence.
+  AryaOS accepts one narrow hardware layout by elimination: one CH340 serial
+  adapter beside a separately verified GPS, with no AntSDR present. This
+  matches the AryaSea kit while avoiding the identical CH340 used for an
+  AntSDR maintenance console. Any less specific layout remains unassigned.
 - **Generic Raspberry Pi Picos.** ADSBee uses the stock Pico USB identity
   (`2e8a:000a`), so that identity alone is not sufficient. The scanner sends a
   read-only ADSBee bias-tee query and requires the device-specific response.

@@ -76,6 +76,7 @@ fi
 # Cockpit pins the document body and expects each page to supply its own scroll
 # container. These versions include the common #app root scroller, preventing
 # expanded Debug Logs and Advanced Details cards from being clipped.
+require_package_version aiscot 7.3.1
 require_package_version cockpit-adsbcot 1.2.3
 require_package_version cockpit-aiscot 1.2.3
 require_package_version cockpit-aprscot 0.1.1

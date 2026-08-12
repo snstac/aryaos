@@ -107,6 +107,13 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("ais-catcher-rtl@.service", builder)
         self.assertIn("aryaos-ais-sdr.service", builder)
 
+    def test_image_requires_aiscot_with_reconnect_safe_listener_cleanup(self):
+        verifier = (ROOT / "scripts/verify-image.sh").read_text()
+        hil = (ROOT / "scripts/aryaos-test/tests/05-packages.sh").read_text()
+
+        self.assertIn("require_pkg_version aiscot 7.3.1", verifier)
+        self.assertIn("require_package_version aiscot 7.3.1", hil)
+
     def test_overlay_packages_binary_serial_discovery(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
         assign = (ROOT / "shared_files/aryaos/aryaos-serial-assign").read_text()

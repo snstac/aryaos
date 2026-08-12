@@ -110,7 +110,36 @@ class ProtocolDetectionTestCase(unittest.TestCase):
             self.assertTrue(scanner._is_gnss(gps))
         run.assert_not_called()
 
-    def _scan(self, mavlink_result):
+    def test_silent_ch340_beside_verified_gps_is_daisy_candidate(self):
+        gps = "/dev/serial/by-id/usb-Silicon_Labs_GPS-if00"
+        daisy = "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"
+        with mock.patch.object(scanner, "configured_gps_ports", return_value=[gps]), mock.patch.object(
+            scanner.glob, "glob", return_value=[gps, daisy]
+        ), mock.patch.object(
+            scanner,
+            "_serial_properties",
+            side_effect=lambda port: {
+                "ID_VENDOR_ID": "1a86" if port == daisy else "10c4",
+                "ID_MODEL_ID": "7523" if port == daisy else "ea60",
+            },
+        ), mock.patch.object(
+            scanner, "_same_serial_device", side_effect=lambda left, right: left == right
+        ), mock.patch.object(scanner.os.path, "exists", return_value=False), mock.patch.object(
+            scanner, "_is_gnss", return_value=False
+        ):
+            self.assertEqual(scanner.probe_silent_daisy_candidate(), daisy)
+
+    def test_silent_ch340_is_not_guessed_without_separate_gps(self):
+        with mock.patch.object(scanner, "configured_gps_ports", return_value=[]):
+            self.assertIsNone(scanner.probe_silent_daisy_candidate())
+
+    def test_silent_ch340_is_not_guessed_on_antsdr_box(self):
+        with mock.patch.object(
+            scanner, "configured_gps_ports", return_value=["/dev/serial/by-id/gps"]
+        ):
+            self.assertIsNone(scanner.probe_silent_daisy_candidate("172.31.100.2"))
+
+    def _scan(self, mavlink_result, silent_ais=None):
         patches = (
             mock.patch.object(scanner, "probe_sdrs", return_value=[]),
             mock.patch.object(scanner, "probe_wifi_monitor", return_value=[]),
@@ -128,10 +157,13 @@ class ProtocolDetectionTestCase(unittest.TestCase):
             mock.patch.object(scanner, "probe_mavlink_stream", return_value=mavlink_result),
             mock.patch.object(scanner, "probe_antsdr", return_value=None),
             mock.patch.object(scanner, "probe_ais_serial", return_value=None),
+            mock.patch.object(
+                scanner, "probe_silent_daisy_candidate", return_value=silent_ais
+            ),
             mock.patch.object(scanner, "probe_onboard_bt", return_value=[]),
             mock.patch.object(scanner, "unit_active", return_value=False),
         )
-        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8], patches[9]:
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8], patches[9], patches[10]:
             return scanner.scan()
 
     def test_adsbee_is_a_usable_adsb_source_without_an_sdr(self):
@@ -150,6 +182,16 @@ class ProtocolDetectionTestCase(unittest.TestCase):
         self.assertFalse(rid["available"])
         self.assertTrue(rid["ambiguous"])
         self.assertIn("stuck-low", rid["evidence"])
+
+    def test_silent_daisy_candidate_auto_applies_ais(self):
+        daisy = "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"
+        report = self._scan(
+            {"status": "silent", "bytes_read": 0, "message_types": []},
+            silent_ais=daisy,
+        )
+        self.assertTrue(report["capabilities"]["ais"]["available"])
+        self.assertTrue(report["capabilities"]["ais"]["auto_apply"])
+        self.assertEqual(report["hardware"]["silent_ais_serial"], daisy)
 
     def test_generic_pl2303_needs_remote_id_mavlink(self):
         report = self._scan(
@@ -172,6 +214,8 @@ class ProtocolDetectionTestCase(unittest.TestCase):
             return_value={"status": "mavlink", "bytes_read": 32, "message_types": ["HEARTBEAT"]},
         ), mock.patch.object(scanner, "probe_antsdr", return_value=None), mock.patch.object(
             scanner, "probe_ais_serial", return_value=None
+        ), mock.patch.object(
+            scanner, "probe_silent_daisy_candidate", return_value=None
         ), mock.patch.object(scanner, "probe_onboard_bt", return_value=[]), mock.patch.object(
             scanner, "unit_active", return_value=False
         ):

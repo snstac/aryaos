@@ -260,6 +260,8 @@ forbid_path /usr/bin/dhbridge
 forbid_path /etc/systemd/system/dhbridge.service.d
 
 # Sensor / CoT stack
+require_pkg aiscot
+require_pkg_version aiscot 7.3.1
 require_pkg cockpit-gps
 require_pkg cockpit-adsbcot
 require_pkg_version cockpit-adsbcot 1.2.3

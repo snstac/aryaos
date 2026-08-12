@@ -46,6 +46,7 @@ CONFIG = "/etc/aryaos/aryaos-config.txt"
 ESP32_VID_PID = ("303a", "1001")  # Espressif native USB (DS101 *and* SiKW00F)
 ADSBEE_VID_PID = ("2e8a", "000a")  # Generic RP2040 CDC; protocol probe is mandatory.
 PL2303_VID_PID = ("067b", "2303")  # DS110 UART adapter, but also many unrelated cables.
+CH340_VID_PID = ("1a86", "7523")  # Lab dAISy UART; also used by AntSDR consoles.
 RID_MAVLINK_TYPES = {"ADSB_VEHICLE", "OPEN_DRONE_ID_MESSAGE_PACK"}
 ONBOARD_WIFI_DRIVERS = {"brcmfmac"}  # the Pi's own radio: never a RID sniffer
 
@@ -483,6 +484,40 @@ def probe_ais_serial():
     return None
 
 
+def probe_silent_daisy_candidate(antsdr=None):
+    """Return the one safe silent dAISy candidate in a maritime-style kit.
+
+    A dAISy emits nothing when no vessel is in range, so protocol probing alone
+    cannot distinguish a healthy quiet receiver from an unused serial cable.
+    The lab AryaSea hardware uses a generic CH340 beside a separately verified
+    GPS. Accept that narrow layout by elimination, but never claim the same
+    CH340 when an AntSDR is present because its maintenance console uses the
+    identical USB identity. The role manager still runs aryaos-serial-assign
+    before starting AIS-catcher and applies the final same-device guard.
+    """
+    gps_ports = configured_gps_ports()
+    if not gps_ports or antsdr:
+        return None
+
+    candidates = []
+    for port in sorted(glob.glob("/dev/serial/by-id/*")):
+        props = _serial_properties(port)
+        identity = (props.get("ID_VENDOR_ID"), props.get("ID_MODEL_ID"))
+        if identity != CH340_VID_PID:
+            continue
+        if any(_same_serial_device(port, gps_port) for gps_port in gps_ports):
+            continue
+        if os.path.exists("/dev/antsdr-console") and _same_serial_device(
+            port, "/dev/antsdr-console"
+        ):
+            continue
+        if _is_gnss(port):
+            continue
+        candidates.append(port)
+
+    return candidates[0] if len(candidates) == 1 else None
+
+
 # --- capability mapping -----------------------------------------------------
 
 
@@ -494,6 +529,10 @@ def scan():
     ds110_uart = probe_ds110_uart_candidates()
     antsdr = probe_antsdr()
     ais_serial = probe_ais_serial()
+    silent_ais_serial = None
+    if not ais_serial:
+        silent_ais_serial = probe_silent_daisy_candidate(antsdr)
+        ais_serial = silent_ais_serial
 
     caps = {}
 
@@ -557,7 +596,13 @@ def scan():
     ais_available = bool(ais_serial) or bool(sdrs)
     ais_ev = []
     if ais_serial:
-        ais_ev.append(f"NMEA AIS receiver at {ais_serial}")
+        if silent_ais_serial:
+            ais_ev.append(
+                f"silent dAISy candidate at {ais_serial} "
+                "(single CH340 beside verified GPS)"
+            )
+        else:
+            ais_ev.append(f"NMEA AIS receiver at {ais_serial}")
     if sdrs and not ais_serial:
         ais_ev.append(f"{len(sdrs)} SDR(s) could run AIS")
     caps["ais"] = {
@@ -737,6 +782,7 @@ def scan():
             "rid_serial_probes": rid_probes,
             "antsdr": antsdr,
             "ais_serial": ais_serial,
+            "silent_ais_serial": silent_ais_serial,
         },
         "capabilities": caps,
         "detected": sorted(k for k, v in caps.items() if v.get("available")),
