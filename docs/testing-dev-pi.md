@@ -107,6 +107,6 @@ The runner exits **1** if any module reports failures; **0** if only warnings/sk
 
 ## Related docs
 
-- [dev-pi.md](dev-pi.md) — lab Pi setup, sync, portal deploy
-- [portal.md](portal.md) — portal JSON schema and TAK gateway list
-- [AGENTS.md](https://github.com/snstac/aryaos/blob/main/AGENTS.md) — agent workflow after portal or image changes
+- [dev-pi.md](dev-pi.md) - lab Pi setup, sync, portal deploy
+- [portal.md](portal.md) - portal JSON schema and TAK gateway list
+- [AGENTS.md](https://github.com/snstac/aryaos/blob/main/AGENTS.md) - agent workflow after portal or image changes

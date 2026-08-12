@@ -1,11 +1,11 @@
 # CLI helpers
 
-AryaOS installs a small set of `aryaos-*` helper commands in `/usr/local/sbin`. These are the same actions the [AryaOS Site](../admin/aryaos-site.md) web cards run — so **SSH is optional**. Reach for the shell when you are already on the console, scripting a fleet, or want to see raw output.
+AryaOS installs a small set of `aryaos-*` helper commands in `/usr/local/sbin`. These are the same actions the [AryaOS Site](../admin/aryaos-site.md) web cards run - so **SSH is optional**. Reach for the shell when you are already on the console, scripting a fleet, or want to see raw output.
 
 !!! tip "Every command has a web-console equivalent"
-    You never have to touch the shell. Each helper below is backed by a card in **Cockpit → AryaOS Site**. See [AryaOS Site page](../admin/aryaos-site.md).
+    You never have to touch the shell. Each helper below is backed by a card in **Cockpit > AryaOS Site**. See [AryaOS Site page](../admin/aryaos-site.md).
 
-## At a glance
+## Command summary
 
 | Command | What it does | Root? | Web equivalent |
 |---|---|---|---|
@@ -18,7 +18,7 @@ AryaOS installs a small set of `aryaos-*` helper commands in `/usr/local/sbin`. 
 | [`aryaos-config-backup {backup\|restore\|list}`](#aryaos-config-backup) | Back up / restore the full config set | yes | Backup & restore |
 | [`aryaos-factory-reset`](#aryaos-factory-reset) | Return the box to its just-flashed state | yes | Factory reset |
 | [`aryaos-zeroize`](#aryaos-zeroize) | Best-effort secure sanitize (decommission) | yes | Zeroize |
-| [`aryaos-firstboot.sh`](#aryaos-firstboot) | One-time first-boot personalization | yes | — (runs automatically) |
+| [`aryaos-firstboot.sh`](#aryaos-firstboot) | One-time first-boot personalization | yes | - (runs automatically) |
 
 Commands print JSON where a machine (Cockpit) consumes the output, and require `sudo` for anything that changes the system.
 
@@ -40,7 +40,7 @@ aryaos-update status        # report last check/apply + reboot-required (JSON, n
 
 ## aryaos-support-bundle {#aryaos-support-bundle}
 
-Collects **redacted** diagnostics — system identity, package versions, service status, journals, network state, config files, and a sensor snapshot — into a single tarball for support.
+Collects **redacted** diagnostics - system identity, package versions, service status, journals, network state, config files, and a sensor snapshot - into a single tarball for support.
 
 ```bash
 sudo aryaos-support-bundle
@@ -75,7 +75,7 @@ sudo aryaos-sdr set-serial 0 stx:1090:0     # write a new EEPROM serial to devic
 
 - AryaOS serial conventions: `stx:1090:0` for the ADS-B 1090 MHz path (`readsb`/`dump1090-fa`), `stx:978:0` for UAT 978 MHz (`dump978-fa`, `ARYAOS_UAT_RTL_SERIAL`).
 - `set-serial` stops any active SDR consumers (`readsb`, `dump1090-fa`, `dump978-fa`, `ais-catcher`), writes the serial, and restarts what it stopped.
-- A serial is 1–32 characters of `[A-Za-z0-9:._-]`. **Replug the dongle (or reboot)** before the new serial is visible to consumers.
+- A serial is 1-32 characters of `[A-Za-z0-9:._-]`. **Replug the dongle (or reboot)** before the new serial is visible to consumers.
 
 See [Radios & SDRs](../config/radios-sdr.md).
 
@@ -94,7 +94,7 @@ sudo aryaos-role set air    # enable this role's units, disable the rest, persis
 | `air` | ADS-B / UAT (`readsb` or `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdltak`) |
 | `maritime` | AIS (`ais-catcher`, `aiscot`) |
 | `cuas` | Drones (`dronecot`, `sikw00fcot`) |
-| `relay` | CoT routing only — no sensors |
+| `relay` | CoT routing only - no sensors |
 
 The ADS-B decoder unit follows `ARYAOS_ADSB_DECODER` (`readsb` or `dump1090_fa`). Units missing from the image are skipped, not errors. See [Device roles](../config/device-roles.md).
 
@@ -113,7 +113,7 @@ sudo aryaos-import-tak-dp --enrollment-url-file /path/to/tak-url.txt
 
 ## aryaos-config-backup {#aryaos-config-backup}
 
-Backs up and restores the full AryaOS configuration set — site config, charontak lanes, gateway `/etc/default` files, saved networks, TAK certs, and Node-RED credentials — as a single tarball.
+Backs up and restores the full AryaOS configuration set - site config, charontak lanes, gateway `/etc/default` files, saved networks, TAK certs, and Node-RED credentials - as a single tarball.
 
 ```bash
 sudo aryaos-config-backup backup                 # full backup (includes secrets)
@@ -127,11 +127,11 @@ aryaos-config-backup list                         # list existing backups (JSON)
 - `restore` validates the archive by its `MANIFEST.txt`, unpacks in place preserving perms, then `try-restart`s the CoT fleet and `lighttpd`; recommends a reboot.
 
 !!! danger "A full backup contains private keys and Wi-Fi PSKs"
-    The default `backup` includes TAK client certs, TLS keys, NetworkManager PSKs, and Node-RED credentials — store it securely. Use `--no-secrets` for a shareable, config-only archive. Same action as the **Backup & restore** card. See [Back up & restore](../operations/backup-restore.md).
+    The default `backup` includes TAK client certs, TLS keys, NetworkManager PSKs, and Node-RED credentials - store it securely. Use `--no-secrets` for a shareable, config-only archive. Same action as the **Backup & restore** card. See [Back up & restore](../operations/backup-restore.md).
 
 ## aryaos-factory-reset {#aryaos-factory-reset}
 
-Returns the box to its just-flashed, pre-first-boot state **without re-flashing**: restores AryaOS config from `/usr/share/aryaos/defaults`, deletes uploaded TAK certs, clears device identity (so `aryaos-firstboot` re-runs and picks a new suffix/hostname), re-expires the login password, then reboots. Keeps the OS, packages, and — by default — the network.
+Returns the box to its just-flashed, pre-first-boot state **without re-flashing**: restores AryaOS config from `/usr/share/aryaos/defaults`, deletes uploaded TAK certs, clears device identity (so `aryaos-firstboot` re-runs and picks a new suffix/hostname), re-expires the login password, then reboots. Keeps the OS, packages, and - by default - the network.
 
 ```bash
 sudo aryaos-factory-reset                  # keep network; type the hostname to confirm; reboot
@@ -140,7 +140,7 @@ sudo aryaos-factory-reset --service        # non-interactive (Cockpit card)
 sudo aryaos-factory-reset --no-reboot      # reset but don't reboot (testing)
 ```
 
-- **Not a secure erase** — it restores/clears config but does not sanitize the media. For decommission use [`aryaos-zeroize`](#aryaos-zeroize).
+- **Not a secure erase** - it restores/clears config but does not sanitize the media. For decommission use [`aryaos-zeroize`](#aryaos-zeroize).
 - Per-gateway `/etc/default/<svc>` files are reset via `apt-get --reinstall` **only when online**; offline they're left as-is.
 - Sensor services are stopped, hardware autodetection is re-armed, and safe-mode/crash-counter state is cleared so the intentional reboot returns with attached hardware freshly detected.
 - Same action as the **Factory reset** card. See [Factory reset](../operations/factory-reset.md).
@@ -161,14 +161,14 @@ sudo aryaos-zeroize --no-reboot      # wipe but don't reboot (testing)
 
 ## aryaos-firstboot.sh {#aryaos-firstboot}
 
-Runs once automatically via `aryaos-firstboot.service` on the first boot — you should not need to invoke it by hand. It derives [`DEVICE_SUFFIX`](glossary.md#device_suffix), sets the hostname `aryaos-xxxx`, names the hotspot `AryaOS-xxxx`, regenerates the per-device web TLS certificate, and (on release images) expires the default `pi` password. See [First boot & first login](../get-started/first-boot.md).
+Runs once automatically via `aryaos-firstboot.service` on the first boot - you should not need to invoke it by hand. It derives [`DEVICE_SUFFIX`](glossary.md#device_suffix), sets the hostname `aryaos-xxxx`, names the hotspot `AryaOS-xxxx`, regenerates the per-device web TLS certificate, and (on release images) expires the default `pi` password. See [First boot & first login](../get-started/first-boot.md).
 
 ## See also
 
 <div class="grid cards" markdown>
 
-- :material-view-dashboard: **AryaOS Site page** — The web equivalents of these commands. [AryaOS Site page](../admin/aryaos-site.md)
-- :material-book-open: **Glossary** — Terms these commands touch. [Glossary](glossary.md)
-- :material-shield-check: **Security posture** — Why passwords must be rotated. [Security posture](../security.md)
+- :material-view-dashboard: **AryaOS Site page** - The web equivalents of these commands. [AryaOS Site page](../admin/aryaos-site.md)
+- :material-book-open: **Glossary** - Terms these commands touch. [Glossary](glossary.md)
+- :material-shield-check: **Security posture** - Why passwords must be rotated. [Security posture](../security.md)
 
 </div>

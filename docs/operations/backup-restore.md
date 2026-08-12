@@ -3,14 +3,14 @@
 An AryaOS box holds a lot of hard-won state: your site config, the sensor
 role, charontak lanes, TAK client certificates, saved Wi-Fi networks, and the
 Node-RED flows. The `aryaos-config-backup` helper packs all of it into one
-restorable tarball — so you can snapshot a working unit before a change, or
+restorable tarball - so you can snapshot a working unit before a change, or
 migrate a whole configuration onto a replacement box in minutes.
 
 ## Make a backup
 
 === "In Cockpit (recommended)"
 
-    1. Open **Cockpit → AryaOS Site → Backup & restore**.
+    1. Open **Cockpit > AryaOS Site > Backup & restore**.
     2. Click **Create backup**. AryaOS packs the config set into a tarball on
        the box and lists it under existing backups.
     3. Download it to your machine to keep a copy off the unit.
@@ -53,7 +53,7 @@ genuine AryaOS backup.
     keys, NetworkManager Wi-Fi PSKs, and Node-RED credentials.** Anyone holding
     that archive can impersonate the unit and its TAK connection. AryaOS writes
     every archive **`0600` root** and keeps the directory `0700`, but once you
-    copy it off the box it is your responsibility — **store full backups
+    copy it off the box it is your responsibility - **store full backups
     securely.**
 
     For a copy you can safely share (attach to a ticket, hand to a teammate,
@@ -67,7 +67,7 @@ Backups are written to **`/var/lib/aryaos/backups/`** as
 `aryaos-config_<hostname>_<timestamp>.tar.gz`.
 
 - Each archive is mode **`0600`** (root-only) and the directory is `0700`.
-- Only the **five newest** backups are kept — older ones are pruned
+- Only the **five newest** backups are kept - older ones are pruned
   automatically each time you create a new one.
 - The most recent backup's path and size are recorded in
   `/var/lib/aryaos/config-backup.json`, which is how the Cockpit card lists it.
@@ -76,7 +76,7 @@ Backups are written to **`/var/lib/aryaos/backups/`** as
 
 === "In Cockpit"
 
-    Open **Cockpit → AryaOS Site → Backup & restore**, pick a backup, and
+    Open **Cockpit > AryaOS Site > Backup & restore**, pick a backup, and
     click **Restore**. The card confirms with you first, then unpacks the
     archive and restarts the affected services.
 
@@ -96,7 +96,7 @@ permissions and ownership, runs `systemctl daemon-reload`, and does a
 `adsbcot`, `dronecot`) plus `lighttpd`.
 
 !!! warning "Restore is additive"
-    Restore *overlays* the backed-up files onto the device — it brings back
+    Restore *overlays* the backed-up files onto the device - it brings back
     everything in the archive but does **not** remove files created since the
     backup (for example, a TAK certificate uploaded afterwards stays in place).
     If you need an exact return to the backed-up state, do a
@@ -116,7 +116,7 @@ permissions and ownership, runs `systemctl daemon-reload`, and does a
 Backups are the fast path when hardware fails or you're swapping a fielded unit:
 
 1. On the **old box** (or from your last saved backup), make a **full** backup
-   and download it — you want the TAK certs and Wi-Fi PSKs, so *do not* use
+   and download it - you want the TAK certs and Wi-Fi PSKs, so *do not* use
    `--no-secrets` here.
 2. Flash AryaOS onto the **replacement box** and let it complete first boot.
 3. Copy the archive onto the new box (over SSH or the
@@ -135,9 +135,9 @@ Backups are the fast path when hardware fails or you're swapping a fielded unit:
 
 <div class="grid cards" markdown>
 
-- :material-backup-restore: **Factory reset** — clear config back to defaults (back up first). [Factory reset](./factory-reset.md)
-- :material-nuke: **Zeroize** — securely sanitize a box for decommission. [Zeroize](./zeroize.md)
-- :material-console: **CLI helpers** — the full `aryaos-config-backup` reference. [CLI helpers](../reference/cli-helpers.md#aryaos-config-backup)
-- :material-tune: **AryaOS Site** — the admin page hosting the backup card. [AryaOS Site](../admin/aryaos-site.md)
+- :material-backup-restore: **Factory reset** - clear config back to defaults (back up first). [Factory reset](./factory-reset.md)
+- :material-nuke: **Zeroize** - securely sanitize a box for decommission. [Zeroize](./zeroize.md)
+- :material-console: **CLI helpers** - the full `aryaos-config-backup` reference. [CLI helpers](../reference/cli-helpers.md#aryaos-config-backup)
+- :material-tune: **AryaOS Site** - the admin page hosting the backup card. [AryaOS Site](../admin/aryaos-site.md)
 
 </div>

@@ -3,53 +3,53 @@
 A **factory reset** returns a box to its just-flashed, pre-first-boot state
 without re-flashing the media. It's the clean-slate button: hand a unit to a
 new operator, recover from a botched configuration, or repurpose a box for a
-different mission — all without touching the OS or reinstalling packages.
+different mission - all without touching the OS or reinstalling packages.
 
 !!! info "This is not a secure wipe"
     Factory reset restores config and clears identity; it does **not** securely
     erase anything from the media. To sanitize a box for decommission or before
     it leaves your control, use **[Zeroize](./zeroize.md)** instead.
 
-## What it does — and doesn't
+## What it does - and doesn't
 
 === "What it clears"
 
-    - **Site config** — restores `/etc/aryaos/aryaos-config.txt` and
+    - **Site config** - restores `/etc/aryaos/aryaos-config.txt` and
       `/etc/charontak.ini` from the packaged defaults in
       `/usr/share/aryaos/defaults`; resets `issue`, `issue.net`, and `motd`.
-    - **Per-gateway `/etc/default/<svc>`** — reinstalled to package defaults
+    - **Per-gateway `/etc/default/<svc>`** - reinstalled to package defaults
       **when online** (via `apt-get --reinstall`). Offline, these are left as-is
-      — reset again online to restore them. If the best-effort reinstall fails
+      - reset again online to restore them. If the best-effort reinstall fails
       after unpacking a package, reset completes pending package configuration
       before reboot so the package database remains consistent.
-    - **Operator-uploaded TAK certificates** — deletes the files under
+    - **Operator-uploaded TAK certificates** - deletes the files under
       `/etc/aryaos/tls`, `/etc/charontak/tls`, and the per-gateway `tls`
       directories (the directories themselves are kept).
-    - **Device identity** — removes the machine-id and firstboot markers so
+    - **Device identity** - removes the machine-id and firstboot markers so
       `aryaos-firstboot` re-runs: the box gets a **new**
       [`DEVICE_SUFFIX`](../reference/glossary.md#device_suffix), hostname, and
       per-device web TLS certificate on the next boot, and the login password is
       re-expired.
-    - **Sensor role state** — stops and disables the old sensor pipelines,
+    - **Sensor role state** - stops and disables the old sensor pipelines,
       clears the hardware-autodetection marker, and lets first boot
       protocol-probe attached hardware again before enabling its capabilities.
-    - **Crash-guard state** — clears any sticky safe-mode latch and short-boot
+    - **Crash-guard state** - clears any sticky safe-mode latch and short-boot
       counter, then restores USB power. The intentional reset reboot therefore
       cannot be mistaken for a brownout crash loop.
-    - **Local state** — drops update, support-bundle, and config-backup state
+    - **Local state** - drops update, support-bundle, and config-backup state
       JSON that referenced the old identity.
 
 === "What it keeps"
 
-    - **The OS and all installed packages** — nothing is uninstalled or
+    - **The OS and all installed packages** - nothing is uninstalled or
       re-flashed.
-    - **The network connection, by default** — saved Wi-Fi/NetworkManager
+    - **The network connection, by default** - saved Wi-Fi/NetworkManager
       connections and the onboarding hotspot password are **preserved** unless
       you pass `--wipe-network`, so a remote box isn't stranded off the network
       after a reset. (The AntSDR point-to-point link is always kept.)
 
 After the reset the box **reboots into first-boot setup**, exactly like a
-freshly flashed image — first boot re-derives identity and regenerates the web
+freshly flashed image - first boot re-derives identity and regenerates the web
 TLS certificate. Attached sensors are rediscovered and their protocol-specific
 transports are applied before their services start.
 
@@ -61,15 +61,15 @@ transports are applied before their services start.
 
 !!! warning "Back up first"
     A factory reset overwrites your site config and deletes uploaded TAK
-    certs. If there's any chance you'll want the current setup again — or want
-    to move it to a replacement box — make a
+    certs. If there's any chance you'll want the current setup again - or want
+    to move it to a replacement box - make a
     [backup](./backup-restore.md) first.
 
 ## How to run it
 
 === "In Cockpit (recommended)"
 
-    1. Open **Cockpit → AryaOS Site → Factory reset**.
+    1. Open **Cockpit > AryaOS Site > Factory reset**.
     2. Read the confirmation, which lists what will be cleared, and confirm.
     3. The card runs the reset (`--service`) and the box reboots into first-boot
        setup.
@@ -94,7 +94,7 @@ transports are applied before their services start.
     | *(none)* | Reset config + identity, **keep** the network, prompt, then reboot. |
     | `--wipe-network` | Also remove saved Wi-Fi/NetworkManager connections and the hotspot password (box reverts to open onboarding). |
     | `--service` | Non-interactive (used by the Cockpit card, which already confirmed). |
-    | `--no-reboot` | Do the reset but don't reboot — for testing. |
+    | `--no-reboot` | Do the reset but don't reboot - for testing. |
 
 ## Factory reset vs. zeroize
 
@@ -117,9 +117,9 @@ If the box is going somewhere you don't control, use
 
 <div class="grid cards" markdown>
 
-- :material-content-save: **Back up & restore** — snapshot config before you reset. [Back up & restore](./backup-restore.md)
-- :material-nuke: **Zeroize** — the secure-erase counterpart for decommission. [Zeroize](./zeroize.md)
-- :material-console: **CLI helpers** — the full `aryaos-factory-reset` reference. [CLI helpers](../reference/cli-helpers.md#aryaos-factory-reset)
-- :material-restart: **First boot** — what the box does when it comes back up. [First boot & first login](../get-started/first-boot.md)
+- :material-content-save: **Back up & restore** - snapshot config before you reset. [Back up & restore](./backup-restore.md)
+- :material-nuke: **Zeroize** - the secure-erase counterpart for decommission. [Zeroize](./zeroize.md)
+- :material-console: **CLI helpers** - the full `aryaos-factory-reset` reference. [CLI helpers](../reference/cli-helpers.md#aryaos-factory-reset)
+- :material-restart: **First boot** - what the box does when it comes back up. [First boot & first login](../get-started/first-boot.md)
 
 </div>

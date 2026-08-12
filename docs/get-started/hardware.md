@@ -1,6 +1,6 @@
 # Hardware & requirements
 
-Everything you need to build or buy an AryaOS gateway. This page covers the single-board computer, storage, radios, antennas, GPS, and power for backpack operations — plus the pre-assembled [AirTAK go-kit](../purchase.md) if you would rather skip the shopping list.
+Hardware requirements for building or buying an AryaOS gateway. The list covers the single-board computer, storage, radios, antennas, GPS, and power for backpack operations. A pre-assembled [AirTAK go-kit](../purchase.md) is also available.
 
 !!! tip "Just want it to work?"
     Order an assembled and tested [AirTAK go-kit](../purchase.md). It ships with a Raspberry Pi, the right radios and antennas, GPS, and a field enclosure, all pre-flashed with AryaOS. The rest of this page is for teams building their own.
@@ -13,18 +13,18 @@ AryaOS runs the same image everywhere; a mission's needs come down to which radi
 |---|---|---|---|---|---|
 | Aircraft (ADS-B 1090 MHz) | [Aircraft (ADS-B)](../deploy/air-adsb.md) | RTL-SDR | 1090 MHz ADS-B | Optional | `air` |
 | Aircraft (UAT 978 MHz, US) | [Aircraft (ADS-B)](../deploy/air-adsb.md) | Second RTL-SDR | 978 MHz (or wideband ADS-B) | Optional | `air` |
-| Maritime vessels (AIS) | [Maritime vessels (AIS)](../deploy/maritime-ais.md) | RTL-SDR | VHF marine (161–162 MHz) | Optional | `maritime` |
+| Maritime vessels (AIS) | [Maritime vessels (AIS)](../deploy/maritime-ais.md) | RTL-SDR | VHF marine (161-162 MHz) | Optional | `maritime` |
 | Drones (Remote ID / DroneID) | [Counter-UAS (drones)](../deploy/counter-uas.md) | AntSDR (or Wi-Fi/BT sniffer) | 2.4/5.8 GHz per hardware | Optional | `cuas` |
-| Own position on the map | [Own position (GPS)](../deploy/own-position-gps.md) | — | — | USB GNSS puck | any |
+| Own position on the map | [Own position (GPS)](../deploy/own-position-gps.md) | - | - | USB GNSS puck | any |
 | Everything at once | [Multi-sensor COP](../deploy/multi-sensor.md) | Multiple SDRs | Per band above | USB GNSS puck | `multi` |
-| CoT relay / routing only | [Relay & routing](../deploy/relay-routing.md) | — | — | Optional | `relay` |
+| CoT relay / routing only | [Relay & routing](../deploy/relay-routing.md) | - | - | Optional | `relay` |
 
 !!! info "One SDR per band"
-    Each radio decodes one band at a time. To watch 1090 MHz and 978 MHz simultaneously (or add AIS), fit one RTL-SDR per band and give each a unique serial — see [Re-serializing radios](#re-serializing-radios).
+    Each radio decodes one band at a time. To watch 1090 MHz and 978 MHz simultaneously (or add AIS), fit one RTL-SDR per band and give each a unique serial - see [Re-serializing radios](#re-serializing-radios).
 
 ## Single-board computer
 
-AryaOS is a Debian trixie–based, `arm64` operating system built with pi-gen. It targets the Raspberry Pi and is tested on the following models.
+AryaOS is a Debian trixie-based, `arm64` operating system built with pi-gen. It targets the Raspberry Pi and is tested on the following models.
 
 | Model | Architecture | Status | Notes |
 |---|---|---|---|
@@ -51,7 +51,7 @@ Use a reputable card whose manufacturer can be verified; counterfeit cards can
 report the advertised capacity while aliasing unrelated sectors. After first
 boot, run the [integration suite](../testing-dev-pi.md). A zero media
 manufacturer ID, binary boot command line, or missing boot artifact is a hard
-failure—replace the card rather than reflashing it again.
+failure. Replace the card rather than reflashing it again.
 
 ## Radios (SDR dongles)
 
@@ -65,7 +65,7 @@ AryaOS decodes signals with software-defined radio (SDR) dongles on USB.
     |---|---|---|---|
     | ADS-B | 1090 MHz | `readsb` / `dump1090-fa` | `stx:1090:0` |
     | UAT (US) | 978 MHz | `dump978-fa` | `stx:978:0` |
-    | AIS | 161–162 MHz (VHF) | `ais-catcher` | assign a distinct serial |
+    | AIS | 161-162 MHz (VHF) | `ais-catcher` | assign a distinct serial |
 
     A blog-favorite is the Nooelec NESDR series; the factory UAT preset on AryaOS matches the NESDR Nano 3 "978" EEPROM serial `stx:978:0`.
 
@@ -78,7 +78,7 @@ AryaOS decodes signals with software-defined radio (SDR) dongles on USB.
 
 ### Re-serializing radios
 
-Set serials from **Cockpit → AryaOS Site → Radios**, or from a shell with [`aryaos-sdr`](../reference/cli-helpers.md):
+Set serials from **Cockpit > AryaOS Site > Radios**, or from a shell with [`aryaos-sdr`](../reference/cli-helpers.md):
 
 ```bash
 sudo aryaos-sdr list
@@ -95,14 +95,14 @@ The right antenna does more for range than anything else in the kit.
 |---|---|---|
 | ADS-B 1090 MHz | Tuned 1090 MHz ADS-B antenna | A tuned whip or collinear outperforms the bundled telescopic; height and line of sight matter most |
 | UAT 978 MHz | 978 MHz or wideband ADS-B antenna | US-only band; a wideband ADS-B antenna covers both 978 and 1090 acceptably |
-| AIS (VHF) | Marine VHF antenna (161–162 MHz) | A proper VHF marine antenna dramatically improves vessel range |
+| AIS (VHF) | Marine VHF antenna (161-162 MHz) | A proper VHF marine antenna dramatically improves vessel range |
 
 !!! example "Range in the field"
     In a San Diego backpack test with no internet, a tuned ADS-B setup reached **55 miles** of aircraft coverage. See [Introduction](overview.md) for the full CONOP.
 
 ## GPS / GNSS
 
-A USB GNSS puck gives the gateway its own position, which AryaOS publishes to TAK via [GPSTAK and LINCOT](../reference/software-suite.md) — useful for backpack and vehicle operations where the box is on the move.
+A USB GNSS puck gives the gateway its own position, which AryaOS publishes to TAK via [GPSTAK and LINCOT](../reference/software-suite.md) - useful for backpack and vehicle operations where the box is on the move.
 
 - Any `gpsd`-compatible USB GNSS receiver works (the popular u-blox 7/8-class pucks are common choices).
 - GPS is optional for fixed-site installs but recommended for mobile and dismounted use.
@@ -110,26 +110,26 @@ A USB GNSS puck gives the gateway its own position, which AryaOS publishes to TA
 
 ## Power & battery for backpack ops
 
-AryaOS is designed for disconnected, dismounted use — no LTE, no Wi-Fi backhaul required.
+AryaOS is designed for disconnected, dismounted use - no LTE, no Wi-Fi backhaul required.
 Power is the most common field failure, so size it correctly:
 
-- **Raspberry Pi 5: use a 5V/5A (27&nbsp;W) USB-C PD supply** — the official Raspberry Pi 27&nbsp;W supply, or a charger that *explicitly* lists a `5V/5A` output. (Earlier Pis: a Pi 4 wants a solid 5V/3A source.)
-    - **A high-wattage GaN charger is not a substitute.** Multi-port GaN bricks (e.g. Anker Prime 100&nbsp;W, UGREEN Nexode) deliver 5A only at 9–20&nbsp;V; at 5&nbsp;V they cap at **3A (15&nbsp;W)**, so a Pi 5 runs starved and browns out under load. Verify the `5V/5A` line item, not the total wattage.
-- **SDRs draw additional current.** AryaOS ships `usb_max_current_enable=1`, so the Pi 5 feeds the full USB budget to the radios — but only if the supply can actually deliver it. Size the battery/supply for the Pi **plus** every attached radio.
-- **PoE:** the Waveshare PoE M.2 HAT+ (and similar) output **5V/4.5A (~22.5&nbsp;W) on 802.3at (PoE+)** — enough for a Pi 5 with an NVMe SSD and a couple of SDRs, but **only from a true PoE+ (802.3at) source**. A plain **802.3af** switch or injector (~13&nbsp;W) will brown the box out; use PoE+ (802.3at) or PoE++ (802.3bt).
+- **Raspberry Pi 5: use a 5V/5A (27&nbsp;W) USB-C PD supply** - the official Raspberry Pi 27&nbsp;W supply, or a charger that *explicitly* lists a `5V/5A` output. (Earlier Pis: a Pi 4 wants a solid 5V/3A source.)
+    - **A high-wattage GaN charger is not a substitute.** Multi-port GaN bricks (e.g. Anker Prime 100&nbsp;W, UGREEN Nexode) deliver 5A only at 9-20&nbsp;V; at 5&nbsp;V they cap at **3A (15&nbsp;W)**, so a Pi 5 runs starved and browns out under load. Verify the `5V/5A` line item, not the total wattage.
+- **SDRs draw additional current.** AryaOS ships `usb_max_current_enable=1`, so the Pi 5 feeds the full USB budget to the radios - but only if the supply can actually deliver it. Size the battery/supply for the Pi **plus** every attached radio.
+- **PoE:** the Waveshare PoE M.2 HAT+ (and similar) output **5V/4.5A (~22.5&nbsp;W) on 802.3at (PoE+)** - enough for a Pi 5 with an NVMe SSD and a couple of SDRs, but **only from a true PoE+ (802.3at) source**. A plain **802.3af** switch or injector (~13&nbsp;W) will brown the box out; use PoE+ (802.3at) or PoE++ (802.3bt).
 - A powered USB hub can help when running multiple SDRs on a Pi 3/4.
 
-If the supply still can't keep up, AryaOS does not just crash-loop: after repeated short boots it drops into **[safe mode](#safe-mode)** — USB peripherals off, sensors stopped, box still reachable — until you fit an adequate supply and restore it. The AryaOS Site page in Cockpit also shows a live **power-health** warning (from `vcgencmd get_throttled`) whenever it detects under-voltage or throttling.
+If the supply still can't keep up, AryaOS does not just crash-loop: after repeated short boots it drops into **[safe mode](#safe-mode)** - USB peripherals off, sensors stopped, box still reachable - until you fit an adequate supply and restore it. The AryaOS Site page in Cockpit also shows a live **power-health** warning (from `vcgencmd get_throttled`) whenever it detects under-voltage or throttling.
 
 See [Disconnected / backpack ops](../deploy/offline-backpack.md) for the full field loadout.
 
 ### Safe mode
 
-If the box reboots repeatedly without staying up — the classic symptom of an under-spec'd supply browning out under load — AryaOS latches **safe mode** after 3 consecutive short boots (each under 3 minutes):
+If the box reboots repeatedly without staying up - the classic symptom of an under-spec'd supply browning out under load - AryaOS latches **safe mode** after 3 consecutive short boots (each under 3 minutes):
 
 - USB peripherals are **powered off** and the sensor/SDR services are **withheld**, so the box idles at minimal draw and boots cleanly.
 - **Ethernet, SSH and Cockpit stay up**, so you can always get in and diagnose.
-- It is **sticky** — clear it from **Cockpit → AryaOS Site → Safe mode** ("Restore now" or "Restore &amp; reboot"), or on the command line with `sudo aryaos-safe-mode off`. Check state any time with `aryaos-safe-mode status`.
+- It is **sticky** - clear it from **Cockpit > AryaOS Site > Safe mode** ("Restore now" or "Restore &amp; reboot"), or on the command line with `sudo aryaos-safe-mode off`. Check state any time with `aryaos-safe-mode status`.
 
 The usual fix is a better power supply (above). Safe mode buys you a reachable box to fix instead of a dark one in a crash loop.
 
@@ -139,8 +139,8 @@ If assembling and tuning your own kit is not how you want to spend the week, the
 
 <div class="grid cards" markdown>
 
-- :material-package-variant-closed: **Buy assembled** — Pi, radios, antennas, GPS, enclosure, and AryaOS in one box. [Buy hardware](../purchase.md)
-- :material-tools: **Build your own** — Use the tables above, then [flash the image](flash-the-image.md).
+- :material-package-variant-closed: **Buy assembled** - Pi, radios, antennas, GPS, enclosure, and AryaOS in one box. [Buy hardware](../purchase.md)
+- :material-tools: **Build your own** - Use the tables above, then [flash the image](flash-the-image.md).
 
 </div>
 
@@ -148,8 +148,8 @@ If assembling and tuning your own kit is not how you want to spend the week, the
 
 <div class="grid cards" markdown>
 
-- :material-download: **Flash the image** — Write AryaOS to your microSD card. [Flash the image](flash-the-image.md)
-- :material-power: **First boot** — What happens on first power-on, and how to log in. [First boot & first login](first-boot.md)
-- :material-cart: **Buy hardware** — The assembled AirTAK go-kit. [Buy hardware](../purchase.md)
+- :material-download: **Flash the image** - Write AryaOS to your microSD card. [Flash the image](flash-the-image.md)
+- :material-power: **First boot** - What happens on first power-on, and how to log in. [First boot & first login](first-boot.md)
+- :material-cart: **Buy hardware** - The assembled AirTAK go-kit. [Buy hardware](../purchase.md)
 
 </div>

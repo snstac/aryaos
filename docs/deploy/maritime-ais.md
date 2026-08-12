@@ -8,7 +8,7 @@ Vessels broadcast **AIS (Automatic Identification System)** on two marine VHF ch
 
 === "Over the air (SDR)"
 
-    AIS-catcher decodes AIS directly from RF with an RTL-SDR and a marine VHF antenna — no internet required. This is the standalone, disconnected mode.
+    AIS-catcher decodes AIS directly from RF with an RTL-SDR and a marine VHF antenna - no internet required. This is the standalone, disconnected mode.
 
     | Part | Notes |
     |------|-------|
@@ -17,18 +17,18 @@ Vessels broadcast **AIS (Automatic Identification System)** on two marine VHF ch
     | Coax / mount | Height and a clear view of the water drive range. |
 
     !!! tip "VHF antenna matters"
-        AIS is line-of-sight at VHF. Reception is dominated by antenna height and quality — an elevated marine VHF antenna is the single biggest range improvement. Keep the AIS antenna separated from 1090/978 MHz antennas on multi-sensor boxes to limit desense.
+        AIS is line-of-sight at VHF. Reception is dominated by antenna height and quality - an elevated marine VHF antenna is the single biggest range improvement. Keep the AIS antenna separated from 1090/978 MHz antennas on multi-sensor boxes to limit desense.
 
 === "Online feed"
 
-    If the box has internet, AIS-catcher can pull from an online AIS source instead of (or in addition to) local RF — useful when you have no antenna or want wide-area coverage. No SDR is required in this mode. Configure the AIS-catcher input from the AIS-catcher plugin in Cockpit.
+    If the box has internet, AIS-catcher can pull from an online AIS source instead of (or in addition to) local RF - useful when you have no antenna or want wide-area coverage. No SDR is required in this mode. Configure the AIS-catcher input from the AIS-catcher plugin in Cockpit.
 
 ## Turn on the maritime role
 
 === "Web console"
 
-    1. Open **Cockpit → AryaOS Site** (`https://<host>/admin/` or `https://aryaos.local`).
-    2. In the **Device role** card, choose **Maritime — AIS vessels**.
+    1. Open **Cockpit > AryaOS Site** (`https://<host>/admin/` or `https://aryaos.local`).
+    2. In the **Device role** card, choose **Maritime - AIS vessels**.
     3. Click **Apply role**.
 
     AryaOS enables `ais-catcher` and `aiscot`, and stops the air and drone pipelines.
@@ -73,7 +73,7 @@ service is never enabled implicitly.
 
 ## Related
 
-- [Multi-sensor](./multi-sensor.md) — run maritime alongside air and drone.
-- [Air — ADS-B & UAT](./air-adsb.md) · [Counter-UAS](./counter-uas.md)
-- [Connect a TAK Server](./connect-tak-server.md) — forward the maritime picture upstream.
+- [Multi-sensor](./multi-sensor.md) - run maritime alongside air and drone.
+- [Air - ADS-B & UAT](./air-adsb.md) · [Counter-UAS](./counter-uas.md)
+- [Connect a TAK Server](./connect-tak-server.md) - forward the maritime picture upstream.
 - [Device roles](../config/device-roles.md) · [Glossary](../reference/glossary.md)

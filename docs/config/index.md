@@ -9,7 +9,7 @@ flowchart TD
   site["/etc/aryaos/aryaos-config.txt<br/>(site config)"]
   svc1["/etc/default/adsbcot"]
   svc2["/etc/default/aiscot"]
-  svc3["/etc/default/…"]
+  svc3["/etc/default/..."]
   ct["/etc/charontak.ini<br/>(lanes)"]
   site -->|EnvironmentFile, read first| svc1
   site -->|EnvironmentFile, read first| svc2
@@ -22,7 +22,7 @@ flowchart TD
 Each gateway's systemd unit loads the **site config first**, then its own **`/etc/default/<svc>`** file. Because the per-service file is read second, **a value set per-service wins**; anything left unset falls through to the site default.
 
 !!! example "One place sets the CoT hub for everyone"
-    The site config sets `COT_URL=udp+wo://127.0.0.1:28087`. Every feeder inherits it, so out of the box they all send [Cursor on Target (CoT)](../reference/glossary.md) to the Charontak hub — no per-service configuration needed. This is the AryaOS routing invariant: **feeders → charontak → Mesh SA / TAK Server**.
+    The site config sets `COT_URL=udp+wo://127.0.0.1:28087`. Every feeder inherits it and sends [Cursor on Target (CoT)](../reference/glossary.md) to the Charontak hub without per-service configuration. This is the AryaOS routing invariant: **feeders > charontak > Mesh SA / TAK Server**.
 
 ## Where each thing lives
 
@@ -36,22 +36,22 @@ Each gateway's systemd unit loads the **site config first**, then its own **`/et
 
 ## Edit in the UI, not the files
 
-Everything above can be edited in the web console — you should not need SSH or a text editor for normal configuration. As a rule:
+Everything above can be edited in the web console - you should not need SSH or a text editor for normal configuration. As a rule:
 
-- **Site-wide behavior** (TAK destination, decoder, role, radios, TLS) → [AryaOS Site page](../admin/aryaos-site.md).
-- **Where CoT goes upstream** (mesh, TAK Server, fan-out) → [Charontak lane editor](../admin/charontak-lanes.md).
-- **One service's own knobs** → that [gateway's page](../admin/gateways.md).
+- **Site-wide behavior** (TAK destination, decoder, role, radios, TLS) > [AryaOS Site page](../admin/aryaos-site.md).
+- **Where CoT goes upstream** (mesh, TAK Server, fan-out) > [Charontak lane editor](../admin/charontak-lanes.md).
+- **One service's own knobs** > that [gateway's page](../admin/gateways.md).
 
-Each editor writes the underlying file for you, preserving comments and any keys it does not manage. If you *do* edit a file directly (over SSH or with Cockpit's file editor), restart the affected units afterward — for example `sudo systemctl restart charontak adsbcot aiscot lincot`.
+Each editor writes the underlying file for you, preserving comments and any keys it does not manage. If you *do* edit a file directly (over SSH or with Cockpit's file editor), restart the affected units afterward - for example `sudo systemctl restart charontak adsbcot aiscot lincot`.
 
 ## The three configuration references
 
 <div class="grid cards" markdown>
 
-- :material-file-cog: **Site configuration** — Every key in `/etc/aryaos/aryaos-config.txt`: the TAK/CoT destination, ADS-B decoder, network binding, Bluetooth PAN, role, and device identity. [Reference](./site-config.md)
+- :material-file-cog: **Site configuration** - Every key in `/etc/aryaos/aryaos-config.txt`: the TAK/CoT destination, ADS-B decoder, network binding, Bluetooth PAN, role, and device identity. [Reference](./site-config.md)
 
-- :material-account-switch: **Device roles** — The five roles, exactly which sensor units each enables, and how the CoT core always stays up. [Roles](./device-roles.md)
+- :material-account-switch: **Device roles** - The five roles, exactly which sensor units each enables, and how the CoT core always stays up. [Roles](./device-roles.md)
 
-- :material-radio-tower: **Radios & SDRs** — The `stx:1090:0` / `stx:978:0` serial convention, re-serializing dongles, decoder selection, and multi-SDR setups. [Radios](./radios-sdr.md)
+- :material-radio-tower: **Radios & SDRs** - The `stx:1090:0` / `stx:978:0` serial convention, re-serializing dongles, decoder selection, and multi-SDR setups. [Radios](./radios-sdr.md)
 
 </div>

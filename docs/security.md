@@ -3,7 +3,7 @@
 AryaOS units are field appliances: they must be administrable through a
 browser (Cockpit) by an operator wearing gloves, survive hostile LANs, and
 still be recoverable without key material. The hardening below reflects those
-trade-offs. Everything ships in both dev/lab and release images — the two
+trade-offs. Everything ships in both dev/lab and release images - the two
 flavors differ only in *access* (lab SSH key, passwordless sudo, password
 expiry), never in posture.
 
@@ -13,11 +13,11 @@ expiry), never in posture.
   release images (`chage -d 0`, `aryaos-firstboot.sh`).
 - **sshd** (`/etc/ssh/sshd_config.d/50-aryaos.conf`): root login disabled,
   empty passwords disabled, `MaxAuthTries 4`, `LoginGraceTime 30`, no X11
-  forwarding. Password authentication stays **enabled** by design — field
+  forwarding. Password authentication stays **enabled** by design - field
   operators may have no keys; see the default-password expiry above.
 - **fail2ban** (`/etc/fail2ban/jail.d/aryaos.local`): sshd jail, systemd
   backend, 15 min bans. Bluetooth PAN clients (`10.44.0.0/24`) are never
-  banned — that is the operator standing next to the box.
+  banned - that is the operator standing next to the box.
 - **sudo** is fully logged (JSON I/O logging, `/etc/sudoers.d/aryaos`); no
   NOPASSWD on release images (asserted by `scripts/verify-image.sh`).
 
@@ -29,7 +29,7 @@ expiry), never in posture.
   Mesh SA multicast (`6969/udp`), Node-RED (`1880`, adminAuth-protected),
   AIS-catcher dashboard (`8100`), comitup onboarding (`9080`). Custom service
   definitions live in `/etc/firewalld/services/aryaos-*.xml`.
-- Operators manage the firewall in **Cockpit → Networking → Firewall** (no
+- Operators manage the firewall in **Cockpit > Networking > Firewall** (no
   shell needed).
 - The AntSDR point-to-point link (`eth1`, `aryaos-antsdr.nmconnection`) is in
   the **trusted** zone so the sensor can reach the dronecot listener.
@@ -47,7 +47,7 @@ expiry), never in posture.
   first boot.
 - The web (portal/Cockpit) TLS key is also **regenerated per device** at
   first boot (`aryaos-firstboot.sh`, marker
-  `/etc/aryaos/.web-tls-regenerated`) — published images no longer share one
+  `/etc/aryaos/.web-tls-regenerated`) - published images no longer share one
   snakeoil key across the fleet.
 - Site TAK TLS material lives in `/etc/aryaos/tls` (`root:tak-certs`, key
   `0640`, dir `0750`). The Node-RED user owns only the site config file, not
@@ -57,21 +57,21 @@ expiry), never in posture.
 
 - **Debian security fixes install automatically** every day
   (unattended-upgrades; `/etc/apt/apt.conf.d/52unattended-upgrades-aryaos`).
-  No automatic reboots. The snstac sensor stack is *not* auto-upgraded —
+  No automatic reboots. The snstac sensor stack is *not* auto-upgraded -
   restarting sensors mid-operation is an operator decision.
-- **One-click updates**: Cockpit → AryaOS Site → *Software updates* checks
+- **One-click updates**: Cockpit > AryaOS Site > *Software updates* checks
   and installs everything (sensor stack included) from the signed
   [snstac apt repository](https://snstac.github.io/packages). The backend is
   `/usr/local/sbin/aryaos-update` (`check|apply|status`) run under
   `aryaos-update.service`, so an upgrade survives a closed browser session.
   `readsb` stays on `apt-mark hold` and is reported as held.
-- Per-package operations: Cockpit → Software updates (PackageKit).
+- Per-package operations: Cockpit > Software updates (PackageKit).
 
 ## Node-RED admin password
 
 Node-RED ships with a publicly known default admin password (`aryaos415`) and
-the editor can run arbitrary code as the `node-red` user — **rotate it before
-fielding a unit**. Cockpit → AryaOS Site → *Node-RED admin password* does
+the editor can run arbitrary code as the `node-red` user - **rotate it before
+fielding a unit**. Cockpit > AryaOS Site > *Node-RED admin password* does
 this in the browser; the backend is
 `/usr/local/sbin/aryaos-set-nodered-password` (reads the new password on
 stdin, bcrypt-hashes it with Node-RED's bundled bcryptjs, rewrites the
@@ -79,7 +79,7 @@ stdin, bcrypt-hashes it with Node-RED's bundled bcryptjs, rewrites the
 
 ## Support bundles
 
-Cockpit → AryaOS Site → *Support bundle* generates a downloadable diagnostics
+Cockpit > AryaOS Site > *Support bundle* generates a downloadable diagnostics
 tarball via `/usr/local/sbin/aryaos-support-bundle`: system/package/service
 state, capped journals, network and firewall state, and sensor-gateway
 configs. Values of keys matching `PASSWORD/TOKEN/SECRET/PASSPHRASE/PSK` and
@@ -90,16 +90,16 @@ or other private key material is included. Bundles land in
 ## Decommissioning
 
 When a unit is re-issued, retired, or at risk of capture, AryaOS gives you two
-levels of teardown — always **[back up](operations/backup-restore.md) first** if
+levels of teardown - always **[back up](operations/backup-restore.md) first** if
 you want the config back (a full backup carries private keys and Wi-Fi PSKs, so
 store it securely):
 
 - **[Factory reset](operations/factory-reset.md)**
-  (`/usr/local/sbin/aryaos-factory-reset`) — restores config to packaged
+  (`/usr/local/sbin/aryaos-factory-reset`) - restores config to packaged
   defaults, deletes uploaded TAK certs, clears device identity so first boot
   re-runs, and reboots. Keeps the OS, packages, and (by default) the network.
   This is for **re-use**; it does **not** securely erase anything.
-- **[Zeroize](operations/zeroize.md)** (`/usr/local/sbin/aryaos-zeroize`) — for
+- **[Zeroize](operations/zeroize.md)** (`/usr/local/sbin/aryaos-zeroize`) - for
   **decommission or capture**: shreds and overwrites all keys, credentials,
   logs, tracks, and identity, restores a secret-free config, overwrites free
   space, TRIMs, and reboots clean. The Cockpit card requires a typed
@@ -107,7 +107,7 @@ store it securely):
 
 !!! danger "Zeroize is best-effort on flash media"
     Wear-leveling on microSD/eMMC/NVMe means overwrite and TRIM **cannot
-    guarantee** prior contents are unrecoverable — the controller may have
+    guarantee** prior contents are unrecoverable - the controller may have
     written data to blocks software can't reach. For a hard guarantee, use
     full-disk encryption with crypto-erase (roadmap) or physically destroy the
     media. See [Zeroize](operations/zeroize.md).
