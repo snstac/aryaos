@@ -1,0 +1,11 @@
+# Defaults for the minimal headless GPSTAK host profile. Override per host.
+---
+gpstak_gpsd_device: /dev/serial0
+gpstak_disable_bluetooth: true
+gpstak_cot_url: udp+broadcast://255.255.255.255:4349
+gpstak_nmea_targets: ""
+gpstak_rate: 1.0
+gpstak_uid: "GPSTAK-{{ inventory_hostname }}"
+gpstak_source_name: "{{ inventory_hostname }}"
+gpstak_boot_config: /boot/firmware/config.txt
+gpstak_boot_cmdline: /boot/firmware/cmdline.txt

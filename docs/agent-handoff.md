@@ -7,6 +7,32 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
 
+## 2026-08-11 `chronos` GPSTAK provisioning
+
+- `chronos` is a Raspberry Pi Zero W at `192.168.0.200`, running 32-bit
+  Raspberry Pi OS Bookworm. Use `gba` and the AryaOS development SSH key.
+- `playbooks/gpstak-generic.yml` is the minimal, repeatable provisioning path.
+  It assigns the PL011 to a GPIO14/15 GNSS receiver, disables Bluetooth and the
+  serial console, installs only gpsd/GPSTAK from the signed snstac repository,
+  and broadcasts `GPSTAK-chronos` CoT on UDP/4349.
+- Run it with `ansible-playbook -i inventory.yml playbooks/gpstak-generic.yml --limit chronos`.
+  Cockpit, LINCOT, CharonTAK, and the rest of the AryaOS
+  sensor stack are deliberately outside this host profile.
+- Provisioning installed `gpstak 1.0.1-1` and `pytak 7.4.3-1`. gpsd identified
+  the receiver as an MTK-3301 at 9600 baud and reported a mode-3 fix with 11 of
+  13 satellites used. A LAN capture verified `GPSTAK-chronos` CoT from
+  `192.168.0.200`, including GNSS-derived CE/LE, altitude, course, and speed.
+- HIL passed a forced gpsd restart without restarting GPSTAK, a 12-sample soak
+  with a continuous 3D fix and zero service restarts, an idempotent playbook run
+  (`changed=0`), and a second reboot. The post-reboot host had no failed units,
+  no Pi throttling, and about 284 MiB available memory.
+- Original boot files are retained as `config.txt.pre-gpstak` and
+  `cmdline.txt.pre-gpstak` under `/var/backups/aryaos-gpstak`. To roll back the
+  UART reassignment, stop/disable GPSTAK, restore those two files to
+  `/boot/firmware/`, re-enable `hciuart.service`, unmask any needed serial-getty
+  unit, and reboot. Restoring the originals re-enables the serial console and
+  returns the PL011 to Bluetooth.
+
 ## 2026-08-11 Cockpit gateway scrolling sweep
 
 ### LINCOT stylesheet follow-up
