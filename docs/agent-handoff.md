@@ -24,6 +24,14 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   hook. Its regression starts a replacement worker on the same port in the same
   process. AryaOS 2.0.24 and both image/runtime checks require AISCOT 7.3.1 or
   newer.
+- AISCOT PR 17 merged as `19c82a5`; release `v7.3.1` produced
+  `aiscot_7.3.1-1_all.deb`, and signed repository run `31638850105` published it
+  for arm64 and armhf. AryaSea was upgraded to AISCOT 7.3.1 and AryaOS overlay
+  2.0.24. The installed package closed and rebound the same UDP port in one
+  process, survived a 70-second Charontak outage with the same PID and zero
+  systemd restarts, and retained UDP/5050. After reboot, the six AIS/GPS/CoT
+  services were active with zero restarts, no failed units or throttling, and
+  all 13 strict HIL modules passed. The final RF window was quiet.
 
 ## 2026-08-12 AryaAir/AryaSea eight-hour burn-in
 
