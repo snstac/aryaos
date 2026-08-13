@@ -9,6 +9,31 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 
 ## 2026-08-12 DroneScout binary MAVLink CRLF recovery
 
+### One-hour AryaAir/AryaSea acceptance after 2.0.25 rollout
+
+- `192.168.0.44` (AryaSea) and `192.168.0.45` (AryaAir) completed a paired
+  one-hour burn-in after upgrading to `aryaos-overlay 2.0.25` and
+  `dronecot 2.3.8-1`. The sampler collected 720 successful probes, 360 per
+  host, with no probe failures, failed units, service drops, restart-count
+  growth, throttling, filesystem alerts, or boot-ID changes.
+- AryaSea peaked at 62.8 C, load 0.71, 11.43% memory, and 23.11% disk usage;
+  memory moved +0.57 percentage points. AryaAir peaked at 63.9 C, load 1.06,
+  6.33% memory, and 23.13% disk usage; memory moved +0.33 points. Both root
+  filesystems stayed clean. The only warning was the known Broadcom Wi-Fi
+  management-IE `-52` message, with 30 unique events per host.
+- AryaSea kept AIS-catcher and AISCOT active in all 360 samples. Its gateway
+  counters were quiet during the exact sampler window, but the post-burn-in
+  strict suite observed live AIS NMEA. AryaAir kept readsb, ADSBCOT, and
+  `dronecot-dronescout` active in all 360 samples. Its DS110 added 24,330
+  received records and 48,660 emitted events with zero DroneCOT restarts.
+- All 13 strict HIL modules passed on both hosts after the soak. Evidence is in
+  the gitignored `.aryaos-burnin/20260813T022127Z-aryaair-aryasea-1h/`
+  directory. The authoritative health result is `summary.json`; final suite
+  logs are `post-burnin-hil-44.log` and `post-burnin-hil-45.log`.
+- AryaOS commit `e23106a` passed pull-request validation run `31657308366` and
+  image run `31657314290`. The latter completed image creation, mounted-image
+  verification, SBOM generation, tag creation, and release publication.
+
 - Fresh AryaAir host `192.168.0.45` has an ADSBee, a BlueMark DroneScout DS110
   on the ESP32-S3 USB CDC path, and a CP2102N GNSS receiver. AryaOS discovery
   now identifies the live DroneScout from checksum-valid MAVLink heartbeat and
