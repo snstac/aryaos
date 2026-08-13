@@ -232,6 +232,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
 
     def test_overlay_migrates_site_output_and_adsb_fields(self):
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        verifier = (ROOT / "scripts/verify-image.sh").read_text()
+        hil = (ROOT / "scripts/aryaos-test/tests/02-config.sh").read_text()
 
         for key in (
             "ARYAOS_COT_OUTPUT_URL",
@@ -243,6 +245,10 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("--device-type modesbeast", postinst)
         self.assertIn("usb-Raspberry_Pi_Pico_", postinst)
         self.assertIn("ARYAOS_ADSB_1090_SOURCE=adsbee", postinst)
+        for check in (verifier, hil):
+            self.assertIn("lane:site-output", check)
+            self.assertNotIn("lane:local-to-mesh", check)
+            self.assertNotIn("lane:local-to-takserver", check)
 
     def test_lighttpd_private_devices_exposes_only_pi_firmware_commands(self):
         dropin = (

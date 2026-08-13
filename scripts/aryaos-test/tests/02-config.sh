@@ -24,17 +24,11 @@ if [[ -f /etc/cotbridge.ini ]]; then
 	else
 		fail "cotbridge.ini missing ingress 127.0.0.1:28087"
 	fi
-	if grep -q '^\[lane:local-to-mesh\]' /etc/cotbridge.ini &&
+	if grep -q '^\[lane:site-output\]' /etc/cotbridge.ini &&
 		grep -q '^egress_cot_url = udp+wo://239.2.3.1:6969' /etc/cotbridge.ini; then
-		ok "cotbridge default local-to-mesh egress"
+		ok "cotbridge default site output"
 	else
-		fail "cotbridge default local-to-mesh egress missing"
-	fi
-	if grep -q '^\[lane:local-to-takserver\]' /etc/cotbridge.ini &&
-		grep -q '^ingress_cot_url = udp+ro://127.0.0.1:28087' /etc/cotbridge.ini; then
-		ok "cotbridge TAK Server lane uses local ingress"
-	else
-		fail "cotbridge TAK Server lane not wired to local ingress"
+		fail "cotbridge default site output missing"
 	fi
 else
 	skip "cotbridge.ini not present"

@@ -236,10 +236,9 @@ require_path /usr/share/cockpit/gpscot/manifest.json
 # cotbridge cockpit page (ships inside the cotbridge deb >= 0.1.12)
 require_path /usr/share/cockpit/cotbridge/manifest.json
 require_path /etc/cotbridge.ini
-require_grep '^\[lane:local-to-mesh\]$' /etc/cotbridge.ini "cotbridge local-to-mesh lane"
+require_grep '^\[lane:site-output\]$' /etc/cotbridge.ini "cotbridge site-output lane"
 require_grep '^egress_cot_url = udp\+wo://239\.2\.3\.1:6969$' /etc/cotbridge.ini "cotbridge Mesh SA egress"
-require_grep '^\[lane:local-to-takserver\]$' /etc/cotbridge.ini "cotbridge local-to-takserver lane"
-require_grep '^ingress_cot_url = udp\+ro://127\.0\.0\.1:28087$' /etc/cotbridge.ini "cotbridge TAK Server lane local ingress"
+require_grep '^ingress_cot_url = udp\+ro://127\.0\.0\.1:28087$' /etc/cotbridge.ini "cotbridge site-output local ingress"
 
 # GNSS (stage-aryaos)
 require_path /etc/default/gpsd
