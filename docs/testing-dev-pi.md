@@ -25,6 +25,37 @@ ARYAOS_DEV_PI_SYNC=1 ./scripts/test-dev-pi.sh
 
 This runs `sync-to-dev-pi.sh` and `sync-portal-review.sh`, then the same test runner.
 
+## Current lab fleet
+
+Use the capability profile only when it adds hardware-specific checks. The
+default profile already follows `ARYAOS_CAPABILITIES` for ADSBee and DroneScout
+nodes; the `uas` profile additionally requires AntSDR Ethernet and is therefore
+wrong for an ADSBee plus DS110 box.
+
+```bash
+# AryaSea: dAISy/AIS receiver
+ARYAOS_SSH=pi@192.168.0.44 ARYAOS_TEST_PROFILE=ais \
+  ARYAOS_TEST_TIER=strict ./scripts/aryaos-test/run.sh
+
+# AryaAir: ADSBee, DroneScout, and GNSS
+ARYAOS_SSH=pi@192.168.0.45 ARYAOS_TEST_TIER=strict \
+  ./scripts/aryaos-test/run.sh
+ARYAOS_SSH=pi@192.168.0.199 ARYAOS_TEST_TIER=strict \
+  ./scripts/aryaos-test/run.sh
+```
+
+For an unattended fleet soak, first populate the dedicated known-hosts file,
+then run the sampler. Raw JSONL is the source of truth; regenerate summaries
+from it when analysis changes.
+
+```bash
+ssh-keyscan -H 192.168.0.44 192.168.0.45 192.168.0.199 \
+  > /tmp/aryaos-burnin-known-hosts
+./scripts/aryaos-burnin.py \
+  --hosts 192.168.0.44 192.168.0.45 192.168.0.199 \
+  --duration-hours 8 --interval 30
+```
+
 ## SSH authentication
 
 Same order as [dev-pi.md](dev-pi.md) and [scripts/sync-to-dev-pi.sh](https://github.com/snstac/aryaos/blob/main/scripts/sync-to-dev-pi.sh):

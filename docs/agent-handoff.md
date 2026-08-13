@@ -20,6 +20,40 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `ARYAOS_ADSB_1090_DEVICE`, and `ARYAOS_UAT_978_DEVICE`, including ADSBee and
   independent 1090/978 selection.
 
+### Fleet rollout and upgrade-path fixes
+
+- Public releases are PyTAK 7.5.0, COTBridge 1.0.0, GPSCOT 2.0.0, GDLCOT
+  2.0.0, Cockpit COTBridge/GPSCOT/AryaOS 2.0.0, and LINCOT 1.3.8. The signed
+  package repository now indexes the renamed public repositories instead of
+  their legacy names. Gutcheck remains private and must not be added to the
+  public `snstac/packages` product list; authorized lab deployments use its
+  authenticated release asset.
+- Gutcheck 0.3.1 adds the normalized local gateway health view and generates a
+  protected, stable per-host web token during Debian installation. The service
+  remains opt-in because only one mesh node should own external alerting, but
+  dashboard-only instances are enabled on the current lab fleet.
+- AryaOS overlay 2.1.4 fixes four defects found by canary upgrades and reboot
+  testing: it packages `aryaos-health`, packages feeder ordering drop-ins,
+  migrates the new site-output and ADS-B keys without replacing operator
+  config, and keeps serial discovery off the verified ADSBee Beast port.
+  `readsb.service` is ordered after serial assignment to prevent both processes
+  from opening the Pico during boot.
+- Current lab nodes are `192.168.0.44` (AIS), `192.168.0.45` (ADSBee, DS110,
+  GNSS), and `192.168.0.199` (ADSBee, DroneScout, GNSS). All three run overlay
+  2.1.4 with PyTAK 7.5.0, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.0, LINCOT 1.3.8,
+  and Gutcheck 0.3.1. Post-reboot strict HIL passes on all three.
+- A paced test delivered all 5,000 generated CoT events per node at about 675
+  events per second with zero COTBridge write errors. A 50,000-event burst
+  exercised UDP saturation without service failure. Four-core CPU load peaked
+  at 73.3 C on `.44`, 74.9 C on `.45`, and 49.1 C on `.199`, with
+  `throttled=0x0` everywhere and no core-service restarts.
+- A deliberate `.45` COTBridge output outage left the service active with zero
+  restarts and correctly reported `degraded` and `retrying`. Restoring the
+  output returned it to `ok` and `connected`, with traffic flowing again.
+- Eight-hour evidence is collected under the gitignored
+  `.aryaos-burnin/20260813T1907Z-post-2.1.4/` directory. Check `summary.json`
+  and the per-node HIL logs before declaring the soak complete.
+
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
