@@ -98,8 +98,11 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `31738934689` passed image creation, mounted-image verification, SBOMs, tag
   creation, and release publication. Runs `31741703758` and `31741941854` were
   superseded while live HIL exposed the SiK drop-in and gpsd upgrade-path
-  defects. The final image run must use the overlay 2.1.10 commit; record its
-  run ID here after mounted-image verification and publication pass.
+  defects. Final image workflow `31743281559` built commit `2a24944` and passed
+  image creation, mounted-image verification, SBOM generation, tag creation,
+  and release publication. Prerelease
+  `v2026.08.13.211809-2a249441c77e-dev` contains the resulting image, overlay
+  2.1.10 package, image metadata, and both SBOM formats.
 
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.

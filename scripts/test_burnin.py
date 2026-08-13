@@ -86,6 +86,45 @@ class BurninSummaryTestCase(unittest.TestCase):
 
         self.assertNotIn("optional-service", host["service_nonactive"])
 
+    def test_completed_oneshot_is_not_a_service_drop(self):
+        active = sample(1, 10, "active")
+        inactive = sample(2, 10, "active")
+        active["services"]["setup-service"] = {
+            "Type": "oneshot",
+            "ActiveState": "active",
+            "NRestarts": 0,
+        }
+        inactive["services"]["setup-service"] = {
+            "Type": "oneshot",
+            "ActiveState": "inactive",
+            "NRestarts": 0,
+        }
+
+        host = burnin.summarize([active, inactive])["hosts"]["192.0.2.1"]
+
+        self.assertEqual(
+            host["service_state_counts"]["setup-service"],
+            {"active": 1, "inactive": 1},
+        )
+        self.assertEqual(host["service_types"]["setup-service"], "oneshot")
+        self.assertNotIn("setup-service", host["service_nonactive"])
+
+    def test_known_run_to_completion_service_is_not_a_service_drop(self):
+        active = sample(1, 10, "active")
+        inactive = sample(2, 10, "active")
+        active["services"]["aryaos-gps-time-sync"] = {
+            "ActiveState": "active",
+            "NRestarts": 0,
+        }
+        inactive["services"]["aryaos-gps-time-sync"] = {
+            "ActiveState": "inactive",
+            "NRestarts": 0,
+        }
+
+        host = burnin.summarize([active, inactive])["hosts"]["192.0.2.1"]
+
+        self.assertNotIn("aryaos-gps-time-sync", host["service_nonactive"])
+
     def test_reads_existing_jsonl_and_skips_blank_lines(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "samples.jsonl"

@@ -15,6 +15,12 @@ import time
 from pathlib import Path
 
 
+# Some successful run-to-completion helpers intentionally become inactive but
+# use Type=simple, while true Type=oneshot units can be classified directly
+# from new samples. Keep the name policy for both current and legacy artifacts.
+RUN_TO_COMPLETION_SERVICES = frozenset({"aryaos-gps-time-sync"})
+
+
 REMOTE_PROBE = r'''
 import glob, json, os, subprocess, time
 from pathlib import Path
@@ -64,7 +70,7 @@ def memory():
 
 def services():
     result = {}
-    props = ("LoadState", "ActiveState", "SubState", "MainPID", "NRestarts",
+    props = ("LoadState", "Type", "ActiveState", "SubState", "MainPID", "NRestarts",
              "ExecMainStatus", "CPUUsageNSec", "MemoryCurrent")
     for name in SERVICES:
         rc, out, err = run(["systemctl", "show", name, "--no-pager", "--property=" + ",".join(props)])
@@ -265,7 +271,7 @@ def summarize(samples):
             "max_mem_pct": None, "max_disk_pct": None, "throttle_events": 0,
             "failed_units": [], "failed_unit_samples": 0, "last_failed_units": [],
             "service_nonactive": {}, "restart_range": {},
-            "service_state_counts": {}, "journal_warnings": 0,
+            "service_state_counts": {}, "service_types": {}, "journal_warnings": 0,
             "journal_warning_observations": 0, "journal_event_tracking_samples": 0,
             "journal_warning_unique_events": None,
             "journal_warning_unique_messages": [], "boot_ids": [],
@@ -336,6 +342,9 @@ def summarize(samples):
         ):
             out["filesystem_alerts"] += 1
         for name, state in (sample.get("services") or {}).items():
+            unit_type = state.get("Type")
+            if unit_type:
+                out["service_types"][name] = unit_type
             active_state = state.get("ActiveState") or "unknown"
             counts = out["service_state_counts"].setdefault(name, {})
             counts[active_state] = counts.get(active_state, 0) + 1
@@ -351,7 +360,11 @@ def summarize(samples):
     for out in summary["hosts"].values():
         for name, counts in out["service_state_counts"].items():
             inactive = counts.get("inactive", 0)
-            if counts.get("active", 0) and inactive:
+            is_oneshot = (
+                out["service_types"].get(name) == "oneshot"
+                or name in RUN_TO_COMPLETION_SERVICES
+            )
+            if counts.get("active", 0) and inactive and not is_oneshot:
                 out["service_nonactive"][name] = (
                     out["service_nonactive"].get(name, 0) + inactive
                 )
