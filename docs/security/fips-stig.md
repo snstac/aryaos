@@ -100,7 +100,7 @@ procurement decision - not a config change.
      `sshd/50-aryaos.conf`.
    - **lighttpd/cockpit TLS**: TLS 1.2+ only, FIPS cipher suites (AES-GCM,
      SHA-2, ECDHE-RSA/ECDSA).
-   - **pytak > TAK Server TLS**, **chrony**, **charontak**: confirm AES-GCM /
+   - **pytak > TAK Server TLS**, **chrony**, **cotbridge**: confirm AES-GCM /
      SHA-2 / RSA-2048+ or P-256/384 throughout.
    - Deliverable: a **crypto inventory** table covering each component, library,
      algorithm, and key size maintained in this repo.

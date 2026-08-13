@@ -4144,7 +4144,7 @@
         "order": 1,
         "width": 12,
         "height": 4,
-        "format": "<motion.div style=\"padding:8px;line-height:1.5\"><p><strong>Configuration and services</strong> are managed outside Node-RED:</p><ul><li><a href=\"/\" target=\"_blank\" rel=\"noopener\">HTTPS portal</a> \u2014 live status</li><li><a href=\"/admin/\" target=\"_blank\" rel=\"noopener\">Cockpit</a> \u2014 services, Charontak, feeders</li><li><a ng-href=\"{{'http://' + location.host + ':9080/'}}\" target=\"_blank\" rel=\"noopener\">Comitup</a> \u2014 WiFi join</li></ul><p style=\"margin-bottom:0;color:#666\">This dashboard keeps maps, TFR, and recorder only.</p></motion.div>",
+        "format": "<motion.div style=\"padding:8px;line-height:1.5\"><p><strong>Configuration and services</strong> are managed outside Node-RED:</p><ul><li><a href=\"/\" target=\"_blank\" rel=\"noopener\">HTTPS portal</a> \u2014 live status</li><li><a href=\"/admin/\" target=\"_blank\" rel=\"noopener\">Cockpit</a> \u2014 services, COTBridge, feeders</li><li><a ng-href=\"{{'http://' + location.host + ':9080/'}}\" target=\"_blank\" rel=\"noopener\">Comitup</a> \u2014 WiFi join</li></ul><p style=\"margin-bottom:0;color:#666\">This dashboard keeps maps, TFR, and recorder only.</p></motion.div>",
         "storeOutMessages": true,
         "fwdInMessages": true,
         "resendOnRefresh": true,

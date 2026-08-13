@@ -127,7 +127,7 @@ for i in $ADDRESS_FAMILIES; do
             export PHASE="post-down"
         ;;
 
-        hostname|dhcp4-change|dhcp6-change)
+        hostname|dhcp4-change|dhcp6-change|reapply)
             # Do nothing
         ;;
 

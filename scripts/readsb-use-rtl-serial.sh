@@ -29,10 +29,10 @@ if [[ ! -f "${READSB_DEF}" ]]; then
 fi
 
 AOS_CFG="/etc/aryaos/aryaos-config.txt"
-if [[ -f "${AOS_CFG}" ]] && grep -q '^ARYAOS_UAT_RTL_SERIAL=' "${AOS_CFG}"; then
-	uat="$(grep -m1 '^ARYAOS_UAT_RTL_SERIAL=' "${AOS_CFG}" | cut -d= -f2- | tr -d '"' | tr -d "'")"
+if [[ -f "${AOS_CFG}" ]] && grep -q '^ARYAOS_UAT_978_DEVICE=' "${AOS_CFG}"; then
+	uat="$(grep -m1 '^ARYAOS_UAT_978_DEVICE=' "${AOS_CFG}" | cut -d= -f2- | tr -d '"' | tr -d "'")"
 	if [[ -n "${uat}" && "${uat}" == "${SERIAL}" ]]; then
-		echo "ERROR: ARYAOS_UAT_RTL_SERIAL in ${AOS_CFG} is also '${SERIAL}'." >&2
+		echo "ERROR: ARYAOS_UAT_978_DEVICE in ${AOS_CFG} is also '${SERIAL}'." >&2
 		echo "1090 (readsb) and 978 (dump978-fa) must use different dongles — change UAT first." >&2
 		exit 1
 	fi

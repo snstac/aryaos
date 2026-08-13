@@ -20,7 +20,7 @@ REQUIRED_TOP = (
 )
 
 EXPECTED_GATEWAY_IDS = (
-    "charontak",
+    "cotbridge",
     "lincot",
     "adsbcot",
     "aiscot",
@@ -70,6 +70,16 @@ def validate(data: dict[str, Any]) -> tuple[list[str], list[str]]:
                 errors.append(f"tak_gateways missing id: {gid}")
             else:
                 ok_lines.append(f"tak_gateways id={gid}")
+        uas = next(
+            (item for item in tac.get("items") or [] if isinstance(item, dict) and item.get("id") == "dronecot"),
+            None,
+        )
+        if not uas or not isinstance(uas.get("units"), list):
+            errors.append("tak_gateways UAS member units missing")
+        elif "dronecot-dronescout" not in {unit.get("id") for unit in uas["units"]}:
+            errors.append("tak_gateways UAS missing DroneScout instance")
+        else:
+            ok_lines.append("tak_gateways UAS aggregates Remote ID instances")
 
     return errors, ok_lines
 

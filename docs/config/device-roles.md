@@ -6,9 +6,9 @@ A **device role** selects which sensor pipelines run on an AryaOS unit - aircraf
 
 Whatever role you choose, the **CoT core never stops**:
 
-- `charontak` - the CoT hub / router
+- `cotbridge` - the CoT hub / router
 - `lincot` - this host's own beacon
-- `gpstak` - network GPS to TAK clients
+- `gpscot` - network GPS to TAK clients
 - `gpsd` - the GNSS receiver
 
 Roles only toggle the **sensor** units on top of that core. This means a unit always beacons its position and routes CoT, even in the sensor-free `relay` role.
@@ -18,7 +18,7 @@ Roles only toggle the **sensor** units on top of that core. This means a unit al
 | Role | Purpose | Sensor units enabled |
 |------|---------|----------------------|
 | `multi` | All pipelines (default) | ADS-B + AIS + drones |
-| `air` | Aircraft only (ADS-B 1090/978) | `<decoder>`, `dump978-fa`, `adsbcot`, `gdltak` |
+| `air` | Aircraft only (ADS-B 1090/978) | `<decoder>`, `dump978-fa`, `adsbcot`, `gdlcot` |
 | `maritime` | Vessels only (AIS) | `ais-catcher`, `aiscot` |
 | `cuas` | Counter-UAS (drones) | `dronecot`, `sikw00fcot`, `sapientcot` |
 | `relay` | CoT routing only | *(none)* |
@@ -29,12 +29,12 @@ The exact unit sets, from `aryaos-role`:
 
 | Group | Units |
 |-------|-------|
-| ADS-B (`air`, `multi`) | `readsb` **or** `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdltak` |
+| ADS-B (`air`, `multi`) | `readsb` **or** `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdlcot` |
 | AIS (`maritime`, `multi`) | `ais-catcher`, `aiscot` |
 | Drones / C-UAS (`cuas`, `multi`) | `dronecot`, `sikw00fcot`, `sapientcot` |
 
 !!! note "Units missing from your image are skipped"
-    Applying a role enables the role's units and disables all other managed units. Missing optional units are skipped without error. The full managed set is: `readsb`, `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdltak`, `ais-catcher`, `aiscot`, `dronecot`, `sikw00fcot`, `sapientcot`.
+    Applying a role enables the role's units and disables all other managed units. Missing optional units are skipped without error. The full managed set is: `readsb`, `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdlcot`, `ais-catcher`, `aiscot`, `dronecot`, `sikw00fcot`, `sapientcot`.
 
     `sapientcot` bridges a [SAPIENT (BSI Flex 335)](https://github.com/snstac/sapientcot) C-UAS sensor/fusion network into TAK. Point `SAPIENT_HOST`/`SAPIENT_PORT` in `/etc/default/sapientcot` at your SAPIENT node. It retries while the node is unreachable.
 
@@ -102,10 +102,21 @@ worse than enabling nothing:
 - **Contended radios.** One SDR cannot serve ADS-B *and* AIS at once, so only
   the higher-priority capability (`adsb`) is auto-enabled; the other is reported
   as available with the reason it was held back.
-- **DS110 vs SiKW00F.** Both are ESP32-S3 (`303a:1001`) - the USB id cannot tell
-  them apart. The scanner probes the port for MAVLink framing (a DS110 speaks
-  it); if the port is silent or in use it reports `AMBIGUOUS` rather than
-  guessing.
+- **Generic serial adapters.** DroneScout receivers can appear as generic
+  ESP32-S3 USB CDC (`303a:1001`) or behind a generic USB-UART bridge such as a
+  PL2303. AryaOS validates complete MAVLink frames and requires `ADSB_VEHICLE`
+  or `OPEN_DRONE_ID_MESSAGE_PACK`. A silent, stuck-low,
+  busy, or unrelated MAVLink port is `AMBIGUOUS`, never auto-enabled.
+- **Silent dAISy receivers.** A quiet AIS channel produces no NMEA evidence.
+  AryaOS accepts one narrow hardware layout by elimination: one CH340 serial
+  adapter beside a separately verified GPS, with no AntSDR present. This
+  matches the AryaSea kit while avoiding the identical CH340 used for an
+  AntSDR maintenance console. Any less specific layout remains unassigned.
+- **Generic Raspberry Pi Picos.** ADSBee uses the stock Pico USB identity
+  (`2e8a:000a`), so that identity alone is not sufficient. The scanner sends a
+  read-only ADSBee bias-tee query and requires the device-specific response.
+  `discover --apply` then selects readsb's `modesbeast` serial input and does not
+  start the independent 978 MHz decoder.
 - **SAPIENT.** A network sensor with no local hardware signature; never
   auto-detected.
 

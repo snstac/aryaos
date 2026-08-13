@@ -47,7 +47,7 @@ sudo aryaos-support-bundle
 ```
 
 - Prints the bundle path on the last line of stdout and records it in `/var/lib/aryaos/support-bundle.json`. Keeps the three newest bundles.
-- **Secrets are stripped:** values of keys matching `PASSWORD`/`TOKEN`/`SECRET`/`PASSPHRASE`/`PSK` and `tak://` enrollment credentials are replaced with `[REDACTED]`. No private key material (nothing from `/etc/aryaos/tls` or `/etc/charontak/tls`) is ever included.
+- **Secrets are stripped:** values of keys matching `PASSWORD`/`TOKEN`/`SECRET`/`PASSPHRASE`/`PSK` and `tak://` enrollment credentials are replaced with `[REDACTED]`. No private key material (nothing from `/etc/aryaos/tls` or `/etc/cotbridge/tls`) is ever included.
 
 See [Support bundles](../operations/support-bundles.md).
 
@@ -73,7 +73,7 @@ sudo aryaos-sdr list                        # JSON: index, vendor, product, seri
 sudo aryaos-sdr set-serial 0 stx:1090:0     # write a new EEPROM serial to device 0
 ```
 
-- AryaOS serial conventions: `stx:1090:0` for the ADS-B 1090 MHz path (`readsb`/`dump1090-fa`), `stx:978:0` for UAT 978 MHz (`dump978-fa`, `ARYAOS_UAT_RTL_SERIAL`).
+- AryaOS serial conventions: `stx:1090:0` for the ADS-B 1090 MHz path (`readsb`/`dump1090-fa`), `stx:978:0` for UAT 978 MHz (`dump978-fa`, `ARYAOS_UAT_978_DEVICE`).
 - `set-serial` stops any active SDR consumers (`readsb`, `dump1090-fa`, `dump978-fa`, `ais-catcher`), writes the serial, and restarts what it stopped.
 - A serial is 1-32 characters of `[A-Za-z0-9:._-]`. **Replug the dongle (or reboot)** before the new serial is visible to consumers.
 
@@ -81,7 +81,7 @@ See [Radios & SDRs](../config/radios-sdr.md).
 
 ## aryaos-role {#aryaos-role}
 
-Switches which sensor pipelines run at runtime. The CoT core (`charontak`, `lincot`, `gpstak`, `gpsd`) always runs; the role only toggles sensor units. The choice is persisted as `ARYAOS_ROLE` in the site config.
+Switches which sensor pipelines run at runtime. The CoT core (`cotbridge`, `lincot`, `gpscot`, `gpsd`) always runs; the role only toggles sensor units. The choice is persisted as `ARYAOS_ROLE` in the site config.
 
 ```bash
 aryaos-role list            # JSON: available roles, their units, and the current role (no root)
@@ -91,7 +91,7 @@ sudo aryaos-role set air    # enable this role's units, disable the rest, persis
 | Role | Sensor pipelines |
 |---|---|
 | `multi` | All: ADS-B + UAT, AIS, drones |
-| `air` | ADS-B / UAT (`readsb` or `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdltak`) |
+| `air` | ADS-B / UAT (`readsb` or `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdlcot`) |
 | `maritime` | AIS (`ais-catcher`, `aiscot`) |
 | `cuas` | Drones (`dronecot`, `sikw00fcot`) |
 | `relay` | CoT routing only - no sensors |
@@ -107,13 +107,13 @@ sudo aryaos-import-tak-dp connection-data-package.zip
 sudo aryaos-import-tak-dp --enrollment-url-file /path/to/tak-url.txt
 ```
 
-- Extracts the client and CA certificates, installs them under `/etc/aryaos/tls` (group `tak-certs`, keys `0640`), and writes a CharonTAK `lane:local-to-takserver` egress lane pointing at the server, then restarts CharonTAK.
+- Extracts the client and CA certificates, installs them under `/etc/aryaos/tls` (group `tak-certs`, keys `0640`), and writes a COTBridge `lane:local-to-takserver` egress lane pointing at the server, then restarts COTBridge.
 - Supports `ssl`/`tls`/`tcp` connect strings; a `tak://com.atakmap.app/enroll` enrollment URL is resolved to a data package via PyTAK before import.
 - Prints a JSON result describing the destination. This is the same import the **TAK connection** card runs. See [Connect to a TAK Server](../deploy/connect-tak-server.md).
 
 ## aryaos-config-backup {#aryaos-config-backup}
 
-Backs up and restores the full AryaOS configuration set - site config, charontak lanes, gateway `/etc/default` files, saved networks, TAK certs, and Node-RED credentials - as a single tarball.
+Backs up and restores the full AryaOS configuration set - site config, cotbridge lanes, gateway `/etc/default` files, saved networks, TAK certs, and Node-RED credentials - as a single tarball.
 
 ```bash
 sudo aryaos-config-backup backup                 # full backup (includes secrets)
@@ -142,6 +142,7 @@ sudo aryaos-factory-reset --no-reboot      # reset but don't reboot (testing)
 
 - **Not a secure erase** - it restores/clears config but does not sanitize the media. For decommission use [`aryaos-zeroize`](#aryaos-zeroize).
 - Per-gateway `/etc/default/<svc>` files are reset via `apt-get --reinstall` **only when online**; offline they're left as-is.
+- Sensor services are stopped, hardware autodetection is re-armed, and safe-mode/crash-counter state is cleared so the intentional reboot returns with attached hardware freshly detected.
 - Same action as the **Factory reset** card. See [Factory reset](../operations/factory-reset.md).
 
 ## aryaos-zeroize {#aryaos-zeroize}

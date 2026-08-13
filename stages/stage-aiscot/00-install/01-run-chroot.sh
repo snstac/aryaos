@@ -26,9 +26,9 @@ usermod -aG plugdev,dialout ais-catcher
 # amd64+arm64 debs via upstream's build-debian.sh). Binary: /usr/bin/AIS-catcher.
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ais-catcher
 
-COCKPIT_AISCOT_DEB_URL='https://github.com/snstac/cockpit-aiscot/releases/download/v1.1.0/cockpit-aiscot_1.1.0_all.deb'
-curl -fsSL -o /usr/src/cockpit-aiscot_1.1.0_all.deb "${COCKPIT_AISCOT_DEB_URL}"
-dpkg -i /usr/src/cockpit-aiscot_1.1.0_all.deb
+COCKPIT_AISCOT_DEB_URL='https://github.com/snstac/cockpit-aiscot/releases/download/v1.2.3/cockpit-aiscot_1.2.3_all.deb'
+curl -fsSL -o /usr/src/cockpit-aiscot_1.2.3_all.deb "${COCKPIT_AISCOT_DEB_URL}"
+dpkg -i /usr/src/cockpit-aiscot_1.2.3_all.deb
 
 # cockpit-spyserver: SpyServer SDR-share admin page (drives `aryaos-sdr share
 # N spyserver`, shipped by the AryaOS overlay). Installed here — the last heavy
@@ -40,13 +40,13 @@ dpkg -i /usr/src/cockpit-spyserver.deb || apt-get install -f -y
 
 # cockpit-aprscot: APRS-to-TAK gateway admin page (manages the aprscot service
 # used by `aryaos-sdr task N aprs`). Same install idiom as the other plugins.
-COCKPIT_APRSCOT_DEB_URL='https://github.com/snstac/cockpit-aprscot/releases/download/v0.1.0/cockpit-aprscot_0.1.0-1_all.deb'
+COCKPIT_APRSCOT_DEB_URL='https://github.com/snstac/cockpit-aprscot/releases/download/v0.1.1/cockpit-aprscot_0.1.1-1_all.deb'
 curl -fsSL -o /usr/src/cockpit-aprscot.deb "${COCKPIT_APRSCOT_DEB_URL}"
 dpkg -i /usr/src/cockpit-aprscot.deb || apt-get install -f -y
 
 # cockpit-sapientcot: SAPIENT (BSI Flex 335) C-UAS/ISR gateway admin page
 # (manages the sapientcot service). Same install idiom as the other plugins.
-COCKPIT_SAPIENTCOT_DEB_URL='https://github.com/snstac/cockpit-sapientcot/releases/download/v0.1.0/cockpit-sapientcot_0.1.0-1_all.deb'
+COCKPIT_SAPIENTCOT_DEB_URL='https://github.com/snstac/cockpit-sapientcot/releases/download/v0.1.1/cockpit-sapientcot_0.1.1-1_all.deb'
 curl -fsSL -o /usr/src/cockpit-sapientcot.deb "${COCKPIT_SAPIENTCOT_DEB_URL}"
 dpkg -i /usr/src/cockpit-sapientcot.deb || apt-get install -f -y
 
@@ -66,13 +66,13 @@ grep -qxF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/a
 sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" /lib/systemd/system/aiscot.service
 
 # APRS over RF (aryaos-sdr task N aprs): Dire Wolf decodes 144.39 MHz APRS to a
-# KISS TNC; aprscot (>= 8.2.0, KISS input) forwards it to charontak as CoT.
+# KISS TNC; aprscot (>= 8.2.0, KISS input) forwards it to cotbridge as CoT.
 # direwolf from Debian; aprscot from the snstac apt repo. Both are OFF by default
 # (task-driven) — aprscot must NOT auto-connect to APRS-IS over the internet.
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends direwolf aprscot
 # aprscot reads the local Dire Wolf KISS TNC (offline), not APRS-IS.
 install -v -m 0644 /usr/share/aryaos/aprscot.default /etc/default/aprscot
-# Inherit COT_URL (charontak) from the site config, like aiscot.
+# Inherit COT_URL (cotbridge) from the site config, like aiscot.
 grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aprscot.service || \
 sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" /lib/systemd/system/aprscot.service
 # Task-driven only: do not start aprscot at boot (would hit APRS-IS with no KISS peer).

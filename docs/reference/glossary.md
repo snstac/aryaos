@@ -14,9 +14,9 @@ Definitions of the terms used throughout the AryaOS documentation. Each term has
 
 **Android Team Awareness Kit.** The Android TAK client (also referred to as ATAK-CIV in its civilian form). One of the TAK end-user devices that displays the tracks AryaOS produces. AryaOS also works with WinTAK, iTAK, TAKX, and TAK Server.
 
-## Charontak {#charontak}
+## COTBridge {#cotbridge}
 
-The CoT "ferryman." On AryaOS, CharonTAK is the single egress hub: every local feeder sends CoT to it on `udp+ro://127.0.0.1:28087`, and CharonTAK forwards to the default [Mesh SA](#mesh-sa) multicast and to any configured [TAK Server](#tak-server) lanes. Its routing lanes are edited in `/etc/charontak.ini` via the [Charontak lane editor](../admin/charontak-lanes.md). See [CharonTAK](../reference/software-suite.md#charontak).
+The CoT "ferryman." On AryaOS, COTBridge is the single egress hub: every local feeder sends CoT to it on `udp+ro://127.0.0.1:28087`, and COTBridge forwards to the default [Mesh SA](#mesh-sa) multicast and to any configured [TAK Server](#tak-server) lanes. Its routing lanes are edited in `/etc/cotbridge.ini` via the [COTBridge lane editor](../admin/cotbridge-lanes.md). See [COTBridge](../reference/software-suite.md#cotbridge).
 
 ## Cockpit {#cockpit}
 
@@ -52,7 +52,7 @@ See [First boot & first login](../get-started/first-boot.md).
 
 ## GDL90 {#gdl90}
 
-**GDL90** is the datalink format that electronic flight bags (EFBs) such as ForeFlight consume for traffic and weather. AryaOS's [GDLTAK](../reference/software-suite.md) converts CoT into GDL90 (default UDP port 4000) so aircraft tracks appear directly in an EFB. See [ForeFlight & EFBs (GDL90)](../deploy/foreflight-gdl90.md).
+**GDL90** is the datalink format that electronic flight bags (EFBs) such as ForeFlight consume for traffic and weather. AryaOS's [GDLCOT](../reference/software-suite.md) converts CoT into GDL90 (default UDP port 4000) so aircraft tracks appear directly in an EFB. See [ForeFlight & EFBs (GDL90)](../deploy/foreflight-gdl90.md).
 
 ## Mesh SA {#mesh-sa}
 

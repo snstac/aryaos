@@ -74,8 +74,8 @@ wipe() {
 	done
 }
 
-# 1. TAK / TLS key material (site, charontak, per-gateway, web).
-wipe /etc/aryaos/tls /etc/charontak/tls \
+# 1. TAK / TLS key material (site, cotbridge, per-gateway, web).
+wipe /etc/aryaos/tls /etc/cotbridge/tls \
 	/etc/adsbcot/tls /etc/aiscot/tls /etc/dronecot/tls /etc/lincot/tls \
 	/etc/ssl/private/ssl-cert-snakeoil.key /etc/lighttpd/ssl
 echo "wiped TLS key material"
@@ -99,10 +99,10 @@ fi
 echo "reset Node-RED credentials (rotate the password from the web console after reboot)"
 
 # 5. Recorded CoT tracks, backups, support bundles, update state.
-# /var/lib/charontak/tracks is where the charontak recorder writes. It is
+# /var/lib/cotbridge/tracks is where the cotbridge recorder writes. It is
 # NOT under the web root, so it must be named explicitly here -- recorded
 # tracks are asset location history and are exactly what zeroize is for.
-wipe /var/lib/charontak/tracks \
+wipe /var/lib/cotbridge/tracks \
 	/var/www/html/recorder /var/lib/aryaos/backups /var/lib/aryaos/support
 rm -f /var/lib/aryaos/*.json 2>/dev/null || true
 echo "wiped recorded tracks and local bundles"

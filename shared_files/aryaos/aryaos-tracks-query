@@ -39,7 +39,7 @@ import time
 from collections import Counter, defaultdict
 from typing import Any, Dict, Iterator, List, Optional
 
-DEFAULT_DIR = os.environ.get("TRACKS_DIR", "/var/lib/charontak/tracks")
+DEFAULT_DIR = os.environ.get("TRACKS_DIR", "/var/lib/cotbridge/tracks")
 
 # CoT types that are protocol housekeeping rather than an observed contact.
 CONTROL_PREFIXES = ("t-x-",)

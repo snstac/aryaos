@@ -1,0 +1,20 @@
+#!/bin/bash
+# ExecCondition for dronecot-dronescout: missing serial hardware is an inactive
+# sensor, not a service failure/restart loop.
+
+set -euo pipefail
+
+DEFAULTS=/etc/default/dronecot-dronescout
+[[ -r "${DEFAULTS}" ]] || exit 1
+
+# shellcheck disable=SC1090
+source "${DEFAULTS}"
+feed="${FEED_URL:-}"
+case "${feed}" in
+	serial:///*:[0-9]*) ;;
+	*) exit 1 ;;
+esac
+
+device="${feed#serial://}"
+device="${device%:*}"
+[[ -c "${device}" && -r "${device}" ]]

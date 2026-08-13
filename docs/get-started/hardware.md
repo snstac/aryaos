@@ -43,9 +43,15 @@ You write the AryaOS image to a microSD card and boot from it.
 |---|---|
 | Minimum capacity | 16 GB |
 | Recommended capacity | 32 GB |
-| Class | A1/A2 application-class recommended for responsiveness |
+| Class | A1/A2 application-class, high-endurance media recommended |
 
 The image resizes its filesystem to fill the card on [first boot](first-boot.md), so a larger card gives you room for logs, support bundles, and Node-RED flows without any manual steps.
+
+Use a reputable card whose manufacturer can be verified; counterfeit cards can
+report the advertised capacity while aliasing unrelated sectors. After first
+boot, run the [integration suite](../testing-dev-pi.md). A zero media
+manufacturer ID, binary boot command line, or missing boot artifact is a hard
+failure. Replace the card rather than reflashing it again.
 
 ## Radios (SDR dongles)
 
@@ -96,7 +102,7 @@ The right antenna does more for range than anything else in the kit.
 
 ## GPS / GNSS
 
-A USB GNSS puck gives the gateway its own position, which AryaOS publishes to TAK via [GPSTAK and LINCOT](../reference/software-suite.md) - useful for backpack and vehicle operations where the box is on the move.
+A USB GNSS puck gives the gateway its own position, which AryaOS publishes to TAK via [GPSCOT and LINCOT](../reference/software-suite.md) - useful for backpack and vehicle operations where the box is on the move.
 
 - Any `gpsd`-compatible USB GNSS receiver works (the popular u-blox 7/8-class pucks are common choices).
 - GPS is optional for fixed-site installs but recommended for mobile and dismounted use.

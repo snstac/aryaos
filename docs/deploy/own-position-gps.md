@@ -5,12 +5,12 @@ Put the AryaOS box itself on the map, and share its GPS with your TAK client. Th
 AryaOS uses two cooperating tools for position:
 
 - **LINCOT** beacons the *host's own position* to TAK as a CoT marker, so the box shows up on the map like any other unit.
-- **GPSTAK** streams `gpsd` position data to the network as CoT and fans out NMEA for WinTAK - giving a connected phone or laptop a GPS fix even when it has no receiver of its own.
+- **GPSCOT** streams `gpsd` position data to the network as CoT and fans out NMEA for WinTAK - giving a connected phone or laptop a GPS fix even when it has no receiver of its own.
 
 Both feed from **`gpsd`**, which reads a connected GNSS receiver.
 
 !!! note "Always on"
-    `charontak`, `lincot`, `gpstak`, and `gpsd` are part of the CoT core and run regardless of the selected [device role](../config/device-roles.md) - including `relay`. You do not need a special role to share position.
+    `cotbridge`, `lincot`, `gpscot`, and `gpsd` are part of the CoT core and run regardless of the selected [device role](../config/device-roles.md) - including `relay`. You do not need a special role to share position.
 
 ## Hardware
 
@@ -25,14 +25,14 @@ Both feed from **`gpsd`**, which reads a connected GNSS receiver.
 flowchart LR
     G[GNSS receiver] --> D[gpsd]
     D --> L[LINCOT<br/>host beacon]
-    D --> T[GPSTAK<br/>network GPS + NMEA]
-    L -->|CoT| H[Charontak hub]
+    D --> T[GPSCOT<br/>network GPS + NMEA]
+    L -->|CoT| H[COTBridge hub]
     T -->|CoT / NMEA| E[ATAK / WinTAK]
     H -->|Mesh SA 239.2.3.1:6969| E
 ```
 
-- **LINCOT > Charontak > Mesh SA:** the box appears as a self-marker on every connected EUD.
-- **GPSTAK > EUD:** a phone or WinTAK laptop on the AryaOS network uses the box's GPS as its own position source.
+- **LINCOT > COTBridge > Mesh SA:** the box appears as a self-marker on every connected EUD.
+- **GPSCOT > EUD:** a phone or WinTAK laptop on the AryaOS network uses the box's GPS as its own position source.
 
 ## Share the box's position with TAK
 
@@ -41,7 +41,7 @@ No configuration is required in the common case: connect a GNSS receiver, connec
 To confirm the pipeline:
 
 ```bash
-systemctl status gpsd lincot gpstak
+systemctl status gpsd lincot gpscot
 gpspipe -w -n 5        # raw gpsd JSON - check for TPV with lat/lon
 ```
 
@@ -50,17 +50,17 @@ gpspipe -w -n 5        # raw gpsd JSON - check for TPV with lat/lon
 
 ## Give your EUD a network GPS fix
 
-When your phone or WinTAK machine has no GPS (or a poor one indoors/in a vehicle), point it at GPSTAK:
+When your phone or WinTAK machine has no GPS (or a poor one indoors/in a vehicle), point it at GPSCOT:
 
 === "WinTAK"
 
-    GPSTAK fans out NMEA that WinTAK can consume as an external GPS source, so a laptop with no receiver gets a live fix from the box.
+    GPSCOT fans out NMEA that WinTAK can consume as an external GPS source, so a laptop with no receiver gets a live fix from the box.
 
 === "ATAK"
 
-    ATAK can take its position from the network via CoT/GPSTAK when running on a device without its own reliable fix.
+    ATAK can take its position from the network via CoT/GPSCOT when running on a device without its own reliable fix.
 
-See the [GPSTAK](https://github.com/snstac/gpstak) project for client-side setup details. GPS integrity (spoof/jam) can be monitored from the **cockpit-gps** plugin.
+See the [GPSCOT](https://github.com/snstac/gpscot) project for client-side setup details. GPS integrity (spoof/jam) can be monitored from the **cockpit-gps** plugin.
 
 ## Static position fallback
 

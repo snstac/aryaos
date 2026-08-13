@@ -8,8 +8,12 @@ sensor_apt_packages:
   - takproto
   - python3-asyncinotify
   - aircot
-  - charontak
-  - gpstak
+  # ACARS RF decoder + CoT gateway. ACARSCOT >= 0.1.1 requires the resilient
+  # PyTAK reconnect supervisor and keeps enrollment state under /var/lib.
+  - acarsdec
+  - acarscot
+  - cotbridge
+  - gpscot
   - adsbcot
   - aiscot
   - cockpit-aiscot
@@ -21,18 +25,18 @@ sensor_apt_packages:
   # 8.2.1 declares python3-aprslib, and it is in the apt repo. Kept explicit
   # anyway so an older pinned aprscot cannot silently install unusable.
   - python3-aprslib
-  # gdltak — CoT to GDL90: ForeFlight/EFB display of the TAK air picture.
-  # NOTE: requires gdltak indexed in the apt repo (snstac/packages PR #1) —
+  # gdlcot — CoT to GDL90: ForeFlight/EFB display of the TAK air picture.
+  # NOTE: requires gdlcot indexed in the apt repo (snstac/packages PR #1) —
   # merge/publish that before building an image from this manifest.
-  - gdltak
+  - gdlcot
   # cockpit-gps — live GNSS data from gpsd with spoof/jam integrity monitoring.
   - cockpit-gps
   # Cockpit is the AryaOS admin surface: every installed gateway ships its plugin.
   - cockpit-lincot
   - cockpit-aiscatcher
   - cockpit-dronecot
-  - cockpit-charontak
-  - cockpit-gpstak
+  - cockpit-cotbridge
+  - cockpit-gpscot
   # cockpit-aryaos — the "AryaOS Site" page: site-wide COT_URL + TAK TLS certs.
   - cockpit-aryaos
 # cockpit-adsbcot is installed by stage-adsbcot (same apt repo).

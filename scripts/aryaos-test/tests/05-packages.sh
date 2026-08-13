@@ -6,6 +6,49 @@ set -euo pipefail
 # shellcheck source=../lib.sh
 source "$(dirname "$0")/../lib.sh"
 
+require_package_version() {
+	local package="$1" minimum="$2" version
+	version="$(dpkg-query -W -f='${Version}' "${package}" 2>/dev/null || true)"
+	if [[ -n "${version}" ]] && dpkg --compare-versions "${version}" ge "${minimum}"; then
+		ok "${package} ${version} >= ${minimum}"
+	else
+		fail "${package} ${version:-missing} is older than ${minimum}"
+	fi
+}
+
+require_cockpit_root_scroll() {
+	local plugin="$1" css="/usr/share/cockpit/${plugin}/index.css"
+	if [[ -r "${css}" ]]; then
+		if tr -d '\r\n' < "${css}" | grep -E '#app[[:space:]]*\{[^}]*overflow-y:[[:space:]]*auto' >/dev/null; then
+			ok "cockpit-${plugin} provides its Cockpit root scroller"
+		else
+			fail "cockpit-${plugin} CSS does not provide #app overflow-y:auto"
+		fi
+	elif [[ -r "${css}.gz" ]]; then
+		if gzip -cd "${css}.gz" | tr -d '\r\n' | grep -E '#app[[:space:]]*\{[^}]*overflow-y:[[:space:]]*auto' >/dev/null; then
+			ok "cockpit-${plugin} provides its Cockpit root scroller"
+		else
+			fail "cockpit-${plugin} compressed CSS does not provide #app overflow-y:auto"
+		fi
+	else
+		fail "cockpit-${plugin} index.css is missing"
+	fi
+}
+
+require_cockpit_stylesheets() {
+	local plugin="$1" html="/usr/share/cockpit/${plugin}/index.html"
+	if [[ ! -r "${html}" ]]; then
+		fail "cockpit-${plugin} index.html is missing"
+		return
+	fi
+	if grep -Fq 'href="index.css"' "${html}" && \
+	   grep -Fq 'href="../../static/branding.css"' "${html}"; then
+		ok "cockpit-${plugin} loads plugin CSS and shared AryaOS branding"
+	else
+		fail "cockpit-${plugin} does not load plugin CSS and shared AryaOS branding"
+	fi
+}
+
 if command -v dhbridge >/dev/null || dpkg -s dhbridge >/dev/null 2>&1; then
 	warn "dhbridge present (private package; expected absent on public images)"
 else
@@ -29,5 +72,25 @@ if [[ -f /etc/aryaos-release || -f /etc/aryaos-version ]]; then
 else
 	warn "aryaos release metadata missing"
 fi
+
+# Cockpit pins the document body and expects each page to supply its own scroll
+# container. These versions include the common #app root scroller, preventing
+# expanded Debug Logs and Advanced Details cards from being clipped.
+require_package_version aiscot 7.3.1
+require_package_version cockpit-adsbcot 1.2.3
+require_package_version cockpit-aiscot 1.2.3
+require_package_version cockpit-aprscot 0.1.1
+require_package_version cockpit-cotbridge 1.2.2
+require_package_version cockpit-dronecot 1.1.3
+require_package_version cockpit-lincot 1.1.3
+require_package_version cockpit-sapientcot 0.1.1
+# GDLCOT 1.0.1 rejects NaN/Inf numeric fields from partial Remote ID reports
+# instead of crash-looping while encoding them as GDL90.
+require_package_version gdlcot 1.0.1
+
+for plugin in adsbcot aiscot aprscot cotbridge dronecot lincot sapientcot; do
+	require_cockpit_root_scroll "${plugin}"
+	require_cockpit_stylesheets "${plugin}"
+done
 
 print_summary

@@ -20,7 +20,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs12
 
 TLS_DIR = Path(os.environ.get("ARYAOS_TLS_DIR", "/etc/aryaos/tls"))
-CHARONTAK_INI = Path(os.environ.get("ARYAOS_CHARONTAK_INI", "/etc/charontak.ini"))
+COTBRIDGE_INI = Path(os.environ.get("ARYAOS_COTBRIDGE_INI", "/etc/cotbridge.ini"))
 ARYAOS_CONFIG = Path(os.environ.get("ARYAOS_CONFIG", "/etc/aryaos/aryaos-config.txt"))
 TAK_CERTS_GROUP = os.environ.get("ARYAOS_TAK_CERTS_GROUP", "tak-certs")
 MAX_ZIP_BYTES = 12 * 1024 * 1024
@@ -227,7 +227,7 @@ def install_tls_files(client_blob, client_password, ca_blob, ca_password):
     for path in (TLS_DIR / "client.p12", TLS_DIR / "caCert.p12", TLS_DIR / "client.key"):
         subprocess.run(["/usr/bin/chgrp", TAK_CERTS_GROUP, str(path)], check=False)
     if os.geteuid() == 0:
-        for user in ("adsbcot", "aiscot", "dronecot", "lincot", "charontak"):
+        for user in ("adsbcot", "aiscot", "dronecot", "lincot", "cotbridge"):
             if subprocess.run(["/usr/bin/getent", "passwd", user], stdout=subprocess.DEVNULL, check=False).returncode == 0:
                 subprocess.run(["/usr/sbin/usermod", "-aG", TAK_CERTS_GROUP, user], check=False)
 
@@ -251,20 +251,20 @@ def update_kv_file(path, values):
     os.chmod(path, 0o644)
 
 
-def update_charontak(host, port, proto):
+def update_cotbridge(host, port, proto):
     cfg = configparser.RawConfigParser()
     cfg.optionxform = str
-    if CHARONTAK_INI.exists():
-        cfg.read(CHARONTAK_INI)
-    if not cfg.has_section("charontak"):
-        cfg.add_section("charontak")
-        cfg.set("charontak", "DEBUG", "false")
-    section = "lane:local-to-takserver"
+    if COTBRIDGE_INI.exists():
+        cfg.read(COTBRIDGE_INI)
+    if not cfg.has_section("cotbridge"):
+        cfg.add_section("cotbridge")
+        cfg.set("cotbridge", "DEBUG", "false")
+    section = "lane:site-output"
     if not cfg.has_section(section):
         cfg.add_section(section)
-    legacy_section = "lane:mesh-to-takserver"
-    if cfg.has_section(legacy_section):
-        cfg.set(legacy_section, "enabled", "false")
+    for legacy_section in ("lane:local-to-mesh", "lane:local-to-takserver", "lane:mesh-to-takserver"):
+        if cfg.has_section(legacy_section):
+            cfg.set(legacy_section, "enabled", "false")
     scheme = "tls" if proto in ("ssl", "tls") else "tcp"
     values = {
         "enabled": "true",
@@ -283,12 +283,12 @@ def update_charontak(host, port, proto):
         )
     for key, value in values.items():
         cfg.set(section, key, value)
-    CHARONTAK_INI.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=str(CHARONTAK_INI.parent), delete=False) as fp:
+    COTBRIDGE_INI.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=str(COTBRIDGE_INI.parent), delete=False) as fp:
         cfg.write(fp)
         tmp = fp.name
     os.chmod(tmp, 0o644)
-    shutil.move(tmp, CHARONTAK_INI)
+    shutil.move(tmp, COTBRIDGE_INI)
 
 
 def import_package(path):
@@ -305,17 +305,18 @@ def import_package(path):
         client_blob = read_zip_member(zf, client_name)
         ca_blob = read_zip_member(zf, ca_name)
     install_tls_files(client_blob, meta["client_password"], ca_blob, meta["ca_password"])
-    update_charontak(meta["host"], meta["port"], meta["proto"])
+    update_cotbridge(meta["host"], meta["port"], meta["proto"])
     update_kv_file(
         ARYAOS_CONFIG,
         {
+            "ARYAOS_COT_OUTPUT_URL": f"{scheme}://{meta['host']}:{meta['port']}",
             "PYTAK_TLS_CLIENT_CERT": str(TLS_DIR / "client.pem"),
             "PYTAK_TLS_CLIENT_KEY": str(TLS_DIR / "client.key"),
             "PYTAK_TLS_CLIENT_CAFILE": str(TLS_DIR / "ca.pem"),
         },
     )
     if os.environ.get("ARYAOS_IMPORT_TAK_DP_NO_RESTART") != "1":
-        subprocess.run(["/usr/bin/systemctl", "try-restart", "charontak.service"], check=False)
+        subprocess.run(["/usr/bin/systemctl", "try-restart", "cotbridge.service"], check=False)
     scheme = "tls" if meta["proto"] in ("ssl", "tls") else "tcp"
     return {
         "ok": True,

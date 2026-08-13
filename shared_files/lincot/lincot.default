@@ -1,5 +1,5 @@
 # AryaOS defaults for LINCOT 1.2.x (/etc/default/lincot).
-# COT_URL is supplied by EnvironmentFile=/etc/aryaos/aryaos-config.txt (Charontak ingress).
+# COT_URL is supplied by EnvironmentFile=/etc/aryaos/aryaos-config.txt (COTBridge ingress).
 # SPDX-License-Identifier: Apache-2.0
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 #
@@ -7,7 +7,7 @@
 
 ENABLED=1
 
-# CoT destination: set in /etc/aryaos/aryaos-config.txt (default udp+wo://127.0.0.1:28087 → Charontak).
+# CoT destination: set in /etc/aryaos/aryaos-config.txt (default udp+wo://127.0.0.1:28087 → COTBridge).
 # COT_URL=
 
 # Identity (defaults: hostname callsign, /etc/machine-id uid)

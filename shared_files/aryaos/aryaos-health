@@ -1,0 +1,51 @@
+#!/usr/bin/python3
+"""Aggregate current gateway status documents for Cockpit and support tools."""
+
+import argparse
+import json
+import time
+from pathlib import Path
+
+APPS = ("cotbridge", "gpscot", "lincot", "gutcheck", "adsbcot", "aiscot", "dronecot", "acarscot", "gdlcot")
+
+
+def load(app, now):
+    path = Path("/run") / app / "status.json"
+    try:
+        doc = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {"app": app, "health": {"state": "unknown", "detail": "no runtime status"}}
+    age = max(0, now - float(doc.get("wall_t", 0)))
+    doc["age_s"] = round(age, 1)
+    if age > 30:
+        doc["health"] = {"state": "fault", "detail": f"status stale for {age:.0f}s"}
+    return doc
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", nargs="?", default="status", choices=("status",))
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+    now = time.time()
+    apps = [load(app, now) for app in APPS]
+    states = [item.get("health", {}).get("state", "unknown") for item in apps]
+    overall = (
+        "fault"
+        if "fault" in states
+        else "degraded"
+        if any(state in ("degraded", "unknown") for state in states)
+        else "ok"
+    )
+    payload = {"schema": 1, "wall_t": round(now, 3), "health": {"state": overall}, "apps": apps}
+    if args.json:
+        print(json.dumps(payload, sort_keys=True))
+    else:
+        print(overall)
+        for item in apps:
+            health = item.get("health", {})
+            print(f"{item['app']}: {health.get('state', 'unknown')} {health.get('detail', '')}".rstrip())
+
+
+if __name__ == "__main__":
+    main()

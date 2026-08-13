@@ -27,6 +27,13 @@ Defaults:%wheel runchroot=*
 # Log user & sudo input & output.
 Defaults log_input, log_output
 
+# /var/log is a 50 MiB tmpfs on AryaOS.  Without a sequence bound, sudo's
+# per-command I/O logs eventually fill it and the I/O plugin then rejects every
+# privileged command with ENOSPC.  128 compressed sessions retain useful audit
+# history while leaving ample room for the rest of /var/log; sudo truncates and
+# reuses old sequence paths when the counter wraps.
+Defaults maxseq=128
+
 # Don't log input passwords (via log_input).
 Defaults !log_passwords
 

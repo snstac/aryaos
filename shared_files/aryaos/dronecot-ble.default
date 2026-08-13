@@ -2,7 +2,7 @@
 #
 # Captures Open Drone ID broadcast over Bluetooth LE (ASTM F3411 service data,
 # UUID 0xFFFA, app code 0x0D) using the board's OWN Bluetooth radio and forwards
-# it to charontak as CoT. COT_URL is inherited from aryaos-config.txt via the
+# it to cotbridge as CoT. COT_URL is inherited from aryaos-config.txt via the
 # service EnvironmentFile.
 #
 # No add-on hardware is required, so this is deliberately OPT-IN — the radio is

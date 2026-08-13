@@ -38,7 +38,7 @@ is capable of.
 
 | Capability | Enable with | What appears on the map | Hardware needed |
 |------------|-------------|-------------------------|-----------------|
-| **ADS-B / UAT** | `adsb` | Crewed aircraft on 1090 MHz and 978 MHz | **SDR** - RTL-SDR, or any SoapySDR device |
+| **ADS-B / UAT** | `adsb` | Crewed aircraft on 1090 MHz and 978 MHz | **ADSBee** or an SDR - RTL-SDR, or any SoapySDR device |
 | **AIS** | `ais` | Ships and vessels | dAISy NMEA receiver, or a spare **SDR** |
 | **Remote ID** - Wi-Fi | `wifi-rid` | ASTM F3411 Remote ID over 802.11, plus operator location | Monitor-mode Wi-Fi adapter (e.g. Atheros AR9271) |
 | **Remote ID** - Bluetooth | `ble-rid` | ASTM F3411 Remote ID over Bluetooth LE | **None** - the board's own radio |
@@ -85,15 +85,15 @@ AryaOS ships with the full [Sensors & Signals](https://www.snstac.com) open-sour
 | [DroneCOT - Drone Remote ID to TAK gateway](https://github.com/snstac/dronecot) | Detects & tracks drones (Remote ID / Open Drone ID) in TAK for counter-UAS awareness. |
 | [AIRCOT - aircraft classification for TAK](https://github.com/snstac/aircot) | Classifies aircraft into TAK/CoT types from ADS-B & Mode S data. ([AIRCOT documentation](https://aircot.readthedocs.io/)) |
 | [DJICOT - DJI drone detection for TAK](https://github.com/snstac/djicot) | Detects & tracks DJI drones (DroneID) in TAK. ([DJICOT documentation](https://djicot.readthedocs.io/)) |
-| [GPSTAK - network GPS for TAK](https://github.com/snstac/gpstak) | Streams gpsd position data to TAK as CoT, with NMEA fan-out for WinTAK. |
+| [GPSCOT - network GPS for TAK](https://github.com/snstac/gpscot) | Streams gpsd position data to TAK as CoT, with NMEA fan-out for WinTAK. |
 | [LINCOT - Linux GPS to TAK gateway](https://github.com/snstac/lincot) | Sends Linux device position (GPS) to TAK. |
 | [APRSCOT - APRS to TAK gateway](https://github.com/snstac/aprscot) | Displays amateur radio APRS stations in TAK. ([APRSCOT documentation](https://aprscot.readthedocs.io/)) |
 | [INRCOT - Garmin inReach to TAK gateway](https://github.com/snstac/inrcot) | Displays Garmin inReach satellite tracker positions in TAK. |
 | [SiKW00FCOT - MAVLink drone telemetry to TAK](https://github.com/snstac/sikw00fcot) | Converts SiK-radio MAVLink drone telemetry to Cursor on Target. |
-| [CharonTAK - Cursor on Target ferryman](https://github.com/snstac/charontak) | Bridges & relays CoT between networks and TAK servers. |
+| [COTBridge - Cursor on Target ferryman](https://github.com/snstac/cotbridge) | Bridges & relays CoT between networks and TAK servers. |
 | [QRTAK - TAK onboarding with QR codes](https://github.com/snstac/qrtak) | Onboard devices to TAK Server by scanning a QR code. |
 
-Every gateway on AryaOS is managed from a touch-friendly browser UI built on [Cockpit](https://cockpit-project.org/), including [cockpit-aryaos](https://github.com/snstac/cockpit-aryaos), [cockpit-adsbcot](https://github.com/snstac/cockpit-adsbcot), [cockpit-aiscot](https://github.com/snstac/cockpit-aiscot), [cockpit-dronecot](https://github.com/snstac/cockpit-dronecot), [cockpit-gpstak](https://github.com/snstac/cockpit-gpstak) & [cockpit-lincot](https://github.com/snstac/cockpit-lincot).
+Every gateway on AryaOS is managed from a touch-friendly browser UI built on [Cockpit](https://cockpit-project.org/), including [cockpit-aryaos](https://github.com/snstac/cockpit-aryaos), [cockpit-adsbcot](https://github.com/snstac/cockpit-adsbcot), [cockpit-aiscot](https://github.com/snstac/cockpit-aiscot), [cockpit-dronecot](https://github.com/snstac/cockpit-dronecot), [cockpit-gpscot](https://github.com/snstac/cockpit-gpscot) & [cockpit-lincot](https://github.com/snstac/cockpit-lincot).
 
 ## Development (contributors & agents)
 

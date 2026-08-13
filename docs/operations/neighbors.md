@@ -8,7 +8,7 @@ position, and a one-click admin link. No central server, no manual inventory.
 ## How self-discovery works
 
 The `aryaos-neighbord` daemon runs on each box and does two things at once on
-the Mesh SA group **`239.2.3.1:6969`** (the same multicast lane Charontak uses
+the Mesh SA group **`239.2.3.1:6969`** (the same multicast lane COTBridge uses
 for Situational Awareness - see [Firewall](../networking/firewall.md)):
 
 - **Beacon** - periodically it multicasts a small Cursor on Target (CoT) event

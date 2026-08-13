@@ -19,12 +19,12 @@ The cards appear in the order below.
 |-------|-----------|---------|---------|
 | Site COT_URL | `COT_URL` | `udp+wo://127.0.0.1:28087` | Where every local feeder sends CoT |
 | ADS-B decoder | `ARYAOS_ADSB_DECODER` | `readsb` | `readsb` or `dump1090_fa` |
-| UAT (978 MHz) RTL-SDR serial | `ARYAOS_UAT_RTL_SERIAL` | `stx:978:0` | EEPROM serial dump978-fa binds to |
+| UAT (978 MHz) RTL-SDR serial | `ARYAOS_UAT_978_DEVICE` | `stx:978:0` | EEPROM serial dump978-fa binds to |
 
-The default **Site COT_URL** feeds the local **Charontak hub** on `udp+wo://127.0.0.1:28087`. Charontak then forwards that stream to Mesh SA and/or a TAK Server through its own lanes.
+The default **Site COT_URL** feeds the local **COTBridge hub** on `udp+wo://127.0.0.1:28087`. COTBridge then forwards that stream to Mesh SA and/or a TAK Server through its own lanes.
 
 !!! tip "Keep the default unless you know why"
-    For almost every deployment you should leave `COT_URL` pointed at the Charontak hub and configure your actual upstream (Mesh SA, TAK Server) in the [Charontak lane editor](./charontak-lanes.md). Only change `COT_URL` when you are deliberately bypassing Charontak - for example, to send every feeder directly to `tls://takserver.example.com:8089` or `udp+wo://239.2.3.1:6969`. This is the CoT routing invariant: **feeders > charontak > Mesh SA / TAK Server**.
+    For almost every deployment you should leave `COT_URL` pointed at the COTBridge hub and configure your actual upstream (Mesh SA, TAK Server) in the [COTBridge lane editor](./cotbridge-lanes.md). Only change `COT_URL` when you are deliberately bypassing COTBridge - for example, to send every feeder directly to `tls://takserver.example.com:8089` or `udp+wo://239.2.3.1:6969`. This is the CoT routing invariant: **feeders > cotbridge > Mesh SA / TAK Server**.
 
 The **ADS-B decoder** drop-down offers `readsb` (RTL-SDR / SoapySDR / HackRF) and `dump1090-fa` (FlightAware). Only one 1090 MHz decoder runs at a time.
 
@@ -37,7 +37,7 @@ The **UAT serial** must differ from the 1090 MHz serial. See [Radios (RTL-SDR)](
 
 ## Device role
 
-**What it does.** Chooses which sensor pipelines run on this unit. The **CoT core** - Charontak, LINCOT, GPSTAK, and gpsd - always runs; the role enables its sensor services at boot and stops the rest.
+**What it does.** Chooses which sensor pipelines run on this unit. The **CoT core** - COTBridge, LINCOT, GPSCOT, and gpsd - always runs; the role enables its sensor services at boot and stops the rest.
 
 | Role | Pipelines |
 |------|-----------|
@@ -118,7 +118,7 @@ The **Don't verify server certificate** checkbox sets `PYTAK_TLS_DONT_VERIFY=1`.
 
 ## TAK connection
 
-**What it does.** Connects the whole appliance to a TAK Server in one step: import an ATAK/iTAK **connection data package**, or paste a one-time **`tak://` enrollment URL**. AryaOS installs the certs under `/etc/aryaos/tls` and enables Charontak forwarding to the TAK Server.
+**What it does.** Connects the whole appliance to a TAK Server in one step: import an ATAK/iTAK **connection data package**, or paste a one-time **`tak://` enrollment URL**. AryaOS installs the certs under `/etc/aryaos/tls` and enables COTBridge forwarding to the TAK Server.
 
 The status table at the top of the card reports:
 
@@ -132,10 +132,10 @@ The status table at the top of the card reports:
 
 **To import a package:** choose a `.zip` or `.dpk` connection package under **Connection package** and press **Import package**. Use **Refresh status** to re-read state.
 
-On success the card reports the TAK target and that **Charontak forwarding was updated** - so this card configures the upstream lane for you.
+On success the card reports the TAK target and that **COTBridge forwarding was updated** - so this card configures the upstream lane for you.
 
 !!! tip "Preferred way to connect to a TAK Server"
-    This card is the easiest path to a working TAK Server connection. It handles TLS material and the Charontak lane together. For the manual lane approach, see [Connect to a TAK Server](../deploy/connect-tak-server.md) and the [Charontak lane editor](./charontak-lanes.md).
+    This card is the easiest path to a working TAK Server connection. It handles TLS material and the COTBridge lane together. For the manual lane approach, see [Connect to a TAK Server](../deploy/connect-tak-server.md) and the [COTBridge lane editor](./cotbridge-lanes.md).
 
 ---
 
@@ -143,7 +143,7 @@ On success the card reports the TAK target and that **Charontak forwarding was u
 
 **What it does.** Shows the live systemd state (active / inactive / failed / not installed) of the site's sensor units, with a status dot per service.
 
-The set of services is `charontak adsbcot aiscot dronecot lincot readsb ais-catcher` by default, or whatever you set as `AOS_SERVICES` in the site config. This is a **read-only status list** - start, stop, enable, and restart individual services from each gateway's own [Cockpit page](./gateways.md), or restart them all with **Save & restart sensors**.
+The set of services is `cotbridge adsbcot aiscot dronecot lincot readsb ais-catcher` by default, or whatever you set as `AOS_SERVICES` in the site config. This is a **read-only status list** - start, stop, enable, and restart individual services from each gateway's own [Cockpit page](./gateways.md), or restart them all with **Save & restart sensors**.
 
 ---
 

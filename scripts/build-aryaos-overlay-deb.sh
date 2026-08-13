@@ -51,7 +51,10 @@ install_file 0644 "${SHARED}/aryaos/README-aryaos.txt" "/README-aryaos.txt"
 install_file 0440 "${SHARED}/aryaos/aryaos.sudoers" "/etc/sudoers.d/aryaos"
 install_file 0644 "${SHARED}/aryaos/aryaos-config.txt" "/usr/share/aryaos/defaults/aryaos-config.txt"
 install_file 0644 "${SHARED}/aryaos/gpsd.default" "/usr/share/aryaos/defaults/gpsd.default"
-install_file 0644 "${SHARED}/charontak/charontak.ini" "/usr/share/aryaos/defaults/charontak.ini"
+install_file 0644 "${SHARED}/aryaos/dronecot-dronescout.default" "/usr/share/aryaos/defaults/dronecot-dronescout.default"
+install_file 0644 "${SHARED}/cotbridge/cotbridge.ini" "/usr/share/aryaos/defaults/cotbridge.ini"
+install_file 0755 "${SHARED}/aryaos/initramfs/set_partuuid" "/usr/share/aryaos/initramfs/set_partuuid"
+install_file 0755 "${SHARED}/aryaos/initramfs/zz-aryaos-set-partuuid-hook" "/etc/initramfs-tools/hooks/zz-aryaos-set-partuuid"
 
 install_file 0755 "${SHARED}/aryaos/aryaos-import-tak-dp" "/usr/local/sbin/aryaos-import-tak-dp"
 install_file 0755 "${SHARED}/aryaos/aryaos-tak-dp-importd" "/usr/local/sbin/aryaos-tak-dp-importd"
@@ -65,15 +68,20 @@ install_file 0755 "${SHARED}/aryaos/aryaos-gps-time-sync" "/usr/local/sbin/aryao
 install_file 0755 "${SHARED}/aryaos/aryaos-lincot-remarks" "/usr/local/sbin/aryaos-lincot-remarks"
 install_file 0755 "${SHARED}/aryaos/aryaos-cot-detail" "/usr/local/sbin/aryaos-cot-detail"
 install_file 0755 "${SHARED}/aryaos/aryaos-neighbord" "/usr/local/sbin/aryaos-neighbord"
+install_file 0755 "${SHARED}/aryaos/aryaos-capability-scan" "/usr/local/sbin/aryaos-capability-scan"
+install_file 0755 "${SHARED}/aryaos/aryaos-serial-classify" "/usr/local/libexec/aryaos/aryaos-serial-classify"
+install_file 0755 "${SHARED}/aryaos/aryaos-serial-assign" "/usr/local/sbin/aryaos-serial-assign"
 install_file 0755 "${SHARED}/aryaos/get_throttled.sh" "/usr/local/sbin/get_throttled.sh"
 install_file 0755 "${SHARED}/aryaos/aryaos-update" "/usr/local/sbin/aryaos-update"
 install_file 0755 "${SHARED}/aryaos/aryaos-support-bundle" "/usr/local/sbin/aryaos-support-bundle"
 install_file 0755 "${SHARED}/aryaos/aryaos-set-nodered-password" "/usr/local/sbin/aryaos-set-nodered-password"
 install_file 0755 "${SHARED}/aryaos/aryaos-sdr" "/usr/local/sbin/aryaos-sdr"
 install_file 0755 "${SHARED}/aryaos/aryaos-role" "/usr/local/sbin/aryaos-role"
+install_file 0755 "${SHARED}/aryaos/dronecot-serial-ready" "/usr/local/libexec/aryaos/dronecot-serial-ready"
 install_file 0755 "${SHARED}/aryaos/aryaos-config-backup" "/usr/local/sbin/aryaos-config-backup"
 install_file 0755 "${SHARED}/aryaos/aryaos-factory-reset" "/usr/local/sbin/aryaos-factory-reset"
 install_file 0755 "${SHARED}/aryaos/aryaos-zeroize" "/usr/local/sbin/aryaos-zeroize"
+install_file 0755 "${SHARED}/aryaos/aryaos-safe-mode" "/usr/local/sbin/aryaos-safe-mode"
 install_file 0755 "${SHARED}/aryaos/aryaos-radio" "/usr/local/sbin/aryaos-radio"
 # Offline image backup: pull down this box's own release .img.xz.
 install_file 0755 "${SHARED}/aryaos/aryaos-image-download" "/usr/local/sbin/aryaos-image-download"
@@ -86,9 +94,21 @@ install_file 0644 "${SHARED}/aryaos/aryaos-firstboot.service" "/etc/systemd/syst
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-gps-time-sync.service" "/etc/systemd/system/aryaos-gps-time-sync.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-tak-dp-importd.service" "/etc/systemd/system/aryaos-tak-dp-importd.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-neighbord.service" "/etc/systemd/system/aryaos-neighbord.service"
+install_file 0644 "${SHARED}/aryaos/systemd/acarsdec.service" "/etc/systemd/system/acarsdec.service"
+install_file 0644 "${SHARED}/aryaos/systemd/dronecot-dronescout.service" "/etc/systemd/system/dronecot-dronescout.service"
+install_file 0644 "${SHARED}/aryaos/systemd/ais-catcher.service.d/aryaos-private.conf" "/etc/systemd/system/ais-catcher.service.d/aryaos-private.conf"
+install_file 0644 "${SHARED}/aryaos/systemd/ais-catcher-rtl@.service" "/etc/systemd/system/ais-catcher-rtl@.service"
+install_file 0644 "${SHARED}/aryaos/systemd/aryaos-ais-sdr.service" "/etc/systemd/system/aryaos-ais-sdr.service"
+install_file 0644 "${SHARED}/lincot/systemd/lincot.service.d/aryaos-config.conf" "/etc/systemd/system/lincot.service.d/aryaos-config.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-update.service" "/etc/systemd/system/aryaos-update.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-factory-reset.service" "/etc/systemd/system/aryaos-factory-reset.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-zeroize.service" "/etc/systemd/system/aryaos-zeroize.service"
+for unit in aryaos-crash-guard.service aryaos-safe-mode.service aryaos-boot-stable.service aryaos-boot-stable.timer; do
+	install_file 0644 "${SHARED}/aryaos/systemd/${unit}" "/etc/systemd/system/${unit}"
+done
+for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot sikw00fcot sapientcot; do
+	install_file 0644 "${SHARED}/aryaos/systemd/safe-mode.conf" "/etc/systemd/system/${svc}.service.d/safe-mode.conf"
+done
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-radio-silence.service" "/etc/systemd/system/aryaos-radio-silence.service"
 # EMCON gate: keep the radio users from starting (and un-blocking the radios)
 # while /etc/aryaos/emcon exists.
@@ -99,7 +119,11 @@ install_file 0644 "${SHARED}/aryaos/systemd/aryaos-bt-ready.service.d/emcon.conf
 # /root/.node-red with no adminAuth = unauthenticated root-privileged admin API).
 install_file 0644 "${SHARED}/aryaos/systemd/nodered.service.d/aryaos.conf" "/etc/systemd/system/nodered.service.d/aryaos.conf"
 install_file 0644 "${SHARED}/aryaos/zram-generator.conf" "/etc/systemd/zram-generator.conf"
+install_file 0644 "${SHARED}/aryaos/rpi-swap-aryaos.conf" "/etc/rpi/swap.conf.d/90-aryaos.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/gpsd.socket.d/socket-group.conf" "/etc/systemd/system/gpsd.socket.d/socket-group.conf"
+install_file 0644 "${SHARED}/aryaos/systemd/aryaos-serial-assign.service" "/etc/systemd/system/aryaos-serial-assign.service"
+install_file 0644 "${SHARED}/aryaos/systemd/bluetooth.service.d/aryaos-directory-mode.conf" "/etc/systemd/system/bluetooth.service.d/aryaos-directory-mode.conf"
+install_file 0644 "${SHARED}/aryaos/modules-load.d/lighttpd-mod-openssl.conf" "/etc/modules-load.d/lighttpd-mod-openssl.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf" "/etc/systemd/system/lighttpd.service.d/aryaos-netlink.conf"
 
 # Offline documentation: ship the rendered MkDocs site in the portal so the
@@ -121,6 +145,7 @@ install_file 0755 "${SHARED}/aryaos/cgi-bin/aryaos-neighbors" "/usr/lib/cgi-bin/
 install_file 0644 "${SHARED}/aryaos/cockpit.conf" "/etc/cockpit/cockpit.conf"
 install_file 0644 "${SHARED}/aryaos/cockpit.socket-listen.conf" "/etc/systemd/system/cockpit.socket.d/listen.conf"
 install_file 0644 "${SHARED}/aryaos/cockpit/branding.css" "/usr/share/aryaos/cockpit/branding.css"
+install_file 0644 "${REPO_ROOT}/docs/brand/logo/mark-aryaos-rev.svg" "/usr/share/aryaos/cockpit/mark-aryaos-rev.svg"
 install_file 0644 "${SHARED}/aryaos/94-aryaos-setenv-module.conf" "/etc/lighttpd/conf-available/94-aryaos-setenv-module.conf"
 install_file 0644 "${SHARED}/aryaos/95-aryaos-cockpit-https.conf" "/etc/lighttpd/conf-available/95-aryaos-cockpit-https.conf"
 install_file 0644 "${SHARED}/aryaos/99-aryaos-recorder.conf" "/etc/lighttpd/conf-available/99-aryaos-recorder.conf"

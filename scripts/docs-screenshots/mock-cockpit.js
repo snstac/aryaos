@@ -4,14 +4,14 @@
   const CONFIG = `# AryaOS site configuration (demo)
 COT_URL=udp+wo://127.0.0.1:28087
 ARYAOS_ADSB_DECODER=readsb
-ARYAOS_UAT_RTL_SERIAL=stx:978:0
+ARYAOS_UAT_978_DEVICE=stx:978:0
 ARYAOS_ROLE=multi
 PYTAK_TLS_CLIENT_CERT=/etc/aryaos/tls/client.pem
 PYTAK_TLS_CLIENT_KEY=/etc/aryaos/tls/client.key
 PYTAK_TLS_CLIENT_CAFILE=/etc/aryaos/tls/ca.pem
 DEVICE_SUFFIX=a1b2
 COT_HOST_ID=aryaos-a1b2
-AOS_SERVICES="charontak gpstak aiscot lincot adsbcot dronecot"
+AOS_SERVICES="cotbridge gpscot aiscot lincot adsbcot dronecot"
 `;
   function proc(stdout) {
     const p = Promise.resolve(stdout || "");
@@ -25,8 +25,8 @@ AOS_SERVICES="charontak gpstak aiscot lincot adsbcot dronecot"
     const a = argv.map(String);
     if (has(a, "aryaos-role") && has(a, "list"))
       return proc(JSON.stringify({ current: "multi", roles: {
-        multi: { units: ["readsb","dump978-fa","adsbcot","gdltak","ais-catcher","aiscot","dronecot","sikw00fcot"] },
-        air: { units: ["readsb","dump978-fa","adsbcot","gdltak"] },
+        multi: { units: ["readsb","dump978-fa","adsbcot","gdlcot","ais-catcher","aiscot","dronecot","sikw00fcot"] },
+        air: { units: ["readsb","dump978-fa","adsbcot","gdlcot"] },
         maritime: { units: ["ais-catcher","aiscot"] },
         cuas: { units: ["dronecot","sikw00fcot"] },
         relay: { units: [] } } }));

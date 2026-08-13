@@ -44,7 +44,7 @@ Browsing to `https://aryaos-xxxx.local/` (no `/admin`) shows the **landing porta
 
 The portal polls a JSON status endpoint (`/cgi-bin/aryaos-portal-status`) every 8 seconds and shows:
 
-- **TAK gateway strip** - live up/down/degraded state of `charontak`, `adsbcot`, `aiscot`, `lincot`, `dronecot`, and `sikw00fcot`.
+- **TAK gateway strip** - live up/down/degraded state of `cotbridge`, `adsbcot`, `aiscot`, `lincot`, `dronecot`, and `sikw00fcot`.
 - **System health** - CPU temperature, load average, memory, and Raspberry Pi power/throttle state.
 - **Connection & status** - hostname, FQDN, primary IP, the full IPv4 address block, and uptime.
 - **GNSS** - the gpsd position fix: latitude/longitude, MSL and HAE altitude, CE/LE accuracy, Maidenhead grid, and satellites in view/used.
@@ -60,9 +60,9 @@ Cockpit's left-hand menu lists standard system pages (Overview, Logs, Storage, N
 
 - :material-tune-vertical: **AryaOS Site** - The flagship page. TAK destination, site-wide TLS, TAK Server enrollment, device role, radios, updates, VPN, support bundles, and more, all writing the shared [site configuration](../config/site-config.md). [Open the reference](./aryaos-site.md)
 
-- :material-transit-connection-variant: **Charontak lane editor** - The CoT router. Define the ingress/egress lanes that carry Cursor on Target (CoT) from local feeders out to Mesh SA and TAK Servers. [Edit lanes](./charontak-lanes.md)
+- :material-transit-connection-variant: **COTBridge lane editor** - The CoT router. Define the ingress/egress lanes that carry Cursor on Target (CoT) from local feeders out to Mesh SA and TAK Servers. [Edit lanes](./cotbridge-lanes.md)
 
-- :material-cog-transfer: **Gateway pages** - One Cockpit plugin per sensor gateway (adsbcot, aiscot, dronecot, lincot, gps, gpstak, aiscatcher). Per-service tuning, service controls, TLS, and logs. [See the pattern](./gateways.md)
+- :material-cog-transfer: **Gateway pages** - One Cockpit plugin per sensor gateway (adsbcot, aiscot, dronecot, lincot, gps, gpscot, aiscatcher). Per-service tuning, service controls, TLS, and logs. [See the pattern](./gateways.md)
 
 - :material-map-marker-radius: **Node-RED dashboard** - Maps, TFR injection, and optional recording. Deprecated for configuration. [Node-RED](../node-red.md)
 

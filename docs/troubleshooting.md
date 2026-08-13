@@ -74,10 +74,10 @@ A gateway shows as failed or keeps restarting.
 
 Tracks reach Mesh SA but not your TAK Server.
 
-1. **Re-import the connection.** Import the TAK **data package** or `tak://` enrollment link again from the **TAK connection** card. AryaOS installs the certs and writes a CharonTAK lane. See [Connect to a TAK Server](deploy/connect-tak-server.md).
+1. **Re-import the connection.** Import the TAK **data package** or `tak://` enrollment link again from the **TAK connection** card. AryaOS installs the certs and writes a COTBridge lane. See [Connect to a TAK Server](deploy/connect-tak-server.md).
 2. **Certificate/CA.** A bad or expired client certificate, or the wrong CA in the package, stops the TLS handshake - get a fresh package from your TAK admin.
 3. **Reachability.** The device must be able to reach the server host and port (the connect string in the package). On a disconnected box, add a route: Ethernet, an upstream Wi-Fi client connection, or the [VPN](networking/vpn-tailscale.md).
-4. **CharonTAK lane.** Confirm the `lane:local-to-takserver` lane is enabled in the [Charontak lane editor](admin/charontak-lanes.md).
+4. **COTBridge lane.** Confirm the `lane:local-to-takserver` lane is enabled in the [COTBridge lane editor](admin/cotbridge-lanes.md).
 
 ## GPS has no fix
 
@@ -85,7 +85,7 @@ The device's own position is missing or wrong.
 
 1. **Is the puck detected?** GPS uses `gpsd`; confirm the USB GNSS receiver is recognized (the support bundle captures a `gpsd` snapshot).
 2. **Sky view.** GNSS needs a clear view of the sky; a cold start can take minutes indoors or under cover.
-3. **Is the position gateway running?** `gpstak`/`lincot` publish position; both are part of the always-on CoT core. Check the **Sensor services** card. See [Own position (GPS)](deploy/own-position-gps.md).
+3. **Is the position gateway running?** `gpscot`/`lincot` publish position; both are part of the always-on CoT core. Check the **Sensor services** card. See [Own position (GPS)](deploy/own-position-gps.md).
 
 ## Still stuck?
 

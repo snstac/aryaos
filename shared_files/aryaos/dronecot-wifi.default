@@ -1,7 +1,7 @@
 # AryaOS dronecot (Wi-Fi Remote ID) config — /etc/default/dronecot-wifi
 #
 # Captures Open Drone ID broadcast over Wi-Fi (ASTM F3411 Beacon + Wi-Fi Alliance
-# NAN) from a MONITOR-MODE adapter and forwards it to charontak as CoT. COT_URL
+# NAN) from a MONITOR-MODE adapter and forwards it to cotbridge as CoT. COT_URL
 # is inherited from aryaos-config.txt via the service EnvironmentFile.
 #
 # Enable on a box with a monitor-capable external Wi-Fi adapter:

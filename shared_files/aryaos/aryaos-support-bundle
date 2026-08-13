@@ -8,7 +8,7 @@
 #
 # Secrets policy: values of keys matching PASSWORD/TOKEN/SECRET/PASSPHRASE/PSK
 # and tak:// enrollment credentials are replaced with [REDACTED]. Nothing from
-# /etc/aryaos/tls, /etc/charontak/tls, or any private key material is included.
+# /etc/aryaos/tls, /etc/cotbridge/tls, or any private key material is included.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 # SPDX-License-Identifier: Apache-2.0
@@ -67,12 +67,12 @@ mkdir -p "${ROOT}/configs" "${ROOT}/journals"
 trap 'rm -rf "${WORK}"' EXIT
 
 # Service list: site config AOS_SERVICES wins, plus infrastructure units.
-AOS_SERVICES="charontak adsbcot aiscot dronecot lincot"
+AOS_SERVICES="cotbridge adsbcot aiscot dronecot lincot"
 if [[ -f "${SITE_CONFIG}" ]]; then
 	cfg_services="$(sed -n 's/^AOS_SERVICES=["'\'']\?\([^"'\'']*\)["'\'']\?$/\1/p' "${SITE_CONFIG}" | tail -1)"
 	[[ -n "${cfg_services}" ]] && AOS_SERVICES="${cfg_services}"
 fi
-ALL_UNITS="${AOS_SERVICES} gpstak sikw00fcot readsb dump978-fa ais-catcher gpsd nodered docker lighttpd cockpit.socket firewalld fail2ban comitup aryaos-firstboot aryaos-neighbord aryaos-tak-dp-importd aryaos-bt-pan"
+ALL_UNITS="${AOS_SERVICES} gpscot sikw00fcot readsb dump978-fa ais-catcher gpsd nodered docker lighttpd cockpit.socket firewalld fail2ban comitup aryaos-firstboot aryaos-neighbord aryaos-tak-dp-importd aryaos-bt-pan"
 
 # --- system identity & resources ---
 SYS="${ROOT}/system.txt"
@@ -89,7 +89,7 @@ if command -v vcgencmd >/dev/null 2>&1; then
 fi
 
 # --- packages ---
-run "${ROOT}/packages.txt" bash -c "dpkg-query -W -f '\${Package} \${Version} \${db:Status-Abbrev}\n' | grep -E 'pytak|takproto|aircot|adsbcot|aiscot|dronecot|djicot|lincot|charontak|gpstak|sikw00fcot|cockpit|readsb|dump1090|dump978|ais-catcher|aryaos|gpsd|node-red|nodered|comitup|firewalld|fail2ban' || true"
+run "${ROOT}/packages.txt" bash -c "dpkg-query -W -f '\${Package} \${Version} \${db:Status-Abbrev}\n' | grep -E 'pytak|takproto|aircot|adsbcot|aiscot|dronecot|djicot|lincot|cotbridge|gpscot|sikw00fcot|cockpit|readsb|dump1090|dump978|ais-catcher|aryaos|gpsd|node-red|nodered|comitup|firewalld|fail2ban' || true"
 
 # --- services & journals ---
 SVC="${ROOT}/services.txt"
@@ -98,7 +98,7 @@ for unit in ${ALL_UNITS}; do
 	run "${SVC}" systemctl status "${unit}" --no-pager -l -n 20
 done
 journalctl -b --no-pager -n "${JOURNAL_BOOT_LINES}" > "${ROOT}/journals/boot.txt" 2>&1 || true
-for unit in ${AOS_SERVICES} gpstak sikw00fcot readsb gpsd; do
+for unit in ${AOS_SERVICES} gpscot sikw00fcot readsb gpsd; do
 	journalctl -b -u "${unit}" --no-pager -n "${JOURNAL_UNIT_LINES}" \
 		> "${ROOT}/journals/${unit}.txt" 2>&1 || true
 done
@@ -117,9 +117,9 @@ run "${NET}" ss -tulnp
 
 # --- configs (redacted) ---
 copy_redacted "${SITE_CONFIG}" "${ROOT}/configs/aryaos-config.txt"
-copy_redacted /etc/charontak.ini "${ROOT}/configs/charontak.ini"
+copy_redacted /etc/cotbridge.ini "${ROOT}/configs/cotbridge.ini"
 copy_redacted /etc/default/gpsd "${ROOT}/configs/default-gpsd"
-for svc in ${AOS_SERVICES} gpstak sikw00fcot charontak; do
+for svc in ${AOS_SERVICES} gpscot sikw00fcot cotbridge; do
 	copy_redacted "/etc/default/${svc}" "${ROOT}/configs/default-${svc}"
 done
 

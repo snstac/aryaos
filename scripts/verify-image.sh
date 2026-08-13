@@ -147,6 +147,7 @@ require_path /etc/aryaos-release
 require_path /etc/aryaos-version
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
+require_grep '^Defaults maxseq=128$' /etc/sudoers.d/aryaos "sudo I/O audit history bounded for /var/log tmpfs"
 require_path /usr/local/sbin/aryaos-firstboot.sh
 require_path /usr/local/sbin/aryaos-lincot-remarks
 require_path /usr/local/sbin/aryaos-cot-detail
@@ -181,12 +182,20 @@ require_path /etc/systemd/system/adsbcot.service.d/aryaos-startlimit.conf
 require_path /usr/local/sbin/aryaos-neighbord
 require_path /etc/systemd/system/aryaos-firstboot.service
 require_path /etc/systemd/system/aryaos-neighbord.service
-require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to charontak"
+require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to cotbridge"
 
 # Portal (stage-aryaos)
 require_path /var/www/html/index.html
 require_path /usr/lib/cgi-bin/aryaos-portal-status
 require_path /usr/lib/cgi-bin/aryaos-neighbors
+require_path /usr/share/cockpit/branding/debian/branding.css
+require_path /usr/share/cockpit/branding/debian/mark-aryaos-rev.svg
+require_path /usr/share/cockpit/branding/default/branding.css
+require_path /usr/share/cockpit/branding/default/mark-aryaos-rev.svg
+require_grep 'mark-aryaos-rev\.svg' /usr/share/cockpit/branding/debian/branding.css \
+	"Cockpit branding uses the canonical AryaOS reverse mark"
+require_grep '#E4610F' /usr/share/cockpit/branding/debian/mark-aryaos-rev.svg \
+	"Cockpit AryaOS mark uses Signal Orange"
 require_path /etc/lighttpd/conf-enabled/95-aryaos-cockpit-https.conf
 # The mutating TAK data-package import must NOT be an unauthenticated portal CGI:
 # it moved to the authenticated Cockpit backend. Fail the build if the CGI ships
@@ -217,20 +226,20 @@ require_grep 'ARYAOS_BASEMAP' /usr/share/cockpit/aryaos/aryaos-basemap.js "cockp
 require_grep 'get_throttled' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos power-health indicator"
 require_grep 'id="safe-mode-banner"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos safe-mode banner"
 
-# GPSTAK network GPS (package from stage-pytak)
-require_pkg gpstak
-require_path /usr/bin/gpstak
-require_path /lib/systemd/system/gpstak.service
-require_path /etc/default/gpstak
-require_path /usr/share/cockpit/gpstak/manifest.json
+# GPSCOT network GPS (package from stage-pytak)
+require_pkg gpscot
+require_path /usr/bin/gpscot
+require_path /lib/systemd/system/gpscot.service
+require_path /etc/default/gpscot
+require_path /usr/share/cockpit/gpscot/manifest.json
 
-# charontak cockpit page (ships inside the charontak deb >= 0.1.12)
-require_path /usr/share/cockpit/charontak/manifest.json
-require_path /etc/charontak.ini
-require_grep '^\[lane:local-to-mesh\]$' /etc/charontak.ini "charontak local-to-mesh lane"
-require_grep '^egress_cot_url = udp\+wo://239\.2\.3\.1:6969$' /etc/charontak.ini "charontak Mesh SA egress"
-require_grep '^\[lane:local-to-takserver\]$' /etc/charontak.ini "charontak local-to-takserver lane"
-require_grep '^ingress_cot_url = udp\+ro://127\.0\.0\.1:28087$' /etc/charontak.ini "charontak TAK Server lane local ingress"
+# cotbridge cockpit page (ships inside the cotbridge deb >= 0.1.12)
+require_path /usr/share/cockpit/cotbridge/manifest.json
+require_path /etc/cotbridge.ini
+require_grep '^\[lane:local-to-mesh\]$' /etc/cotbridge.ini "cotbridge local-to-mesh lane"
+require_grep '^egress_cot_url = udp\+wo://239\.2\.3\.1:6969$' /etc/cotbridge.ini "cotbridge Mesh SA egress"
+require_grep '^\[lane:local-to-takserver\]$' /etc/cotbridge.ini "cotbridge local-to-takserver lane"
+require_grep '^ingress_cot_url = udp\+ro://127\.0\.0\.1:28087$' /etc/cotbridge.ini "cotbridge TAK Server lane local ingress"
 
 # GNSS (stage-aryaos)
 require_path /etc/default/gpsd
@@ -251,13 +260,21 @@ forbid_path /usr/bin/dhbridge
 forbid_path /etc/systemd/system/dhbridge.service.d
 
 # Sensor / CoT stack
+require_pkg aiscot
+require_pkg_version aiscot 7.3.1
 require_pkg cockpit-gps
 require_pkg cockpit-adsbcot
+require_pkg_version cockpit-adsbcot 1.2.3
+require_pkg cockpit-aiscot
+require_pkg_version cockpit-aiscot 1.2.3
 require_pkg cockpit-lincot
+require_pkg_version cockpit-lincot 1.1.3
 require_pkg cockpit-aiscatcher
 require_pkg cockpit-dronecot
-require_pkg cockpit-charontak
-require_pkg cockpit-gpstak
+require_pkg_version cockpit-dronecot 1.1.3
+require_pkg cockpit-cotbridge
+require_pkg_version cockpit-cotbridge 1.2.2
+require_pkg cockpit-gpscot
 require_pkg cockpit-aryaos
 require_pkg cockpit-spyserver
 require_path /usr/share/cockpit/spyserver/manifest.json
@@ -265,18 +282,25 @@ require_pkg readsb
 require_pkg python3-gps
 require_pkg ais-catcher
 require_pkg sikw00fcot
-require_pkg gdltak
-require_pkg_version pytak 7.4.1
-require_pkg_version dronecot 2.3.4
+require_pkg gdlcot
+require_pkg_version gdlcot 1.0.1
+require_pkg_version pytak 7.4.3
+require_pkg_version acarscot 0.1.1
+require_pkg acarsdec
+require_pkg_version dronecot 2.3.8
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
 require_unit sikw00fcot.service
+require_unit acarscot.service
+require_grep '^StateDirectory=acarscot$' /usr/lib/systemd/system/acarscot.service "acarscot enrollment state survives reboot"
+require_grep '^Environment=HOME=/var/lib/acarscot$' /usr/lib/systemd/system/acarscot.service "acarscot uses persistent home"
 # DroneScout DS101: 2nd dronecot instance (MAVLink Remote ID over serial), opt-in.
 # The DS101 is an ESP32-S3 (303a:1001) pinned to /dev/dronescout by udev, NOT a
 # CH340 — verified live 2026-07-24 against a DroneBeacon DB120.
 require_path /etc/systemd/system/dronecot-dronescout.service
 require_grep '/dev/dronescout' /etc/default/dronecot-dronescout "dronecot-dronescout reads the DS101 ESP32-S3 (/dev/dronescout)"
+require_grep '^SERIAL_CRLF_NORMALIZE=1$' /etc/default/dronecot-dronescout "dronecot-dronescout repairs ESP console CRLF expansion"
 require_grep '303a' /etc/udev/rules.d/99-aryaos-dronescout.rules "DS101 udev symlink rule present"
 # AntSDR E200 management: console access + DroneID feed health watchdog.
 require_path /usr/local/sbin/aryaos-antsdr-console
@@ -295,13 +319,21 @@ require_grep 'aryaos-wifi-monitor' /etc/systemd/system/dronecot-wifi.service "dr
 require_grep 'SENSOR_TYPE' /etc/default/dronecot-wifi "dronecot-wifi carries SIGINT sensor detail"
 # Capability model.
 require_grep 'ARYAOS_CAPABILITIES' /usr/local/sbin/aryaos-role "aryaos-role has the capability model"
+require_grep 'acarsdec acarscot' /usr/local/sbin/aryaos-role "aryaos-role manages the ACARS decoder and gateway"
 require_path /usr/local/sbin/aryaos-capability-scan
+require_grep 'ADSBEE_VID_PID' /usr/local/sbin/aryaos-capability-scan "capability scan protocol-probes generic Pico ADSBee hardware"
+require_grep 'device-type modesbeast' /usr/local/sbin/aryaos-role "aryaos-role configures ADSBee Beast serial input"
+require_path /usr/local/libexec/aryaos/dronecot-serial-ready
+require_grep 'ExecCondition=/usr/local/libexec/aryaos/dronecot-serial-ready' /etc/systemd/system/dronecot-dronescout.service "DroneScout missing serial device skips cleanly"
 require_grep 'discover' /usr/local/sbin/aryaos-role "aryaos-role can discover hardware capabilities"
 require_grep 'capability-scan' /usr/local/sbin/aryaos-firstboot.sh "firstboot auto-detects capabilities"
-require_unit gdltak.service
+require_unit gdlcot.service
 require_unit lincot.service
-require_unit charontak.service
+require_unit cotbridge.service
 require_unit readsb.service
+require_path /etc/systemd/system/lincot.service.d/aryaos-config.conf
+require_grep '^EnvironmentFile=-/etc/aryaos/aryaos-config.txt$' /etc/systemd/system/lincot.service.d/aryaos-config.conf "lincot drop-in inherits AryaOS site config"
+require_grep '^EnvironmentFile=/etc/default/lincot$' /etc/systemd/system/lincot.service.d/aryaos-config.conf "lincot service defaults keep precedence"
 require_grep '^EnvironmentFile=/etc/aryaos/aryaos-config.txt$' /lib/systemd/system/sikw00fcot.service "sikw00fcot inherits AryaOS site config"
 require_grep '^EnvironmentFile=/etc/default/sikw00fcot$' /lib/systemd/system/sikw00fcot.service "sikw00fcot keeps service defaults override"
 
@@ -341,6 +373,8 @@ require_path /etc/apt/apt.conf.d/52unattended-upgrades-aryaos
 require_path /etc/firewalld/zones/public.xml
 require_path /etc/firewalld/services/aryaos-mesh-sa.xml
 require_grep 'aryaos-mesh-sa' /etc/firewalld/zones/public.xml "firewall zone allows Mesh SA"
+require_path /etc/firewalld/services/aryaos-gutcheck.xml
+require_grep 'aryaos-gutcheck' /etc/firewalld/zones/public.xml "firewall zone allows token-gated Gutcheck on the LAN"
 require_grep 'name="https"' /etc/firewalld/zones/public.xml "firewall zone allows HTTPS"
 require_path /etc/systemd/system/multi-user.target.wants/firewalld.service
 require_path /etc/systemd/system/multi-user.target.wants/fail2ban.service
@@ -375,7 +409,7 @@ for _u in readsb.service dump978-fa.service adsbcot.service aiscot.service \
 done
 require_grep '^ARYAOS_CAPABILITIES=""$' /etc/aryaos/aryaos-config.txt "no sensor capabilities enabled out of the box"
 # ...while the CoT core still runs unconditionally.
-require_path /etc/systemd/system/multi-user.target.wants/charontak.service
+require_path /etc/systemd/system/multi-user.target.wants/cotbridge.service
 
 # One-click updates (Cockpit -> AryaOS Site drives aryaos-update)
 require_path /usr/local/sbin/aryaos-update
@@ -404,18 +438,22 @@ require_path /etc/firewalld/services/aryaos-soapyremote.xml
 # AIS via a dedicated unit; persisted jobs re-applied at boot.
 require_grep 'task INDEX' /usr/local/sbin/aryaos-sdr "aryaos-sdr task subcommand"
 require_unit ais-catcher-rtl@.service
+require_grep 'AIS-catcher -X off' /lib/systemd/system/ais-catcher.service "serial AIS community sharing disabled"
+require_grep 'AIS-catcher -X off' /etc/systemd/system/ais-catcher-rtl@.service "RTL AIS community sharing disabled"
 require_unit aryaos-sdr-tasks.service
 # Universal SDR (DragonEgg): aryaos-sdr enumerates/tasks any SoapySDR device
 # (Airspy/HackRF/Lime), not just RTL. Generic AIS unit for non-RTL SDRs.
 require_grep 'SoapySDRUtil' /usr/local/sbin/aryaos-sdr "aryaos-sdr universal SoapySDR enumeration"
 require_grep 'device-type soapy' /usr/local/sbin/aryaos-sdr "aryaos-sdr tasks non-RTL SDRs via SoapySDR"
 require_unit aryaos-ais-sdr.service
+require_grep 'AIS-catcher -X off' /etc/systemd/system/aryaos-ais-sdr.service "generic SDR AIS community sharing disabled"
 require_pkg soapysdr-tools
 # APRS over RF (aryaos-sdr task N aprs): rtl_fm + Dire Wolf -> KISS -> aprscot -> CoT.
 require_grep 'aprs' /usr/local/sbin/aryaos-sdr "aryaos-sdr aprs task job"
 require_pkg direwolf
 require_pkg aprscot
 require_pkg cockpit-aprscot
+require_pkg_version cockpit-aprscot 0.1.1
 require_path /usr/share/cockpit/aprscot/manifest.json
 require_unit aryaos-direwolf@.service
 require_path /etc/aryaos/direwolf.conf
@@ -424,6 +462,7 @@ require_grep 'KISS_HOST=127.0.0.1' /etc/default/aprscot "aprscot reads local KIS
 # sapient-msg protobuf binding is pip-installed (not in Debian apt).
 require_pkg sapientcot
 require_pkg cockpit-sapientcot
+require_pkg_version cockpit-sapientcot 0.1.1
 require_path /usr/share/cockpit/sapientcot/manifest.json
 require_path /etc/default/sapientcot
 require_grep 'SAPIENT_HOST' /etc/default/sapientcot "sapientcot SAPIENT node config"
@@ -450,9 +489,11 @@ for z in public aryaos-hotspot; do
 	fi
 done
 
-# Robust NMEA-serial assignment (GPS vs AIS/dAISy by sentence sniffing) — no
+# Robust serial assignment (GPS vs AIS/dAISy by protocol sniffing) — no
 # hardcoded ttyUSB*/single-make by-id, which broke on differing adapters.
 require_path /usr/local/sbin/aryaos-serial-assign
+require_path /usr/local/libexec/aryaos/aryaos-serial-classify
+require_grep 'valid_sirf_frame' /usr/local/libexec/aryaos/aryaos-serial-classify "binary SiRF GPS protocol detection"
 require_unit aryaos-serial-assign.service
 require_grep '^DEVICES=""' /etc/default/gpsd "gpsd device not hardcoded (aryaos-serial-assign owns it)"
 require_grep '^SERIAL_PORT=$' /etc/default/ais-catcher "ais-catcher serial not hardcoded (aryaos-serial-assign owns it)"
@@ -460,10 +501,14 @@ require_grep '^SERIAL_PORT=$' /etc/default/ais-catcher "ais-catcher serial not h
 # Lifecycle helpers (Cockpit -> AryaOS Site: backup/restore, factory reset, zeroize)
 require_path /usr/local/sbin/aryaos-config-backup
 require_path /usr/local/sbin/aryaos-factory-reset
+require_grep '\.capabilities-autodetected' /usr/local/sbin/aryaos-factory-reset "factory reset re-arms hardware discovery"
+require_grep 'aryaos-role caps none' /usr/local/sbin/aryaos-factory-reset "factory reset releases sensor devices before discovery"
+require_grep 'aryaos-safe-mode reset-for-factory' /usr/local/sbin/aryaos-factory-reset "factory reset clears false crash-loop state"
+require_grep 'dpkg --configure -a' /usr/local/sbin/aryaos-factory-reset "factory reset recovers interrupted gateway configuration"
 require_path /usr/local/sbin/aryaos-zeroize
 require_path /etc/systemd/system/aryaos-factory-reset.service
 require_path /etc/systemd/system/aryaos-zeroize.service
-require_path /usr/share/aryaos/defaults/charontak.ini
+require_path /usr/share/aryaos/defaults/cotbridge.ini
 
 # Radios: WiFi hotspot control + EMCON/radio-silence (Cockpit -> AryaOS Site)
 require_path /usr/local/sbin/aryaos-radio
@@ -512,12 +557,15 @@ require_grep '^NoNewPrivileges=yes' /etc/systemd/system/aryaos-neighbord.service
 # comitup-callback). Must exist, must NOT expose ssh / Node-RED / mesh, and
 # must have no intra-zone forwarding.
 require_path /etc/firewalld/zones/aryaos-hotspot.xml
-if grep -qsE '<service name="(ssh|aryaos-node-red|aryaos-mesh-sa)"' "${MNT}/etc/firewalld/zones/aryaos-hotspot.xml"; then
+if grep -qsE '<service name="(ssh|aryaos-node-red|aryaos-mesh-sa|aryaos-gutcheck)"' "${MNT}/etc/firewalld/zones/aryaos-hotspot.xml"; then
 	fail "aryaos-hotspot zone exposes ssh/node-red/mesh to onboarding clients"
 else
 	ok "aryaos-hotspot zone withholds ssh/node-red/mesh from onboarding clients"
 fi
 require_grep '(aryaos-hotspot|--change-interface)' /usr/local/sbin/comitup-callback.sh "comitup-callback assigns wlan0 to the hotspot zone"
+require_grep '^bind-dynamic$' /usr/share/comitup/dns/dns-hotspot.conf "WiFi hotspot DHCP coexists with Bluetooth PAN DHCP"
+require_grep '^bind-dynamic$' /usr/share/comitup/dns/dns-connected.conf "WiFi connecting DHCP coexists with Bluetooth PAN DHCP"
+require_grep 'dhcp6-change\|reapply' /etc/NetworkManager/dispatcher.d/99-aryaos-dispatcher "dispatcher accepts NetworkManager reapply events"
 # Bluetooth PAN (pan0) is the other onboarding radio — it must be confined to the
 # hotspot zone too (statically in the zone XML + at bridge-up in the bt-pan NAP).
 require_grep '<interface name="pan0"/>' /etc/firewalld/zones/aryaos-hotspot.xml "pan0 statically bound to hotspot zone"
@@ -534,8 +582,17 @@ require_path /etc/chrony/conf.d/aryaos.conf
 require_grep '<service name="ntp"' /etc/firewalld/zones/public.xml "NTP served on the AryaOS (LAN) zone"
 
 # Media longevity: zram swap config + periodic TRIM
+require_pkg systemd-zram-generator
 require_path /etc/systemd/zram-generator.conf
 require_grep '^\[zram0\]' /etc/systemd/zram-generator.conf "zram swap configured"
+require_path /etc/rpi/swap.conf.d/90-aryaos.conf
+require_grep '^Mechanism=zram$' /etc/rpi/swap.conf.d/90-aryaos.conf "rpi-swap cannot create a disk-backed swapfile"
+forbid_path /var/swap
+require_path /etc/modules-load.d/lighttpd-mod-openssl.conf
+require_path /usr/share/aryaos/initramfs/set_partuuid
+require_path /etc/initramfs-tools/hooks/zz-aryaos-set-partuuid
+require_grep 'write_verified' /usr/share/aryaos/initramfs/set_partuuid "first-boot cmdline rewrite verifies FAT readback"
+require_grep 'cmp -s.*destination' /usr/share/aryaos/initramfs/set_partuuid "first-boot cmdline verifies the final boot path"
 
 # Lab access must match the build flavor
 if [[ "${LAB_EXPECTED}" == "1" ]]; then

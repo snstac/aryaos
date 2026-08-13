@@ -86,7 +86,7 @@ sudo scripts/readsb-use-lime.sh          # driver=lime, gain 40
 ```
 
 This sets `readsb` to `--device-type soapysdr --soapy-device driver=lime` and restarts it.
-CoT then flows through `adsbcot` > Charontak as usual. Two `readsb` bugs that made this path
+CoT then flows through `adsbcot` > COTBridge as usual. Two `readsb` bugs that made this path
 useless are fixed from **3.16.15-4** onward: `--gain` was applied ten times too large on the
 SoapySDR path, and a block was filled with a single `readStream()` call, which returns at most
 the driver's stream MTU - 2040 samples on a Lime against a 65536-sample buffer.
@@ -150,6 +150,33 @@ opaque string.
     is correct rather than broken - it refuses to invent a position. What ACARS
     reliably adds is the operational context ADS-B cannot give you: tail number,
     flight ID and route.
+
+#### Dedicated ACARSCOT TAK egress
+
+The normal AryaOS routing remains **ACARSCOT to COTBridge to TAK Server**. A box
+with a dedicated ACARS server identity can deliberately bypass COTBridge by
+putting its `tak://` enrollment URL in `/etc/default/acarscot`:
+
+```bash
+sudoedit /etc/default/acarscot
+# COT_URL='tak://com.atakmap.app/enroll?host=takserver.example.com&username=USER&token=TOKEN'
+sudo chmod 0600 /etc/default/acarscot
+```
+
+PyTAK resolves that URL to WSS and caches the issued client certificate below
+the service account's home. ACARSCOT `0.1.1` and newer create persistent state
+under `/var/lib/acarscot`; no local systemd drop-in is required. PyTAK `7.4.3`
+and newer retry an unavailable TAK endpoint in the same process with bounded,
+jittered exponential backoff. A server outage therefore leaves the unit active
+instead of driving a systemd restart storm, and extracted certificate PEMs are
+removed after every connection attempt instead of accumulating in tmpfs.
+
+Run `sudo systemctl restart acarscot`. `systemctl is-active acarscot` should
+remain `active` even while the server is unavailable; the journal will show the
+next retry delay. Once reachable, it should show a resolved
+`wss://.../takproto/1` destination plus both `WSTXWorker` and `WSRXWorker`.
+Keep the enrollment URL and cached certificate files private; do not put either
+in a support bundle or source control.
 
 ### Audio-band decoders (APRS, pagers)
 

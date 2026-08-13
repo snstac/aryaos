@@ -91,7 +91,7 @@ fi
 # group (installed from the "AryaOS Site" Cockpit plugin). Service users are
 # created by their debs, so membership is reconciled here on every boot.
 getent group tak-certs >/dev/null 2>&1 || groupadd --system tak-certs
-for svc_user in adsbcot aiscot dronecot lincot charontak; do
+for svc_user in adsbcot aiscot dronecot lincot cotbridge; do
 	if getent passwd "$svc_user" >/dev/null 2>&1; then
 		usermod -aG tak-certs "$svc_user" 2>/dev/null || true
 	fi
@@ -201,7 +201,10 @@ if [[ ! -f "$CAP_MARKER" ]] \
 	done
 
 	if [[ -n "$DETECTED" ]]; then
-		if /usr/local/sbin/aryaos-role caps $DETECTED >/dev/null 2>&1; then
+		# The multi-pass union above is authoritative, but capability names alone
+		# are not enough: ADSBee and DroneScout also need their verified serial
+		# transports written before the services start.
+		if /usr/local/sbin/aryaos-role apply-detected $DETECTED >/dev/null 2>&1; then
 			echo "AryaOS firstboot: detected hardware -> capabilities: $DETECTED"
 			CHANGED=1
 		fi

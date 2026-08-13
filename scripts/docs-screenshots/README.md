@@ -32,7 +32,7 @@ screenshots show.
 
 ## React plugins (lane editor, per-gateway pages)
 
-The React/TypeScript plugins (`cockpit-charontak`, `cockpit-aiscot`, …) bundle
+The React/TypeScript plugins (`cockpit-cotbridge`, `cockpit-aiscot`, …) bundle
 the **real** Cockpit client, which expects a live `cockpit-ws` backend, so the
 `window.cockpit` stub above does not apply. To screenshot them, rebuild the
 plugin with `cockpit` aliased to a mock module, then serve `dist/`:
@@ -40,8 +40,9 @@ plugin with `cockpit` aliased to a mock module, then serve `dist/`:
 1. In the plugin repo, replace `pkg/lib/cockpit.js` with a mock default export
    exposing `spawn`, `file`, `gettext`, and `dbus` (see `mock-cockpit.js` for the
    shape), then `./build.js` (non-production, so `dist/` is uncompressed).
-2. `dist/index.html` does not link `index.css` (Cockpit injects it at runtime),
-   so add `<link rel="stylesheet" href="index.css">` to the served copy.
+2. Serve the built `dist/index.html` unchanged. Gateway plugins link both their
+   bundled `index.css` and Cockpit's shared AryaOS `branding.css`; Cockpit does
+   not inject the plugin stylesheet for them.
 3. **Force the dark theme.** The plugins use PatternFly v6 tokens that only go
    dark when `<html>` has class `pf-v6-theme-dark` (added on-device by Cockpit's
    dark theme). In Playwright:

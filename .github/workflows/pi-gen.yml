@@ -97,6 +97,7 @@ jobs:
             shared_files/aryaos/aryaos-set-nodered-password \
             shared_files/aryaos/aryaos-sdr \
             shared_files/aryaos/aryaos-role \
+            shared_files/aryaos/dronecot-serial-ready \
             shared_files/aryaos/aryaos-config-backup \
             shared_files/aryaos/aryaos-factory-reset \
             shared_files/aryaos/aryaos-zeroize \
@@ -142,8 +143,10 @@ jobs:
         # (e.g. node-red/linux-installers v2.0.0 renamed the deb installer asset).
         run: |
           set -euo pipefail
-          url="$(grep -Eo "https://github.com/node-red/linux-installers/[^']+" stages/stage-node-red/00-install/00-run.sh)"
-          curl -fsSIL --max-time 30 -o /dev/null "$url"
+          url="$(sed -n "s/^NODE_RED_LINUX_INSTALLER_URL='\([^']*\)'$/\1/p" stages/stage-node-red/00-install/00-run.sh)"
+          curl -fsSL -H 'Accept: application/octet-stream' --max-time 30 -o /tmp/node-red-installer "$url"
+          expected="$(sed -n "s/^NODE_RED_LINUX_INSTALLER_SHA256='\([^']*\)'$/\1/p" stages/stage-node-red/00-install/00-run.sh)"
+          echo "${expected}  /tmp/node-red-installer" | sha256sum -c -
           echo "ok: $url"
           # snstac apt repo must be serving (sensor stack installs from it mid-build)
           curl -fsSIL --max-time 30 -o /dev/null "https://snstac.github.io/packages/apt/dists/stable/Release"
@@ -205,6 +208,30 @@ jobs:
           echo "ARYAOS_BUILD_SHA=${{ github.sha }}" >> "$GITHUB_ENV"
           echo "ARYAOS_BUILD_REF=${{ github.ref_name }}" >> "$GITHUB_ENV"
 
+      - name: Set filesystem-safe image name
+        env:
+          ARYAOS_REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Git branch names may contain '/', but pi-gen uses IMG_NAME as part
+          # of both a work-directory name and an exported image filename.
+          # Keep the original ref in ARYAOS_BUILD_REF and sanitize only the
+          # filesystem-facing name.
+          SAFE_REF="$(
+            printf '%s' "${ARYAOS_REF_NAME}" \
+              | LC_ALL=C sed -E 's/[^A-Za-z0-9._-]+/-/g; s/^-+//; s/-+$//'
+          )"
+          if [ -z "${SAFE_REF}" ]; then
+            echo "Git ref does not contain any filesystem-safe characters" >&2
+            exit 1
+          fi
+          DEV_SUFFIX=""
+          if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
+            DEV_SUFFIX="-dev"
+          fi
+          echo "ARYAOS_IMAGE_NAME=${IMG_NAME}-${SAFE_REF}${DEV_SUFFIX}" >> "$GITHUB_ENV"
+          echo "Image name: ${IMG_NAME}-${SAFE_REF}${DEV_SUFFIX}"
+
       - name: Build offline documentation into the portal
         # Renders the MkDocs site into shared_files/aryaos/html/docs so the
         # overlay deb (install_tree html -> /var/www/html) ships it on the
@@ -235,13 +262,13 @@ jobs:
           disable-first-boot-user-rename: ${{ env.DISABLE_FIRST_BOOT_USER_RENAME }}
           enable-ssh: ${{ env.ENABLE_SSH }}
           username: pi
-          image-name: ${{ env.IMG_NAME }}-${{ github.ref_name }}${{ env.ARYAOS_LAB_ACCESS == '1' && '-dev' || '' }}
+          image-name: ${{ env.ARYAOS_IMAGE_NAME }}
           hostname: ${{ env.TARGET_HOSTNAME }}
           locale: ${{ env.LOCALE_DEFAULT }}
           password: ${{ env.FIRST_USER_PASS }}
           pi-gen-release: ${{ env.PI_GEN_RELEASE }}
           release: ${{ env.RELEASE }}
-          stage-list: "${{ env.GITHUB_CWD }}/stages/stage-patch stage0 stage1 stage2 ${{ env.GITHUB_CWD }}/stages/stage-base ${{ env.GITHUB_CWD }}/stages/stage-aryaos ${{ env.GITHUB_CWD }}/stages/stage-pytak ${{ env.GITHUB_CWD }}/stages/stage-charontak ${{ env.GITHUB_CWD }}/stages/stage-lincot ${{ env.GITHUB_CWD }}/stages/stage-node-red ${{ env.GITHUB_CWD }}/stages/stage-docker ${{ env.GITHUB_CWD }}/stages/stage-adsbcot ${{ env.GITHUB_CWD }}/stages/stage-aiscot ${{ env.GITHUB_CWD }}/stages/stage-dronecot ${{ env.GITHUB_CWD }}/stages/stage-bt-pan"
+          stage-list: "${{ env.GITHUB_CWD }}/stages/stage-patch stage0 stage1 stage2 ${{ env.GITHUB_CWD }}/stages/stage-base ${{ env.GITHUB_CWD }}/stages/stage-aryaos ${{ env.GITHUB_CWD }}/stages/stage-pytak ${{ env.GITHUB_CWD }}/stages/stage-cotbridge ${{ env.GITHUB_CWD }}/stages/stage-lincot ${{ env.GITHUB_CWD }}/stages/stage-node-red ${{ env.GITHUB_CWD }}/stages/stage-docker ${{ env.GITHUB_CWD }}/stages/stage-adsbcot ${{ env.GITHUB_CWD }}/stages/stage-aiscot ${{ env.GITHUB_CWD }}/stages/stage-dronecot ${{ env.GITHUB_CWD }}/stages/stage-bt-pan"
           wpa-country: ${{ env.WPA_COUNTRY }}
           wpa-essid: ${{ env.WPA_ESSID }}
           wpa-password: ${{ env.WPA_PASSWORD }}
@@ -251,13 +278,14 @@ jobs:
           verbose-output: true
           # pi-gen-action bind-mounts stage dirs only; custom scripts resolve repo paths like
           # ${GITHUB_WORKSPACE}/shared_files — bind those trees into the pi-gen Docker container too.
-          # scripts/ + packaging/ are needed by stage-aryaos to build the aryaos-overlay deb
+          # scripts/ + packaging/ + docs/brand are needed by stage-aryaos to build the aryaos-overlay deb
           # (without them the [[ -x ]] guard silently skipped it; verify-image now asserts it).
           docker-opts: >-
             -v ${{ github.workspace }}/shared_files:${{ github.workspace }}/shared_files:ro
             -v ${{ github.workspace }}/manifests:${{ github.workspace }}/manifests:ro
             -v ${{ github.workspace }}/scripts:${{ github.workspace }}/scripts:ro
             -v ${{ github.workspace }}/packaging:${{ github.workspace }}/packaging:ro
+            -v ${{ github.workspace }}/docs/brand:${{ github.workspace }}/docs/brand:ro
             -v ${{ github.workspace }}/pi-gen-src:${{ github.workspace }}/pi-gen-src
             -e GITHUB_WORKSPACE=${{ github.workspace }}
             -e ARYAOS_CI_TRIM_WORK=1

@@ -1,16 +1,16 @@
 # Software suite
 
-AryaOS ships the full [Sensors & Signals](https://www.snstac.com) open-source suite of Team Awareness Kit (TAK) gateways and Cursor on Target (CoT) tools, plus a touch-friendly [Cockpit](https://cockpit-project.org/) web plugin for each one. Every gateway is built on [PyTAK](#pytak) and, on AryaOS, feeds the [CharonTAK](#charontak) hub, which owns egress to Mesh SA and any TAK Servers.
+AryaOS ships the full [Sensors & Signals](https://www.snstac.com) open-source suite of Team Awareness Kit (TAK) gateways and Cursor on Target (CoT) tools, plus a touch-friendly [Cockpit](https://cockpit-project.org/) web plugin for each one. Every gateway is built on [PyTAK](#pytak) and, on AryaOS, feeds the [COTBridge](#cotbridge) hub, which owns egress to Mesh SA and any TAK Servers.
 
 !!! info "How the pieces fit together"
-    Local feeders (adsbcot, aiscot, dronecot, lincot, gdltak, gpstak) send CoT to CharonTAK at `udp+wo://127.0.0.1:28087`. CharonTAK listens on `udp+ro://127.0.0.1:28087` and forwards to the default Mesh SA multicast `udp+wo://239.2.3.1:6969` plus optional TAK Server lanes. See [Ports & protocols](ports.md) and [Relay & routing](../deploy/relay-routing.md).
+    Local feeders (adsbcot, aiscot, dronecot, lincot, gdlcot, gpscot) send CoT to COTBridge at `udp+wo://127.0.0.1:28087`. COTBridge listens on `udp+ro://127.0.0.1:28087` and forwards to the default Mesh SA multicast `udp+wo://239.2.3.1:6969` plus optional TAK Server lanes. See [Ports & protocols](ports.md) and [Relay & routing](../deploy/relay-routing.md).
 
 ## Foundation
 
 | Project | What it does |
 |---|---|
 | [PyTAK](https://github.com/snstac/pytak) {#pytak} | Python framework for building TAK and Cursor on Target (CoT) integrations. Every gateway below is built on it. ([docs](https://pytak.readthedocs.io/)) |
-| [CharonTAK](https://github.com/snstac/charontak) {#charontak} | The CoT "ferryman" - bridges and routes CoT between the local hub, Mesh SA multicast, and TAK Servers. On AryaOS it is the single egress point every feeder writes to. |
+| [COTBridge](https://github.com/snstac/cotbridge) {#cotbridge} | The CoT "ferryman" - bridges and routes CoT between the local hub, Mesh SA multicast, and TAK Servers. On AryaOS it is the single egress point every feeder writes to. |
 
 ## Air - aircraft
 
@@ -47,7 +47,7 @@ Deploy: [Counter-UAS (drones)](../deploy/counter-uas.md).
 
 <div class="grid cards" markdown>
 
-- :material-crosshairs-gps: **[GPSTAK](https://github.com/snstac/gpstak)** - Streams `gpsd` position data to TAK as CoT, with NMEA fan-out for WinTAK.
+- :material-crosshairs-gps: **[GPSCOT](https://github.com/snstac/gpscot)** - Streams `gpsd` position data to TAK as CoT, with NMEA fan-out for WinTAK.
 - :material-map-marker: **[LINCOT](https://github.com/snstac/lincot)** - Sends a Linux device's own position (GPS) to TAK.
 
 </div>
@@ -58,7 +58,7 @@ Deploy: [Own position (GPS)](../deploy/own-position-gps.md).
 
 <div class="grid cards" markdown>
 
-- :material-transit-connection-variant: **[CharonTAK](https://github.com/snstac/charontak)** - Bridges and relays CoT between networks and TAK Servers; the AryaOS egress hub. Deploy: [Relay & routing](../deploy/relay-routing.md)
+- :material-transit-connection-variant: **[COTBridge](https://github.com/snstac/cotbridge)** - Bridges and relays CoT between networks and TAK Servers; the AryaOS egress hub. Deploy: [Relay & routing](../deploy/relay-routing.md)
 
 </div>
 
@@ -66,7 +66,7 @@ Deploy: [Own position (GPS)](../deploy/own-position-gps.md).
 
 <div class="grid cards" markdown>
 
-- :material-airplane-takeoff: **[GDLTAK](https://github.com/snstac/gdltak)** - Converts CoT into GDL90 so aircraft tracks appear in ForeFlight and other electronic flight bags (EFBs). Deploy: [ForeFlight & EFBs (GDL90)](../deploy/foreflight-gdl90.md)
+- :material-airplane-takeoff: **[GDLCOT](https://github.com/snstac/gdlcot)** - Converts CoT into GDL90 so aircraft tracks appear in ForeFlight and other electronic flight bags (EFBs). Deploy: [ForeFlight & EFBs (GDL90)](../deploy/foreflight-gdl90.md)
 
 </div>
 
@@ -90,8 +90,8 @@ Every gateway on AryaOS is managed from a browser UI built on [Cockpit](https://
 | [cockpit-dronecot](https://github.com/snstac/cockpit-dronecot) | DroneCOT (drones) |
 | [cockpit-lincot](https://github.com/snstac/cockpit-lincot) | LINCOT (host position) |
 | [cockpit-gps](https://github.com/snstac/cockpit-gps) | GPS / `gpsd` |
-| [cockpit-gpstak](https://github.com/snstac/cockpit-gpstak) | GPSTAK (network GPS) |
-| [cockpit-charontak](https://github.com/snstac/cockpit-charontak) | CharonTAK lane editor (routing) |
+| [cockpit-gpscot](https://github.com/snstac/cockpit-gpscot) | GPSCOT (network GPS) |
+| [cockpit-cotbridge](https://github.com/snstac/cockpit-cotbridge) | COTBridge lane editor (routing) |
 | [cockpit-aiscatcher](https://github.com/snstac/cockpit-aiscatcher) | AIS-catcher decoder |
 
 All plugins share the [@snstac/cockpit-shared](https://github.com/snstac/cockpit-shared) component library for a consistent, glove-friendly UI.

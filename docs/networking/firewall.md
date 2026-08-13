@@ -20,7 +20,7 @@ implicitly accepted by firewalld.
 | `dhcp` | 67/udp | DHCP leases - served only while the comitup hotspot runs; also leases [Bluetooth PAN](../bluetooth-pan.md) clients. |
 | `dhcpv6-client` | 546/udp | DHCPv6 client. |
 | `dns` | 53/tcp+udp | DNS - answered only while the comitup onboarding hotspot is up (dnsmasq is not otherwise active). |
-| `aryaos-mesh-sa` | 6969/udp | TAK **Mesh SA** multicast - Charontak egress/ingress and `aryaos-neighbord` on `239.2.3.1:6969`. |
+| `aryaos-mesh-sa` | 6969/udp | TAK **Mesh SA** multicast - COTBridge egress/ingress and `aryaos-neighbord` on `239.2.3.1:6969`. |
 | `aryaos-node-red` | 1880/tcp | Node-RED low-code editor and dashboards (admin API is `adminAuth`-protected). |
 | `aryaos-ais-catcher` | 8100/tcp | AIS-catcher live map / statistics dashboard. |
 | `aryaos-comitup` | 9080/tcp | Comitup captive Wi-Fi onboarding portal (listens only in hotspot mode). |

@@ -14,6 +14,21 @@ case "$1" in
     if [ -f /usr/share/aryaos/defaults/gpsd.default ]; then
       install -m 0644 -o root -g root /usr/share/aryaos/defaults/gpsd.default /etc/default/gpsd
     fi
+    dronescout_defaults=/usr/share/aryaos/defaults/dronecot-dronescout.default
+    dronescout_config=/etc/default/dronecot-dronescout
+    if [ -f "$dronescout_defaults" ]; then
+      if [ ! -f "$dronescout_config" ]; then
+        install -m 0644 -o root -g root "$dronescout_defaults" "$dronescout_config"
+      elif ! grep -q '^SERIAL_CRLF_NORMALIZE=' "$dronescout_config"; then
+        dronescout_crlf=0
+        if command -v udevadm >/dev/null 2>&1 \
+          && udevadm info -q property -n /dev/dronescout 2>/dev/null \
+            | grep -q '^ID_VENDOR_ID=303a$'; then
+          dronescout_crlf=1
+        fi
+        printf '\n# Repair ESP console LF-to-CRLF expansion in binary MAVLink.\nSERIAL_CRLF_NORMALIZE=%s\n' "$dronescout_crlf" >> "$dronescout_config"
+      fi
+    fi
     if [ ! -f /etc/aryaos/aryaos-config.txt ] && [ -f /usr/share/aryaos/defaults/aryaos-config.txt ]; then
       install -d -m 0755 /etc/aryaos
       install -m 0644 -o root -g root /usr/share/aryaos/defaults/aryaos-config.txt /etc/aryaos/aryaos-config.txt
@@ -24,7 +39,7 @@ case "$1" in
       fi
     done
 
-    for user in adsbcot aiscot dronecot lincot charontak; do
+    for user in adsbcot aiscot dronecot lincot cotbridge; do
       if getent passwd "$user" >/dev/null 2>&1; then
         usermod -aG tak-certs "$user" 2>/dev/null || true
       fi
@@ -54,11 +69,23 @@ case "$1" in
       install -d -m 0755 /usr/share/cockpit/branding/debian /usr/share/cockpit/branding/default
       install -m 0644 -o root -g root /usr/share/aryaos/cockpit/branding.css /usr/share/cockpit/branding/debian/branding.css
       install -m 0644 -o root -g root /usr/share/aryaos/cockpit/branding.css /usr/share/cockpit/branding/default/branding.css
+      if [ -f /usr/share/aryaos/cockpit/mark-aryaos-rev.svg ]; then
+        install -m 0644 -o root -g root /usr/share/aryaos/cockpit/mark-aryaos-rev.svg /usr/share/cockpit/branding/debian/mark-aryaos-rev.svg
+        install -m 0644 -o root -g root /usr/share/aryaos/cockpit/mark-aryaos-rev.svg /usr/share/cockpit/branding/default/mark-aryaos-rev.svg
+      fi
     fi
 
     if command -v systemctl >/dev/null 2>&1; then
+      # Installing the AryaOS rpi-swap drop-in changes the generated topology
+      # from zram+file to file-free zram. Stop the old generated timer before
+      # daemon-reload makes its trigger unit vanish; otherwise systemd records
+      # a synthetic failed unit and leaves the appliance degraded until reboot.
+      systemctl stop rpi-zram-writeback.timer 2>/dev/null || true
       systemctl daemon-reload || true
-      systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-neighbord.service aryaos-radio-silence.service NetworkManager-dispatcher.service 2>/dev/null || true
+      systemctl reset-failed rpi-zram-writeback.timer 2>/dev/null || true
+      systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-neighbord.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service 2>/dev/null || true
+      # Network GPS is core plumbing, independent of the selected sensor role.
+      systemctl enable --now gpscot.service 2>/dev/null || true
       # Time service: chrony (GPS-disciplined + serves the local network) replaces
       # the client-only systemd-timesyncd.
       systemctl disable --now systemd-timesyncd.service 2>/dev/null || true
@@ -74,12 +101,27 @@ case "$1" in
       systemctl try-restart fail2ban.service 2>/dev/null || true
       firewall-cmd --reload >/dev/null 2>&1 || true
       systemctl restart aryaos-tak-dp-importd.service aryaos-neighbord.service lighttpd.service 2>/dev/null || true
-      systemctl try-restart gpsd.socket gpsd.service cockpit.socket 2>/dev/null || true
+      # The package refreshes the stock gpsd defaults above. Immediately rerun
+      # protocol discovery so a live receiver is put back on its stable by-id
+      # path before gpsd restarts; this also exercises new classifiers on update.
+      systemctl restart aryaos-serial-assign.service 2>/dev/null || true
+      # These are role-dependent, so refresh only instances that were already
+      # running; package installation must not enable a new radio role.
+      systemctl try-restart lincot.service acarsdec.service dronecot-dronescout.service 2>/dev/null || true
+      # aryaos-serial-assign already resumed gpsd with the detected device.
+      # Restarting the socket/service pair again races the tty open path.
+      systemctl try-restart cockpit.socket 2>/dev/null || true
       systemctl start aryaos-gps-time-sync.service 2>/dev/null || true
     fi
 
     if [ -x /usr/local/sbin/patch-cockpit-aryaos-dp ]; then
       /usr/local/sbin/patch-cockpit-aryaos-dp >/dev/null 2>&1 || true
+    fi
+    # raspberrypi-sys-mods rewrites cmdline.txt on the first resize boot. Build
+    # our read-back-verified replacement into every installed initramfs before
+    # the appliance is allowed to reboot.
+    if command -v update-initramfs >/dev/null 2>&1; then
+      update-initramfs -u -k all
     fi
     rm -rf /var/lib/cockpit/*/cache 2>/dev/null || true
     ;;

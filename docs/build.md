@@ -89,7 +89,7 @@ The workflow `.github/workflows/pi-gen.yml`:
 **Hosted arm64 notes**
 
 - **Public repos** can use **`ubuntu-24.04-arm`** at no extra charge for standard Actions minutes (subject to GitHub policies/limits).
-- **`usimd/pi-gen-action`** mounts **stage directories** into the pi-gen Docker container, but not the whole repo. This workflow passes **`docker-opts`** so **`shared_files/`**, **`manifests/`**, and the checkout **`pi-gen-src/`** appear at the same **`${{ github.workspace }}` paths** inside the container (needed for `../../../shared_files`, **`REPO_ROOT`/manifests**, and **`stage-patch`** edits under **`pi-gen-src`**).
+- **`usimd/pi-gen-action`** mounts **stage directories** into the pi-gen Docker container, but not the whole repo. This workflow passes **`docker-opts`** so **`shared_files/`**, **`manifests/`**, **`scripts/`**, **`packaging/`**, the canonical **`docs/brand/`** assets, and the checkout **`pi-gen-src/`** appear at the same **`${{ github.workspace }}` paths** inside the container (needed for `../../../shared_files`, overlay package construction, **`REPO_ROOT`/manifests**, and **`stage-patch`** edits under **`pi-gen-src`**).
 - If disk pressure persists on hosted runners, consider enabling **`increase-runner-disk-size`** on **`pi-gen-action`** or trimming stages; pi-gen **work/** trees are large.
 
 ### SBOMs
@@ -198,7 +198,7 @@ See commented **`dev_arm64`** stubs in [`inventory.yml`](https://github.com/snst
 
 ### AirTAK-style readsb + adsbcot on DragonOS (`dragonball`)
 
-For a **generic amd64** host (e.g. Ubuntu DragonOS) with SSH as **`gba`** and key **`~/.ssh/id_ed25519_nopass`**, use the thin playbook [`playbooks/readsb-adsbcot-generic.yml`](https://github.com/snstac/aryaos/blob/main/playbooks/readsb-adsbcot-generic.yml) (pytak sensor `.debs`, **Charontak** CoT hub, + **`stage-adsbcot`** readsb build). Host vars: [`host_vars/dragonball.yml`](https://github.com/snstac/aryaos/blob/main/host_vars/dragonball.yml).
+For a **generic amd64** host (e.g. Ubuntu DragonOS) with SSH as **`gba`** and key **`~/.ssh/id_ed25519_nopass`**, use the thin playbook [`playbooks/readsb-adsbcot-generic.yml`](https://github.com/snstac/aryaos/blob/main/playbooks/readsb-adsbcot-generic.yml) (pytak sensor `.debs`, **COTBridge** CoT hub, + **`stage-adsbcot`** readsb build). Host vars: [`host_vars/dragonball.yml`](https://github.com/snstac/aryaos/blob/main/host_vars/dragonball.yml).
 
 ```bash
 ansible-galaxy collection install -r requirements.yml
@@ -218,7 +218,7 @@ Without sudo (e.g. **`gba`** in the **`docker`** group only): rsync the repo to 
 
 On a running host: [`scripts/readsb-use-airspy.sh`](https://github.com/snstac/aryaos/blob/main/scripts/readsb-use-airspy.sh) or [`scripts/readsb-use-rtl-serial.sh`](https://github.com/snstac/aryaos/blob/main/scripts/readsb-use-rtl-serial.sh). Probe Airspy with `SoapySDRUtil --probe="driver=airspy"`.
 
-After deploy: `systemctl status charontak readsb adsbcot`, confirm `/run/adsb/aircraft.json` existss.
+After deploy: `systemctl status cotbridge readsb adsbcot`, confirm `/run/adsb/aircraft.json` existss.
 
 ### Loop-mount / `nspawn` / `chroot` (advanced)
 

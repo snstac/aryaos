@@ -2,7 +2,8 @@
 # CGI: JSON host/network + GNSS (gpsd) + radio/RF inventory for the HTTPS landing page.
 #
 # Uses absolute paths (lighttpd often sets a minimal PATH) and /usr/bin/python3.
-# www-data must be in the "gpsd" group to run gpspipe against /run/gpsd.sock.
+# GNSS is read from gpsd's loopback TCP socket.  Avoid spawning gpspipe here:
+# a CGI request that is cancelled by the HTTP client can otherwise orphan it.
 # www-data must be in the "video" group to run vcgencmd (temp / throttling) on Raspberry Pi.
 #
 # systemd's lighttpd unit sets RestrictAddressFamilies without AF_NETLINK by default;
@@ -18,11 +19,13 @@ import re
 import socket
 import subprocess
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 IP = "/usr/sbin/ip"
 UPTIME = "/usr/bin/uptime"
-GPSPIPE = "/usr/bin/gpspipe"
+GPSD_HOST = "127.0.0.1"
+GPSD_PORT = 2947
 SYSTEMCTL = "/usr/bin/systemctl"
 LSUSB = "/usr/bin/lsusb"
 RFKILL_CANDIDATES = ("/usr/sbin/rfkill", "/usr/bin/rfkill")
@@ -103,23 +106,36 @@ def run(argv, timeout=8):
         return "", -1, "command timed out"
 
 
-def run_gpspipe(argv, timeout=8):
-    """Like run(), but keep partial stdout on TimeoutExpired so we can still parse."""
+def read_gpsd(max_lines=40, timeout=8):
+    """Read bounded JSON reports directly from gpsd, retaining partial data.
+
+    A direct socket read is intentional.  lighttpd may terminate a CGI process
+    when its client disconnects; a gpspipe child would then survive under PID 1
+    and wait indefinitely when no receiver is producing reports.
+    """
+    payload = bytearray()
+    deadline = time.monotonic() + timeout
     try:
-        r = subprocess.run(
-            argv,
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        return (r.stdout or "").strip(), r.returncode, (r.stderr or "").strip()
+        with socket.create_connection((GPSD_HOST, GPSD_PORT), timeout=timeout) as sock:
+            sock.sendall(b'?WATCH={"enable":true,"json":true};\n')
+            while payload.count(b"\n") < max_lines:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise socket.timeout
+                sock.settimeout(remaining)
+                chunk = sock.recv(65536)
+                if not chunk:
+                    break
+                payload.extend(chunk)
     except OSError as e:
-        return "", -1, str(e)
-    except subprocess.TimeoutExpired as e:
-        partial = (e.stdout or "").strip() if e.stdout else ""
-        hint = "gpspipe timed out (no JSON yet)" if not partial else "gpspipe timed out (using partial capture)"
+        partial = payload.decode("utf-8", errors="replace").strip()
+        if not isinstance(e, socket.timeout):
+            return partial, -1, str(e)
+        hint = "gpsd timed out (no JSON yet)" if not partial else "gpsd timed out (using partial capture)"
         return partial, -1, hint
+
+    text = payload.decode("utf-8", errors="replace")
+    return "\n".join(text.splitlines()[:max_lines]).strip(), 0, ""
 
 
 def primary_ip():
@@ -688,8 +704,92 @@ def _tac_gateway_state(load_state, active_state, unit_file_state):
     return "absent"
 
 
+def _gateway_unit(unit_id):
+    """Return the live systemd state for one TAK gateway unit."""
+    stdout, _code, _stderr = run(
+        [
+            SYSTEMCTL,
+            "show",
+            f"{unit_id}.service",
+            "-p",
+            "LoadState",
+            "-p",
+            "ActiveState",
+            "-p",
+            "UnitFileState",
+            "--no-pager",
+        ],
+        timeout=2,
+    )
+    props = {}
+    for line in (stdout or "").splitlines():
+        line = line.strip()
+        if "=" in line:
+            key, value = line.split("=", 1)
+            props[key.strip()] = value.strip()
+    load_state = props.get("LoadState", "")
+    active_state = props.get("ActiveState", "")
+    unit_file_state = props.get("UnitFileState", "")
+    return {
+        "id": unit_id,
+        "state": _tac_gateway_state(load_state, active_state, unit_file_state),
+        "active_state": active_state or None,
+        "load_state": load_state or None,
+        "unit_file_state": unit_file_state or None,
+    }
+
+
+def _gateway_item(unit_id, label, label_short, member_ids):
+    """Aggregate every service that can implement one displayed capability.
+
+    Remote ID has several independent DroneCOT instances.  Treating only the
+    legacy ``dronecot.service`` as UAS made a live DroneScout or Wi-Fi receiver
+    appear disabled on the landing page.
+    """
+    units = [_gateway_unit(member_id) for member_id in member_ids]
+    states = {unit["state"] for unit in units}
+    if "degraded" in states or ("up" in states and "down" in states):
+        state = "degraded"
+    elif "up" in states:
+        state = "up"
+    elif "down" in states:
+        state = "down"
+    elif "disabled" in states:
+        state = "disabled"
+    else:
+        state = "absent"
+
+    loaded = [unit for unit in units if unit["load_state"] != "not-found"]
+    active_state = "active" if state == "up" else "degraded" if state == "degraded" else None
+    if active_state is None:
+        active_state = next((unit["active_state"] for unit in loaded if unit["active_state"]), None)
+    unit_file_state = "enabled" if any(unit["unit_file_state"] == "enabled" for unit in units) else None
+    if unit_file_state is None:
+        unit_file_state = next((unit["unit_file_state"] for unit in loaded if unit["unit_file_state"]), None)
+    load_state = "loaded" if loaded else "not-found"
+
+    title_units = loaded or units
+    title = "; ".join(
+        f"{unit['id']} active={unit['active_state'] or '?'}"
+        f" load={unit['load_state'] or '?'}"
+        f" unit_file={unit['unit_file_state'] or '?'}"
+        for unit in title_units
+    )
+    return {
+        "id": unit_id,
+        "label": label,
+        "label_short": label_short,
+        "state": state,
+        "active_state": active_state,
+        "load_state": load_state,
+        "unit_file_state": unit_file_state,
+        "title": title,
+        "units": units,
+    }
+
+
 def gather_tac_gateways():
-    """ADS-B / AIS / UAS TAK gateway units (systemd) for landing-page mission strip."""
+    """Live TAK gateway capabilities for the landing-page mission strip."""
     out = {"ok": True, "error": None, "items": []}
     if not (os.path.isfile(SYSTEMCTL) and os.access(SYSTEMCTL, os.X_OK)):
         out["ok"] = False
@@ -697,58 +797,20 @@ def gather_tac_gateways():
         return out
 
     specs = (
-        ("charontak", "CoT bridge", "Bridge"),
-        ("lincot", "GNSS→TAK", "GNSS"),
-        ("adsbcot", "ADS-B→TAK", "ADS-B"),
-        ("aiscot", "AIS→TAK", "AIS"),
-        ("dronecot", "UAS→TAK", "UAS"),
-        ("sikw00fcot", "SiK→TAK", "SiK"),
+        ("cotbridge", "CoT bridge", "Bridge", ("cotbridge",)),
+        ("lincot", "GNSS→TAK", "GNSS", ("lincot",)),
+        ("adsbcot", "ADS-B→TAK", "ADS-B", ("adsbcot",)),
+        ("aiscot", "AIS→TAK", "AIS", ("aiscot",)),
+        (
+            "dronecot",
+            "UAS / Remote ID→TAK",
+            "UAS",
+            ("dronecot", "dronecot-wifi", "dronecot-ble", "dronecot-dronescout", "sapientcot"),
+        ),
+        ("sikw00fcot", "SiK→TAK", "SiK", ("sikw00fcot",)),
     )
-    for unit_id, label, label_short in specs:
-        unit = f"{unit_id}.service"
-        stdout, code, stderr = run(
-            [
-                SYSTEMCTL,
-                "show",
-                unit,
-                "-p",
-                "LoadState",
-                "-p",
-                "ActiveState",
-                "-p",
-                "UnitFileState",
-                "--no-pager",
-            ],
-            timeout=2,
-        )
-        props = {}
-        for line in (stdout or "").splitlines():
-            line = line.strip()
-            if "=" in line:
-                k, v = line.split("=", 1)
-                props[k.strip()] = v.strip()
-        load_state = props.get("LoadState", "")
-        active_state = props.get("ActiveState", "")
-        unit_file_state = props.get("UnitFileState", "")
-
-        state = _tac_gateway_state(load_state, active_state, unit_file_state)
-        title_bits = [unit_id, f"active={active_state or '?'}"]
-        if load_state:
-            title_bits.append(f"load={load_state}")
-        if unit_file_state:
-            title_bits.append(f"unit_file={unit_file_state}")
-        out["items"].append(
-            {
-                "id": unit_id,
-                "label": label,
-                "label_short": label_short,
-                "state": state,
-                "active_state": active_state or None,
-                "load_state": load_state or None,
-                "unit_file_state": unit_file_state or None,
-                "title": " — ".join(title_bits),
-            }
-        )
+    for unit_id, label, label_short, member_ids in specs:
+        out["items"].append(_gateway_item(unit_id, label, label_short, member_ids))
     return out
 
 
@@ -796,7 +858,7 @@ def gather_gps():
         "satellites_used": None,
     }
     # Few lines suffice for VERSION/DEVICES/WATCH/SKY/TPV; large -n + short timeout caused false timeouts.
-    stdout, code, err = run_gpspipe([GPSPIPE, "-w", "-n", "40"], timeout=8)
+    stdout, code, err = read_gpsd(max_lines=40, timeout=8)
     if code != 0 and not stdout:
         out["error"] = err or f"gpspipe exit {code}"
         return out

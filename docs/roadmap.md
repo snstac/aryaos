@@ -7,7 +7,7 @@ build/merge state and architecture invariants.
 
 !!! note "Context"
     A large July 2026 sweep shipped the multi-domain COP model, the Cockpit
-    admin cards, `gdltak` (ForeFlight/GDL90), the `@snstac/cockpit-shared`
+    admin cards, `gdlcot` (ForeFlight/GDL90), the `@snstac/cockpit-shared`
     library, SBOMs, media-longevity tuning, the lifecycle tools (backup,
     factory reset, zeroize), and on-device offline docs. The items below are
     what remains.
@@ -70,12 +70,12 @@ run through them before relying on any of it in the field.
 - [ ] **Track record & replay**
       ([#8](https://github.com/snstac/aryaos/issues/8),
       [#9](https://github.com/snstac/aryaos/issues/9)). Cleanest design: a
-      Charontak recorder lane (it already sees all local CoT) writing rotating
+      COTBridge recorder lane (it already sees all local CoT) writing rotating
       logs, with a portal page to download and replay - directly useful for
       wildland-fire after-action review.
 - [ ] **SDR gain / PPM tuning UI.** The Radios card enumerates and re-serials
       dongles; gain and PPM are still file-only. Add them to the card.
-- [ ] **`cockpit-gdltak` page** and a live ForeFlight/EFB validation for the new
+- [ ] **`cockpit-gdlcot` page** and a live ForeFlight/EFB validation for the new
       [GDL90 gateway](deploy/foreflight-gdl90.md).
 - [ ] **CoT over BLE** ([#7](https://github.com/snstac/aryaos/issues/7)) - blocked
       on BLE advertising being broken image-wide on the trixie kernel / BCM4345C0
@@ -94,7 +94,7 @@ run through them before relying on any of it in the field.
       (SDR web UI - done via the Radios card),
       [#51](https://github.com/snstac/aryaos/issues/51) (SBOM - done), and the
       image half of [#43](https://github.com/snstac/aryaos/issues/43)
-      (ForeFlight/gdltak) are shipped and can be closed.
+      (ForeFlight/gdlcot) are shipped and can be closed.
 - [ ] **Current bugs.** [#93](https://github.com/snstac/aryaos/issues/93) (ADSBCOT
       Cockpit tab wrong header - quick fix) and
       [#94](https://github.com/snstac/aryaos/issues/94) (AIS-catcher serial port).

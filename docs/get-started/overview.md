@@ -34,7 +34,7 @@ relay the combined picture to a TAK Server for the wider force.
 ## How it works
 
 Sensors feed local **CoT gateways**, which all publish to a single on-box hub
-called [Charontak](../reference/glossary.md#charontak). Charontak is the
+called [COTBridge](../reference/glossary.md#cotbridge). COTBridge is the
 switchboard: it fans the combined picture out to the local Wi-Fi mesh
 ([Mesh SA](../reference/glossary.md#mesh-sa)) and, optionally, upstream to a TAK
 Server. This hub-and-spoke design means you point your feeds at one place and
@@ -51,8 +51,8 @@ flowchart LR
         ADSB[adsbcot]
         AIS[aiscot]
         DRONE[dronecot]
-        LIN[lincot / gpstak]
-        HUB{{Charontak hub<br/>127.0.0.1:28087}}
+        LIN[lincot / gpscot]
+        HUB{{COTBridge hub<br/>127.0.0.1:28087}}
         ADSB --> HUB
         AIS --> HUB
         DRONE --> HUB
@@ -80,7 +80,7 @@ HTTPS) exposes:
 - **The AryaOS Site page** - TAK destination, TLS certificates, TAK Server
   enrollment, device role, radios, updates, VPN, hotspot password, support
   bundles, and Node-RED admin password. See [AryaOS Site](../admin/aryaos-site.md).
-- **The Charontak lane editor** - a structured editor for where CoT flows.
+- **The COTBridge lane editor** - a structured editor for where CoT flows.
 - **Per-gateway pages** - one for each sensor (adsbcot, aiscot, dronecot, ...).
 
 SSH is still available for advanced work, but it is never required for normal
@@ -99,7 +99,7 @@ sensor pipelines and disables the rest. The CoT routing core always runs.
 |-------|----------------------|
 | **OS** | Debian-based, hardened, arm64 image for Raspberry Pi 3/4/5 |
 | **Sensors** | ADS-B/UAT decoders (readsb, dump978-fa), AIS (AIS-catcher), drone Remote ID, GPS (gpsd) |
-| **Gateways** | adsbcot, aiscot, dronecot, lincot, gpstak, gdltak, charontak, and more |
+| **Gateways** | adsbcot, aiscot, dronecot, lincot, gpscot, gdlcot, cotbridge, and more |
 | **Admin** | Cockpit web console with the AryaOS Site page and per-gateway plugins |
 | **Networking** | Onboarding Wi-Fi hotspot, Bluetooth PAN, Tailscale VPN, firewalld |
 | **Ops** | One-click updates, redacted support bundles, SBOMs, neighbor discovery |

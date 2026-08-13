@@ -42,6 +42,6 @@
 
   roles:
     - role: stage-pytak
-    - role: stage-charontak
+    - role: stage-cotbridge
     - role: stage-lincot
     - role: stage-adsbcot

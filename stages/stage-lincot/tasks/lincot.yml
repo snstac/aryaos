@@ -11,6 +11,13 @@
     mode: "0644"
   notify: Restart Lincot
 
+- name: Keep AryaOS LINCOT environment across package upgrades
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/lincot/systemd/lincot.service.d/aryaos-config.conf"
+    dest: /etc/systemd/system/lincot.service.d/aryaos-config.conf
+    mode: "0644"
+  notify: Restart Lincot
+
 - name: Enable and start LINCOT
   ansible.builtin.systemd:
     name: lincot.service

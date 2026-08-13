@@ -27,22 +27,28 @@ else
 	PI="${PI_USER}@${PI_HOST}"
 fi
 DEV_KEY="${ARYAOS_DEV_PI_SSH_KEY:-${REPO_ROOT}/shared_files/aryaos/ssh/aryaos-dev-lab}"
+KNOWN_HOSTS_ARGS=()
+if [[ -n "${ARYAOS_SSH_KNOWN_HOSTS_FILE:-}" ]]; then
+	KNOWN_HOSTS_ARGS=(-o StrictHostKeyChecking=yes -o "UserKnownHostsFile=${ARYAOS_SSH_KNOWN_HOSTS_FILE}")
+else
+	KNOWN_HOSTS_ARGS=(-o StrictHostKeyChecking=accept-new)
+fi
 
-SSH=(ssh -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
-SCP=(scp -o StrictHostKeyChecking=accept-new)
+SSH=(ssh -o BatchMode=yes -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
+SCP=(scp "${KNOWN_HOSTS_ARGS[@]}")
 SSH_METHOD="ssh defaults"
 
 if [[ -n "${ARYAOS_DEV_PI_SSH_KEY:-}" && -r "${ARYAOS_DEV_PI_SSH_KEY}" ]]; then
-	SSH=(ssh -i "${ARYAOS_DEV_PI_SSH_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
-	SCP=(scp -i "${ARYAOS_DEV_PI_SSH_KEY}" -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new)
+	SSH=(ssh -i "${ARYAOS_DEV_PI_SSH_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
+	SCP=(scp -i "${ARYAOS_DEV_PI_SSH_KEY}" -o IdentitiesOnly=yes "${KNOWN_HOSTS_ARGS[@]}")
 	SSH_METHOD="explicit key ${ARYAOS_DEV_PI_SSH_KEY}"
 elif [[ -r "${DEV_KEY}" && -z "${ARYAOS_DEV_PI_SKIP_KEY:-}" ]]; then
-	SSH=(ssh -i "${DEV_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
-	SCP=(scp -i "${DEV_KEY}" -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new)
+	SSH=(ssh -i "${DEV_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
+	SCP=(scp -i "${DEV_KEY}" -o IdentitiesOnly=yes "${KNOWN_HOSTS_ARGS[@]}")
 	SSH_METHOD="repo lab key ${DEV_KEY}"
 	if ! "${SSH[@]}" "${PI}" true 2>/dev/null; then
-		SSH=(ssh -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
-		SCP=(scp -o StrictHostKeyChecking=accept-new)
+		SSH=(ssh -o BatchMode=yes -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
+		SCP=(scp "${KNOWN_HOSTS_ARGS[@]}")
 		SSH_METHOD="ssh defaults"
 	fi
 fi
@@ -50,16 +56,16 @@ fi
 if ! "${SSH[@]}" "${PI}" true 2>/dev/null; then
 	if [[ -n "${ARYAOS_DEV_PI_PASSWORD:-}" ]] && command -v sshpass >/dev/null; then
 		export SSHPASS="${ARYAOS_DEV_PI_PASSWORD}"
-		SSH=(sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
-		SCP=(sshpass -e scp -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=accept-new)
+		SSH=(sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
+		SCP=(sshpass -e scp -o PreferredAuthentications=password -o PubkeyAuthentication=no "${KNOWN_HOSTS_ARGS[@]}")
 		SSH_METHOD="password"
 	elif command -v sshpass >/dev/null; then
 		# shellcheck disable=SC1091
 		[[ -f scripts/.dev-pi-creds.local ]] && . scripts/.dev-pi-creds.local
 		if [[ -n "${ARYAOS_DEV_PI_PASSWORD:-}" ]]; then
 			export SSHPASS="${ARYAOS_DEV_PI_PASSWORD}"
-			SSH=(sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new)
-			SCP=(sshpass -e scp -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=accept-new)
+			SSH=(sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
+			SCP=(sshpass -e scp -o PreferredAuthentications=password -o PubkeyAuthentication=no "${KNOWN_HOSTS_ARGS[@]}")
 			SSH_METHOD="password"
 		fi
 	fi

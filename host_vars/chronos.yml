@@ -1,0 +1,9 @@
+# Headless GPSCOT appliance on a Raspberry Pi Zero W with a GPIO UART GNSS.
+---
+gpscot_gpsd_device: /dev/serial0
+gpscot_disable_bluetooth: true
+gpscot_cot_url: udp+broadcast://255.255.255.255:4349
+gpscot_nmea_targets: ""
+gpscot_rate: 1.0
+gpscot_uid: GPSCOT-chronos
+gpscot_source_name: chronos

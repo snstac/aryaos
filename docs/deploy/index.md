@@ -6,7 +6,7 @@ One AryaOS image runs every mission. You pick a **device role** in the web conso
 
 AryaOS is an all-in-one situational-awareness gateway: it decodes sensors at the edge and delivers a single Common Operating Picture (COP) to any TAK client (ATAK, WinTAK, iTAK) over Cursor on Target (CoT). Rather than shipping a different image per mission, every AryaOS device runs the **same** software and you select what it does at runtime.
 
-The core CoT plumbing - the Charontak hub, LINCOT host beacon, GPSTAK network GPS, and `gpsd` - always runs. The **role** you choose toggles which *sensor* pipelines run on top of it. Change your mind in the field and switch roles in seconds.
+The core CoT plumbing - the COTBridge hub, LINCOT host beacon, GPSCOT network GPS, and `gpsd` - always runs. The **role** you choose toggles which *sensor* pipelines run on top of it. Change your mind in the field and switch roles in seconds.
 
 !!! info "Where the role lives"
     The role is stored as `ARYAOS_ROLE` in the site config (`/etc/aryaos/aryaos-config.txt`) and applied by the `aryaos-role` helper. You set it from the **Device role** card in **Cockpit > AryaOS Site**. See [Device roles](../config/device-roles.md) for the full reference.
@@ -47,7 +47,7 @@ The core CoT plumbing - the Charontak hub, LINCOT host beacon, GPSTAK network GP
 
 -   :material-router-network: **CoT router only**
 
-    Run a box purely as a Charontak relay between networks and TAK Servers.
+    Run a box purely as a COTBridge relay between networks and TAK Servers.
 
     [Relay / routing](./relay-routing.md)
 
@@ -78,15 +78,15 @@ Each role maps to a set of sensor units, which in turn dictate the hardware you 
 | Role | Sensor pipelines enabled | Typical hardware |
 |------|--------------------------|------------------|
 | `multi` | ADS-B + UAT, AIS, and drone detection - all pipelines | 2x RTL-SDR (1090 + 978), AIS SDR, drone-detection SDR/receiver, GPS |
-| `air` | ADS-B decoder (`readsb`/`dump1090-fa`), `dump978-fa`, `adsbcot`, `gdltak` | RTL-SDR + 1090 MHz antenna; optional 2nd SDR + 978 MHz antenna |
+| `air` | ADS-B decoder (`readsb`/`dump1090-fa`), `dump978-fa`, `adsbcot`, `gdlcot` | RTL-SDR + 1090 MHz antenna; optional 2nd SDR + 978 MHz antenna |
 | `maritime` | `ais-catcher`, `aiscot` | RTL-SDR + marine VHF antenna (or an online AIS feed, no SDR) |
 | `cuas` | `dronecot`, `sikw00fcot` | Remote ID receiver and/or DJI DroneID SDR (e.g. AntSDR) |
 | `relay` | none - CoT routing only | No sensors; just network (Wi-Fi/Ethernet/MANET) |
 
 !!! note "The core always runs"
-    Regardless of role, `charontak`, `lincot`, `gpstak`, and `gpsd` stay running - so a `relay` box still beacons its own position and forwards CoT, and every role can share GPS with a connected EUD.
+    Regardless of role, `cotbridge`, `lincot`, `gpscot`, and `gpsd` stay running - so a `relay` box still beacons its own position and forwards CoT, and every role can share GPS with a connected EUD.
 
-The `air` role also enables `gdltak`, which lets [ForeFlight and other EFB apps](./foreflight-gdl90.md) display the air picture over GDL90.
+The `air` role also enables `gdlcot`, which lets [ForeFlight and other EFB apps](./foreflight-gdl90.md) display the air picture over GDL90.
 
 ## How the picture flows
 
@@ -97,13 +97,13 @@ flowchart LR
         M[aiscot / ais-catcher]
         D[dronecot / sikw00fcot]
     end
-    C[LINCOT + GPSTAK<br/>own position] 
-    A & M & D & C -->|udp+wo://127.0.0.1:28087| H[Charontak hub]
+    C[LINCOT + GPSCOT<br/>own position]
+    A & M & D & C -->|udp+wo://127.0.0.1:28087| H[COTBridge hub]
     H -->|Mesh SA<br/>udp+wo://239.2.3.1:6969| E[ATAK / WinTAK / iTAK]
     H -.->|optional TLS lane| S[TAK Server]
 ```
 
-Local feeders publish CoT to the Charontak hub on `udp+wo://127.0.0.1:28087`. Charontak owns egress: by default it multicasts to the **Mesh SA** group `udp+wo://239.2.3.1:6969` (which your EUD picks up automatically), and it can add one or more [TAK Server lanes](./connect-tak-server.md).
+Local feeders publish CoT to the COTBridge hub on `udp+wo://127.0.0.1:28087`. COTBridge owns egress: by default it multicasts to the **Mesh SA** group `udp+wo://239.2.3.1:6969` (which your EUD picks up automatically), and it can add one or more [TAK Server lanes](./connect-tak-server.md).
 
 ## Next steps
 

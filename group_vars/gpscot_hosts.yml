@@ -1,0 +1,11 @@
+# Defaults for the minimal headless GPSCOT host profile. Override per host.
+---
+gpscot_gpsd_device: /dev/serial0
+gpscot_disable_bluetooth: true
+gpscot_cot_url: udp+broadcast://255.255.255.255:4349
+gpscot_nmea_targets: ""
+gpscot_rate: 1.0
+gpscot_uid: "GPSCOT-{{ inventory_hostname }}"
+gpscot_source_name: "{{ inventory_hostname }}"
+gpscot_boot_config: /boot/firmware/config.txt
+gpscot_boot_cmdline: /boot/firmware/cmdline.txt

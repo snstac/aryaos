@@ -12,7 +12,7 @@ AryaOS builds a C-UAS picture from two complementary detection sources:
 `sikw00fcot` additionally converts SiK-radio MAVLink drone telemetry to CoT when you have that link.
 
 !!! info "Dedicated Remote ID receiver: DroneScout DS110"
-    A **BlueMark DroneScout DS110 / DroneBeacon** - a standards-based Remote ID receiver - plugs in over USB-serial and emits detected Remote ID as **MAVLink** (`OPEN_DRONE_ID_MESSAGE_PACK` or `ADSB_VEHICLE`). It is an **ESP32-S3** device; AryaOS pins it to a stable `/dev/dronescout` symlink (its per-unit serial path is not portable) and ships a second, opt-in dronecot instance, **`dronecot-dronescout`**, that reads it and feeds the same Charontak hub. Enable it on a DS110 box with `sudo systemctl enable --now dronecot-dronescout` (requires `dronecot` ≥ 2.2.3). It runs alongside the AntSDR/DJI source for a multi-source Remote ID picture. *(Live-verified against a DroneBeacon DB120.)*
+    A **BlueMark DroneScout DS110 / DroneBeacon** - a standards-based Remote ID receiver - plugs in over USB serial and emits detected Remote ID as **MAVLink** (`OPEN_DRONE_ID_MESSAGE_PACK` or `ADSB_VEHICLE`). Depending on the receiver or cable it may appear as USB CDC or a generic USB-UART bridge. Run `sudo aryaos-role discover --apply`: AryaOS requires checksum-valid Remote-ID MAVLink before selecting the stable `/dev/serial/by-id/...` path for **`dronecot-dronescout`**. A missing receiver cleanly skips the service instead of restart-looping. The dedicated instance also reverses the LF-to-CRLF expansion seen in some ESP USB firmware before pymavlink validates the frames. It runs alongside the AntSDR/DJI source for a multi-source Remote ID picture. *(The ESP32-S3 path is live-verified against a DroneScout DS110.)*
 
 !!! info "Wi-Fi Remote ID: monitor-mode adapter"
     dronecot decodes Open Drone ID **directly off the air over Wi-Fi** (ASTM F3411 Beacon vendor IE *and* Wi-Fi Alliance NAN) using a **monitor-mode** USB adapter - an Atheros **AR9271 (`ath9k_htc`)** or Realtek **8821CU** works well. AryaOS ships an opt-in instance, **`dronecot-wifi`** (`FEED_URL=wifi://wlan1`, channel-hopping 1/6/11); enable it on a box with an external adapter: `sudo systemctl enable --now dronecot-wifi`. Use `wireless://wlan1` to run Wi-Fi + BLE together. *(Live-verified 2026-07-24: an AR9271 decoded a BlueMark DroneBeacon Wi-Fi squawk - the same aircraft the DS110 decoded over serial.)* `wlan0` is the on-board AP radio - always use the external adapter.
@@ -63,11 +63,11 @@ flowchart LR
     RID[Remote ID<br/>Wi-Fi / BT] --> DC[dronecot]
     DJI[DJI DroneID<br/>AntSDR / SDR] --> DJICOT[DJICOT]
     MAV[SiK MAVLink] --> SK[sikw00fcot]
-    DC & DJICOT & SK -->|CoT| H[Charontak hub]
+    DC & DJICOT & SK -->|CoT| H[COTBridge hub]
     H -->|Mesh SA 239.2.3.1:6969| E[ATAK / WinTAK / iTAK]
 ```
 
-Each detector emits CoT to the Charontak hub at `udp+wo://127.0.0.1:28087`; Charontak forwards to Mesh SA and any [TAK Server lanes](./connect-tak-server.md).
+Each detector emits CoT to the COTBridge hub at `udp+wo://127.0.0.1:28087`; COTBridge forwards to Mesh SA and any [TAK Server lanes](./connect-tak-server.md).
 
 ## Manage the AntSDR
 
@@ -103,7 +103,7 @@ An **AntSDR E200** running the [alphafox02 DJI DroneID firmware](https://github.
 
 ## Connecting an EUD
 
-AirTAK C-UAS is tested with iTAK, WinTAK, and ATAK. By default, local feeders send to Charontak on the gateway, which multicasts CoT to the Mesh SA group `239.2.3.1:6969`. Add upstream TAK Server destinations as Charontak lanes. See [Connect a TAK Server](./connect-tak-server.md).
+AirTAK C-UAS is tested with iTAK, WinTAK, and ATAK. By default, local feeders send to COTBridge on the gateway, which multicasts CoT to the Mesh SA group `239.2.3.1:6969`. Add upstream TAK Server destinations as COTBridge lanes. See [Connect a TAK Server](./connect-tak-server.md).
 
 ## Related
 

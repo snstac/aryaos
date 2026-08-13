@@ -15,13 +15,10 @@ Open any of them from Cockpit's left menu.
 | sapientcot | `sapientcot` | `/etc/default/sapientcot` | SAPIENT (BSI Flex 335) C-UAS / ISR > CoT |
 | lincot | `lincot` | `/etc/default/lincot` | This host's position/beacon > CoT |
 | gps | *(gpsd)* | - | On-board GNSS receiver |
-| gpstak | `gpstak` | `/etc/default/gpstak` | Network GPS to ATAK/WinTAK |
+| gpscot | `gpscot` | `/etc/default/gpscot` | Network GPS to ATAK/WinTAK |
 | aiscatcher | `ais-catcher` | `/etc/default/ais-catcher` | Over-the-air AIS receiver |
 
 The AIS receiver (`ais-catcher`) demodulates RF AIS and hands messages to `aiscot`; `aiscot` is the CoT feeder. Likewise `readsb`/`dump1090-fa`/`dump978-fa` decode ADS-B/UAT and `adsbcot` feeds the CoT.
-
-!!! note "cockpit-lincot packaging"
-    On some images a `cockpit-lincot` plugin may not be published yet; until it lands, edit `/etc/default/lincot` with Cockpit's generic file editor or over SSH. See [Software suite](../reference/software-suite.md).
 
 ## The common layout
 
@@ -64,6 +61,16 @@ The other gateways expose their own variables, but the mechanics are identical.
 
 A **Debug Logs** card shows live `systemctl status` output and gives you **Show Logs**, **Follow Logs**, and **Stop Following** buttons that stream the service's journal (`journalctl -u <svc>`).
 
+The gateway page itself is the scroll container. Expanding Debug Logs or
+Advanced Details therefore remains scrollable inside Cockpit even when the
+card extends below the initial viewport. This behavior is covered by package
+and browser regressions across all seven gateway plugins listed above.
+
+If one gateway suddenly appears unstyled while the others retain the AryaOS
+palette, first hard-refresh the page to discard cached HTML and CSS. Current
+packages also verify that every gateway HTML file explicitly loads both its
+bundled `index.css` and Cockpit's shared AryaOS branding stylesheet.
+
 ### Advanced card
 
 An **Advanced Details** card shows the raw contents of the service's `/etc/default/<svc>` file for reference.
@@ -78,16 +85,16 @@ This is the key to how AryaOS gateways are configured:
 Because the per-service file is read second, **anything you set on a gateway page overrides the site default** for that one service. Anything you leave unset falls through to the site value.
 
 !!! example "How the default CoT route works"
-    The site config sets `COT_URL=udp+wo://127.0.0.1:28087` (the Charontak hub). Each gateway inherits that value, so **every** feeder sends CoT to Charontak without a gateway-specific `COT_URL`. Setting `COT_URL` on the aiscot page changes only aiscot; the other gateways keep using the hub.
+    The site config sets `COT_URL=udp+wo://127.0.0.1:28087` (the COTBridge hub). Each gateway inherits that value, so **every** feeder sends CoT to COTBridge without a gateway-specific `COT_URL`. Setting `COT_URL` on the aiscot page changes only aiscot; the other gateways keep using the hub.
 
-This is why the CoT routing invariant holds without per-service configuration: **feeders > charontak > Mesh SA / TAK Server**. Leave each feeder's `COT_URL` unset (inheriting the hub) and control the upstream in the [Charontak lane editor](./charontak-lanes.md).
+This is why the CoT routing invariant holds without per-service configuration: **feeders > cotbridge > Mesh SA / TAK Server**. Leave each feeder's `COT_URL` unset (inheriting the hub) and control the upstream in the [COTBridge lane editor](./cotbridge-lanes.md).
 
-!!! warning "Setting COT_URL per gateway bypasses Charontak"
-    Overriding `COT_URL` on a gateway page routes *that* feeder around the hub. That is occasionally useful for debugging, but it means the feeder no longer benefits from Charontak's fan-out to Mesh SA and TAK Servers. Prefer configuring destinations as Charontak lanes.
+!!! warning "Setting COT_URL per gateway bypasses COTBridge"
+    Overriding `COT_URL` on a gateway page routes *that* feeder around the hub. That is occasionally useful for debugging, but it means the feeder no longer benefits from COTBridge's fan-out to Mesh SA and TAK Servers. Prefer configuring destinations as COTBridge lanes.
 
 ## See also
 
 - [Configuration model](../config/index.md) - the full inheritance picture
 - [Site configuration](../config/site-config.md) - the keys every gateway inherits
-- [Charontak lane editor](./charontak-lanes.md) - where upstream destinations live
+- [COTBridge lane editor](./cotbridge-lanes.md) - where upstream destinations live
 - [Software suite](../reference/software-suite.md) - every gateway and what it does

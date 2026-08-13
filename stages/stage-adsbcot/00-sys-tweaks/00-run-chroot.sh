@@ -42,11 +42,13 @@ systemctl disable man-db.timer
 # is kept. Disabling security updates is a different kind of decision and
 # was not an intentional one.
 
-# Media longevity: dphys-swapfile is off (no swapfile writes to the SD/NVMe).
-# Provide zram compressed RAM swap so memory spikes do not OOM-kill services,
-# and enable periodic TRIM. The zram config ships from the aryaos-overlay
-# (/etc/systemd/zram-generator.conf).
-apt-get install -y --no-install-recommends systemd-zram-generator || true
+# Media longevity: old Raspberry Pi OS releases used dphys-swapfile; Trixie
+# uses rpi-swap and defaults to zram+file. The AryaOS rpi-swap drop-in selects
+# file-free zram explicitly. Remove any build-time swapfile so it is not baked
+# into the image, provide the generator as a required component, and enable
+# periodic TRIM.
+apt-get install -y --no-install-recommends systemd-zram-generator
+rm -f /var/swap
 systemctl enable fstrim.timer || true
 
 if [[ -f /etc/cron.hourly/fake-hwclock ]]; then

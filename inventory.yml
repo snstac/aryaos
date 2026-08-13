@@ -36,6 +36,10 @@ all:
       ansible_host: 172.17.2.158
       ansible_user: pi
       ansible_ssh_private_key_file: "{{ inventory_dir }}/shared_files/aryaos/ssh/aryaos-dev-lab"
+    chronos:
+      ansible_host: 192.168.0.200
+      ansible_user: gba
+      ansible_ssh_private_key_file: "{{ inventory_dir }}/shared_files/aryaos/ssh/aryaos-dev-lab"
 
   # ARM64 dev targets for Ansible iteration without rebuilding/flashing an SD image.
   # See docs/build.md → "Developer loops".
@@ -45,3 +49,6 @@ all:
         dev_arm64_example:
           # RFC 5737 TEST-NET placeholder — replace with your QEMU/cloud/Pi arm64 host IP.
           ansible_host: 192.0.2.50
+    gpscot_hosts:
+      hosts:
+        chronos:

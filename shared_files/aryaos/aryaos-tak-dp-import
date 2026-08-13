@@ -4,7 +4,7 @@
 This replaces the old unauthenticated portal CGI (aryaos-tak-dp-upload). It is
 invoked ONLY by the authenticated "AryaOS Site" Cockpit page, as root (via
 cockpit.spawn superuser). It never listens on HTTP, so importing a TAK data
-package — which installs TLS material and repoints the Charontak TAK egress — now
+package — which installs TLS material and repoints the COTBridge TAK egress — now
 requires an authenticated admin session instead of being reachable pre-auth from
 the onboarding Wi-Fi hotspot or the LAN.
 
@@ -36,7 +36,7 @@ MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 MAX_ENROLLMENT_URL_BYTES = 8192
 TLS_DIR = Path("/etc/aryaos/tls")
 ARYAOS_CONFIG = Path("/etc/aryaos/aryaos-config.txt")
-CHARONTAK_INI = Path("/etc/charontak.ini")
+COTBRIDGE_INI = Path("/etc/cotbridge.ini")
 
 
 def emit(payload, code):
@@ -62,16 +62,14 @@ def _read_kv(path):
     return values
 
 
-def _charontak_lane():
+def _cotbridge_lane():
     cfg = configparser.RawConfigParser()
     cfg.optionxform = str
     try:
-        cfg.read(CHARONTAK_INI)
+        cfg.read(COTBRIDGE_INI)
     except configparser.Error:
         return {}
-    section = "lane:local-to-takserver"
-    if not cfg.has_section(section):
-        section = "lane:mesh-to-takserver"
+    section = "lane:site-output"
     if not cfg.has_section(section):
         return {}
     return {key: value for key, value in cfg.items(section)}
@@ -109,21 +107,21 @@ def _socket_ready():
 
 def enrollment_status():
     kv = _read_kv(ARYAOS_CONFIG)
-    lane = _charontak_lane()
+    lane = _cotbridge_lane()
     cert = TLS_DIR / "client.pem"
     key = TLS_DIR / "client.key"
     ca = TLS_DIR / "ca.pem"
     service_state = _service_active("aryaos-tak-dp-importd.service")
-    cot_url = lane.get("egress_cot_url") or kv.get("COT_URL") or ""
+    cot_url = lane.get("egress_cot_url") or kv.get("ARYAOS_COT_OUTPUT_URL") or ""
     lane_enabled = lane.get("enabled", "").lower() == "true"
     tls_ready = cert.exists() and key.exists() and ca.exists()
     takserver_target = cot_url.startswith(("tls://", "ssl://", "tcp://"))
     configured = bool(lane_enabled and takserver_target and (tls_ready or cot_url.startswith("tcp://")))
     detail = ""
     if configured:
-        detail = "Charontak local-to-TAK Server lane is enabled."
+        detail = "COTBridge site output is configured for a TAK Server."
     elif not lane_enabled:
-        detail = "Charontak local-to-TAK Server lane is not enabled."
+        detail = "COTBridge site output is not enabled."
     elif not takserver_target:
         detail = "No TAK Server target is configured."
     elif not tls_ready:
@@ -141,7 +139,7 @@ def enrollment_status():
             "cot_url": cot_url,
             "detail": detail,
             "tls": {"client_cert": cert.exists(), "client_key": key.exists(), "ca": ca.exists()},
-            "last_updated": _mtime_iso([CHARONTAK_INI, ARYAOS_CONFIG, cert, key, ca]),
+            "last_updated": _mtime_iso([COTBRIDGE_INI, ARYAOS_CONFIG, cert, key, ca]),
         },
     }
 

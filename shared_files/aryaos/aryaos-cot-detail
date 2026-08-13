@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 
 
 SERVICES = (
-    "charontak",
+    "cotbridge",
     "lincot",
     "adsbcot",
     "aiscot",
@@ -28,6 +28,7 @@ SERVICES = (
 
 SITE_CONFIG = "/etc/aryaos/aryaos-config.txt"
 CAP_SCAN = "/usr/local/sbin/aryaos-capability-scan"
+CAP_CACHE = "/run/aryaos/capabilities-detected"
 
 # Capability key -> (human label, capability unit, default sensor description).
 # Mirrors the capability registry in aryaos-role.
@@ -139,7 +140,7 @@ def _service_state(name: str) -> str:
     which meant the fleet could not tell a deliberately-disabled sensor from a
     crash-looping one from a dead one. On a normal box most sensors are off by
     design, so a genuine failure was buried among a dozen equally "unknown"
-    units. Observed on aryaos-c998 with readsb, adsbcot and gdltak all failed and
+    units. Observed on aryaos-c998 with readsb, adsbcot and gdlcot all failed and
     all beaconing "unknown".
 
     So read stdout regardless of the exit code, which is what is-active is
@@ -200,16 +201,27 @@ def _detected_caps() -> set:
     link constantly; hardware changes are picked up on reboot or when the cache
     is removed.
     """
-    cache = "/run/aryaos/capabilities-detected"
-    cached = _read(cache)
-    if cached:
-        return set(cached.split())
+    # Existence, not truthiness, is the cache-valid marker. A legitimate empty
+    # hardware snapshot used to trigger a fresh 20-second scan on every beacon;
+    # aryaos-neighbord's 3-second detail budget then killed the subprocess and
+    # permanently reduced that node to a host-only fallback record.
+    if os.path.exists(CAP_CACHE):
+        return set(_read(CAP_CACHE).split())
+    # lincot invokes this helper as its unprivileged service user. It cannot
+    # populate the root-owned /run cache, so scanning here would burn seconds on
+    # every keepalive forever. aryaos-neighbord performs one root warm-up at
+    # startup; until then, active gateways still count as available below.
+    if os.geteuid() != 0:
+        return set()
     if not os.path.exists(CAP_SCAN):
         return set()
-    out = _run([CAP_SCAN, "--detected"], timeout=20)
+    # This runs inside the beacon path. The scanner has its own per-probe
+    # bounds; keep the aggregate below aryaos-neighbord's detail budget so a
+    # missing cache cannot turn every beacon into a host-only fallback.
+    out = _run([CAP_SCAN, "--detected"], timeout=7)
     try:
         os.makedirs("/run/aryaos", exist_ok=True)
-        with open(cache, "w", encoding="utf-8") as fp:
+        with open(CAP_CACHE, "w", encoding="utf-8") as fp:
             fp.write(out)
     except OSError:
         pass
@@ -257,12 +269,15 @@ def _capabilities() -> list[dict[str, str]]:
         label, unit, sensor = CAPABILITIES.get(key, (key, "", ""))
         if key == "wifi-rid":
             sensor = _wifi_adapter() or sensor
+        active = bool(unit) and _service_state(unit) == "active"
         out.append(
             {
                 "key": key,
                 "label": label,
-                "active": str(bool(unit) and _service_state(unit) == "active").lower(),
-                "available": str(key in detected).lower(),
+                "active": str(active).lower(),
+                # A running gateway is positive evidence that its receiver is
+                # available, even when a stale/empty boot-time scan missed it.
+                "available": str(key in detected or active).lower(),
                 "enabled": str(key in active_caps).lower(),
                 "sensor": sensor,
             }
@@ -444,7 +459,7 @@ DECODERS = {
     "dronecot": "rid",
     "lincot": "sys",
     "sapientcot": "sapient",
-    "gpstak": "gps",
+    "gpscot": "gps",
     "sikw00fcot": "sik",
 }
 

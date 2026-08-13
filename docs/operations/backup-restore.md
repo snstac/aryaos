@@ -1,7 +1,7 @@
 # Back up & restore configuration
 
 An AryaOS box holds a lot of hard-won state: your site config, the sensor
-role, charontak lanes, TAK client certificates, saved Wi-Fi networks, and the
+role, cotbridge lanes, TAK client certificates, saved Wi-Fi networks, and the
 Node-RED flows. The `aryaos-config-backup` helper packs all of it into one
 restorable tarball - so you can snapshot a working unit before a change, or
 migrate a whole configuration onto a replacement box in minutes.
@@ -38,9 +38,9 @@ configuration set. Missing paths are skipped, not errors.
 
 | Area | Contents |
 | --- | --- |
-| **Site & CoT config** | `/etc/aryaos` (site config + TLS material), `/etc/charontak.ini`, `/etc/charontak` (lanes + TLS). |
+| **Site & CoT config** | `/etc/aryaos` (site config + TLS material), `/etc/cotbridge.ini`, `/etc/cotbridge` (lanes + TLS). |
 | **Onboarding / hotspot** | `/etc/comitup.conf`, `/etc/comitup.json`. |
-| **Gateway defaults** | `/etc/default/{adsbcot,aiscot,dronecot,lincot,gpstak,gdltak,sikw00fcot,charontak,gpsd}` and the `/etc/{adsbcot,aiscot,dronecot,lincot}` config trees. |
+| **Gateway defaults** | `/etc/default/{adsbcot,aiscot,dronecot,lincot,gpscot,gdlcot,sikw00fcot,cotbridge,gpsd}` and the `/etc/{adsbcot,aiscot,dronecot,lincot}` config trees. |
 | **Secrets** *(full backup only)* | `/etc/NetworkManager/system-connections` (Wi-Fi PSKs), Node-RED `settings.js` and `flows_cred.json`, and the TLS key material inside the config trees above. |
 
 Every archive carries a `MANIFEST.txt` recording when it was made, the
@@ -92,7 +92,7 @@ Backups are written to **`/var/lib/aryaos/backups/`** as
 
 The restore validates the archive, unpacks it in place preserving
 permissions and ownership, runs `systemctl daemon-reload`, and does a
-`try-restart` of the CoT fleet (`charontak`, `gpstak`, `aiscot`, `lincot`,
+`try-restart` of the CoT fleet (`cotbridge`, `gpscot`, `aiscot`, `lincot`,
 `adsbcot`, `dronecot`) plus `lighttpd`.
 
 !!! warning "Restore is additive"

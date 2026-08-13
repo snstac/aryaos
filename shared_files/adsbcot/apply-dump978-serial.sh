@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Apply ARYAOS_UAT_RTL_SERIAL from /etc/aryaos/aryaos-config.txt into /etc/default/dump978-fa
+# Apply ARYAOS_UAT_978_DEVICE from /etc/aryaos/aryaos-config.txt into /etc/default/dump978-fa
 # before dump978-fa starts (systemd ExecStartPre, runs as root).
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -17,10 +17,10 @@ set +u
 . "$CFG"
 set -u
 
-: "${ARYAOS_UAT_RTL_SERIAL:=}"
-[[ -n "${ARYAOS_UAT_RTL_SERIAL}" ]] || exit 0
+: "${ARYAOS_UAT_978_DEVICE:=}"
+[[ -n "${ARYAOS_UAT_978_DEVICE}" && "${ARYAOS_UAT_978_DEVICE}" != "auto" && "${ARYAOS_UAT_978_DEVICE}" != "off" ]] || exit 0
 
-exec python3 - "$DF" "${ARYAOS_UAT_RTL_SERIAL}" <<'PY'
+exec python3 - "$DF" "${ARYAOS_UAT_978_DEVICE}" <<'PY'
 import re
 import sys
 

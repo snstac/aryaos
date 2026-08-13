@@ -47,11 +47,15 @@ flowchart LR
     S --> C[AIS-catcher]
     Feed[(Online AIS feed)] -.-> C
     C -->|AIS| X[aiscot]
-    X -->|CoT| H[Charontak hub]
+    X -->|CoT| H[COTBridge hub]
     H -->|Mesh SA 239.2.3.1:6969| E[ATAK / WinTAK / iTAK]
 ```
 
-AIS-catcher exposes a local web UI and JSON on **port 8100** (allowed through the firewall by default), and `aiscot` reads its output and emits CoT to the Charontak hub at `udp+wo://127.0.0.1:28087`.
+AIS-catcher exposes a local web UI and JSON on **port 8100** (allowed through the firewall by default), and `aiscot` reads its output and emits CoT to the COTBridge hub at `udp+wo://127.0.0.1:28087`.
+
+AryaOS explicitly disables AIS-catcher's internet community feed. RF observations
+stay on the box and on outputs you configure; sharing to a public aggregation
+service is never enabled implicitly.
 
 ## Verify tracks
 

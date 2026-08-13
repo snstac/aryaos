@@ -11,7 +11,7 @@ AryaOS selects dongles by a serial string written to each dongle's EEPROM:
 | `stx:1090:0` | ADS-B 1090 MHz | `readsb` or `dump1090-fa` |
 | `stx:978:0` | UAT 978 MHz | `dump978-fa` |
 
-The UAT serial is the value of [`ARYAOS_UAT_RTL_SERIAL`](./site-config.md#ads-b-radios) in the site config (default `stx:978:0`).
+The UAT serial is the value of [`ARYAOS_UAT_978_DEVICE`](./site-config.md#ads-b-radios) in the site config (default `stx:978:0`).
 
 !!! warning "The 1090 and UAT serials must differ"
     A 1090 MHz dongle and a 978 MHz dongle cannot share a serial. Pre-assembled AryaOS units ship with this factory pairing already written; Nooelec NESDR Nano 3 "978" sticks come pre-programmed as `stx:978:0`. If you build your own device or replace a dongle, write distinct serials before both bands will work.
@@ -89,17 +89,19 @@ Edit them with Cockpit's file editor or over SSH, then `sudo systemctl restart <
 
 ## See also
 
-- [Site configuration](./site-config.md) - `ARYAOS_ADSB_DECODER`, `ARYAOS_UAT_RTL_SERIAL`, `ARYAOS_ADSB_JSON_DIR`
-## Serial (NMEA) receivers - GPS and AIS
+- [Site configuration](./site-config.md) - `ARYAOS_ADSB_DECODER`, `ARYAOS_UAT_978_DEVICE`, `ARYAOS_ADSB_JSON_DIR`
+## Serial receivers - GPS and AIS
 
 USB-serial receivers - a **GPS puck** and a **dAISy** (or equivalent serial AIS receiver) - are
-assigned the same way in spirit, but by the **NMEA they emit** rather than an EEPROM serial,
+assigned the same way in spirit, but by the **protocol they emit** rather than an EEPROM serial,
 since serial adapters (CP210x, CH340, FTDI, Prolific...) have no consistent identity.
 
 At boot, **`aryaos-serial-assign`** probes each USB-serial device and classifies it:
 
-- **GPS** if it emits `$GPxxx`/`$GNxxx` > written to `gpsd` (`/etc/default/gpsd` `DEVICES`).
-- **AIS** if it emits `!AIVDM`/`!AIVDO` > written to `ais-catcher` (`SERIAL_PORT`).
+- **GPS** if it emits checksum-valid `$GPxxx`/`$GNxxx` NMEA or checksum-valid
+  **SiRF binary** frames, written to `gpsd` (`/etc/default/gpsd` `DEVICES`).
+- **AIS** if it emits checksum-valid `!AIVDM`/`!AIVDO` NMEA, written to
+  `ais-catcher` (`SERIAL_PORT`).
 - A **dAISy with no vessels in range is silent**; when AIS is intended and it's the only
   non-GPS serial left, it's assigned by **elimination** at 38400 baud.
 
@@ -107,6 +109,11 @@ It writes stable `by-id` paths and runs before `gpsd`/`ais-catcher`, so a laydow
 swapping the GPS puck or dAISy for a different make. Re-run by hand with
 `sudo aryaos-serial-assign`. To pin a device manually instead, set `DEVICES`/`SERIAL_PORT`
 yourself and disable `aryaos-serial-assign.service`.
+
+A generic PL2303 adapter may front either a GPS or a DroneScout DS110. Once
+valid GPS output assigns that adapter to gpsd, Remote ID discovery excludes it
+from DS110 probing so it cannot change the live GPS baud or report a false RID
+candidate.
 
 ## Re-tasking an SDR
 
@@ -133,11 +140,11 @@ sudo aryaos-sdr task 1 off          # idle the SDR
     `rx_tools` for non-RTL is a roadmap item).
 
 - **`ais`** runs `ais-catcher` on the tasked SDR (`aryaos-ais-sdr` for any device;
-  the serial dAISy path is untouched) and feeds the same `aiscot > charontak > TAK`
+  the serial dAISy path is untouched) and feeds the same `aiscot > cotbridge > TAK`
   chain. It needs a **VHF marine antenna** to hear vessels.
 - **`aprs`** decodes 1200-baud packet **APRS on 144.39 MHz** (North America):
   `rtl_fm` > **Dire Wolf** (`aryaos-direwolf@N`, KISS TNC on `:8001`, receive-only)
-  then **aprscot** (KISS input, ≥ 8.2.0), followed by `charontak` and TAK. Fully **offline** - no
+  then **aprscot** (KISS input, ≥ 8.2.0), followed by `cotbridge` and TAK. Fully **offline** - no
   APRS-IS internet. Needs a **2 m (VHF) antenna**. Single dongle at a time (one
   APRS channel).
 - The job is **persisted** (`/etc/aryaos/sdr-tasks`) and re-applied at boot,

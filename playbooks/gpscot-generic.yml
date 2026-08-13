@@ -1,0 +1,229 @@
+# Minimal headless GPSCOT appliance on a generic Raspberry Pi OS host.
+#
+# The GPIO UART path uses the Pi's reliable PL011 on GPIO14/15. On Pi models
+# with onboard Bluetooth this deliberately disables Bluetooth and removes the
+# Linux serial console before assigning /dev/serial0 to gpsd.
+#
+# Usage:
+#   ansible-playbook -i inventory.yml playbooks/gpscot-generic.yml --limit chronos
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+
+---
+- name: Provision a minimal headless GPSCOT host
+  hosts: gpscot_hosts
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Require a supported Debian Raspberry Pi host
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "Debian"
+          - ansible_architecture in ["armv6l", "armv7l", "aarch64"]
+        fail_msg: "This playbook supports Debian-family Raspberry Pi hosts only."
+
+    - name: Inspect Raspberry Pi boot files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - "{{ gpscot_boot_config }}"
+        - "{{ gpscot_boot_cmdline }}"
+      register: gpscot_boot_files
+      tags: [boot]
+
+    - name: Require Raspberry Pi OS Bookworm boot paths
+      ansible.builtin.assert:
+        that: gpscot_boot_files.results | map(attribute='stat.exists') | min
+        fail_msg: >-
+          Expected {{ gpscot_boot_config }} and {{ gpscot_boot_cmdline }};
+          override the gpscot_boot_* variables for another layout.
+
+  tasks:
+    - name: Create the GPSCOT configuration backup directory
+      ansible.builtin.file:
+        path: /var/backups/aryaos-gpscot
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+      when: not ansible_check_mode
+
+    - name: Preserve the original Raspberry Pi boot configuration
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        remote_src: true
+        force: false
+        owner: root
+        group: root
+        mode: "0600"
+      loop:
+        - src: "{{ gpscot_boot_config }}"
+          dest: /var/backups/aryaos-gpscot/config.txt.pre-gpscot
+        - src: "{{ gpscot_boot_cmdline }}"
+          dest: /var/backups/aryaos-gpscot/cmdline.txt.pre-gpscot
+      when: not ansible_check_mode
+
+    - name: Enable the Raspberry Pi UART
+      ansible.builtin.lineinfile:
+        path: "{{ gpscot_boot_config }}"
+        regexp: '^enable_uart='
+        line: enable_uart=1
+        insertafter: '^\[all\]$'
+      notify: Reboot for UART assignment
+      tags: [boot]
+
+    - name: Assign the PL011 UART to GPIO14 and GPIO15
+      ansible.builtin.lineinfile:
+        path: "{{ gpscot_boot_config }}"
+        regexp: '^dtoverlay=disable-bt$'
+        line: dtoverlay=disable-bt
+        insertafter: '^\[all\]$'
+      when: gpscot_disable_bluetooth | bool
+      notify: Reboot for UART assignment
+      tags: [boot]
+
+    - name: Remove the Linux serial console from the UART
+      ansible.builtin.replace:
+        path: "{{ gpscot_boot_cmdline }}"
+        regexp: '\bconsole=(?:serial0|ttyAMA0|ttyS0),[0-9]+\s*'
+        replace: ''
+      notify: Reboot for UART assignment
+      tags: [boot]
+
+    - name: Disable the Bluetooth UART helper
+      ansible.builtin.systemd_service:
+        name: hciuart.service
+        enabled: false
+        state: stopped
+      when: gpscot_disable_bluetooth | bool
+      failed_when: false
+      tags: [boot]
+
+    - name: Keep serial getty services off the GNSS UART
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: false
+        state: stopped
+        masked: true
+      loop:
+        - serial-getty@serial0.service
+        - serial-getty@ttyAMA0.service
+        - serial-getty@ttyS0.service
+      failed_when: false
+      tags: [boot]
+
+    - name: Apply pending boot configuration
+      ansible.builtin.meta: flush_handlers
+      tags: [boot]
+
+    - name: Wait for the configured UART device
+      ansible.builtin.wait_for:
+        path: "{{ gpscot_gpsd_device }}"
+        timeout: 30
+      when: not ansible_check_mode
+      tags: [boot]
+
+    - name: Install the snstac repository keyring
+      ansible.builtin.copy:
+        src: ../shared_files/aryaos/snstac-packages/snstac.gpg
+        dest: /usr/share/keyrings/snstac.gpg
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Install the snstac repository source
+      ansible.builtin.copy:
+        src: ../shared_files/aryaos/snstac-packages/snstac.sources
+        dest: /etc/apt/sources.list.d/snstac.sources
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Install the minimal GPSCOT package set
+      ansible.builtin.apt:
+        name:
+          - gpsd
+          - gpsd-clients
+          - gpscot
+        state: present
+        update_cache: true
+        install_recommends: false
+      when: not ansible_check_mode
+
+    - name: Configure gpsd for the GPIO UART receiver
+      ansible.builtin.copy:
+        dest: /etc/default/gpsd
+        owner: root
+        group: root
+        mode: "0644"
+        backup: true
+        content: |
+          # Managed by playbooks/gpscot-generic.yml.
+          START_DAEMON="true"
+          GPSD_OPTIONS="-n"
+          OPTIONS=""
+          DEVICES="{{ gpscot_gpsd_device }}"
+          USBAUTO="false"
+      notify: Restart gpsd and GPSCOT
+
+    - name: Configure GPSCOT
+      ansible.builtin.copy:
+        dest: /etc/default/gpscot
+        owner: root
+        group: root
+        mode: "0644"
+        backup: true
+        content: |
+          # Managed by playbooks/gpscot-generic.yml.
+          COT_URL={{ gpscot_cot_url }}
+          NMEA_TARGETS={{ gpscot_nmea_targets }}
+          GPSCOT_RATE={{ gpscot_rate }}
+          GPSCOT_UID={{ gpscot_uid }}
+          GPSCOT_SOURCE_NAME={{ gpscot_source_name }}
+          GPSCOT_COT_TYPE=a-f-G
+          GPSCOT_STALE=10
+          GPSD_HOST=127.0.0.1
+          GPSD_PORT=2947
+      notify: Restart gpsd and GPSCOT
+
+    - name: Enable gpsd socket and service
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+      loop:
+        - gpsd.socket
+        - gpsd.service
+      when: not ansible_check_mode
+
+    - name: Enable GPSCOT
+      ansible.builtin.systemd_service:
+        name: gpscot.service
+        enabled: true
+        state: started
+        daemon_reload: true
+      when: not ansible_check_mode
+
+    - name: Apply pending service configuration
+      ansible.builtin.meta: flush_handlers
+
+  handlers:
+    - name: Reboot for UART assignment
+      ansible.builtin.reboot:
+        msg: Rebooting to assign the PL011 UART to the GNSS receiver
+        reboot_timeout: 600
+
+    - name: Restart gpsd and GPSCOT
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        state: restarted
+        daemon_reload: true
+      loop:
+        - gpsd.socket
+        - gpsd.service
+        - gpscot.service
+      when: not ansible_check_mode

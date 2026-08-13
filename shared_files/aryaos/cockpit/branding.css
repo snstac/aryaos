@@ -8,39 +8,30 @@
 
 :root {
   color-scheme: dark;
-  --arya-cockpit-bg: #071211;
-  --arya-cockpit-bg-2: #0d1b1a;
-  --arya-cockpit-panel: #122322;
-  --arya-cockpit-panel-2: #172c2a;
-  --arya-cockpit-ink: #edf7f4;
-  --arya-cockpit-muted: #9bb2ad;
-  --arya-cockpit-border: rgba(124, 170, 160, 0.28);
-  --arya-cockpit-accent: #35a58f;
-  --arya-cockpit-accent-dark: #6ed4be;
-  --arya-cockpit-amber: #d4a24d;
+  --arya-cockpit-bg: #0b1512;
+  --arya-cockpit-bg-2: #12211a;
+  --arya-cockpit-panel: #12211a;
+  --arya-cockpit-panel-2: #1d4634;
+  --arya-cockpit-ink: #f2efe7;
+  --arya-cockpit-muted: #cfcbc0;
+  --arya-cockpit-border: rgba(207, 203, 192, 0.28);
+  --arya-cockpit-accent: #e4610f;
+  --arya-cockpit-accent-dark: #f47a31;
+  --arya-cockpit-amber: #a8811c;
 }
 
 #badge {
-  inline-size: 72px;
-  block-size: 72px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(31, 111, 98, 0.38);
-  border-radius: 8px;
-  background:
-    linear-gradient(135deg, rgba(53, 165, 143, 0.24), rgba(212, 162, 77, 0.14)),
-    var(--arya-cockpit-panel);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.34);
+  inline-size: 78px;
+  block-size: 50px;
+  display: block;
+  border: 0;
+  border-radius: 0;
+  background: url("mark-aryaos-rev.svg") center / contain no-repeat;
+  box-shadow: none;
 }
 
 #badge::before {
-  content: "A";
-  color: var(--arya-cockpit-accent-dark);
-  font-family: "RedHatDisplay", "Red Hat Display", sans-serif;
-  font-size: 2.25rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0;
+  content: none;
 }
 
 #brand {
@@ -73,8 +64,7 @@
 body.login-pf,
 html.index-page body {
   background:
-    linear-gradient(180deg, rgba(53, 165, 143, 0.18), rgba(7, 18, 17, 0) 18rem),
-    linear-gradient(135deg, var(--arya-cockpit-bg-2), var(--arya-cockpit-bg)),
+    linear-gradient(180deg, rgba(228, 97, 15, 0.12), rgba(11, 21, 18, 0) 18rem),
     var(--arya-cockpit-bg);
 }
 
@@ -131,7 +121,7 @@ html.index-page .pf-v6-c-content {
 
 html.index-page .pf-v6-c-nav__link.pf-m-current,
 html.index-page .pf-v6-c-nav__link:hover {
-  --pf-v6-c-nav__link--BackgroundColor: rgba(53, 165, 143, 0.16);
+  --pf-v6-c-nav__link--BackgroundColor: rgba(228, 97, 15, 0.16);
   --pf-v6-c-nav__link--Color: var(--arya-cockpit-accent-dark);
 }
 

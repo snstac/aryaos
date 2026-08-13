@@ -32,7 +32,7 @@ See [Hardware & requirements](get-started/hardware.md).
 | Web admin (Cockpit) | HTTPS 9090 | Also via portal proxy on 443 > `/admin` |
 | Wi-Fi hotspot | `10.41.0.1/24`, SSID `AryaOS-xxxx` | comitup portal on 9080 |
 | Bluetooth PAN | `10.44.0.1/24` (`pan0`) | Local NAP, DHCP, no NAT |
-| Local CoT hub | `udp://127.0.0.1:28087` | CharonTAK ingress |
+| Local CoT hub | `udp://127.0.0.1:28087` | COTBridge ingress |
 | Mesh SA | multicast `239.2.3.1:6969` | Default egress |
 
 Full list: [Ports & protocols](reference/ports.md).
@@ -48,11 +48,11 @@ Full list: [Ports & protocols](reference/ports.md).
 | Drone | Remote ID / Open Drone ID (ASTM) | [DroneCOT](reference/software-suite.md) |
 | Drone | DJI DroneID | DJICOT |
 | Drone | MAVLink (SiK radio telemetry) | SiKW00FCOT |
-| Position | NMEA / `gpsd` | [GPSTAK](reference/software-suite.md), LINCOT |
+| Position | NMEA / `gpsd` | [GPSCOT](reference/software-suite.md), LINCOT |
 | TAK | Cursor on Target (CoT) - XML & Protobuf | [PyTAK](reference/software-suite.md#pytak) / all gateways |
-| TAK | Mesh SA multicast | [CharonTAK](reference/software-suite.md#charontak) |
-| TAK | TAK Server streaming (TLS/TCP) | CharonTAK lanes |
-| EFB | GDL90 | [GDLTAK](reference/software-suite.md) |
+| TAK | Mesh SA multicast | [COTBridge](reference/software-suite.md#cotbridge) |
+| TAK | TAK Server streaming (TLS/TCP) | COTBridge lanes |
+| EFB | GDL90 | [GDLCOT](reference/software-suite.md) |
 
 Definitions for each: [Glossary](reference/glossary.md).
 

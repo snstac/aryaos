@@ -43,11 +43,18 @@ scripts/aryaos-test/
   validate_portal.py  # portal JSON schema (stdlib Python 3)
   tests/
     01-services.sh    # systemd active / TAK gateway units
-    02-config.sh      # aryaos-config, charontak, adsbcot, readsb
+    02-config.sh      # aryaos-config, cotbridge, adsbcot, readsb
     03-adsb.sh        # readsb SDR flags, aircraft.json
     04-portal.sh      # HTTPS/HTTP CGI + validate_portal.py
     05-packages.sh    # overlay package, calfire tiles
-    06-optional-uas.sh # docker, MQTT, Bluetooth (warn-only)
+    06-optional-uas.sh # docker, MQTT, Bluetooth and UAS role checks
+    07-antsdr.sh       # UAS-profile AntSDR Ethernet/feed health
+    08-tak-dp.sh       # authenticated TAK data-package import boundary
+    09-security.sh     # firewall, SSH, updates, swap, sudo log headroom, TLS
+    10-storage.sh      # root/FAT symptoms, SD identity, cmdline, boot artifacts
+    11-wifi-rid.sh     # enabled Wi-Fi RID adapter/service/data-path health
+    12-gutcheck.sh     # enabled capability API/dashboard/auth/runtime health
+    13-ais.sh          # enabled AIS serial isolation, ports, privacy, live NMEA
 ```
 
 Expectations live in **`expectations.yml`**; update that file when image defaults change.
@@ -64,11 +71,18 @@ Expectations live in **`expectations.yml`**; update that file when image default
 
 - SSH unreachable
 - Core units: `readsb`, `adsbcot`, `lighttpd`, `gpsd`
-- TAK gateway units expected by portal CGI: `charontak`, `lincot`, `adsbcot`, `aiscot`, `dronecot`
-- Config: `COT_URL=udp+wo://127.0.0.1:28087`, adsbcot `FEED_URL`, charontak ingress (when present)
+- TAK gateway units expected by portal CGI: `cotbridge`, `lincot`, `adsbcot`, `aiscot`, `dronecot`
+- Config: `COT_URL=udp+wo://127.0.0.1:28087`, adsbcot `FEED_URL`, cotbridge ingress (when present)
 - readsb `--help` includes RTL-SDR, SoapySDR, HackRF
 - `/run/adsb/aircraft.json` exists and is valid JSON
 - Portal CGI returns HTTP 200 JSON with required keys and gateway IDs
+- Sudo I/O audit history is bounded to 128 sessions and `/var/log` is below 95%
+- Install media has a valid manufacturer identity; the boot command line is
+  printable and names the mounted root PARTUUID; model-specific kernel and
+  initramfs files are present and plausibly sized
+- When the AIS capability is enabled: AIS-catcher/AISCOT are stable, the
+  receiver uses a present by-id path distinct from GPS, local ports are open,
+  and AIS-catcher explicitly disables its internet community feed
 
 ### Warn / skip (exit 0)
 

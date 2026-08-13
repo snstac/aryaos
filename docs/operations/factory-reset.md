@@ -15,19 +15,27 @@ different mission - all without touching the OS or reinstalling packages.
 === "What it clears"
 
     - **Site config** - restores `/etc/aryaos/aryaos-config.txt` and
-      `/etc/charontak.ini` from the packaged defaults in
+      `/etc/cotbridge.ini` from the packaged defaults in
       `/usr/share/aryaos/defaults`; resets `issue`, `issue.net`, and `motd`.
     - **Per-gateway `/etc/default/<svc>`** - reinstalled to package defaults
       **when online** (via `apt-get --reinstall`). Offline, these are left as-is
-      - reset again online to restore them.
+      - reset again online to restore them. If the best-effort reinstall fails
+      after unpacking a package, reset completes pending package configuration
+      before reboot so the package database remains consistent.
     - **Operator-uploaded TAK certificates** - deletes the files under
-      `/etc/aryaos/tls`, `/etc/charontak/tls`, and the per-gateway `tls`
+      `/etc/aryaos/tls`, `/etc/cotbridge/tls`, and the per-gateway `tls`
       directories (the directories themselves are kept).
     - **Device identity** - removes the machine-id and firstboot markers so
       `aryaos-firstboot` re-runs: the box gets a **new**
       [`DEVICE_SUFFIX`](../reference/glossary.md#device_suffix), hostname, and
       per-device web TLS certificate on the next boot, and the login password is
       re-expired.
+    - **Sensor role state** - stops and disables the old sensor pipelines,
+      clears the hardware-autodetection marker, and lets first boot
+      protocol-probe attached hardware again before enabling its capabilities.
+    - **Crash-guard state** - clears any sticky safe-mode latch and short-boot
+      counter, then restores USB power. The intentional reset reboot therefore
+      cannot be mistaken for a brownout crash loop.
     - **Local state** - drops update, support-bundle, and config-backup state
       JSON that referenced the old identity.
 
@@ -42,7 +50,8 @@ different mission - all without touching the OS or reinstalling packages.
 
 After the reset the box **reboots into first-boot setup**, exactly like a
 freshly flashed image - first boot re-derives identity and regenerates the web
-TLS certificate.
+TLS certificate. Attached sensors are rediscovered and their protocol-specific
+transports are applied before their services start.
 
 ## When to use it
 
