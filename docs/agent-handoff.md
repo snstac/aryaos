@@ -22,9 +22,9 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 
 ### Fleet rollout and upgrade-path fixes
 
-- Public releases are PyTAK 7.5.0, COTBridge 1.0.0, GPSCOT 2.0.0, GDLCOT
-  2.0.0, DroneCOT 2.3.9, Cockpit COTBridge/GPSCOT/AryaOS 2.0.0, and LINCOT
-  1.3.8. The signed
+- Public releases are PyTAK 7.5.2, COTBridge 1.0.0, GPSCOT 2.0.1, GDLCOT
+  2.0.1, SiKW00FCOT 1.0.2, DroneCOT 2.3.9, Cockpit
+  COTBridge/GPSCOT/AryaOS 2.0.0, and LINCOT 1.3.8. The signed
   package repository now indexes the renamed public repositories instead of
   their legacy names. Gutcheck remains private and must not be added to the
   public `snstac/packages` product list; authorized lab deployments use its
@@ -42,17 +42,20 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `dronecot-dronescout` runtime directory and the former hard-coded
   `dronecot` status path. The DroneScout status files now survive normal
   service starts and appear in Gutcheck with live receive and emit counters.
-- AryaOS overlay 2.1.7 includes the canary and reboot fixes: it packages
+- AryaOS overlay 2.1.8 includes the canary and reboot fixes: it packages
   `aryaos-health`, feeder ordering drop-ins, the protected Gutcheck collector,
   and independent site-output and ADS-B keys without replacing operator
   configuration. It keeps serial discovery off a verified ADSBee Beast port,
   orders `readsb.service` after serial assignment, and migrates enabled legacy
   COTBridge lanes to one `site-output` lane while disabling the old sections to
-  prevent duplicate CoT.
+  prevent duplicate CoT. Its SiKW00FCOT systemd drop-in resets and rebuilds
+  the environment-file order under `/etc`, so a vendor package upgrade cannot
+  discard the site-wide CoT input while service-local overrides still win.
 - Current lab nodes are `192.168.0.44` (AIS), `192.168.0.45` (ADSBee, DS110,
   GNSS), and `192.168.0.199` (ADSBee, DroneScout, GNSS). All three run overlay
-  2.1.7 with PyTAK 7.5.0, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.0, LINCOT 1.3.8,
-  DroneCOT 2.3.9, and Gutcheck 0.3.3. Strict HIL passes on all three after the
+  2.1.8 with PyTAK 7.5.2, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.1,
+  SiKW00FCOT 1.0.2, LINCOT 1.3.8, DroneCOT 2.3.9, and Gutcheck 0.3.3. Strict
+  HIL passes on all three after the
   live upgrade. `.45` and `.199` report healthy `dronecot-dronescout` instances
   in Gutcheck with rising counters and zero write errors; `.44` reports its
   COTBridge, GPSCOT, LINCOT, and AISCOT gateways.
@@ -61,17 +64,34 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   exercised UDP saturation without service failure. Four-core CPU load peaked
   at 73.3 C on `.44`, 74.9 C on `.45`, and 49.1 C on `.199`, with
   `throttled=0x0` everywhere and no core-service restarts.
-- A deliberate `.45` COTBridge output outage left the service active with zero
-  restarts and correctly reported `degraded` and `retrying`. Restoring the
-  output returned it to `ok` and `connected`, with traffic flowing again.
+- PyTAK 7.5.2 exposes `supervise_with_reconnect()` for gateways with custom
+  worker graphs. GPSCOT 2.0.1, GDLCOT 2.0.1, and SiKW00FCOT 1.0.2 use it so a
+  transient remote outage or local firewall replacement rebuilds fresh
+  transports without exiting the daemon. Fatal configuration and certificate
+  errors remain fatal.
+- Live recovery testing repeatedly reloaded firewalld on all three nodes. On
+  `.45`, eight reloads reproduced UDP `EPERM` in both GPSCOT and DroneCOT;
+  both logged a bounded retry, rebuilt their transports, and resumed rising
+  counters with their original PIDs and `NRestarts=0`. Four reloads on `.199`
+  produced the same DroneCOT recovery, again without a PID change or systemd
+  restart. Four reloads on `.44` left GPSCOT and AISCOT active with unchanged
+  PIDs and zero restarts. Evidence is in the `pytak-7.5.2-*-recovery-*.log`
+  files in the burn-in directory.
+- A deliberate `.45` COTBridge output outage also left the service active with
+  zero restarts and correctly reported `degraded` and `retrying`. Restoring
+  the output returned it to `ok` and `connected`, with traffic flowing again.
 - Eight-hour evidence is collected under the gitignored
   `.aryaos-burnin/20260813T1907Z-post-2.1.4/` directory. Check `summary.json`
   and the per-node HIL logs before declaring the soak complete. The directory
   name records the starting deployment; the nodes were upgraded in place to
-  overlay 2.1.7, DroneCOT 2.3.9, and Gutcheck 0.3.3 during the same run. Image
-  workflow run `31736340576` is validating AryaOS commit `a451cf4`; do not call
-  the release complete until its mounted-image verification and publication
-  jobs pass.
+  overlay 2.1.8, PyTAK 7.5.2, GPSCOT/GDLCOT 2.0.1, SiKW00FCOT 1.0.2,
+  DroneCOT 2.3.9, and Gutcheck 0.3.3 during the same run. Strict HIL logs after
+  the final live update are `post-overlay-2.1.8-hil-{44,45,199}.log` and all
+  modules pass. Image workflow `31736340576` exposed an escaped-regex bug in
+  the mounted-image verifier; commit `9b96407` fixed it, and replacement run
+  `31738934689` passed image creation, mounted-image verification, SBOMs, tag
+  creation, and release publication. A new image run is still required from
+  the final 2.1.8 package-floor commit; record its run ID here after it passes.
 
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.

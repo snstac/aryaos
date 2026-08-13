@@ -77,7 +77,9 @@ fi
 # container. These versions include the common #app root scroller, preventing
 # expanded Debug Logs and Advanced Details cards from being clipped.
 require_package_version aiscot 7.3.1
-require_package_version pytak 7.5.1
+require_package_version pytak 7.5.2
+require_package_version gpscot 2.0.1
+require_package_version sikw00fcot 1.0.2
 require_package_version dronecot 2.3.9
 require_package_version cockpit-adsbcot 1.2.3
 require_package_version cockpit-aiscot 1.2.3
@@ -86,9 +88,9 @@ require_package_version cockpit-cotbridge 1.2.2
 require_package_version cockpit-dronecot 1.1.3
 require_package_version cockpit-lincot 1.1.3
 require_package_version cockpit-sapientcot 0.1.1
-# GDLCOT 1.0.1 rejects NaN/Inf numeric fields from partial Remote ID reports
-# instead of crash-looping while encoding them as GDL90.
-require_package_version gdlcot 1.0.1
+# GDLCOT 2.0.1 retains the NaN/Inf guards from 1.0.1 and also rebuilds its
+# custom PyTAK client in-process after transient CoT transport failures.
+require_package_version gdlcot 2.0.1
 
 for plugin in adsbcot aiscot aprscot cotbridge dronecot lincot sapientcot; do
 	require_cockpit_root_scroll "${plugin}"

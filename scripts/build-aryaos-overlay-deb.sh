@@ -117,6 +117,7 @@ done
 for svc in adsbcot aiscot dronecot sikw00fcot lincot aircot; do
 	install_file 0644 "${SHARED}/cotbridge/systemd/after-cotbridge.conf" "/etc/systemd/system/${svc}.service.d/after-cotbridge.conf"
 done
+install_file 0644 "${SHARED}/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf" "/etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-radio-silence.service" "/etc/systemd/system/aryaos-radio-silence.service"
 # EMCON gate: keep the radio users from starting (and un-blocking the radios)
 # while /etc/aryaos/emcon exists.

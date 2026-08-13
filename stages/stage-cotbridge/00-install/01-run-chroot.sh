@@ -51,6 +51,9 @@ for svc in adsbcot aiscot dronecot sikw00fcot lincot aircot; do
 	add_environment_file "${svc}" "/etc/default/${svc}"
 	install_after_cotbridge "${svc}"
 done
+install -v -m 0644 \
+	/usr/src/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf \
+	/etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf
 
 # The dronecot-dronescout instance (DroneScout DS101) runs as user dronecot and
 # reads MAVLink Remote ID from a USB-serial device — grant serial access.

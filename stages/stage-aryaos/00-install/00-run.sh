@@ -141,6 +141,9 @@ install -v -D -m 0644 \
 install -v -D -m 0644 \
 	"${SHARED_FILES}/aryaos/modules-load.d/lighttpd-mod-openssl.conf" \
 	"${ROOTFS_DIR}/etc/modules-load.d/lighttpd-mod-openssl.conf"
+install -v -D -m 0644 \
+	"${SHARED_FILES}/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf"
 # Re-trigger the helper when a PPS device appears: a USB GPS enumerates
 # asynchronously, so a boot-time-only run loses the race.
 install -v -D -m 0644 "${SHARED_FILES}/aryaos/udev/99-aryaos-pps.rules" \

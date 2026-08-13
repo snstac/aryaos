@@ -79,6 +79,27 @@ Tracks reach Mesh SA but not your TAK Server.
 3. **Reachability.** The device must be able to reach the server host and port (the connect string in the package). On a disconnected box, add a route: Ethernet, an upstream Wi-Fi client connection, or the [VPN](networking/vpn-tailscale.md).
 4. **COTBridge lane.** Confirm the `lane:site-output` lane is enabled and its egress URL names the intended server in the [COTBridge lane editor](admin/cotbridge-lanes.md).
 
+A current gateway does not exit just because the server, route, or local
+firewall is temporarily unavailable. PyTAK 7.5.2 and the reconnect-safe custom
+clients keep the same process alive, report `retrying` or `degraded`, and retry
+forever with a bounded backoff. When connectivity returns, the gateway creates
+a fresh transport and resumes sending without a service restart.
+
+Check that behavior while an outage is in progress:
+
+```bash
+systemctl show <gateway>.service -p ActiveState -p MainPID -p NRestarts
+sudo aryaos-health status --json
+journalctl -u <gateway>.service --since '-15 minutes'
+```
+
+`ActiveState=active`, an unchanged nonzero `MainPID`, and `NRestarts=0` are the
+expected outage state. The health output should move back to `ok` and
+`connected` after recovery, with receive or emit counters increasing when the
+sensor has data. A permanent configuration error, unreadable certificate, bad
+enrollment package, or rejected TLS identity is not transient. Correct that
+input instead of expecting retries to repair it.
+
 ## GPS has no fix
 
 The device's own position is missing or wrong.

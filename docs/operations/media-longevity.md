@@ -45,9 +45,12 @@ The sudo I/O history is also bounded by **session count, not elapsed time**.
 Busy diagnostic or automation runs may therefore replace old command sessions
 well before a reboot.
 
-TAK clients can also be exposed to very long remote outages. PyTAK `7.4.3` and
-newer retries transient connection and WebSocket failures inside one process
-with bounded, jittered exponential backoff. PKCS#12 client certificates are
+TAK clients can also be exposed to very long remote outages. PyTAK `7.5.2` and
+newer retries transient TCP, TLS, WebSocket, and local network-policy failures
+inside one process with bounded, jittered exponential backoff. The same
+supervisor is available to gateways with custom worker graphs; GPSCOT `2.0.1`,
+GDLCOT `2.0.1`, and SiKW00FCOT `1.0.2` rebuild their transports in process
+instead of relying on a systemd crash loop. PKCS#12 client certificates are
 loaded from short-lived extracted PEM files that are removed immediately, so a
 week-long outage cannot fill `/tmp` or `/var/tmp` with reconnect artifacts.
 
@@ -84,7 +87,7 @@ sudo: error initializing I/O plugin sudoers_io
 For a TAK client, the equivalent symptom is `No usable temporary directory`
 or `No space left on device` during certificate loading, often accompanied by
 many root-level `tmp*.pem` files owned by the gateway account. Upgrade PyTAK to
-`7.4.3` or newer before restarting the gateway. If cleanup is required, stop
+`7.5.2` or newer before restarting the gateway. If cleanup is required, stop
 the affected unit and remove only the confirmed root-level temporary PEMs owned
 by that service account; never remove its persistent certificate cache under
 `/var/lib/<service>/.pytak/certs`.

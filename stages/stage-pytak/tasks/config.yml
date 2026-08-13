@@ -44,12 +44,17 @@
     line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
     insertbefore: '^EnvironmentFile=/etc/default/lincot'
 
-# Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/sikw00fcot.service if the line does not already exist
-- name: Add EnvironmentFile to sikw00fcot.service
-  ansible.builtin.lineinfile:
-    path: /lib/systemd/system/sikw00fcot.service
-    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
-    insertbefore: '^EnvironmentFile=/etc/default/sikw00fcot'
+- name: Ensure sikw00fcot service override directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/sikw00fcot.service.d
+    state: directory
+    mode: "0755"
+
+- name: Keep sikw00fcot environment ordering across package upgrades
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf"
+    dest: /etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf
+    mode: "0644"
 
 # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/aircot.service if the line does not already exist
 - name: Add EnvironmentFile to aircot.service

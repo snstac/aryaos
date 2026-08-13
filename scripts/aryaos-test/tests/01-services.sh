@@ -81,7 +81,7 @@ for svc in cotbridge lincot adsbcot aiscot dronecot sikw00fcot; do
 	fi
 done
 
-# ACARSCOT >= 0.1.1/PyTAK >= 7.5.1 owns reconnects inside one long-running
+# ACARSCOT >= 0.1.1/PyTAK >= 7.5.2 owns reconnects inside one long-running
 # process. A TAK server outage or transient local network-policy replacement
 # must not become a systemd crash loop, exhaust the RAM-backed temporary
 # filesystems, or discard the enrollment certificate.

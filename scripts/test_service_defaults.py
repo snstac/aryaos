@@ -211,6 +211,43 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("systemctl enable --now gpscot.service", postinst)
         self.assertIn("systemctl restart aryaos-serial-assign.service", postinst)
 
+    def test_image_requires_in_process_reconnect_for_custom_clients(self):
+        image_check = (ROOT / "scripts/verify-image.sh").read_text()
+        hil_check = (
+            ROOT / "scripts/aryaos-test/tests/05-packages.sh"
+        ).read_text()
+
+        for package, version in (
+            ("pytak", "7.5.2"),
+            ("gpscot", "2.0.1"),
+            ("gdlcot", "2.0.1"),
+            ("sikw00fcot", "1.0.2"),
+        ):
+            self.assertIn(
+                f"require_pkg_version {package} {version}", image_check
+            )
+            self.assertIn(
+                f"require_package_version {package} {version}", hil_check
+            )
+
+    def test_sikw00fcot_site_config_survives_package_upgrades(self):
+        dropin = (
+            ROOT
+            / "shared_files/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf"
+        ).read_text()
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        verifier = (ROOT / "scripts/verify-image.sh").read_text()
+        hil = (ROOT / "scripts/aryaos-test/tests/02-config.sh").read_text()
+
+        self.assertIn("EnvironmentFile=\n", dropin)
+        self.assertIn(
+            "EnvironmentFile=-/etc/aryaos/aryaos-config.txt", dropin
+        )
+        self.assertIn("EnvironmentFile=/etc/default/sikw00fcot", dropin)
+        self.assertIn("sikw00fcot.service.d/aryaos-config.conf", builder)
+        self.assertIn("sikw00fcot.service.d/aryaos-config.conf", verifier)
+        self.assertIn("sikw00fcot.service.d/aryaos-config.conf", hil)
+
     def test_overlay_packages_gateway_health_cli(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
         sudoers = (

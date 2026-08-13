@@ -119,12 +119,15 @@ else
 	skip "lincot defaults not present"
 fi
 
+SIK_ENV_DROPIN=/etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf
 if [[ -f /lib/systemd/system/sikw00fcot.service ]]; then
-	if grep -q '^EnvironmentFile=/etc/aryaos/aryaos-config.txt$' /lib/systemd/system/sikw00fcot.service &&
-		grep -q '^EnvironmentFile=/etc/default/sikw00fcot$' /lib/systemd/system/sikw00fcot.service; then
-		ok "sikw00fcot inherits AryaOS site config before service defaults"
+	if [[ -f "${SIK_ENV_DROPIN}" ]] &&
+		grep -qx 'EnvironmentFile=' "${SIK_ENV_DROPIN}" &&
+		grep -qx 'EnvironmentFile=-/etc/aryaos/aryaos-config.txt' "${SIK_ENV_DROPIN}" &&
+		grep -qx 'EnvironmentFile=/etc/default/sikw00fcot' "${SIK_ENV_DROPIN}"; then
+		ok "sikw00fcot keeps site config across package upgrades"
 	else
-		fail "sikw00fcot service missing AryaOS site config inheritance"
+		fail "sikw00fcot service missing upgrade-safe AryaOS config inheritance"
 	fi
 	if [[ -f /etc/systemd/system/sikw00fcot.service.d/after-cotbridge.conf ]]; then
 		ok "sikw00fcot starts after cotbridge"

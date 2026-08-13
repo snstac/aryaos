@@ -20,3 +20,7 @@ install -v -m 0644 "${SHARED_FILES}/cotbridge/systemd/cotbridge.service.d/aryaos
 	"${ROOTFS_DIR}/usr/src/cotbridge/systemd/cotbridge.service.d/aryaos-config.conf"
 install -v -m 0644 "${SHARED_FILES}/cotbridge/systemd/after-cotbridge.conf" \
 	"${ROOTFS_DIR}/usr/src/cotbridge/systemd/after-cotbridge.conf"
+install -d "${ROOTFS_DIR}/usr/src/cotbridge/systemd/sikw00fcot.service.d"
+install -v -m 0644 \
+	"${SHARED_FILES}/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf" \
+	"${ROOTFS_DIR}/usr/src/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf"

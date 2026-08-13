@@ -281,9 +281,12 @@ require_pkg readsb
 require_pkg python3-gps
 require_pkg ais-catcher
 require_pkg sikw00fcot
+require_pkg_version sikw00fcot 1.0.2
+require_pkg gpscot
+require_pkg_version gpscot 2.0.1
 require_pkg gdlcot
-require_pkg_version gdlcot 1.0.1
-require_pkg_version pytak 7.5.1
+require_pkg_version gdlcot 2.0.1
+require_pkg_version pytak 7.5.2
 require_pkg_version acarscot 0.1.1
 require_pkg acarsdec
 require_pkg_version dronecot 2.3.9
@@ -336,8 +339,10 @@ require_unit readsb.service
 require_path /etc/systemd/system/lincot.service.d/aryaos-config.conf
 require_grep '^EnvironmentFile=-/etc/aryaos/aryaos-config.txt$' /etc/systemd/system/lincot.service.d/aryaos-config.conf "lincot drop-in inherits AryaOS site config"
 require_grep '^EnvironmentFile=/etc/default/lincot$' /etc/systemd/system/lincot.service.d/aryaos-config.conf "lincot service defaults keep precedence"
-require_grep '^EnvironmentFile=/etc/aryaos/aryaos-config.txt$' /lib/systemd/system/sikw00fcot.service "sikw00fcot inherits AryaOS site config"
-require_grep '^EnvironmentFile=/etc/default/sikw00fcot$' /lib/systemd/system/sikw00fcot.service "sikw00fcot keeps service defaults override"
+require_path /etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf
+require_grep '^EnvironmentFile=$' /etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf "sikw00fcot resets vendor environment list"
+require_grep '^EnvironmentFile=-/etc/aryaos/aryaos-config.txt$' /etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf "sikw00fcot inherits AryaOS site config"
+require_grep '^EnvironmentFile=/etc/default/sikw00fcot$' /etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf "sikw00fcot keeps service defaults override"
 
 # Node-RED (stage-node-red)
 require_path /home/node-red/.node-red/flows.json
