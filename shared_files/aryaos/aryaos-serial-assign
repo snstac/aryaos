@@ -116,6 +116,29 @@ is_gps_device() {
 	grep -qiE '^ID_(MODEL|SERIAL|VENDOR)=.*(gps|gnss|u-blox|garmin)' <<<"$props"
 }
 
+# Return the one previously verified GPS assignment when its stable by-id path
+# is still present and is not also assigned to AIS. Reopening some CP2102N
+# receivers just to rediscover the same protocol triggers a slow, unsupported
+# hardware PURGE request on every package update. A missing, ambiguous, or
+# conflicting path falls through to full protocol discovery.
+configured_gps_device() {
+	local configured ais configured_real ais_real
+	configured="$(sed -n 's/^DEVICES=//p' "$GPSD_DEF" 2>/dev/null | tail -n 1)"
+	configured="${configured%\"}"; configured="${configured#\"}"
+	[[ -n "$configured" && "$configured" != *" "* && "$configured" != *$'\t'* ]] || return 1
+	[[ -e "$configured" ]] || return 1
+
+	ais="$(sed -n 's/^SERIAL_PORT=//p' "$AIS_DEF" 2>/dev/null | tail -n 1)"
+	ais="${ais%\"}"; ais="${ais#\"}"
+	configured_real="$(readlink -f "$configured" 2>/dev/null)"
+	[[ -n "$configured_real" ]] || return 1
+	if [[ -n "$ais" ]]; then
+		ais_real="$(readlink -f "$ais" 2>/dev/null)"
+		[[ -z "$ais_real" || "$configured_real" != "$ais_real" ]] || return 1
+	fi
+	printf '%s\n' "$configured"
+}
+
 # True if this port is the AntSDR's serial console (pinned to /dev/antsdr-console
 # by udev when the operator opts in). The AntSDR console echoes but never emits
 # NMEA, so it must not be swept up as a silent "leftover" and mis-assigned as a
@@ -162,13 +185,21 @@ set_kv() {  # set_kv <file> <KEY> <value-unquoted> [bare]
 main() {
 	require_root
 	wait_for_serial
-	local gps_dev="" ais_dev="" ais_baud="$AIS_BAUD_DEFAULT" cls dev
+	local gps_dev="" ais_dev="" ais_baud="$AIS_BAUD_DEFAULT" cls dev configured_gps
 	local -a leftover=()
+	configured_gps="$(configured_gps_device 2>/dev/null || true)"
 
-	# Keep gpsd off the ports while we probe, and restore it no matter how we
-	# leave (error, signal, or success) — a half-run must never strand gpsd.
+	# A verified stable assignment does not need to be reopened, so keep gpsd
+	# and its consumers live. First boot, missing hardware, and conflicting
+	# assignments still take the full stop/probe/resume path.
 	trap resume_gpsd EXIT INT TERM
-	pause_gpsd
+	if [[ -n "$configured_gps" ]]; then
+		gps_dev="$configured_gps"
+	else
+		# Keep gpsd off unverified ports while we probe, and restore it no matter
+		# how we leave (error, signal, or success).
+		pause_gpsd
+	fi
 
 	shopt -s nullglob
 	for dev in /dev/serial/by-id/*; do
@@ -182,6 +213,12 @@ main() {
 		fi
 		if is_antsdr_console "$dev"; then
 			log "skip $dev (AntSDR serial console — not a GPS/AIS receiver)"
+			continue
+		fi
+		if [[ -n "$configured_gps" ]] \
+			&& [[ "$(readlink -f "$dev" 2>/dev/null)" == "$(readlink -f "$configured_gps" 2>/dev/null)" ]]; then
+			gps_dev="$dev"
+			log "GPS on $dev (preserved verified assignment)"
 			continue
 		fi
 		cls="$(classify "$dev")"

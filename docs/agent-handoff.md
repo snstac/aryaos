@@ -42,7 +42,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `dronecot-dronescout` runtime directory and the former hard-coded
   `dronecot` status path. The DroneScout status files now survive normal
   service starts and appear in Gutcheck with live receive and emit counters.
-- AryaOS overlay 2.1.8 includes the canary and reboot fixes: it packages
+- AryaOS overlay 2.1.10 includes the canary and reboot fixes: it packages
   `aryaos-health`, feeder ordering drop-ins, the protected Gutcheck collector,
   and independent site-output and ADS-B keys without replacing operator
   configuration. It keeps serial discovery off a verified ADSBee Beast port,
@@ -51,9 +51,15 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   prevent duplicate CoT. Its SiKW00FCOT systemd drop-in resets and rebuilds
   the environment-file order under `/etc`, so a vendor package upgrade cannot
   discard the site-wide CoT input while service-local overrides still win.
+  Repeated serial discovery also preserves a present, non-conflicting GPS
+  assignment by stable by-id path. This avoids reopening a verified CP2102N
+  receiver, its unsupported eight-second hardware PURGE timeout, and an
+  unnecessary gpsd/GPSCOT interruption; missing or changed hardware still gets
+  full protocol discovery. Overlay upgrades now migrate only missing gpsd keys
+  instead of restoring the factory `DEVICES=""` template over a live receiver.
 - Current lab nodes are `192.168.0.44` (AIS), `192.168.0.45` (ADSBee, DS110,
   GNSS), and `192.168.0.199` (ADSBee, DroneScout, GNSS). All three run overlay
-  2.1.8 with PyTAK 7.5.2, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.1,
+  2.1.10 with PyTAK 7.5.2, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.1,
   SiKW00FCOT 1.0.2, LINCOT 1.3.8, DroneCOT 2.3.9, and Gutcheck 0.3.3. Strict
   HIL passes on all three after the
   live upgrade. `.45` and `.199` report healthy `dronecot-dronescout` instances
@@ -84,14 +90,16 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `.aryaos-burnin/20260813T1907Z-post-2.1.4/` directory. Check `summary.json`
   and the per-node HIL logs before declaring the soak complete. The directory
   name records the starting deployment; the nodes were upgraded in place to
-  overlay 2.1.8, PyTAK 7.5.2, GPSCOT/GDLCOT 2.0.1, SiKW00FCOT 1.0.2,
+  overlay 2.1.10, PyTAK 7.5.2, GPSCOT/GDLCOT 2.0.1, SiKW00FCOT 1.0.2,
   DroneCOT 2.3.9, and Gutcheck 0.3.3 during the same run. Strict HIL logs after
-  the final live update are `post-overlay-2.1.8-hil-{44,45,199}.log` and all
+  the final live update are `post-overlay-2.1.10-hil-{44,45,199}.log` and all
   modules pass. Image workflow `31736340576` exposed an escaped-regex bug in
   the mounted-image verifier; commit `9b96407` fixed it, and replacement run
   `31738934689` passed image creation, mounted-image verification, SBOMs, tag
-  creation, and release publication. A new image run is still required from
-  the final 2.1.8 package-floor commit; record its run ID here after it passes.
+  creation, and release publication. Runs `31741703758` and `31741941854` were
+  superseded while live HIL exposed the SiK drop-in and gpsd upgrade-path
+  defects. The final image run must use the overlay 2.1.10 commit; record its
+  run ID here after mounted-image verification and publication pass.
 
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.

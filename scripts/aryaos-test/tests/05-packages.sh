@@ -55,11 +55,7 @@ else
 	ok "dhbridge absent (private package)"
 fi
 
-if dpkg-query -W -f='${Status}' aryaos-overlay 2>/dev/null | grep -q "install ok installed"; then
-	ok "aryaos-overlay package installed"
-else
-	warn "aryaos-overlay package not installed (legacy pre-package image?)"
-fi
+require_package_version aryaos-overlay 2.1.10
 
 if [[ -d /var/www/html/calfire_airbases ]]; then
 	warn "calfire_airbases tiles still present (removal not on this image)"

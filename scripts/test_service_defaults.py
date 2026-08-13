@@ -134,6 +134,9 @@ class ServiceDefaultsTestCase(unittest.TestCase):
     def test_overlay_packages_binary_serial_discovery(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
         assign = (ROOT / "shared_files/aryaos/aryaos-serial-assign").read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        verifier = (ROOT / "scripts/verify-image.sh").read_text()
+        hil = (ROOT / "scripts/aryaos-test/tests/05-packages.sh").read_text()
 
         self.assertIn('aryaos-serial-classify" "/usr/local/libexec/aryaos/', builder)
         self.assertIn('aryaos-serial-assign" "/usr/local/sbin/aryaos-serial-assign', builder)
@@ -142,6 +145,21 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("--no-block try-restart ais-catcher.service", assign)
         self.assertIn("is_adsbee_device", assign)
         self.assertIn("ADSBee Beast serial, handled by readsb", assign)
+        self.assertIn("configured_gps_device", assign)
+        self.assertIn("preserved verified assignment", assign)
+        self.assertIn('[[ -e "$configured" ]] || return 1', assign)
+        self.assertIn('$configured_real" != "$ais_real', assign)
+        self.assertIn('if [[ -n "$configured_gps" ]]', assign)
+        self.assertIn('gps_dev="$configured_gps"', assign)
+        self.assertIn("gpsd_config=/etc/default/gpsd", postinst)
+        self.assertIn('if [ ! -f "$gpsd_config" ]', postinst)
+        self.assertIn(
+            "for gpsd_key in START_DAEMON GPSD_OPTIONS OPTIONS DEVICES USBAUTO",
+            postinst,
+        )
+        self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
+        self.assertIn("require_pkg_version aryaos-overlay 2.1.10", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.1.10", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
         self.assertIn(
             'set_kv "$GPSD_DEF" DEVICES "$gps_dev" || true', assign
