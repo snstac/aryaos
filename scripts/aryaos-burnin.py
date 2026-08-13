@@ -20,10 +20,13 @@ import glob, json, os, subprocess, time
 from pathlib import Path
 
 SERVICES = (
-    "cotbridge", "lincot", "dronecot", "dronecot-wifi",
-    "dronecot-dronescout", "acarscot", "acarsdec", "readsb",
-    "adsbcot", "ais-catcher", "aiscot", "gutcheck", "aryaos-neighbord",
-    "aryaos-bt-pan", "cockpit.socket",
+    "cotbridge", "gpscot", "gdlcot", "lincot", "dronecot",
+    "dronecot-wifi", "dronecot-ble", "dronecot-dronescout",
+    "acarscot", "acarsdec", "readsb", "dump978-fa", "adsbcot",
+    "gpsd", "ais-catcher", "aiscot", "aprscot", "sapientcot",
+    "sikw00fcot", "sikw00fscan", "sikw00fsentinel", "gutcheck",
+    "aryaos-neighbord", "aryaos-bt-pan", "aryaos-gps-time-sync",
+    "firewalld", "cockpit.socket",
 )
 
 def read(path, default=""):

@@ -44,6 +44,27 @@ class BurninSummaryTestCase(unittest.TestCase):
     def test_probe_tracks_both_ais_pipeline_services(self):
         self.assertIn('"ais-catcher", "aiscot"', burnin.REMOTE_PROBE)
 
+    def test_probe_tracks_core_and_optional_gateway_processes(self):
+        service_block = burnin.REMOTE_PROBE.split("SERVICES = (", 1)[1].split(
+            ")\n\n", 1
+        )[0]
+        for service in (
+            "cotbridge",
+            "gpscot",
+            "gdlcot",
+            "gpsd",
+            "dronecot-wifi",
+            "dronecot-ble",
+            "dronecot-dronescout",
+            "sikw00fcot",
+            "sikw00fscan",
+            "sikw00fsentinel",
+            "aprscot",
+            "sapientcot",
+        ):
+            with self.subTest(service=service):
+                self.assertIn(f'"{service}"', service_block)
+
     def test_records_memory_drift_and_service_states(self):
         host = burnin.summarize(
             [sample(1, 10.25, "active"), sample(2, 11.75, "inactive")]
