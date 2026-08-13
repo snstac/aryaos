@@ -10,7 +10,7 @@ After=local-fs.target
 # WantedBy=multi-user.target — ordering the socket after us forms a cycle that
 # systemd breaks by deleting jobs, leaving gpsd.socket failed. The open-while-
 # probing race is handled inside the script instead (it pauses gpsd).
-Before=ais-catcher.service gpsd.service
+Before=ais-catcher.service gpsd.service readsb.service
 
 [Service]
 Type=oneshot

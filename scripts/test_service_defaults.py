@@ -140,6 +140,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("aryaos-serial-assign.service", builder)
         self.assertIn("--no-block try-restart gpsd.service", assign)
         self.assertIn("--no-block try-restart ais-catcher.service", assign)
+        self.assertIn("is_adsbee_device", assign)
+        self.assertIn("ADSBee Beast serial, handled by readsb", assign)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
         self.assertIn(
             'set_kv "$GPSD_DEF" DEVICES "$gps_dev" || true', assign
@@ -152,6 +154,11 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             assign,
         )
         self.assertIn('if [[ "$ais_changed" == 1 ]]', assign)
+        serial_unit = (
+            ROOT
+            / "shared_files/aryaos/systemd/aryaos-serial-assign.service"
+        ).read_text()
+        self.assertIn("Before=ais-catcher.service gpsd.service readsb.service", serial_unit)
 
     def test_dronescout_hil_survives_rotated_startup_heartbeat(self):
         hil = (

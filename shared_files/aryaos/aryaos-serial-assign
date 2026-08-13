@@ -20,6 +20,7 @@ set -uo pipefail
 
 GPSD_DEF="/etc/default/gpsd"
 AIS_DEF="/etc/default/ais-catcher"
+ARYAOS_CONFIG="/etc/aryaos/aryaos-config.txt"
 AIS_BAUD_DEFAULT=38400
 CLASSIFIER="/usr/local/libexec/aryaos/aryaos-serial-classify"
 
@@ -79,6 +80,20 @@ is_rid_device() {
 	local dev="$1" vid
 	vid="$(udevadm info -q property -n "$dev" 2>/dev/null | sed -n 's/^ID_VENDOR_ID=//p')"
 	[[ "$vid" == "303a" ]]  # Espressif
+}
+
+# True for the protocol-verified ADSBee Beast serial source persisted by
+# capability discovery. readsb owns this port; probing it here can stall both
+# processes during boot and trigger readsb's fatal watchdog.
+is_adsbee_device() {
+	local dev="$1" source configured
+	[[ -r "$ARYAOS_CONFIG" ]] || return 1
+	source="$(sed -n 's/^ARYAOS_ADSB_1090_SOURCE=//p' "$ARYAOS_CONFIG" | tail -n 1)"
+	configured="$(sed -n 's/^ARYAOS_ADSB_1090_DEVICE=//p' "$ARYAOS_CONFIG" | tail -n 1)"
+	source="${source%\"}"; source="${source#\"}"
+	configured="${configured%\"}"; configured="${configured#\"}"
+	[[ "$source" == "adsbee" && -n "$configured" ]] || return 1
+	[[ "$(readlink -f "$dev" 2>/dev/null)" == "$(readlink -f "$configured" 2>/dev/null)" ]]
 }
 
 # True for a GNSS receiver, identified by udev rather than by what it is saying.
@@ -157,6 +172,10 @@ main() {
 
 	shopt -s nullglob
 	for dev in /dev/serial/by-id/*; do
+		if is_adsbee_device "$dev"; then
+			log "skip $dev (ADSBee Beast serial, handled by readsb, not GPS/AIS)"
+			continue
+		fi
 		if is_rid_device "$dev"; then
 			log "skip $dev (ESP32 Remote ID receiver — MAVLink, handled by dronecot, not GPS/AIS)"
 			continue
