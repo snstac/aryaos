@@ -33,6 +33,26 @@ case "$1" in
       install -d -m 0755 /etc/aryaos
       install -m 0644 -o root -g root /usr/share/aryaos/defaults/aryaos-config.txt /etc/aryaos/aryaos-config.txt
     fi
+    aryaos_config=/etc/aryaos/aryaos-config.txt
+    aryaos_defaults=/usr/share/aryaos/defaults/aryaos-config.txt
+    if [ -f "$aryaos_config" ] && [ -f "$aryaos_defaults" ]; then
+      for key in ARYAOS_COT_OUTPUT_URL ARYAOS_ADSB_1090_SOURCE \
+        ARYAOS_ADSB_1090_DEVICE ARYAOS_UAT_978_DEVICE; do
+        if ! grep -q "^${key}=" "$aryaos_config"; then
+          default_line="$(grep "^${key}=" "$aryaos_defaults" | tail -n 1)"
+          [ -n "$default_line" ] && printf '\n%s\n' "$default_line" >> "$aryaos_config"
+        fi
+      done
+      # Older discovery releases configured a protocol-verified ADSBee as a
+      # Pico Beast serial input but had no persistent source marker. Preserve
+      # that evidence so Cockpit and HIL distinguish it from a generic SDR.
+      if grep -q -- '--device-type modesbeast' /etc/default/readsb 2>/dev/null \
+        && grep -q -- '--beast-serial /dev/serial/by-id/usb-Raspberry_Pi_Pico_' /etc/default/readsb 2>/dev/null; then
+        adsbee_device="$(sed -n 's|.*--beast-serial \([^ ]*\).*|\1|p' /etc/default/readsb | head -n 1)"
+        sed -i 's/^ARYAOS_ADSB_1090_SOURCE=.*/ARYAOS_ADSB_1090_SOURCE=adsbee/' "$aryaos_config"
+        sed -i "s|^ARYAOS_ADSB_1090_DEVICE=.*|ARYAOS_ADSB_1090_DEVICE=\"$adsbee_device\"|" "$aryaos_config"
+      fi
+    fi
     for banner in issue issue.net motd; do
       if [ -f "/usr/share/aryaos/defaults/$banner" ]; then
         install -m 0644 -o root -g root "/usr/share/aryaos/defaults/$banner" "/etc/$banner"

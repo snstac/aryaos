@@ -199,6 +199,20 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             builder,
         )
 
+    def test_overlay_migrates_site_output_and_adsb_fields(self):
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+
+        for key in (
+            "ARYAOS_COT_OUTPUT_URL",
+            "ARYAOS_ADSB_1090_SOURCE",
+            "ARYAOS_ADSB_1090_DEVICE",
+            "ARYAOS_UAT_978_DEVICE",
+        ):
+            self.assertIn(key, postinst)
+        self.assertIn("--device-type modesbeast", postinst)
+        self.assertIn("usb-Raspberry_Pi_Pico_", postinst)
+        self.assertIn("ARYAOS_ADSB_1090_SOURCE=adsbee", postinst)
+
     def test_lighttpd_private_devices_exposes_only_pi_firmware_commands(self):
         dropin = (
             ROOT
