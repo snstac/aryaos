@@ -145,7 +145,7 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.1.10
+require_pkg_version aryaos-overlay 2.1.11
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
 require_grep '^Defaults maxseq=128$' /etc/sudoers.d/aryaos "sudo I/O audit history bounded for /var/log tmpfs"
@@ -388,6 +388,8 @@ require_grep '^Cmnd_Alias ARYAOS_GUTCHECK_HEALTH = /usr/local/sbin/aryaos-health
 require_grep '^gutcheck ALL=\(root\) NOPASSWD: ARYAOS_GUTCHECK_HEALTH$' /etc/sudoers.d/aryaos-gutcheck-health "Gutcheck has only read-only health collector privilege"
 require_path /etc/systemd/system/gutcheck.service.d/aryaos-health.conf
 require_grep '^Environment="LOCAL_HEALTH_COMMAND=/usr/bin/sudo -n /usr/local/sbin/aryaos-health --json"$' /etc/systemd/system/gutcheck.service.d/aryaos-health.conf "Gutcheck uses the scoped AryaOS health collector"
+require_grep 'UnitFileState' /usr/local/sbin/aryaos-health "gateway health records systemd enablement"
+require_grep 'state.*!=.*disabled' /usr/local/sbin/aryaos-health "disabled gateways do not degrade aggregate health"
 require_grep 'name="https"' /etc/firewalld/zones/public.xml "firewall zone allows HTTPS"
 require_path /etc/systemd/system/multi-user.target.wants/firewalld.service
 require_path /etc/systemd/system/multi-user.target.wants/fail2ban.service

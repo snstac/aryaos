@@ -158,8 +158,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
-        self.assertIn("require_pkg_version aryaos-overlay 2.1.10", verifier)
-        self.assertIn("require_package_version aryaos-overlay 2.1.10", hil)
+        self.assertIn("require_pkg_version aryaos-overlay 2.1.11", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.1.11", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
         self.assertIn(
             'set_kv "$GPSD_DEF" DEVICES "$gps_dev" || true', assign
@@ -268,6 +268,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
 
     def test_overlay_packages_gateway_health_cli(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        health = (ROOT / "shared_files/aryaos/aryaos-health").read_text()
         sudoers = (
             ROOT / "shared_files/aryaos/aryaos-gutcheck-health.sudoers"
         ).read_text()
@@ -303,6 +304,9 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         )
         self.assertIn("/usr/local/sbin/aryaos-health --json", dropin)
         self.assertIn("dronecot-dronescout.service gutcheck.service", postinst)
+        self.assertIn('"UnitFileState"', health)
+        self.assertIn('!= "disabled"', health)
+        self.assertNotIn('"gutcheck",', health)
 
     def test_overlay_orders_feeders_after_cotbridge(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()

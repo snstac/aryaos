@@ -126,6 +126,25 @@ else
 	fail "Gutcheck dashboard capability columns missing"
 fi
 
+ARYAOS_HEALTH_JSON="$(sudo -n /usr/local/sbin/aryaos-health --json 2>/dev/null || true)"
+if python3 -c '
+import json, sys
+doc = json.load(sys.stdin)
+apps = doc.get("apps", [])
+assert apps
+assert "gutcheck" not in {item.get("app") for item in apps}
+for item in apps:
+    service = item.get("service", {})
+    assert "UnitFileState" in service
+    assert "ActiveState" in service
+    if service.get("UnitFileState") == "disabled" and service.get("ActiveState") == "inactive":
+        assert item.get("health", {}).get("state") == "disabled"
+' <<<"${ARYAOS_HEALTH_JSON}" 2>/dev/null; then
+	ok "AryaOS health ignores disabled roles and records service state"
+else
+	fail "AryaOS health role/service classification invalid"
+fi
+
 RESTARTS="$(systemctl show gutcheck -p NRestarts --value 2>/dev/null || true)"
 if [[ "${RESTARTS}" == "0" ]]; then
 	ok "gutcheck has not restarted"

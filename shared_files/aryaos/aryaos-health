@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import subprocess
 import time
 from pathlib import Path
 
@@ -10,7 +11,6 @@ APPS = (
     "cotbridge",
     "gpscot",
     "lincot",
-    "gutcheck",
     "adsbcot",
     "aiscot",
     "dronecot",
@@ -21,18 +21,102 @@ APPS = (
     "gdlcot",
 )
 
+STATUS_ROOT = Path("/run")
+ENABLED_STATES = {"enabled", "enabled-runtime"}
+DISABLED_STATES = {
+    "disabled",
+    "masked",
+    "masked-runtime",
+    "static",
+    "indirect",
+    "not-found",
+}
 
-def load(app, now):
-    path = Path("/run") / app / "status.json"
+
+def service_state(app):
+    """Return enough systemd state to classify a missing status document."""
+    properties = (
+        "LoadState",
+        "UnitFileState",
+        "ActiveState",
+        "SubState",
+        "Result",
+        "NRestarts",
+    )
+    try:
+        result = subprocess.run(
+            [
+                "systemctl",
+                "show",
+                f"{app}.service",
+                "--no-pager",
+                "--property=" + ",".join(properties),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return {}
+    state = {}
+    for line in result.stdout.splitlines():
+        key, separator, value = line.partition("=")
+        if separator:
+            state[key] = value
+    if str(state.get("NRestarts", "")).isdigit():
+        state["NRestarts"] = int(state["NRestarts"])
+    return state
+
+
+def missing_health(state):
+    """Classify an absent runtime document without faulting unused roles."""
+    active = state.get("ActiveState")
+    unit_file = state.get("UnitFileState")
+    if active == "failed":
+        health = "fault"
+    elif active in ("activating", "deactivating", "reloading"):
+        health = "degraded"
+    elif active == "active":
+        health = "unknown"
+    elif unit_file in ENABLED_STATES:
+        health = "fault"
+    elif unit_file in DISABLED_STATES or state.get("LoadState") == "not-found":
+        health = "disabled"
+    else:
+        health = "unknown"
+    return {"state": health, "detail": "no runtime status"}
+
+
+def load(app, now, root=STATUS_ROOT, state=None):
+    state = service_state(app) if state is None else state
+    path = Path(root) / app / "status.json"
     try:
         doc = json.loads(path.read_text())
     except (OSError, ValueError):
-        return {"app": app, "health": {"state": "unknown", "detail": "no runtime status"}}
+        return {"app": app, "service": state, "health": missing_health(state)}
     age = max(0, now - float(doc.get("wall_t", 0)))
+    doc["app"] = app
     doc["age_s"] = round(age, 1)
+    doc["service"] = state
     if age > 30:
         doc["health"] = {"state": "fault", "detail": f"status stale for {age:.0f}s"}
     return doc
+
+
+def overall_health(apps):
+    states = [
+        item.get("health", {}).get("state", "unknown")
+        for item in apps
+        if item.get("health", {}).get("state") != "disabled"
+    ]
+    if not states:
+        return "unknown"
+    if "fault" in states:
+        return "fault"
+    if any(state in ("degraded", "unknown") for state in states):
+        return "degraded"
+    return "ok"
 
 
 def main():
@@ -42,14 +126,7 @@ def main():
     args = parser.parse_args()
     now = time.time()
     apps = [load(app, now) for app in APPS]
-    states = [item.get("health", {}).get("state", "unknown") for item in apps]
-    overall = (
-        "fault"
-        if "fault" in states
-        else "degraded"
-        if any(state in ("degraded", "unknown") for state in states)
-        else "ok"
-    )
+    overall = overall_health(apps)
     payload = {"schema": 1, "wall_t": round(now, 3), "health": {"state": overall}, "apps": apps}
     if args.json:
         print(json.dumps(payload, sort_keys=True))
