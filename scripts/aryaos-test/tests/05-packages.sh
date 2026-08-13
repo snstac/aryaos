@@ -77,6 +77,7 @@ fi
 # container. These versions include the common #app root scroller, preventing
 # expanded Debug Logs and Advanced Details cards from being clipped.
 require_package_version aiscot 7.3.1
+require_package_version pytak 7.5.1
 require_package_version dronecot 2.3.9
 require_package_version cockpit-adsbcot 1.2.3
 require_package_version cockpit-aiscot 1.2.3

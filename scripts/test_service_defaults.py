@@ -221,6 +221,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             / "shared_files/aryaos/systemd/gutcheck.service.d/aryaos-health.conf"
         ).read_text()
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        verifier = (ROOT / "scripts/verify-image.sh").read_text()
 
         self.assertIn(
             'aryaos-health" "/usr/local/sbin/aryaos-health"', builder
@@ -231,6 +232,20 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             "gutcheck ALL=(root) NOPASSWD: ARYAOS_GUTCHECK_HEALTH", sudoers
         )
         self.assertNotIn("ALL=(ALL)", sudoers)
+        self.assertIn(
+            "^Cmnd_Alias ARYAOS_GUTCHECK_HEALTH = "
+            "/usr/local/sbin/aryaos-health --json$",
+            verifier,
+        )
+        self.assertIn(
+            r"^gutcheck ALL=\(root\) NOPASSWD: "
+            r"ARYAOS_GUTCHECK_HEALTH$",
+            verifier,
+        )
+        self.assertNotIn(
+            "^gutcheck ALL=(root) NOPASSWD: ARYAOS_GUTCHECK_HEALTH$",
+            verifier,
+        )
         self.assertIn("/usr/local/sbin/aryaos-health --json", dropin)
         self.assertIn("dronecot-dronescout.service gutcheck.service", postinst)
 

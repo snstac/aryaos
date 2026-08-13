@@ -283,7 +283,7 @@ require_pkg ais-catcher
 require_pkg sikw00fcot
 require_pkg gdlcot
 require_pkg_version gdlcot 1.0.1
-require_pkg_version pytak 7.4.3
+require_pkg_version pytak 7.5.1
 require_pkg_version acarscot 0.1.1
 require_pkg acarsdec
 require_pkg_version dronecot 2.3.9
@@ -378,7 +378,8 @@ require_grep 'aryaos-mesh-sa' /etc/firewalld/zones/public.xml "firewall zone all
 require_path /etc/firewalld/services/aryaos-gutcheck.xml
 require_grep 'aryaos-gutcheck' /etc/firewalld/zones/public.xml "firewall zone allows token-gated Gutcheck on the LAN"
 require_path /etc/sudoers.d/aryaos-gutcheck-health
-require_grep '^gutcheck ALL=(root) NOPASSWD: ARYAOS_GUTCHECK_HEALTH$' /etc/sudoers.d/aryaos-gutcheck-health "Gutcheck has only read-only health collector privilege"
+require_grep '^Cmnd_Alias ARYAOS_GUTCHECK_HEALTH = /usr/local/sbin/aryaos-health --json$' /etc/sudoers.d/aryaos-gutcheck-health "Gutcheck health privilege names only the read-only collector"
+require_grep '^gutcheck ALL=\(root\) NOPASSWD: ARYAOS_GUTCHECK_HEALTH$' /etc/sudoers.d/aryaos-gutcheck-health "Gutcheck has only read-only health collector privilege"
 require_path /etc/systemd/system/gutcheck.service.d/aryaos-health.conf
 require_grep '^Environment="LOCAL_HEALTH_COMMAND=/usr/bin/sudo -n /usr/local/sbin/aryaos-health --json"$' /etc/systemd/system/gutcheck.service.d/aryaos-health.conf "Gutcheck uses the scoped AryaOS health collector"
 require_grep 'name="https"' /etc/firewalld/zones/public.xml "firewall zone allows HTTPS"
