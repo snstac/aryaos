@@ -110,6 +110,9 @@ done
 for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot sikw00fcot sapientcot; do
 	install_file 0644 "${SHARED}/aryaos/systemd/safe-mode.conf" "/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done
+for svc in adsbcot aiscot dronecot sikw00fcot lincot aircot; do
+	install_file 0644 "${SHARED}/cotbridge/systemd/after-cotbridge.conf" "/etc/systemd/system/${svc}.service.d/after-cotbridge.conf"
+done
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-radio-silence.service" "/etc/systemd/system/aryaos-radio-silence.service"
 # EMCON gate: keep the radio users from starting (and un-blocking the radios)
 # while /etc/aryaos/emcon exists.

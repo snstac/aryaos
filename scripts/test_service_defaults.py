@@ -187,6 +187,18 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             'aryaos-health" "/usr/local/sbin/aryaos-health"', builder
         )
 
+    def test_overlay_orders_feeders_after_cotbridge(self):
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+
+        self.assertIn(
+            "for svc in adsbcot aiscot dronecot sikw00fcot lincot aircot",
+            builder,
+        )
+        self.assertIn(
+            'after-cotbridge.conf" "/etc/systemd/system/${svc}.service.d/',
+            builder,
+        )
+
     def test_lighttpd_private_devices_exposes_only_pi_firmware_commands(self):
         dropin = (
             ROOT
