@@ -122,6 +122,17 @@ else
 	warn "cockpit-packagekit not installed"
 fi
 
+# GHSA-2m8v-j782-fhvr permits a zero-attachment Socket.IO packet to exhaust
+# memory before socket.io-parser 4.2.7. This is runtime code in the Node-RED
+# editor, so verify the installed module rather than only the image lockfile.
+SOCKET_IO_PARSER_PACKAGE=/home/node-red/.node-red/node_modules/socket.io-parser/package.json
+SOCKET_IO_PARSER_VERSION="$(node -p "require('${SOCKET_IO_PARSER_PACKAGE}').version" 2>/dev/null || true)"
+if [[ -n "${SOCKET_IO_PARSER_VERSION}" ]] && dpkg --compare-versions "${SOCKET_IO_PARSER_VERSION}" ge 4.2.7; then
+	ok "Node-RED Socket.IO parser ${SOCKET_IO_PARSER_VERSION} has memory-exhaustion fix"
+else
+	fail "Node-RED Socket.IO parser ${SOCKET_IO_PARSER_VERSION:-missing}, expected >= 4.2.7"
+fi
+
 # --- flash-media longevity ---
 if swapon --noheadings --show=NAME 2>/dev/null | grep -qx '/dev/zram0'; then
 	ok "RAM-only zram swap active"
