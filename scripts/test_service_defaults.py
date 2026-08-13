@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Regression checks for service defaults and drop-ins."""
 
+import json
 from pathlib import Path
 import unittest
 
@@ -9,6 +10,17 @@ ROOT = Path(__file__).parents[1]
 
 
 class ServiceDefaultsTestCase(unittest.TestCase):
+    def test_node_red_socket_io_parser_memory_exhaustion_fix(self):
+        lock = json.loads(
+            (ROOT / "shared_files/node-red/package-lock.json").read_text()
+        )
+        version = lock["packages"]["node_modules/socket.io-parser"]["version"]
+
+        self.assertGreaterEqual(
+            tuple(int(part) for part in version.split(".")),
+            (4, 2, 7),
+        )
+
     def test_gateway_plugin_scroll_release_floor_is_enforced(self):
         image_check = (ROOT / "scripts/verify-image.sh").read_text()
         hil_check = (

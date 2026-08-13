@@ -347,6 +347,7 @@ require_grep '^EnvironmentFile=/etc/default/sikw00fcot$' /etc/systemd/system/sik
 
 # Node-RED (stage-node-red)
 require_path /home/node-red/.node-red/flows.json
+require_grep '"version": "4\.2\.7"' /home/node-red/.node-red/node_modules/socket.io-parser/package.json "Node-RED Socket.IO parser has memory-exhaustion fix"
 # Node-RED must NOT run as root: the upstream unit ships User=root out of
 # /root/.node-red (no adminAuth = unauthenticated root-privileged admin API).
 # AryaOS pins it to the node-red user via a drop-in.
