@@ -19,10 +19,10 @@ else
 fi
 
 VERSION="$(dpkg-query -W -f='${Version}' gutcheck 2>/dev/null || true)"
-if [[ -n "${VERSION}" ]] && dpkg --compare-versions "${VERSION}" ge 0.2.0; then
+if [[ -n "${VERSION}" ]] && dpkg --compare-versions "${VERSION}" ge 0.3.4; then
 	ok "gutcheck package ${VERSION}"
 else
-	fail "gutcheck package ${VERSION:-missing}, expected >= 0.2.0"
+	fail "gutcheck package ${VERSION:-missing}, expected >= 0.3.4"
 fi
 
 HEALTH_CODE="$(curl -sS --connect-timeout 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:8181/healthz 2>/dev/null || true)"
@@ -103,6 +103,12 @@ if python3 -c '
 import json, sys
 items = json.load(sys.stdin)["entities"].get("items", [])
 assert items
+machine_ids = {}
+for item in items:
+    uid = item.get("uid", "")
+    canonical = uid[7:] if uid.startswith("aryaos-") and len(uid) == 39 else uid
+    assert canonical not in machine_ids, (canonical, machine_ids[canonical], uid)
+    machine_ids[canonical] = uid
 entity = items[0]
 assert entity.get("kind") == "aryaos"
 assert isinstance(entity.get("capabilities"), list)

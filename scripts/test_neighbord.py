@@ -5,6 +5,7 @@ import importlib.machinery
 import importlib.util
 import os
 import unittest
+from unittest import mock
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -19,6 +20,20 @@ spec.loader.exec_module(neighbord)
 
 
 class BeaconV5TestCase(unittest.TestCase):
+    def test_fallback_beacon_uid_matches_lincot_machine_id(self):
+        machine_id = "0e4474225f2843a4b8d3ac3e74a7fdb9"
+        with mock.patch.object(neighbord, "_read", return_value=machine_id):
+            self.assertEqual(neighbord._uid(), machine_id)
+
+    def test_fallback_beacon_has_namespaced_uid_without_machine_id(self):
+        with (
+            mock.patch.object(neighbord, "_read", return_value=""),
+            mock.patch.object(
+                neighbord.socket, "gethostname", return_value="aryaos-test.local"
+            ),
+        ):
+            self.assertEqual(neighbord._uid(), "aryaos-aryaos-test")
+
     def test_preserves_capability_and_runtime_health_fields(self):
         event = b"""<event uid="aryaos-test" type="a-f-G-E-S" time="now">
           <point lat="1" lon="2"/><detail><__aryaos version="5">

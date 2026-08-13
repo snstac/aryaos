@@ -114,7 +114,9 @@ def _cot_time(offset_s: int = 0) -> str:
 def _uid() -> str:
     machine_id = _read("/etc/machine-id") or _read("/var/lib/dbus/machine-id")
     host = socket.gethostname().split(".", 1)[0]
-    return f"aryaos-{machine_id or host}"
+    # LINCOT uses the machine-id verbatim. Match it so a temporary fallback
+    # beacon and normal LINCOT telemetry cannot create two fleet entities.
+    return machine_id or f"aryaos-{host}"
 
 
 def _gps_point() -> tuple[dict[str, str], str]:
