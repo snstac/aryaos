@@ -53,8 +53,10 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   UART transports, and the overlay migration enables it only when the live
   `/dev/dronescout` udev vendor is Espressif (`303a`). The complete 120-test
   repository suite, Ansible syntax check, shellcheck, overlay package build,
-  and PR validation run `31657308366` pass. Image run `31657314290` was
-  triggered from that implementation commit.
+  and PR validation run `31657308366` pass. Image run `31657314290` completed
+  all build, mounted-image verification, SBOM, and publication steps from that
+  implementation commit. Release
+  `v2026.08.13.013732-e23106aa5fac-dev` contains the resulting image and overlay.
 - `192.168.0.44` (`aryaos-b6b9`, AryaSea) and `192.168.0.45`
   (`aryaos-fdb9`, AryaAir) now run overlay 2.0.25 and DroneCOT 2.3.8. The
   update retained all role, GNSS, AIS, ADS-B, and gateway configuration hashes
