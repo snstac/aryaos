@@ -161,6 +161,19 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             "MAVLink heartbeat received|Processing RID data", hil
         )
 
+    def test_overlay_migrates_dronescout_crlf_setting(self):
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        self.assertIn("dronecot-dronescout.default", builder)
+        self.assertIn("SERIAL_CRLF_NORMALIZE=%s", postinst)
+        self.assertIn("dronescout_crlf=1", postinst)
+        self.assertIn("ID_VENDOR_ID=303a", postinst)
+        self.assertIn(
+            "try-restart lincot.service acarsdec.service "
+            "dronecot-dronescout.service",
+            postinst,
+        )
+
     def test_overlay_keeps_network_gps_core_active(self):
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
 

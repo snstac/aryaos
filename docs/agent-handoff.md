@@ -7,6 +7,45 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
     This handoff covers the running build/merge state and architecture invariants.
 
+## 2026-08-12 DroneScout binary MAVLink CRLF recovery
+
+- Fresh AryaAir host `192.168.0.45` has an ADSBee, a BlueMark DroneScout DS110
+  on the ESP32-S3 USB CDC path, and a CP2102N GNSS receiver. AryaOS discovery
+  now identifies the live DroneScout from checksum-valid MAVLink heartbeat and
+  `OPEN_DRONE_ID_MESSAGE_PACK` traffic and applies `adsb rid`. The dedicated
+  `dronecot-dronescout` instance is enabled and the landing portal reports UAS
+  active.
+- A byte-for-byte 30-second capture found 250 nominal MAVLink frames. The DS110
+  USB output expanded every LF byte to CRLF, including LF bytes inside binary
+  MAVLink headers, payloads, and checksums, and appended a newline after each
+  frame. Most apparent pymavlink `BAD_DATA` was the harmless frame delimiter,
+  but 12 of 250 frames were checksum-invalid because an embedded LF had been
+  expanded. Reversing CRLF to LF recovered all 250 frames with valid checksums:
+  220 OpenDroneID packs and 30 heartbeats.
+- DroneCOT `v2.3.8`, commit `b90850d`, adds opt-in
+  `SERIAL_CRLF_NORMALIZE=1`. The streaming filter preserves state across serial
+  read boundaries and defaults off for compliant receivers. Unit coverage
+  includes every split point through expanded CRLF pairs and an end-to-end
+  pymavlink checksum regression. The canonical suite passes 106 tests with one
+  skip and 14 subtests; targeted Black and flake8 checks pass.
+- AryaOS 2.0.25 enables the workaround only in
+  `/etc/default/dronecot-dronescout`. Image verification now requires DroneCOT
+  2.3.8 and that setting. Live HIL on `.45` with the locally built
+  `dronecot_2.3.8-1_all.deb` decoded 329 RID records in 45 seconds, matching the
+  330 expected from the raw rate within the sampling boundary. CoT for lab RID
+  `1787F04BM24010011195` reached Charontak with current position. The service
+  remained enabled and active with zero restarts, no failed units, and no Pi
+  throttling.
+- The same host passed all 13 strict AryaAir HIL modules after the DroneCOT and
+  overlay upgrade. DroneCOT PyPI workflow `31656496938` and Debian release
+  workflow `31656496947` both succeeded; release `v2.3.8` contains
+  `dronecot_2.3.8-1_all.deb`. Signed package repository workflow
+  `31656860708` published 2.3.8 for fleet updates.
+- When installing a locally built DroneCOT package on an existing AryaOS box,
+  preserve its modified `/etc/default/dronecot` conffile explicitly, for
+  example with `dpkg --force-confold --configure dronecot` if a noninteractive
+  local-package install stops at the conffile prompt.
+
 ## 2026-08-12 latest-firmware AryaAir/AryaSea regression follow-up
 
 - Fresh-image testing on `192.168.0.44` exposed a discovery dependency: its

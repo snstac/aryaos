@@ -14,6 +14,21 @@ case "$1" in
     if [ -f /usr/share/aryaos/defaults/gpsd.default ]; then
       install -m 0644 -o root -g root /usr/share/aryaos/defaults/gpsd.default /etc/default/gpsd
     fi
+    dronescout_defaults=/usr/share/aryaos/defaults/dronecot-dronescout.default
+    dronescout_config=/etc/default/dronecot-dronescout
+    if [ -f "$dronescout_defaults" ]; then
+      if [ ! -f "$dronescout_config" ]; then
+        install -m 0644 -o root -g root "$dronescout_defaults" "$dronescout_config"
+      elif ! grep -q '^SERIAL_CRLF_NORMALIZE=' "$dronescout_config"; then
+        dronescout_crlf=0
+        if command -v udevadm >/dev/null 2>&1 \
+          && udevadm info -q property -n /dev/dronescout 2>/dev/null \
+            | grep -q '^ID_VENDOR_ID=303a$'; then
+          dronescout_crlf=1
+        fi
+        printf '\n# Repair ESP console LF-to-CRLF expansion in binary MAVLink.\nSERIAL_CRLF_NORMALIZE=%s\n' "$dronescout_crlf" >> "$dronescout_config"
+      fi
+    fi
     if [ ! -f /etc/aryaos/aryaos-config.txt ] && [ -f /usr/share/aryaos/defaults/aryaos-config.txt ]; then
       install -d -m 0755 /etc/aryaos
       install -m 0644 -o root -g root /usr/share/aryaos/defaults/aryaos-config.txt /etc/aryaos/aryaos-config.txt
@@ -92,7 +107,7 @@ case "$1" in
       systemctl restart aryaos-serial-assign.service 2>/dev/null || true
       # These are role-dependent, so refresh only instances that were already
       # running; package installation must not enable a new radio role.
-      systemctl try-restart lincot.service acarsdec.service 2>/dev/null || true
+      systemctl try-restart lincot.service acarsdec.service dronecot-dronescout.service 2>/dev/null || true
       # aryaos-serial-assign already resumed gpsd with the detected device.
       # Restarting the socket/service pair again races the tty open path.
       systemctl try-restart cockpit.socket 2>/dev/null || true

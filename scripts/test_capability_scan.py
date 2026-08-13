@@ -302,6 +302,27 @@ class SerialRoleWiringTestCase(unittest.TestCase):
         self.assertIn("ExecCondition=/usr/local/libexec/aryaos/dronecot-serial-ready", unit)
         self.assertIn('[[ -c "${device}" && -r "${device}" ]]', helper)
 
+    def test_dronescout_reverses_broken_crlf_expansion(self):
+        import pathlib
+
+        defaults = (
+            pathlib.Path(__file__).parent.parent
+            / "shared_files/aryaos/dronecot-dronescout.default"
+        ).read_text()
+        self.assertIn("SERIAL_CRLF_NORMALIZE=1", defaults)
+
+        scanner = (
+            pathlib.Path(__file__).parent.parent
+            / "shared_files/aryaos/aryaos-capability-scan"
+        ).read_text()
+        role = (
+            pathlib.Path(__file__).parent.parent
+            / "shared_files/aryaos/aryaos-role"
+        ).read_text()
+        self.assertIn('--rid-transport', scanner)
+        self.assertIn('[[ "${rid_transport}" == "esp32-usb" ]]', role)
+        self.assertIn("SERIAL_CRLF_NORMALIZE=${rid_crlf}", role)
+
     def test_dronescout_discovery_avoids_colons_in_pymavlink_device(self):
         import pathlib
 

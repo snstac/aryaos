@@ -279,7 +279,7 @@ CAP_SCAN="/usr/local/sbin/aryaos-capability-scan"
 # Apply transport details that cannot be expressed by a capability name alone.
 # Every path comes from a protocol-verified scanner result, not a generic USB id.
 configure_detected_inputs() {
-	local caps="$1" adsbee="" rid_port="" rid_feed_port=""
+	local caps="$1" adsbee="" rid_port="" rid_feed_port="" rid_transport="" rid_crlf="0"
 
 	if [[ " ${caps} " == *" adsb "* ]]; then
 		adsbee="$("${CAP_SCAN}" --adsbee-port 2>/dev/null | head -1 || true)"
@@ -308,6 +308,10 @@ configure_detected_inputs() {
 	if [[ " ${caps} " == *" rid "* ]]; then
 		rid_port="$("${CAP_SCAN}" --rid-port 2>/dev/null | head -1 || true)"
 		if [[ -n "${rid_port}" ]]; then
+			rid_transport="$("${CAP_SCAN}" --rid-transport 2>/dev/null | head -1 || true)"
+			if [[ "${rid_transport}" == "esp32-usb" ]]; then
+				rid_crlf="1"
+			fi
 			if [[ ! "${rid_port}" =~ ^/dev/serial/by-id/[A-Za-z0-9._:+-]+$ ]]; then
 				echo "aryaos-role: refusing unsafe DroneScout path '${rid_port}'" >&2
 				return 1
@@ -332,8 +336,13 @@ configure_detected_inputs() {
 				else
 					printf 'FEED_URL=serial://%s:115200\n' "${rid_feed_port}" >> /etc/default/dronecot-dronescout
 				fi
+				if grep -q '^SERIAL_CRLF_NORMALIZE=' /etc/default/dronecot-dronescout; then
+					sed -i -E "s|^SERIAL_CRLF_NORMALIZE=.*|SERIAL_CRLF_NORMALIZE=${rid_crlf}|" /etc/default/dronecot-dronescout
+				else
+					printf 'SERIAL_CRLF_NORMALIZE=%s\n' "${rid_crlf}" >> /etc/default/dronecot-dronescout
+				fi
 			fi
-			echo "configure dronecot-dronescout <- ${rid_feed_port} (verified as ${rid_port}; MAVLink 2 @ 115200)"
+			echo "configure dronecot-dronescout <- ${rid_feed_port} (verified as ${rid_port}; ${rid_transport:-unknown transport}; MAVLink 2 @ 115200)"
 		fi
 	fi
 }

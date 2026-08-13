@@ -819,6 +819,18 @@ def main():
     if "--rid-port" in sys.argv:
         print(report["hardware"].get("rid_serial") or "")
         return 0
+    if "--rid-transport" in sys.argv:
+        rid_serial = report["hardware"].get("rid_serial")
+        probe = next(
+            (
+                item
+                for item in report["hardware"].get("rid_serial_probes", [])
+                if item.get("port") == rid_serial
+            ),
+            {},
+        )
+        print(probe.get("transport") or "")
+        return 0
     if "--caps" in sys.argv:
         # The auto-apply set, NOT everything detected: firstboot consumes this.
         print(" ".join(report["auto_apply"]))
