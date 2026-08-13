@@ -180,6 +180,13 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("systemctl enable --now gpscot.service", postinst)
         self.assertIn("systemctl restart aryaos-serial-assign.service", postinst)
 
+    def test_overlay_packages_gateway_health_cli(self):
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+
+        self.assertIn(
+            'aryaos-health" "/usr/local/sbin/aryaos-health"', builder
+        )
+
     def test_lighttpd_private_devices_exposes_only_pi_firmware_commands(self):
         dropin = (
             ROOT

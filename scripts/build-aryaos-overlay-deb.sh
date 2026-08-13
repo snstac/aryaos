@@ -67,6 +67,7 @@ install_file 0755 "${SHARED}/aryaos/aryaos-firstboot.sh" "/usr/local/sbin/aryaos
 install_file 0755 "${SHARED}/aryaos/aryaos-gps-time-sync" "/usr/local/sbin/aryaos-gps-time-sync"
 install_file 0755 "${SHARED}/aryaos/aryaos-lincot-remarks" "/usr/local/sbin/aryaos-lincot-remarks"
 install_file 0755 "${SHARED}/aryaos/aryaos-cot-detail" "/usr/local/sbin/aryaos-cot-detail"
+install_file 0755 "${SHARED}/aryaos/aryaos-health" "/usr/local/sbin/aryaos-health"
 install_file 0755 "${SHARED}/aryaos/aryaos-neighbord" "/usr/local/sbin/aryaos-neighbord"
 install_file 0755 "${SHARED}/aryaos/aryaos-capability-scan" "/usr/local/sbin/aryaos-capability-scan"
 install_file 0755 "${SHARED}/aryaos/aryaos-serial-classify" "/usr/local/libexec/aryaos/aryaos-serial-classify"
