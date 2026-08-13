@@ -62,6 +62,12 @@ case "$1" in
         sed -i "s|^ARYAOS_ADSB_1090_DEVICE=.*|ARYAOS_ADSB_1090_DEVICE=\"$adsbee_device\"|" "$aryaos_config"
       fi
     fi
+    # Collapse pre-COTBridge lane layouts into one operator-facing site output.
+    # The helper preserves TLS lane options and disables every legacy lane so
+    # an upgrade cannot send duplicate events.
+    if [ -x /usr/local/sbin/aryaos-site-output ]; then
+      /usr/local/sbin/aryaos-site-output --migrate >/dev/null 2>&1 || true
+    fi
     for banner in issue issue.net motd; do
       if [ -f "/usr/share/aryaos/defaults/$banner" ]; then
         install -m 0644 -o root -g root "/usr/share/aryaos/defaults/$banner" "/etc/$banner"

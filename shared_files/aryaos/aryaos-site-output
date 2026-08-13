@@ -12,6 +12,12 @@ from urllib.parse import urlsplit
 CONFIG = Path("/etc/aryaos/aryaos-config.txt")
 BRIDGE = Path("/etc/cotbridge.ini")
 INGRESS = "udp+ro://127.0.0.1:28087"
+SECTION = "lane:site-output"
+LEGACY_SECTIONS = (
+    "lane:local-to-takserver",
+    "lane:mesh-to-takserver",
+    "lane:local-to-mesh",
+)
 
 
 def valid(url):
@@ -34,35 +40,83 @@ def set_kv(path, key, value):
     path.write_text("\n".join(out) + "\n")
 
 
-def main():
-    cp = configparser.RawConfigParser()
-    cp.optionxform = str
-    cp.read(BRIDGE)
-    section = "lane:site-output"
-    current = cp.get(section, "egress_cot_url", fallback="")
-    if len(sys.argv) == 1:
-        print(json.dumps({"ok": True, "url": current}))
-        return
-    url = sys.argv[1].strip()
-    if not valid(url) or url.startswith("tak://"):
-        raise SystemExit("Use a persistent PyTAK output URL; import tak:// enrollment URLs in TAK connection")
-    if not cp.has_section("cotbridge"):
-        cp.add_section("cotbridge")
-    if not cp.has_section(section):
-        cp.add_section(section)
-    for key, value in {
-        "enabled": "true", "mode": "forward", "ingress_cot_url": INGRESS,
-        "egress_cot_url": url, "PYTAK_NO_HELLO": "true",
-    }.items():
-        cp.set(section, key, value)
+def configured_url():
+    if not CONFIG.exists():
+        return ""
+    for raw in CONFIG.read_text().splitlines():
+        key, separator, value = raw.partition("=")
+        if separator and key.strip() == "ARYAOS_COT_OUTPUT_URL":
+            return value.strip().strip('"').strip("'")
+    return ""
+
+
+def selected_output(cp):
+    """Return the active canonical or legacy output and its source section."""
+    current = cp.get(SECTION, "egress_cot_url", fallback="")
+    if valid(current):
+        return current, SECTION
+    for legacy in LEGACY_SECTIONS:
+        if not cp.has_section(legacy):
+            continue
+        enabled = cp.getboolean(legacy, "enabled", fallback=True)
+        candidate = cp.get(legacy, "egress_cot_url", fallback="")
+        if enabled and valid(candidate):
+            return candidate, legacy
+    current = configured_url()
+    return (current, None) if valid(current) else ("", None)
+
+
+def write_bridge(cp):
     BRIDGE.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile("w", dir=BRIDGE.parent, delete=False) as fp:
         cp.write(fp)
         temp = fp.name
     os.chmod(temp, 0o644)
     os.replace(temp, BRIDGE)
+
+
+def update_output(cp, url, source=None):
+    if not cp.has_section("cotbridge"):
+        cp.add_section("cotbridge")
+    if not cp.has_section(SECTION):
+        cp.add_section(SECTION)
+    if source and source != SECTION:
+        for key, value in cp.items(source):
+            cp.set(SECTION, key, value)
+    for key, value in {
+        "enabled": "true",
+        "mode": "forward",
+        "ingress_cot_url": INGRESS,
+        "egress_cot_url": url,
+        "PYTAK_NO_HELLO": "true",
+    }.items():
+        cp.set(SECTION, key, value)
+    for legacy in LEGACY_SECTIONS:
+        if cp.has_section(legacy):
+            cp.set(legacy, "enabled", "false")
+    write_bridge(cp)
     set_kv(CONFIG, "ARYAOS_COT_OUTPUT_URL", url)
     os.system("systemctl try-restart cotbridge.service >/dev/null 2>&1")
+
+
+def main():
+    cp = configparser.RawConfigParser()
+    cp.optionxform = str
+    cp.read(BRIDGE)
+    current, source = selected_output(cp)
+    if len(sys.argv) == 1:
+        print(json.dumps({"ok": True, "url": current}))
+        return
+    if sys.argv[1] == "--migrate":
+        if not current:
+            raise SystemExit("No valid COTBridge output URL to migrate")
+        update_output(cp, current, source=source)
+        print(json.dumps({"ok": True, "url": current, "migrated": True}))
+        return
+    url = sys.argv[1].strip()
+    if not valid(url) or url.startswith("tak://"):
+        raise SystemExit("Use a persistent PyTAK output URL; import tak:// enrollment URLs in TAK connection")
+    update_output(cp, url)
     print(json.dumps({"ok": True, "url": url}))
 
 

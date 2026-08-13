@@ -232,6 +232,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
 
     def test_overlay_migrates_site_output_and_adsb_fields(self):
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        helper = (ROOT / "shared_files/aryaos/aryaos-site-output").read_text()
         verifier = (ROOT / "scripts/verify-image.sh").read_text()
         hil = (ROOT / "scripts/aryaos-test/tests/02-config.sh").read_text()
 
@@ -245,6 +247,10 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("--device-type modesbeast", postinst)
         self.assertIn("usb-Raspberry_Pi_Pico_", postinst)
         self.assertIn("ARYAOS_ADSB_1090_SOURCE=adsbee", postinst)
+        self.assertIn('aryaos-site-output" "/usr/local/sbin/aryaos-site-output', builder)
+        self.assertIn("aryaos-site-output --migrate", postinst)
+        self.assertIn("LEGACY_SECTIONS", helper)
+        self.assertIn('cp.set(legacy, "enabled", "false")', helper)
         for check in (verifier, hil):
             self.assertIn("lane:site-output", check)
             self.assertNotIn("lane:local-to-mesh", check)
