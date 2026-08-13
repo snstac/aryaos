@@ -69,27 +69,37 @@ def service_state(app):
     return state
 
 
-def missing_health(state):
-    """Classify an absent runtime document without faulting unused roles."""
+def service_health(state):
+    """Return an authoritative health override from systemd, if any."""
     active = state.get("ActiveState")
     unit_file = state.get("UnitFileState")
     if active == "failed":
-        health = "fault"
-    elif active in ("activating", "deactivating", "reloading"):
-        health = "degraded"
-    elif active == "active":
-        health = "unknown"
-    elif unit_file in ENABLED_STATES:
-        health = "fault"
-    elif unit_file in DISABLED_STATES or state.get("LoadState") == "not-found":
-        health = "disabled"
-    else:
-        health = "unknown"
-    return {"state": health, "detail": "no runtime status"}
+        return {"state": "fault", "detail": "service failed"}
+    if active in ("activating", "deactivating", "reloading"):
+        return {"state": "degraded", "detail": f"service {active}"}
+    if active == "inactive" and unit_file in ENABLED_STATES:
+        return {"state": "fault", "detail": "enabled service inactive"}
+    if (
+        active == "inactive"
+        and (unit_file in DISABLED_STATES or state.get("LoadState") == "not-found")
+    ):
+        return {"state": "disabled", "detail": "no runtime status"}
+    return None
+
+
+def missing_health(state):
+    """Classify an absent runtime document without faulting unused roles."""
+    return service_health(state) or {
+        "state": "unknown",
+        "detail": "no runtime status",
+    }
 
 
 def load(app, now, root=STATUS_ROOT, state=None):
     state = service_state(app) if state is None else state
+    service_override = service_health(state)
+    if service_override:
+        return {"app": app, "service": state, "health": service_override}
     path = Path(root) / app / "status.json"
     try:
         doc = json.loads(path.read_text())

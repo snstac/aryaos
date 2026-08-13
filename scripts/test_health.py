@@ -96,6 +96,29 @@ class GatewayHealthTestCase(unittest.TestCase):
         self.assertEqual(item["service"], state)
         self.assertEqual(item["health"]["state"], "ok")
 
+    def test_fresh_document_cannot_mask_inactive_enabled_service(self):
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root) / "gpscot" / "status.json"
+            path.parent.mkdir()
+            path.write_text(
+                json.dumps(
+                    {"wall_t": 99, "health": {"state": "ok"}}
+                )
+            )
+            item = HEALTH.load(
+                "gpscot",
+                100,
+                root=root,
+                state={
+                    "LoadState": "loaded",
+                    "UnitFileState": "enabled",
+                    "ActiveState": "inactive",
+                },
+            )
+
+        self.assertEqual(item["health"]["state"], "fault")
+        self.assertEqual(item["health"]["detail"], "enabled service inactive")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
