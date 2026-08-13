@@ -9,7 +9,7 @@
 #
 # Instead, capability drives everything: nothing sensor-related runs until
 # `aryaos-role product <line>` / `aryaos-role caps <cap...>` turns it on. The
-# CoT core (charontak, lincot, gpsd) is untouched and always runs, so a box with
+# CoT core (cotbridge, lincot, gpsd) is untouched and always runs, so a box with
 # no capabilities is still a working TAK node that beacons its own position.
 #
 # This runs in the LAST stage on purpose — stage-bt-pan carries EXPORT_IMAGE —
@@ -23,7 +23,7 @@ readsb
 dump1090-fa
 dump978-fa
 adsbcot
-gdltak
+gdlcot
 ais-catcher
 aiscot
 dronecot

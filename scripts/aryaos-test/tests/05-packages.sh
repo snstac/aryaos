@@ -80,15 +80,15 @@ require_package_version aiscot 7.3.1
 require_package_version cockpit-adsbcot 1.2.3
 require_package_version cockpit-aiscot 1.2.3
 require_package_version cockpit-aprscot 0.1.1
-require_package_version cockpit-charontak 1.2.2
+require_package_version cockpit-cotbridge 1.2.2
 require_package_version cockpit-dronecot 1.1.3
 require_package_version cockpit-lincot 1.1.3
 require_package_version cockpit-sapientcot 0.1.1
-# GDLTAK 1.0.1 rejects NaN/Inf numeric fields from partial Remote ID reports
+# GDLCOT 1.0.1 rejects NaN/Inf numeric fields from partial Remote ID reports
 # instead of crash-looping while encoding them as GDL90.
-require_package_version gdltak 1.0.1
+require_package_version gdlcot 1.0.1
 
-for plugin in adsbcot aiscot aprscot charontak dronecot lincot sapientcot; do
+for plugin in adsbcot aiscot aprscot cotbridge dronecot lincot sapientcot; do
 	require_cockpit_root_scroll "${plugin}"
 	require_cockpit_stylesheets "${plugin}"
 done

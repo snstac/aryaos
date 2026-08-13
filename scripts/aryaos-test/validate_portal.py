@@ -20,7 +20,7 @@ REQUIRED_TOP = (
 )
 
 EXPECTED_GATEWAY_IDS = (
-    "charontak",
+    "cotbridge",
     "lincot",
     "adsbcot",
     "aiscot",

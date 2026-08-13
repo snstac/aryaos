@@ -36,7 +36,7 @@ consistent across OS-brand selection and remains available before login.
 
 ## Landing page features (current)
 
-- **Hero - TAK gateways:** `charontak`, `adsbcot`, `aiscot`, `lincot`, UAS, and `sikw00fcot` via `tak_gateways` in JSON; colored tiles (green / amber / red / gray) from `systemctl show`. The UAS tile aggregates every live UAS gateway (`dronecot`, Wi-Fi/BLE RID, DroneScout RID, and SAPIENT), so any active receiver is represented rather than only the legacy `dronecot.service`. The SENSORS count includes activated sensor gateways only; disabled capabilities and the always-on CoT/GNSS core are excluded.
+- **Hero - TAK gateways:** `cotbridge`, `adsbcot`, `aiscot`, `lincot`, UAS, and `sikw00fcot` via `tak_gateways` in JSON; colored tiles (green / amber / red / gray) from `systemctl show`. The UAS tile aggregates every live UAS gateway (`dronecot`, Wi-Fi/BLE RID, DroneScout RID, and SAPIENT), so any active receiver is represented rather than only the legacy `dronecot.service`. The SENSORS count includes activated sensor gateways only; disabled capabilities and the always-on CoT/GNSS core are excluded.
 - **Hero - system health:** CPU temp, load (1/5/15), power/throttle pill from `system` in JSON (`vcgencmd` on Pi; `/proc` + thermal sysfs fallback). The lighttpd sandbox retains `PrivateDevices=yes` and receives only `/dev/vcio_gencmd`, the narrow firmware-command device required for temperature and throttle telemetry. If telemetry is unavailable, the UI says **UNKNOWN** rather than leaving the chip pending.
 - **Connection & status:** hostname, FQDN, primary IP, IPv4 block, uptime; grouped rows (`.aos-status-group--meta|net`) with left accent.
 - **GNSS:** gpsd snapshot - position, **MSL** (`alt_m`), **HAE** (`altHAE` > `alt_hae_m`), **CE/LE** (`eph` or √(epx²+epy²), `epv` > `le_m`), grid, sats, motion; status **pill** from fix quality.
@@ -49,7 +49,7 @@ consistent across OS-brand selection and remains available before login.
 |-----|---------|
 | `hostname`, `fqdn`, `primary_ip`, `ipv4_text`, `uptime` | Host |
 | `gps` | GNSS (`alt_m`, `alt_hae_m`, `ce_m`, `le_m`, `epx_m`, ...) |
-| `tak_gateways` | `{ ok, items[] }` per displayed gateway capability (`charontak`, feeders); aggregate items include member `units[]` with live systemd state |
+| `tak_gateways` | `{ ok, items[] }` per displayed gateway capability (`cotbridge`, feeders); aggregate items include member `units[]` with live systemd state |
 
 Node-RED is **not** on the configuration critical path; use Cockpit and Comitup for writes (see [node-red.md](node-red.md)).
 | `system` | `{ ok, cpu_temp_c, load{1,5,15}, mem{total_mb,available_mb,used_pct}, throttle{raw,state,current[],history[]} }` |
@@ -57,7 +57,7 @@ Node-RED is **not** on the configuration critical path; use Cockpit and Comitup 
 
 ## AryaOS Neighbor Discovery
 
-LINCOT emits the local host beacon through Charontak like every other AryaOS CoT
+LINCOT emits the local host beacon through COTBridge like every other AryaOS CoT
 producer. AryaOS adds a structured `<__aryaos>` detail element to that beacon via
 `/usr/local/sbin/aryaos-cot-detail`. The detail carries hostname, admin URL, source IP,
 roles, service states, and coarse system health.

@@ -11,7 +11,7 @@ Surfaces:
 
 The AryaOS Site page is vanilla JS that talks to a global ``window.cockpit``;
 mock-cockpit.js provides that with canned responses. The portal's status CGI is
-stubbed via request interception. React plugins (charontak lane editor, the
+stubbed via request interception. React plugins (cotbridge lane editor, the
 per-gateway pages) bundle the real Cockpit client and need a build-time cockpit
 mock instead — see README.md.
 

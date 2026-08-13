@@ -1,12 +1,12 @@
 # Connect a TAK Server
 
-Forward the AryaOS picture upstream. Import an ATAK connection **data package** or paste a **`tak://` enrollment URL** in the web console, and AryaOS provisions the certificates and turns on a Charontak lane to your TAK Server - no shell required.
+Forward the AryaOS picture upstream. Import an ATAK connection **data package** or paste a **`tak://` enrollment URL** in the web console, and AryaOS provisions the certificates and turns on a COTBridge lane to your TAK Server - no shell required.
 
 By default AryaOS multicasts to **Mesh SA** (`udp+wo://239.2.3.1:6969`), which nearby EUDs pick up automatically. Connecting a TAK Server adds a **second** egress so the same picture reaches your server-side COP over the network.
 
 ## Two ways to connect
 
-Both live on the **TAK connection** card in **Cockpit > AryaOS Site**. AryaOS installs the resulting certs under **`/etc/aryaos/tls`** and enables Charontak forwarding to the TAK Server.
+Both live on the **TAK connection** card in **Cockpit > AryaOS Site**. AryaOS installs the resulting certs under **`/etc/aryaos/tls`** and enables COTBridge forwarding to the TAK Server.
 
 === "Import a data package"
 
@@ -16,7 +16,7 @@ Both live on the **TAK connection** card in **Cockpit > AryaOS Site**. AryaOS in
     2. Under **Connection package (.zip / .dpk)**, choose your package file.
     3. Click **Import package**.
 
-    AryaOS unpacks the client certificate and server details, stores the TLS material in `/etc/aryaos/tls`, and configures the Charontak TAK Server lane.
+    AryaOS unpacks the client certificate and server details, stores the TLS material in `/etc/aryaos/tls`, and configures the COTBridge TAK Server lane.
 
 === "Paste a tak:// enrollment URL"
 
@@ -31,7 +31,7 @@ Both live on the **TAK connection** card in **Cockpit > AryaOS Site**. AryaOS in
 
     3. Click **Enroll**.
 
-    AryaOS performs the enrollment, provisions the client cert under `/etc/aryaos/tls`, and updates Charontak forwarding. On success the card reports *"Enrolled &lt;host&gt;; Charontak forwarding updated."*
+    AryaOS performs the enrollment, provisions the client cert under `/etc/aryaos/tls`, and updates COTBridge forwarding. On success the card reports *"Enrolled &lt;host&gt;; COTBridge forwarding updated."*
 
 !!! tip "Check the status line"
     The **TAK connection** card shows whether enrollment is **configured** or **not configured**. Use **Refresh status** after importing to confirm.
@@ -42,16 +42,16 @@ Both live on the **TAK connection** card in **Cockpit > AryaOS Site**. AryaOS in
 flowchart LR
     DP[.zip / .dpk<br/>or tak:// URL] --> AOS[AryaOS Site<br/>TAK connection]
     AOS --> TLS[/etc/aryaos/tls<br/>client cert + key/]
-    AOS --> LANE[Charontak<br/>local-to-takserver lane]
-    Feeders -->|udp+wo://127.0.0.1:28087| H[Charontak hub]
+    AOS --> LANE[COTBridge<br/>local-to-takserver lane]
+    Feeders -->|udp+wo://127.0.0.1:28087| H[COTBridge hub]
     H -->|Mesh SA| E[EUDs]
     H -->|TLS lane| S[(TAK Server)]
     TLS --> LANE
 ```
 
-The enable of the Charontak `local-to-takserver` lane is what actually forwards CoT upstream:
+The enable of the COTBridge `local-to-takserver` lane is what actually forwards CoT upstream:
 
-```ini title="/etc/charontak.ini (TAK Server lane, provisioned)"
+```ini title="/etc/cotbridge.ini (TAK Server lane, provisioned)"
 [lane:local-to-takserver]
 enabled = true
 mode = forward
@@ -60,11 +60,11 @@ egress_cot_url = tls://takserver.example.com:8089
 PYTAK_NO_HELLO = true
 ```
 
-Keep every local feeder's `COT_URL` pointed at the Charontak hub (`udp+wo://127.0.0.1:28087`) - you route to the TAK Server **from Charontak**, not from each feeder.
+Keep every local feeder's `COT_URL` pointed at the COTBridge hub (`udp+wo://127.0.0.1:28087`) - you route to the TAK Server **from COTBridge**, not from each feeder.
 
 ## Manual TLS lane (lane editor)
 
-If you already have a `combined.pem` (client cert + unencrypted key) or want full control, configure the lane by hand in **Cockpit > Charontak**:
+If you already have a `combined.pem` (client cert + unencrypted key) or want full control, configure the lane by hand in **Cockpit > COTBridge**:
 
 1. Combine a PEM client cert and unencrypted key into one file:
 
@@ -75,12 +75,12 @@ If you already have a `combined.pem` (client cert + unencrypted key) or want ful
     ```
 
 2. Copy `combined.pem` to the box (e.g. `/etc/aryaos/tls/combined.pem`).
-3. In **Cockpit > Charontak**, open the `local-to-takserver` lane, set `egress_cot_url` to `tls://takserver.example.com:8089`, point the TLS paths at your PEM, and **Save Changes & Restart**.
+3. In **Cockpit > COTBridge**, open the `local-to-takserver` lane, set `egress_cot_url` to `tls://takserver.example.com:8089`, point the TLS paths at your PEM, and **Save Changes & Restart**.
 
 !!! danger "Convert .p12 first"
     The console TLS uploads expect PEM. If you have a `.p12`/PFX, convert it with `openssl pkcs12` before importing. TLS private keys are never included in support bundles.
 
-See [Charontak lanes](../admin/charontak-lanes.md) for the complete lane editor reference.
+See [COTBridge lanes](../admin/cotbridge-lanes.md) for the complete lane editor reference.
 
 ## Mesh SA vs. direct TAK Server
 
@@ -97,5 +97,5 @@ The two are **not** exclusive - AryaOS commonly runs the Mesh SA lane **and** a 
 ## Related
 
 - [Relay & routing](./relay-routing.md) - a box dedicated to forwarding CoT.
-- [Charontak lanes](../admin/charontak-lanes.md) · [AryaOS Site](../admin/aryaos-site.md)
+- [COTBridge lanes](../admin/cotbridge-lanes.md) · [AryaOS Site](../admin/aryaos-site.md)
 - [Offline backpack](./offline-backpack.md) · [Glossary](../reference/glossary.md)

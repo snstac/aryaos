@@ -43,7 +43,7 @@ failing command is noted rather than aborting the bundle.
 | **Services** | `systemctl --failed`, plus per-unit `systemctl status` for the sensor gateways and infrastructure units. |
 | **Journals** | The last 4000 lines of this boot's journal, plus per-unit logs (last 500 lines each) for the sensor gateways, `readsb`, and `gpsd`. |
 | **Network** | `ip addr` / `ip route`, `resolv.conf`, `nmcli device status`, firewalld state and all zones, and listening sockets (`ss -tulnp`). |
-| **Configs (redacted)** | Site config `aryaos-config.txt`, `charontak.ini`, and each gateway's `/etc/default/<svc>` - passed through the redactor. |
+| **Configs (redacted)** | Site config `aryaos-config.txt`, `cotbridge.ini`, and each gateway's `/etc/default/<svc>` - passed through the redactor. |
 | **Sensor snapshots** | A capped `aircraft.json` (ADS-B), the neighbor cache `neighbors.json`, and a short `gpsd` sample. |
 
 ## What's redacted - and what's never included
@@ -57,7 +57,7 @@ This is the part to be sure of before you send a bundle to anyone.
     - `tak://` enrollment credentials - the `token=` and `username=` fields in
       TAK enrollment URLs - are redacted the same way.
     - **No private key material is ever included.** Nothing from
-      `/etc/aryaos/tls` or `/etc/charontak/tls` (client certificates, keys, CA
+      `/etc/aryaos/tls` or `/etc/cotbridge/tls` (client certificates, keys, CA
       material) is copied into the bundle at all.
 
 In short: the bundle carries the *shape* of your configuration - which services

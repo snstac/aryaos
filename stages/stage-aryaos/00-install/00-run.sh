@@ -60,6 +60,8 @@ install -d -m 0755 "${ROOTFS_DIR}/usr/local/sbin"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-import-tak-dp" "${ROOTFS_DIR}/usr/local/sbin/aryaos-import-tak-dp"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tak-dp-importd" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tak-dp-importd"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tak-dp-import" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tak-dp-import"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-site-output" "${ROOTFS_DIR}/usr/local/sbin/aryaos-site-output"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-health" "${ROOTFS_DIR}/usr/local/sbin/aryaos-health"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-gps-time-sync" "${ROOTFS_DIR}/usr/local/sbin/aryaos-gps-time-sync"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-lincot-remarks" "${ROOTFS_DIR}/usr/local/sbin/aryaos-lincot-remarks"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-cot-detail" "${ROOTFS_DIR}/usr/local/sbin/aryaos-cot-detail"
@@ -146,7 +148,7 @@ install -v -D -m 0644 "${SHARED_FILES}/aryaos/udev/99-aryaos-pps.rules" \
 
 # Stop hopeless sensor units from crash-looping forever (and from hiding the
 # fact, since a unit that restarts endlessly never enters `failed`).
-for _u in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot \
+for _u in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot \
 	dronecot dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot; do
 	install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-startlimit.conf" \
 		"${ROOTFS_DIR}/etc/systemd/system/${_u}.service.d/aryaos-startlimit.conf"
@@ -220,7 +222,7 @@ for unit in aryaos-crash-guard.service aryaos-safe-mode.service aryaos-boot-stab
 done
 # Safe-mode gate: sensor/SDR services must not start while /etc/aryaos/safe-mode
 # exists (kept in sync with aryaos-safe-mode MANAGED_UNITS / aryaos-role).
-for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot aprscot dronecot sikw00fcot sapientcot; do
+for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot sikw00fcot sapientcot; do
 	install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/safe-mode.conf" \
 		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done
@@ -228,7 +230,7 @@ done
 ## Serial assignment: identify GPS vs AIS/dAISy by their serial protocol and wire
 ## gpsd/ais-catcher to the right by-id device at boot (robust to adapter/enum
 ## changes) — the serial analogue of aryaos-sdr's EEPROM-serial pinning.
-# Operator handle on locally recorded CoT tracks (charontak recorder): how much
+# Operator handle on locally recorded CoT tracks (cotbridge recorder): how much
 # is stored, over what period, and purge on demand. Recordings are also cleared
 # by aryaos-factory-reset and aryaos-zeroize.
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tracks" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tracks"
@@ -258,7 +260,7 @@ install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-sdr-tasks.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-sdr-tasks.service"
 
 ## APRS over RF (aryaos-sdr task <index> aprs): rtl_fm + Dire Wolf decode 144.39
-## MHz to a KISS TNC, which aprscot reads and forwards to charontak as CoT. The
+## MHz to a KISS TNC, which aprscot reads and forwards to cotbridge as CoT. The
 ## direwolf + aprscot packages are installed in stage-aiscot (apt). Off by default
 ## (task-driven). aprscot.default points aprscot at the local KISS TNC (offline,
 ## not APRS-IS). aprscot's own service/config come from its deb; the KISS drop-in
@@ -303,11 +305,11 @@ fi
 rm -rf "${SPYSERVER_TMP}"
 
 ## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
-## the packaged charontak.ini default (source of truth for factory reset).
+## the packaged cotbridge.ini default (source of truth for factory reset).
 install -v -m 0644 "${SHARED_FILES}/aryaos/zram-generator.conf" "${ROOTFS_DIR}/etc/systemd/zram-generator.conf"
 install -v -D -m 0644 "${SHARED_FILES}/aryaos/rpi-swap-aryaos.conf" \
 	"${ROOTFS_DIR}/etc/rpi/swap.conf.d/90-aryaos.conf"
-install -v -D -m 0644 "${SHARED_FILES}/charontak/charontak.ini" "${ROOTFS_DIR}/usr/share/aryaos/defaults/charontak.ini"
+install -v -D -m 0644 "${SHARED_FILES}/cotbridge/cotbridge.ini" "${ROOTFS_DIR}/usr/share/aryaos/defaults/cotbridge.ini"
 
 ## gpsd: USB GNSS defaults (see shared_files/aryaos/gpsd.default)
 install -v -m 0644 "${SHARED_FILES}/aryaos/gpsd.default" "${ROOTFS_DIR}/etc/default/gpsd"

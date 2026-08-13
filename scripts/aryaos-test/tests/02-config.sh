@@ -7,7 +7,7 @@ set -euo pipefail
 source "$(dirname "$0")/../lib.sh"
 
 if grep -q 'COT_URL=udp+wo://127.0.0.1:28087' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
-	ok "feeder COT_URL → charontak ingress"
+	ok "feeder COT_URL → cotbridge ingress"
 else
 	fail "COT_URL not udp+wo://127.0.0.1:28087 in aryaos-config.txt"
 fi
@@ -18,26 +18,26 @@ else
 	warn "ARYAOS_ADSB_JSON_DIR not set in aryaos-config.txt"
 fi
 
-if [[ -f /etc/charontak.ini ]]; then
-	if grep -q '127.0.0.1:28087' /etc/charontak.ini; then
-		ok "charontak.ini ingress 127.0.0.1:28087"
+if [[ -f /etc/cotbridge.ini ]]; then
+	if grep -q '127.0.0.1:28087' /etc/cotbridge.ini; then
+		ok "cotbridge.ini ingress 127.0.0.1:28087"
 	else
-		fail "charontak.ini missing ingress 127.0.0.1:28087"
+		fail "cotbridge.ini missing ingress 127.0.0.1:28087"
 	fi
-	if grep -q '^\[lane:local-to-mesh\]' /etc/charontak.ini &&
-		grep -q '^egress_cot_url = udp+wo://239.2.3.1:6969' /etc/charontak.ini; then
-		ok "charontak default local-to-mesh egress"
+	if grep -q '^\[lane:local-to-mesh\]' /etc/cotbridge.ini &&
+		grep -q '^egress_cot_url = udp+wo://239.2.3.1:6969' /etc/cotbridge.ini; then
+		ok "cotbridge default local-to-mesh egress"
 	else
-		fail "charontak default local-to-mesh egress missing"
+		fail "cotbridge default local-to-mesh egress missing"
 	fi
-	if grep -q '^\[lane:local-to-takserver\]' /etc/charontak.ini &&
-		grep -q '^ingress_cot_url = udp+ro://127.0.0.1:28087' /etc/charontak.ini; then
-		ok "charontak TAK Server lane uses local ingress"
+	if grep -q '^\[lane:local-to-takserver\]' /etc/cotbridge.ini &&
+		grep -q '^ingress_cot_url = udp+ro://127.0.0.1:28087' /etc/cotbridge.ini; then
+		ok "cotbridge TAK Server lane uses local ingress"
 	else
-		fail "charontak TAK Server lane not wired to local ingress"
+		fail "cotbridge TAK Server lane not wired to local ingress"
 	fi
 else
-	skip "charontak.ini not present"
+	skip "cotbridge.ini not present"
 fi
 
 if [[ -f /etc/default/adsbcot ]]; then
@@ -54,7 +54,7 @@ if [[ -f /etc/default/readsb ]]; then
 	if grep -q 'device-type rtlsdr' /etc/default/readsb; then
 		ok "readsb device-type rtlsdr"
 	elif grep -q 'device-type modesbeast' /etc/default/readsb \
-			&& grep -Eq "^ARYAOS_ADSB_SOURCE=(adsbee|\"adsbee\"|'adsbee')$" /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+			&& grep -Eq "^ARYAOS_ADSB_1090_SOURCE=(adsbee|\"adsbee\"|'adsbee')$" /etc/aryaos/aryaos-config.txt 2>/dev/null; then
 		adsbee_port="$(sed -n -E 's|.*--beast-serial ([^ ]+).*|\1|p' /etc/default/readsb | head -1)"
 		if [[ -n "${adsbee_port}" && -c "${adsbee_port}" ]]; then
 			ok "readsb modesbeast input uses detected ADSBee (${adsbee_port})"
@@ -132,10 +132,10 @@ if [[ -f /lib/systemd/system/sikw00fcot.service ]]; then
 	else
 		fail "sikw00fcot service missing AryaOS site config inheritance"
 	fi
-	if [[ -f /etc/systemd/system/sikw00fcot.service.d/after-charontak.conf ]]; then
-		ok "sikw00fcot starts after charontak"
+	if [[ -f /etc/systemd/system/sikw00fcot.service.d/after-cotbridge.conf ]]; then
+		ok "sikw00fcot starts after cotbridge"
 	else
-		fail "sikw00fcot missing after-charontak drop-in"
+		fail "sikw00fcot missing after-cotbridge drop-in"
 	fi
 else
 	fail "sikw00fcot service missing"

@@ -33,10 +33,10 @@ Short answers to the questions we hear most, each linking to the page with the f
     Pick your sensor's mission page - [Aircraft (ADS-B)](../deploy/air-adsb.md), [Maritime (AIS)](../deploy/maritime-ais.md), or [Counter-UAS (drones)](../deploy/counter-uas.md) - attach the right radio and antenna, set the [device role](../config/device-roles.md), and the tracks flow to TAK over Mesh SA. If nothing shows up, see [Troubleshooting](../troubleshooting.md).
 
 ??? question "How do I connect AryaOS to a TAK Server?"
-    Import your TAK connection **data package** or a `tak://` **enrollment link** from the TAK connection card in **Cockpit > AryaOS Site**. AryaOS installs the certificates and adds a CharonTAK egress lane to the server. See [Connect to a TAK Server](../deploy/connect-tak-server.md).
+    Import your TAK connection **data package** or a `tak://` **enrollment link** from the TAK connection card in **Cockpit > AryaOS Site**. AryaOS installs the certificates and adds a COTBridge egress lane to the server. See [Connect to a TAK Server](../deploy/connect-tak-server.md).
 
 ??? question "How do I show tracks in ForeFlight or another EFB?"
-    AryaOS converts CoT to GDL90 via GDLTAK (UDP 4000). Point your EFB at the device. See [ForeFlight & EFBs (GDL90)](../deploy/foreflight-gdl90.md).
+    AryaOS converts CoT to GDL90 via GDLCOT (UDP 4000). Point your EFB at the device. See [ForeFlight & EFBs (GDL90)](../deploy/foreflight-gdl90.md).
 
 ??? question "How do I change SDR serial numbers?"
     From **Cockpit > AryaOS Site > Radios**, or run `sudo aryaos-sdr set-serial 0 stx:1090:0`. Replug the dongle (or reboot) afterward. See [Radios & SDRs](../config/radios-sdr.md) and [`aryaos-sdr`](../reference/cli-helpers.md#aryaos-sdr).

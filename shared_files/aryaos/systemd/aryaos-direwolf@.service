@@ -8,7 +8,7 @@ Documentation=https://github.com/wb2osz/direwolf
 # (North America VHF APRS), FM-demodulates with rtl_fm, and hands 24 kHz audio to
 # Dire Wolf which decodes 1200-baud AFSK APRS and serves it as KISS over TCP :8001.
 # aprscot (aprscot.service, KISS_HOST=127.0.0.1 KISS_PORT=8001) turns that into CoT
-# for charontak -> TAK. Receive-only; nothing is transmitted. Off by default.
+# for cotbridge -> TAK. Receive-only; nothing is transmitted. Off by default.
 After=local-fs.target
 ConditionPathExists=/usr/bin/direwolf
 

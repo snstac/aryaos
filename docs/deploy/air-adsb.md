@@ -29,7 +29,7 @@ AryaOS decodes both and feeds them to your COP through `adsbcot`.
     2. In the **Device role** card, choose **Air - ADS-B 1090/978 aircraft**.
     3. Click **Apply role**.
 
-    AryaOS enables the ADS-B decoder, `dump978-fa`, `adsbcot`, and `gdltak`, and stops the maritime and drone pipelines.
+    AryaOS enables the ADS-B decoder, `dump978-fa`, `adsbcot`, and `gdlcot`, and stops the maritime and drone pipelines.
 
 === "Command line"
 
@@ -62,9 +62,9 @@ AryaOS selects dongles by their **EEPROM serial** so the right SDR handles the r
 | Band | Serial | Used by |
 |------|--------|---------|
 | ADS-B 1090 MHz | `stx:1090:0` | `readsb` / `dump1090-fa` |
-| UAT 978 MHz | `stx:978:0` | `dump978-fa` (via `ARYAOS_UAT_RTL_SERIAL`) |
+| UAT 978 MHz | `stx:978:0` | `dump978-fa` (via `ARYAOS_UAT_978_DEVICE`) |
 
-The 978 MHz serial is configurable from the **UAT (978 MHz) RTL-SDR serial** field on the **TAK destination** card, or via `ARYAOS_UAT_RTL_SERIAL` in the site config (default `stx:978:0`, which matches the Nooelec NESDR Nano 3 "978" EEPROM preset).
+The 978 MHz serial is configurable from the **UAT (978 MHz) RTL-SDR serial** field on the **TAK destination** card, or via `ARYAOS_UAT_978_DEVICE` in the site config (default `stx:978:0`, which matches the Nooelec NESDR Nano 3 "978" EEPROM preset).
 
 !!! danger "Never share a serial between bands"
     The 978 MHz SDR must not use the same serial as the 1090 MHz path, or the decoders will fight over the same dongle. If your dongles ship blank or duplicated, re-serial them from the **Radios** card or with `aryaos-sdr set-serial IDX SERIAL`. Writing a serial briefly stops SDR services - **replug the dongle (or reboot)** before the new serial is visible.
@@ -83,7 +83,7 @@ flowchart LR
     end
     R -->|aircraft.json| ADSB[adsbcot]
     U --> ADSB
-    ADSB -->|CoT| H[Charontak hub]
+    ADSB -->|CoT| H[COTBridge hub]
 ```
 
 - **One SDR (1090 only):** the most common setup. Decode ADS-B; leave `dump978-fa` idle (no UAT antenna).
@@ -100,7 +100,7 @@ flowchart LR
     ls -l /run/adsb/aircraft.json          # ARYAOS_ADSB_JSON_DIR
     ```
 
-    A growing, recently-modified `aircraft.json` means the decoder is receiving. `adsbcot` then converts those tracks to CoT and sends them to the Charontak hub at `udp+wo://127.0.0.1:28087`.
+    A growing, recently-modified `aircraft.json` means the decoder is receiving. `adsbcot` then converts those tracks to CoT and sends them to the COTBridge hub at `udp+wo://127.0.0.1:28087`.
 
 !!! tip "No aircraft yet?"
     Check the antenna connection first, then confirm the SDR serial matches the band. If nothing decodes even with good signal, verify the correct decoder is enabled for `ARYAOS_ADSB_DECODER` and re-apply the role.

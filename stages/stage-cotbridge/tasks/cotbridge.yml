@@ -1,30 +1,30 @@
 # code: language=ansible
-# Charontak CoT hub — bridge config, systemd ordering, feeder EnvironmentFile.
+# COTBridge CoT hub — bridge config, systemd ordering, feeder EnvironmentFile.
 #
 # SPDX-License-Identifier: Apache-2.0
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 
-- name: Install Charontak bridge configuration
+- name: Install COTBridge bridge configuration
   ansible.builtin.template:
-    src: charontak.ini.j2
-    dest: /etc/charontak.ini
+    src: cotbridge.ini.j2
+    dest: /etc/cotbridge.ini
     mode: "0644"
-  notify: Restart Charontak
+  notify: Restart COTBridge
 
-- name: Ensure charontak.service.d exists
+- name: Ensure cotbridge.service.d exists
   ansible.builtin.file:
-    path: /etc/systemd/system/charontak.service.d
+    path: /etc/systemd/system/cotbridge.service.d
     state: directory
     mode: "0755"
 
-- name: Charontak reads PyTAK multicast bind from aryaos-config
+- name: COTBridge reads PyTAK multicast bind from aryaos-config
   ansible.builtin.copy:
-    src: "{{ shared_files }}/charontak/systemd/charontak.service.d/aryaos-config.conf"
-    dest: /etc/systemd/system/charontak.service.d/aryaos-config.conf
+    src: "{{ shared_files }}/cotbridge/systemd/cotbridge.service.d/aryaos-config.conf"
+    dest: /etc/systemd/system/cotbridge.service.d/aryaos-config.conf
     mode: "0644"
   notify:
     - Reload systemd
-    - Restart Charontak
+    - Restart COTBridge
 
 - name: Add EnvironmentFile to adsbcot.service
   ansible.builtin.lineinfile:
@@ -68,7 +68,7 @@
     insertbefore: '^EnvironmentFile=/etc/default/aircot'
   notify: Reload systemd
 
-- name: Feeder units start after Charontak
+- name: Feeder units start after COTBridge
   ansible.builtin.file:
     path: "/etc/systemd/system/{{ item }}.service.d"
     state: directory
@@ -81,10 +81,10 @@
     - lincot
     - aircot
 
-- name: Install after-charontak drop-ins for feeders
+- name: Install after-cotbridge drop-ins for feeders
   ansible.builtin.copy:
-    src: "{{ shared_files }}/charontak/systemd/after-charontak.conf"
-    dest: "/etc/systemd/system/{{ item }}.service.d/after-charontak.conf"
+    src: "{{ shared_files }}/cotbridge/systemd/after-cotbridge.conf"
+    dest: "/etc/systemd/system/{{ item }}.service.d/after-cotbridge.conf"
     mode: "0644"
   loop:
     - adsbcot
@@ -95,15 +95,15 @@
     - aircot
   notify: Reload systemd
 
-- name: Enable and start Charontak
+- name: Enable and start COTBridge
   ansible.builtin.systemd:
-    name: charontak.service
+    name: cotbridge.service
     enabled: true
     state: started
     daemon_reload: true
 
-- name: Verify cockpit-charontak manifest exists
+- name: Verify cockpit-cotbridge manifest exists
   ansible.builtin.stat:
-    path: /usr/share/cockpit/charontak/manifest.json
-  register: cockpit_charontak_manifest
+    path: /usr/share/cockpit/cotbridge/manifest.json
+  register: cockpit_cotbridge_manifest
   failed_when: false

@@ -1,10 +1,10 @@
-# Charontak lane editor
+# COTBridge lane editor
 
-**Charontak** is the CoT hub at the center of AryaOS. Every local sensor gateway sends its [Cursor on Target (CoT)](../reference/glossary.md) to Charontak, and Charontak fans that single stream out to wherever it needs to go - the local Mesh SA multicast group, one or more TAK Servers, or other tools. The **Charontak** Cockpit plugin edits `/etc/charontak.ini` through a structured **lane editor** so you rarely have to touch the INI by hand.
+**COTBridge** is the CoT hub at the center of AryaOS. Every local sensor gateway sends its [Cursor on Target (CoT)](../reference/glossary.md) to COTBridge, and COTBridge fans that single stream out to wherever it needs to go - the local Mesh SA multicast group, one or more TAK Servers, or other tools. The **COTBridge** Cockpit plugin edits `/etc/cotbridge.ini` through a structured **lane editor** so you rarely have to touch the INI by hand.
 
-Open it from Cockpit > **Charontak**.
+Open it from Cockpit > **COTBridge**.
 
-![The Charontak lane editor - service controls and two bridge lanes (feeders > Mesh SA, and Mesh SA > TAK Server), each with its ingress and egress CoT URLs](../media/screenshots/charontak-lane-editor.png)
+![The COTBridge lane editor - service controls and two bridge lanes (feeders > Mesh SA, and Mesh SA > TAK Server), each with its ingress and egress CoT URLs](../media/screenshots/cotbridge-lane-editor.png)
 
 ## Concept: one hub, many lanes
 
@@ -16,17 +16,17 @@ flowchart LR
     a[adsbcot]
     b[aiscot]
     c[dronecot]
-    d[lincot / gpstak / ...]
+    d[lincot / gpscot / ...]
   end
-  feeders -->|udp+wo://127.0.0.1:28087| hub[(Charontak hub)]
+  feeders -->|udp+wo://127.0.0.1:28087| hub[(COTBridge hub)]
   hub -->|lane: local-to-mesh| mesh[Mesh SA<br/>udp+wo://239.2.3.1:6969]
   hub -->|lane: local-to-takserver| tak[TAK Server<br/>tls://host:8089]
   hub -.->|extra lane| tool[Recorder / sidecar]
 ```
 
 - Feeders publish to the hub's **ingress** at `udp+wo://127.0.0.1:28087`.
-- Charontak **listens** on that address and owns **egress**.
-- Each **lane** is a `[lane:*]` section in `/etc/charontak.ini` that relays CoT between two endpoints.
+- COTBridge **listens** on that address and owns **egress**.
+- Each **lane** is a `[lane:*]` section in `/etc/cotbridge.ini` that relays CoT between two endpoints.
 
 The image ships two lanes:
 
@@ -35,8 +35,8 @@ The image ships two lanes:
 | `local-to-mesh` | **enabled** | `udp+ro://127.0.0.1:28087` > `udp+wo://239.2.3.1:6969` |
 | `local-to-takserver` | disabled (template) | `udp+ro://127.0.0.1:28087` > `tls://takserver.example.com:8089` |
 
-!!! warning "Charontak needs at least one lane"
-    If no lanes are configured, Charontak exits at startup. The editor warns you when the lane list is empty.
+!!! warning "COTBridge needs at least one lane"
+    If no lanes are configured, COTBridge exits at startup. The editor warns you when the lane list is empty.
 
 ## The lane list
 
@@ -68,7 +68,7 @@ A new lane pre-fills the ingress with the AryaOS hub address `udp+ro://127.0.0.1
     - **Ingress** is the *local* side: where the lane reads CoT from. On AryaOS that is normally the hub, `udp+ro://127.0.0.1:28087`, where feeders publish.
     - **Egress** is the *remote* side: where the lane writes CoT to - Mesh SA (`udp+wo://239.2.3.1:6969`), a TAK Server (`tls://host:8089`), or a `tak://` enrollment URL.
 
-    Both are required. Empty keys are removed so the lane falls back to the `[charontak]` global defaults.
+    Both are required. Empty keys are removed so the lane falls back to the `[cotbridge]` global defaults.
 
 ### Modes
 
@@ -84,7 +84,7 @@ Most AryaOS lanes are **forward**: read from the local hub, write to the remote 
 
 ### Suppress hello event (`PYTAK_NO_HELLO`)
 
-Enable this on bridge lanes so Charontak does **not** inject its own presence "hello" event into the stream. It is on by default for new lanes and for the shipped lanes.
+Enable this on bridge lanes so COTBridge does **not** inject its own presence "hello" event into the stream. It is on by default for new lanes and for the shipped lanes.
 
 ### TAK protocol (`TAK_PROTO`)
 
@@ -94,7 +94,7 @@ Sets the payload framing for the lane. Leave as **inherited / default** unless t
 - `1` - Mesh protobuf
 - `2` - Stream protobuf
 
-The default for all lanes can be set in the collapsible **Global defaults ([charontak] section)** card, which also holds `DEBUG`, `CONNECT_RETRY_SLEEP`, `MAX_IN_QUEUE`, and `MAX_OUT_QUEUE`. Values there are inherited by every lane unless the lane overrides them.
+The default for all lanes can be set in the collapsible **Global defaults ([cotbridge] section)** card, which also holds `DEBUG`, `CONNECT_RETRY_SLEEP`, `MAX_IN_QUEUE`, and `MAX_OUT_QUEUE`. Values there are inherited by every lane unless the lane overrides them.
 
 ## Per-lane TLS
 
@@ -109,7 +109,7 @@ When either the ingress or egress URL uses a TLS scheme (`tls://`, `ssl://`, `ta
 | Skip certificate verification | `PYTAK_TLS_DONT_VERIFY` |
 | Skip hostname check | `PYTAK_TLS_DONT_CHECK_HOSTNAME` |
 
-These are **per-lane**, so one Charontak instance can hold different client identities for different TAK Servers. The paths point at PEM files on the device (for example `/etc/charontak/tls/client.crt`).
+These are **per-lane**, so one COTBridge instance can hold different client identities for different TAK Servers. The paths point at PEM files on the device (for example `/etc/cotbridge/tls/client.crt`).
 
 !!! danger "Verification switches are testing only"
     `PYTAK_TLS_DONT_VERIFY` and `PYTAK_TLS_DONT_CHECK_HOSTNAME` disable TLS safety checks. Never leave them enabled in the field.
@@ -119,7 +119,7 @@ These are **per-lane**, so one Charontak instance can hold different client iden
 
 ## Validation
 
-The editor validates lanes in the browser using the **same rules Charontak applies at startup**, so it rejects exactly what the daemon would reject - you find out before you save, not after the service fails.
+The editor validates lanes in the browser using the **same rules COTBridge applies at startup**, so it rejects exactly what the daemon would reject - you find out before you save, not after the service fails.
 
 ### Supported CoT URL schemes
 
@@ -147,14 +147,14 @@ Two enabled lanes cannot both **bind** the same UDP endpoint (host + port). When
 
 ## Raw INI escape hatch
 
-For anything the structured editor does not manage, the **Raw configuration** card exposes `/etc/charontak.ini` for direct editing. The lane editor only touches the keys it owns and preserves everything else, so you can mix structured edits with hand-written keys. After a raw save, Charontak restarts to pick up the change.
+For anything the structured editor does not manage, the **Raw configuration** card exposes `/etc/cotbridge.ini` for direct editing. The lane editor only touches the keys it owns and preserves everything else, so you can mix structured edits with hand-written keys. After a raw save, COTBridge restarts to pick up the change.
 
 ## After you save
 
-Saving through the plugin restarts `charontak` for you. If you edit the INI over SSH instead, restart it manually:
+Saving through the plugin restarts `cotbridge` for you. If you edit the INI over SSH instead, restart it manually:
 
 ```bash
-sudo systemctl restart charontak
+sudo systemctl restart cotbridge
 ```
 
 ## See also

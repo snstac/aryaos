@@ -112,7 +112,7 @@ def add_admin_banner(flows: list[dict]) -> None:
                 "<p><strong>Configuration and services</strong> are managed outside Node-RED:</p>"
                 "<ul>"
                 "<li><a href=\"/\" target=\"_blank\" rel=\"noopener\">HTTPS portal</a> — live status</li>"
-                "<li><a href=\"/admin/\" target=\"_blank\" rel=\"noopener\">Cockpit</a> — services, Charontak, feeders</li>"
+                "<li><a href=\"/admin/\" target=\"_blank\" rel=\"noopener\">Cockpit</a> — services, COTBridge, feeders</li>"
                 "<li><a ng-href=\"{{'http://' + location.host + ':9080/'}}\" target=\"_blank\" rel=\"noopener\">Comitup</a> — WiFi join</li>"
                 "</ul>"
                 "<p style=\"margin-bottom:0;color:#666\">This dashboard keeps maps, TFR, and recorder only.</p>"

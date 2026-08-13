@@ -38,7 +38,7 @@ zero - multi-pass is pointless on flash), then removes it. In order, it wipes:
 
 | Category | What is destroyed |
 | --- | --- |
-| **TLS / TAK key material** | `/etc/aryaos/tls`, `/etc/charontak/tls`, the per-gateway `tls` trees, the snakeoil key, and `/etc/lighttpd/ssl`. |
+| **TLS / TAK key material** | `/etc/aryaos/tls`, `/etc/cotbridge/tls`, the per-gateway `tls` trees, the snakeoil key, and `/etc/lighttpd/ssl`. |
 | **SSH host keys** | Wiped, then **regenerated** (`ssh-keygen -A`) so SSH still works after the reboot. |
 | **VPN state** | `tailscale logout`, then `/var/lib/tailscale` wiped. |
 | **Node-RED credentials** | `flows_cred.json` wiped; admin password reset to a **random, unrecorded** value (rotate it from the web console after reboot). |

@@ -797,7 +797,7 @@ def gather_tac_gateways():
         return out
 
     specs = (
-        ("charontak", "CoT bridge", "Bridge", ("charontak",)),
+        ("cotbridge", "CoT bridge", "Bridge", ("cotbridge",)),
         ("lincot", "GNSS→TAK", "GNSS", ("lincot",)),
         ("adsbcot", "ADS-B→TAK", "ADS-B", ("adsbcot",)),
         ("aiscot", "AIS→TAK", "AIS", ("aiscot",)),

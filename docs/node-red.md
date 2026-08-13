@@ -34,7 +34,7 @@ visualization and custom automation only. Configure the system here instead:
 | Need | Where |
 |------|-------|
 | Site TAK destination, TLS, role, updates | [AryaOS Site page](admin/aryaos-site.md) |
-| Where CoT flows (Mesh SA / TAK Server) | [Charontak lane editor](admin/charontak-lanes.md) |
+| Where CoT flows (Mesh SA / TAK Server) | [COTBridge lane editor](admin/cotbridge-lanes.md) |
 | Per-sensor settings | [Gateway pages](admin/gateways.md) > `/etc/default/<svc>` |
 | SDR serials & decoder | [Radios & SDRs](config/radios-sdr.md) |
 | Wi-Fi / hotspot | [Wi-Fi & onboarding hotspot](networking/wifi-hotspot.md) |

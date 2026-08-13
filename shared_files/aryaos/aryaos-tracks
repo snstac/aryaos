@@ -4,8 +4,8 @@
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 # SPDX-License-Identifier: Apache-2.0
 #
-# The charontak recorder writes compressed CoT archives under
-# /var/lib/charontak/tracks. This is the operator's handle on them: see how much
+# The cotbridge recorder writes compressed CoT archives under
+# /var/lib/cotbridge/tracks. This is the operator's handle on them: see how much
 # is stored and over what period, and delete some or all of it on demand.
 #
 # Recorded tracks are asset location history. They are deliberately NOT under
@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-TRACKS_DIR="${TRACKS_DIR:-/var/lib/charontak/tracks}"
+TRACKS_DIR="${TRACKS_DIR:-/var/lib/cotbridge/tracks}"
 
 usage() {
 	cat <<'EOF'
@@ -68,7 +68,7 @@ archives() {
 cmd_status() {
 	if [[ ! -d "${TRACKS_DIR}" ]]; then
 		echo "No recordings: ${TRACKS_DIR} does not exist."
-		echo "Recording is enabled per lane in /etc/charontak.ini (record = on|only)."
+		echo "Recording is enabled per lane in /etc/cotbridge.ini (record = on|only)."
 		return 0
 	fi
 
@@ -93,10 +93,10 @@ cmd_status() {
 	avail=$(df -B1 --output=avail "${TRACKS_DIR}" 2>/dev/null | tail -1 | tr -d ' ' || echo "")
 	[[ -n "${avail}" ]] && echo "  free     : $(human "${avail}")"
 
-	if [[ -r /run/charontak/status.json ]]; then
+	if [[ -r /run/cotbridge/status.json ]]; then
 		echo "  recorder : $(python3 - <<'PY' 2>/dev/null || echo "unknown"
 import json
-d = json.load(open("/run/charontak/status.json"))
+d = json.load(open("/run/cotbridge/status.json"))
 r = d.get("recorder") or {}
 print("recording" if r.get("recording") else (r.get("halted_reason") or "not recording"))
 PY

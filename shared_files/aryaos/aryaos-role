@@ -9,7 +9,7 @@
 # boxes is the capability mix, and that is measured (aryaos-capability-scan).
 #
 # Capabilities map to sensor systemd units; a capability set enables the union of
-# those units and disables the rest. The CoT core (charontak, lincot, gpstak,
+# those units and disables the rest. The CoT core (cotbridge, lincot, gpscot,
 # gpsd) is never touched — it always runs.
 #
 # Subcommands:
@@ -88,10 +88,10 @@ cap_units() {
 			# dump978 UAT decoder when discovery selected it: there is no RTL-SDR
 			# for dump978 to open, and doing so would create a permanent restart
 			# loop on an otherwise healthy ADSBee box.
-			if [[ "$(config_get ARYAOS_ADSB_SOURCE)" == "adsbee" ]]; then
-				echo "$(adsb_decoder_unit) adsbcot gdltak"
+			if [[ "$(config_get ARYAOS_ADSB_1090_SOURCE)" == "adsbee" ]]; then
+				echo "$(adsb_decoder_unit) adsbcot gdlcot"
 			else
-				echo "$(adsb_decoder_unit) dump978-fa adsbcot gdltak"
+				echo "$(adsb_decoder_unit) dump978-fa adsbcot gdlcot"
 			fi
 			;;
 		ais)      echo "ais-catcher aiscot" ;;
@@ -137,7 +137,7 @@ role_caps() {
 }
 
 all_managed_units() {
-	echo "readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot acarsdec acarscot \
+	echo "readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot acarsdec acarscot \
 		dronecot dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot"
 }
 
@@ -218,7 +218,7 @@ apply_units() {
 			# `degraded` -- for a service we just deliberately switched off.
 			#
 			# Seen on aryaos-c998: switching from adsb (a LimeSDR that readsb
-			# cannot drive) to ble-rid left readsb, adsbcot and gdltak listed as
+			# cannot drive) to ble-rid left readsb, adsbcot and gdlcot listed as
 			# failed while ble-rid ran perfectly. The box reported degraded and
 			# an operator had no way to tell that from a real fault.
 			systemctl reset-failed "${unit}" >/dev/null 2>&1 || true
@@ -296,12 +296,14 @@ configure_detected_inputs() {
 				fi
 			fi
 			config_set ARYAOS_ADSB_DECODER readsb
-			config_set ARYAOS_ADSB_SOURCE adsbee
+			config_set ARYAOS_ADSB_1090_SOURCE adsbee
+			config_set ARYAOS_ADSB_1090_DEVICE "${adsbee}"
 			echo "configure readsb <- ADSBee ${adsbee} (Mode-S Beast)"
 		else
 			# Clear a stale discovery marker. Deliberate/manual readsb options are
 			# left untouched; aryaos-sdr owns RTL/Soapy receiver selection.
-			config_set ARYAOS_ADSB_SOURCE ""
+			config_set ARYAOS_ADSB_1090_SOURCE auto
+			config_set ARYAOS_ADSB_1090_DEVICE ""
 		fi
 	fi
 

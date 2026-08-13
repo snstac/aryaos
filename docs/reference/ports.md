@@ -12,12 +12,12 @@ Every port, multicast group, and network address AryaOS uses, and what each is f
 | 22 | TCP | SSH (`sshd`) | Optional remote shell. Hardened: no root login, `MaxAuthTries 4`, `fail2ban`. |
 | 443 | TCP | Portal / proxy (`lighttpd`) | HTTPS portal; proxies `/admin` to Cockpit. Per-device TLS certificate. |
 | 1880 | TCP | Node-RED | Low-code editor and dashboards. Admin API is password-protected via `adminAuth`. |
-| 4000 | UDP | GDL90 (`gdltak`) | CoT-to-GDL90 output for ForeFlight / EFBs. Default destination port. |
-| 4349 | TCP | GPSTAK | Default GPSTAK network-GPS / NMEA fan-out port. |
+| 4000 | UDP | GDL90 (`gdlcot`) | CoT-to-GDL90 output for ForeFlight / EFBs. Default destination port. |
+| 4349 | TCP | GPSCOT | Default GPSCOT network-GPS / NMEA fan-out port. |
 | 8100 | TCP | AIS-catcher web | AIS-catcher live map and statistics dashboard. |
 | 9080 | TCP | Comitup portal | Captive Wi-Fi-onboarding web UI. Only listens while in hotspot mode. |
 | 9090 | TCP | Cockpit | The web admin surface (HTTPS). Also reachable via the 443 portal proxy at `/admin`. |
-| 28087 | UDP | CharonTAK hub | Local CoT hub. Feeders write `udp+wo://127.0.0.1:28087`; CharonTAK reads `udp+ro://127.0.0.1:28087`. **Localhost only.** |
+| 28087 | UDP | COTBridge hub | Local CoT hub. Feeders write `udp+wo://127.0.0.1:28087`; COTBridge reads `udp+ro://127.0.0.1:28087`. **Localhost only.** |
 
 !!! note "Standard infrastructure ports"
     AryaOS also uses the usual system services allowed by firewalld: mDNS (5353/udp, for `aryaos-xxxx.local`), DHCP, and DNS on the hotspot and PAN interfaces.
@@ -26,7 +26,7 @@ Every port, multicast group, and network address AryaOS uses, and what each is f
 
 | Group | Port | Proto | Purpose |
 |---|---|---|---|
-| `239.2.3.1` | 6969 | UDP | **TAK Mesh SA** - CharonTAK egress/ingress and `aryaos-neighbord` neighbor discovery. `udp+wo://239.2.3.1:6969`. |
+| `239.2.3.1` | 6969 | UDP | **TAK Mesh SA** - COTBridge egress/ingress and `aryaos-neighbord` neighbor discovery. `udp+wo://239.2.3.1:6969`. |
 
 Multicast source binding is controlled by `PYTAK_MULTICAST_LOCAL_ADDR` in the site config (default `10.41.0.1`, the hotspot IP). See [Relay & routing](../deploy/relay-routing.md) and [Nearby nodes](../operations/neighbors.md).
 
@@ -41,7 +41,7 @@ See [Wi-Fi & onboarding hotspot](../networking/wifi-hotspot.md) and [Bluetooth P
 
 ## Egress (outbound)
 
-AryaOS forwards CoT outward through CharonTAK:
+AryaOS forwards CoT outward through COTBridge:
 
 | Destination | URL | When |
 |---|---|---|

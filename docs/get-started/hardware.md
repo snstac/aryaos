@@ -102,7 +102,7 @@ The right antenna does more for range than anything else in the kit.
 
 ## GPS / GNSS
 
-A USB GNSS puck gives the gateway its own position, which AryaOS publishes to TAK via [GPSTAK and LINCOT](../reference/software-suite.md) - useful for backpack and vehicle operations where the box is on the move.
+A USB GNSS puck gives the gateway its own position, which AryaOS publishes to TAK via [GPSCOT and LINCOT](../reference/software-suite.md) - useful for backpack and vehicle operations where the box is on the move.
 
 - Any `gpsd`-compatible USB GNSS receiver works (the popular u-blox 7/8-class pucks are common choices).
 - GPS is optional for fixed-site installs but recommended for mobile and dismounted use.

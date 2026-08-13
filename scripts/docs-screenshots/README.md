@@ -32,7 +32,7 @@ screenshots show.
 
 ## React plugins (lane editor, per-gateway pages)
 
-The React/TypeScript plugins (`cockpit-charontak`, `cockpit-aiscot`, …) bundle
+The React/TypeScript plugins (`cockpit-cotbridge`, `cockpit-aiscot`, …) bundle
 the **real** Cockpit client, which expects a live `cockpit-ws` backend, so the
 `window.cockpit` stub above does not apply. To screenshot them, rebuild the
 plugin with `cockpit` aliased to a mock module, then serve `dist/`:

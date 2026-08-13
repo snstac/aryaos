@@ -11,18 +11,18 @@ The single most important thing this file sets is where local feeders send CoT -
 
 ```mermaid
 flowchart LR
-  feeders[Feeders<br/>adsbcot, aiscot, dronecot, lincot, gpstak, ...] -->|COT_URL<br/>udp+wo://127.0.0.1:28087| charontak[(Charontak hub)]
-  charontak -->|lane| mesh[Mesh SA<br/>239.2.3.1:6969]
-  charontak -.->|lane| tak[TAK Server]
+  feeders[Feeders<br/>adsbcot, aiscot, dronecot, lincot, gpscot, ...] -->|COT_URL<br/>udp+wo://127.0.0.1:28087| cotbridge[(COTBridge hub)]
+  cotbridge -->|lane| mesh[Mesh SA<br/>239.2.3.1:6969]
+  cotbridge -.->|lane| tak[TAK Server]
 ```
 
-**Feeders > Charontak > Mesh SA (and/or TAK Server).** Keep `COT_URL` pointed at the Charontak hub and configure upstream destinations as [Charontak lanes](../admin/charontak-lanes.md). Only change `COT_URL` when you are deliberately bypassing the hub.
+**Feeders > COTBridge > Mesh SA (and/or TAK Server).** Keep `COT_URL` pointed at the COTBridge hub and configure upstream destinations as [COTBridge lanes](../admin/cotbridge-lanes.md). Only change `COT_URL` when you are deliberately bypassing the hub.
 
 ## TAK / CoT
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `COT_URL` | `udp+wo://127.0.0.1:28087` | Where local `*cot` feeders send CoT. Default is the Charontak hub ingress on localhost. Upstream mesh / TAK Server forwarding is configured in `/etc/charontak.ini`. |
+| `COT_URL` | `udp+wo://127.0.0.1:28087` | Where local `*cot` feeders send CoT. Default is the COTBridge hub ingress on localhost. Upstream mesh / TAK Server forwarding is configured in `/etc/cotbridge.ini`. |
 | `COT_HOST_ID` | *(set on first boot)* | Functional source id stamped into CoT flow-tags and remarks by the PyTAK tools. Set on first boot to `aryaos-<suffix>`; override for a custom name. |
 
 TLS material for TAK Server connections is written to this file by the [Site-wide TAK TLS certificates](../admin/aryaos-site.md#site-wide-tak-tls-certificates) card as `PYTAK_TLS_CLIENT_CERT`, `PYTAK_TLS_CLIENT_KEY`, and `PYTAK_TLS_CLIENT_CAFILE` (paths under `/etc/aryaos/tls/`), plus `PYTAK_TLS_DONT_VERIFY` (lab only). Prefer the [TAK connection](../admin/aryaos-site.md#tak-connection) card, which sets these for you.
@@ -33,7 +33,7 @@ TLS material for TAK Server connections is written to this file by the [Site-wid
 |-----|---------|---------|
 | `ARYAOS_ADSB_DECODER` | `readsb` | 1090 MHz decoder: `readsb` or `dump1090_fa` (only one may run). Must match the image build. Changing this alone does not reconfigure systemd - re-apply the [device role](./device-roles.md). |
 | `ARYAOS_ADSB_JSON_DIR` | `/run/adsb` | Directory where the decoder writes `aircraft.json`; `adsbcot` reads `aircraft.json` from here. |
-| `ARYAOS_UAT_RTL_SERIAL` | `stx:978:0` | RTL-SDR EEPROM serial for `dump978-fa` (UAT / 978 MHz). Must differ from the 1090 MHz serial. Restart `dump978-fa` after changing. |
+| `ARYAOS_UAT_978_DEVICE` | `stx:978:0` | RTL-SDR EEPROM serial for `dump978-fa` (UAT / 978 MHz). Must differ from the 1090 MHz serial. Restart `dump978-fa` after changing. |
 
 See [Radios & SDRs](./radios-sdr.md) for the serial conventions and decoder-switch procedure.
 
@@ -43,7 +43,7 @@ See [Radios & SDRs](./radios-sdr.md) for the serial conventions and decoder-swit
 |-----|---------|---------|
 | `PYTAK_MULTICAST_LOCAL_ADDR` | `10.41.0.1` | For Mesh SA / multicast `COT_URL`s: which interface to bind. An IP, or `0.0.0.0` for all. Default is the Wi-Fi AP IP. |
 | `WIFI_AP_IP` | `10.41.0.1` | **Deprecated** legacy setting. |
-| `AOS_SERVICES` | `"charontak gpstak aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"` | Network-facing CoT services restarted on network-state change and by **Save & restart sensors**. Keep local decoders, GPS, UI, and the Bluetooth bridge out of this list. |
+| `AOS_SERVICES` | `"cotbridge gpscot aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"` | Network-facing CoT services restarted on network-state change and by **Save & restart sensors**. Keep local decoders, GPS, UI, and the Bluetooth bridge out of this list. |
 
 !!! note "AOS_SERVICES and the Site page"
     The **Sensor services** card and the **Save & restart sensors** button use `AOS_SERVICES` when it is set. Restarting the wrong units during boot can interrupt radio ingest and Bluetooth pairing, which is why the list deliberately excludes decoders, gpsd, and the PAN bridge.
@@ -83,18 +83,18 @@ Set this from the [Device role](../admin/aryaos-site.md#device-role) card. The f
 
 For the normal case, leave `COT_URL` alone and edit lanes:
 
-=== "Recommended (via Charontak)"
-    Point upstream destinations at the [Charontak lane editor](../admin/charontak-lanes.md). Feeders keep `COT_URL=udp+wo://127.0.0.1:28087`; Charontak forwards to Mesh SA and/or a TAK Server. For TAK Servers, the [TAK connection](../admin/aryaos-site.md#tak-connection) card wires the lane and certs automatically.
+=== "Recommended (via COTBridge)"
+    Point upstream destinations at the [COTBridge lane editor](../admin/cotbridge-lanes.md). Feeders keep `COT_URL=udp+wo://127.0.0.1:28087`; COTBridge forwards to Mesh SA and/or a TAK Server. For TAK Servers, the [TAK connection](../admin/aryaos-site.md#tak-connection) card wires the lane and certs automatically.
 
-=== "Bypass Charontak (advanced)"
-    Set `COT_URL` directly on the Site page (or per-gateway) to route feeders around the hub - for example `tls://takserver.example.com:8089` or `udp+wo://239.2.3.1:6969`. This forgoes Charontak's fan-out and is normally used only for debugging.
+=== "Bypass COTBridge (advanced)"
+    Set `COT_URL` directly on the Site page (or per-gateway) to route feeders around the hub - for example `tls://takserver.example.com:8089` or `udp+wo://239.2.3.1:6969`. This forgoes COTBridge's fan-out and is normally used only for debugging.
 
 ## Editing over SSH
 
 If you edit the file directly instead of using the web console, restart the affected units afterward:
 
 ```bash
-sudo systemctl restart charontak adsbcot aiscot lincot dronecot
+sudo systemctl restart cotbridge adsbcot aiscot lincot dronecot
 ```
 
 Prefer the [AryaOS Site page](../admin/aryaos-site.md), which restarts the right services for you.

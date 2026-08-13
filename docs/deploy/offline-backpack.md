@@ -14,14 +14,14 @@ This is the original AirTAK concept of operations: a gateway in a backpack, an A
 ```mermaid
 flowchart LR
     subgraph Backpack
-      BAT[USB battery] --> BOX[AryaOS box<br/>sensors + Charontak]
+      BAT[USB battery] --> BOX[AryaOS box<br/>sensors + COTBridge]
     end
     BOX -->|Wi-Fi hotspot AryaOS-xxxx| PHONE[ATAK phone]
     BOX -.->|Bluetooth PAN 10.44.0.1| PHONE2[iTAK / WinTAK]
     BOX -->|Mesh SA 239.2.3.1:6969| PHONE
 ```
 
-Everything happens on the box: sensors decode locally, Charontak multicasts the picture over Mesh SA, and your EUD joins over Wi-Fi or Bluetooth. Nothing leaves the backpack.
+Everything happens on the box: sensors decode locally, COTBridge multicasts the picture over Mesh SA, and your EUD joins over Wi-Fi or Bluetooth. Nothing leaves the backpack.
 
 ## Connect over the Wi-Fi hotspot
 

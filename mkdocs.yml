@@ -97,7 +97,7 @@ nav:
   - Web admin:
       - admin/index.md
       - AryaOS Site page: admin/aryaos-site.md
-      - Charontak lane editor: admin/charontak-lanes.md
+      - COTBridge lane editor: admin/cotbridge-lanes.md
       - Gateway pages: admin/gateways.md
       - Node-RED dashboard: node-red.md
   - Configure:

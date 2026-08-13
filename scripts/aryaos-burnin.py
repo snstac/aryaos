@@ -20,7 +20,7 @@ import glob, json, os, subprocess, time
 from pathlib import Path
 
 SERVICES = (
-    "charontak", "lincot", "dronecot", "dronecot-wifi",
+    "cotbridge", "lincot", "dronecot", "dronecot-wifi",
     "dronecot-dronescout", "acarscot", "acarsdec", "readsb",
     "adsbcot", "ais-catcher", "aiscot", "gutcheck", "aryaos-neighbord",
     "aryaos-bt-pan", "cockpit.socket",

@@ -2,7 +2,7 @@
 #
 # A BlueMark DroneScout DS101 / DroneBeacon emits detected Remote ID as MAVLink
 # over its USB-serial. dronecot's SerialWorker reads it (OPEN_DRONE_ID_MESSAGE_PACK
-# and, as of dronecot 2.2.3, ADSB_VEHICLE) and forwards to charontak as CoT.
+# and, as of dronecot 2.2.3, ADSB_VEHICLE) and forwards to cotbridge as CoT.
 # COT_URL is inherited from aryaos-config.txt via the service EnvironmentFile.
 #
 # Enable on a box with a DS101:  sudo systemctl enable --now dronecot-dronescout

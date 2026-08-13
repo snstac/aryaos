@@ -70,6 +70,18 @@
     dest: /usr/local/sbin/aryaos-tak-dp-importd
     mode: "0755"
 
+- name: Upload site output helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-site-output"
+    dest: /usr/local/sbin/aryaos-site-output
+    mode: "0755"
+
+- name: Upload health aggregation helper
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-health"
+    dest: /usr/local/sbin/aryaos-health
+    mode: "0755"
+
 - name: Upload GPS time sync helper
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/aryaos-gps-time-sync"

@@ -7,7 +7,7 @@
   ansible.builtin.systemd:
     daemon_reload: true
 
-- name: Restart Charontak
+- name: Restart COTBridge
   ansible.builtin.systemd:
-    name: charontak.service
+    name: cotbridge.service
     state: restarted

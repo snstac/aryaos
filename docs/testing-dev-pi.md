@@ -43,7 +43,7 @@ scripts/aryaos-test/
   validate_portal.py  # portal JSON schema (stdlib Python 3)
   tests/
     01-services.sh    # systemd active / TAK gateway units
-    02-config.sh      # aryaos-config, charontak, adsbcot, readsb
+    02-config.sh      # aryaos-config, cotbridge, adsbcot, readsb
     03-adsb.sh        # readsb SDR flags, aircraft.json
     04-portal.sh      # HTTPS/HTTP CGI + validate_portal.py
     05-packages.sh    # overlay package, calfire tiles
@@ -71,8 +71,8 @@ Expectations live in **`expectations.yml`**; update that file when image default
 
 - SSH unreachable
 - Core units: `readsb`, `adsbcot`, `lighttpd`, `gpsd`
-- TAK gateway units expected by portal CGI: `charontak`, `lincot`, `adsbcot`, `aiscot`, `dronecot`
-- Config: `COT_URL=udp+wo://127.0.0.1:28087`, adsbcot `FEED_URL`, charontak ingress (when present)
+- TAK gateway units expected by portal CGI: `cotbridge`, `lincot`, `adsbcot`, `aiscot`, `dronecot`
+- Config: `COT_URL=udp+wo://127.0.0.1:28087`, adsbcot `FEED_URL`, cotbridge ingress (when present)
 - readsb `--help` includes RTL-SDR, SoapySDR, HackRF
 - `/run/adsb/aircraft.json` exists and is valid JSON
 - Portal CGI returns HTTP 200 JSON with required keys and gateway IDs

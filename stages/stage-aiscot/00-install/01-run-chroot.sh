@@ -66,13 +66,13 @@ grep -qxF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/a
 sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" /lib/systemd/system/aiscot.service
 
 # APRS over RF (aryaos-sdr task N aprs): Dire Wolf decodes 144.39 MHz APRS to a
-# KISS TNC; aprscot (>= 8.2.0, KISS input) forwards it to charontak as CoT.
+# KISS TNC; aprscot (>= 8.2.0, KISS input) forwards it to cotbridge as CoT.
 # direwolf from Debian; aprscot from the snstac apt repo. Both are OFF by default
 # (task-driven) — aprscot must NOT auto-connect to APRS-IS over the internet.
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends direwolf aprscot
 # aprscot reads the local Dire Wolf KISS TNC (offline), not APRS-IS.
 install -v -m 0644 /usr/share/aryaos/aprscot.default /etc/default/aprscot
-# Inherit COT_URL (charontak) from the site config, like aiscot.
+# Inherit COT_URL (cotbridge) from the site config, like aiscot.
 grep -qxF "EnvironmentFile=/etc/aryaos/aryaos-config.txt" /lib/systemd/system/aprscot.service || \
 sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=\/etc\/aryaos\/aryaos-config.txt" /lib/systemd/system/aprscot.service
 # Task-driven only: do not start aprscot at boot (would hit APRS-IS with no KISS peer).

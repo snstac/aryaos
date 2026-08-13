@@ -287,10 +287,10 @@ class SerialRoleWiringTestCase(unittest.TestCase):
             pathlib.Path(__file__).parent.parent / "shared_files/aryaos/aryaos-role"
         ).read_text()
         self.assertIn("--device-type modesbeast", role)
-        self.assertIn("ARYAOS_ADSB_SOURCE", role)
+        self.assertIn("ARYAOS_ADSB_1090_SOURCE", role)
         self.assertRegex(
             role,
-            re.compile(r'ARYAOS_ADSB_SOURCE\).*?adsbee.*?adsbcot gdltak', re.S),
+            re.compile(r'ARYAOS_ADSB_1090_SOURCE\).*?adsbee.*?adsbcot gdlcot', re.S),
         )
 
     def test_dronescout_unit_has_missing_device_guard(self):

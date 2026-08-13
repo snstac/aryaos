@@ -9,7 +9,7 @@
 #
 # Backend for the "Radios" card in Cockpit -> AryaOS Site (cockpit-aryaos).
 # AryaOS serial conventions: stx:1090:0 (readsb/dump1090), stx:978:0 (UAT,
-# ARYAOS_UAT_RTL_SERIAL). A replug or reboot is required before the new
+# ARYAOS_UAT_978_DEVICE). A replug or reboot is required before the new
 # serial is visible to consumers.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
@@ -321,8 +321,8 @@ task_sdr() {
 	fi
 	echo "${serial}=${job}" >> "${TASKS_FILE}"
 	local note=""
-	[[ ${job} == ais ]] && note=' (162 MHz over-the-air; aiscot -> charontak -> TAK)'
-	[[ ${job} == aprs ]] && note=' (144.39 MHz over-the-air; direwolf -> aprscot -> charontak -> TAK)'
+	[[ ${job} == ais ]] && note=' (162 MHz over-the-air; aiscot -> cotbridge -> TAK)'
+	[[ ${job} == aprs ]] && note=' (144.39 MHz over-the-air; direwolf -> aprscot -> cotbridge -> TAK)'
 	echo "SDR ${index} (${driver}:${serial}) -> ${job}${note}."
 }
 

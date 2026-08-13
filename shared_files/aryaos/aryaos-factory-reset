@@ -50,7 +50,7 @@ fi
 
 if [[ "${SERVICE}" != "1" ]]; then
 	echo "This resets AryaOS to factory defaults: site config, TAK certificates,"
-	echo "charontak lanes, and device identity are cleared. The OS and packages stay."
+	echo "cotbridge lanes, and device identity are cleared. The OS and packages stay."
 	[[ "${WIPE_NETWORK}" == "1" ]] && echo "Saved Wi-Fi networks will ALSO be removed (--wipe-network)."
 	read -r -p "Type the hostname (${HOSTNAME}) to proceed: " ans
 	[[ "${ans}" == "${HOSTNAME}" ]] || { echo "Aborted."; exit 0; }
@@ -66,7 +66,7 @@ restore_default() {
 	echo "restored ${dst}"
 }
 restore_default "${DEFAULTS}/aryaos-config.txt" /etc/aryaos/aryaos-config.txt 0644
-restore_default "${DEFAULTS}/charontak.ini"     /etc/charontak.ini             0644
+restore_default "${DEFAULTS}/cotbridge.ini"     /etc/cotbridge.ini             0644
 restore_default "${DEFAULTS}/gpsd.default"      /etc/default/gpsd              0644
 for b in issue issue.net motd; do
 	restore_default "${DEFAULTS}/${b}" "/etc/${b}" 0644
@@ -76,7 +76,7 @@ done
 if command -v apt-get >/dev/null 2>&1 && ping -c1 -W2 deb.debian.org >/dev/null 2>&1; then
 	DEBIAN_FRONTEND=noninteractive apt-get -y --reinstall \
 		-o Dpkg::Options::=--force-confmiss -o Dpkg::Options::=--force-confask \
-		install adsbcot aiscot dronecot lincot gpstak gdltak charontak >/dev/null 2>&1 \
+		install adsbcot aiscot dronecot lincot gpscot gdlcot cotbridge >/dev/null 2>&1 \
 		&& echo "reinstalled sensor package defaults" \
 		|| {
 			echo "note: sensor package reinstall skipped/failed — /etc/default may be left as-is"
@@ -92,7 +92,7 @@ else
 fi
 
 # 3. Remove operator-uploaded TAK certificates (keep the directories).
-for d in /etc/aryaos/tls /etc/charontak/tls /etc/adsbcot/tls /etc/aiscot/tls /etc/dronecot/tls /etc/lincot/tls; do
+for d in /etc/aryaos/tls /etc/cotbridge/tls /etc/adsbcot/tls /etc/aiscot/tls /etc/dronecot/tls /etc/lincot/tls; do
 	[[ -d "${d}" ]] && find "${d}" -type f -delete 2>/dev/null || true
 done
 echo "removed uploaded TAK certificates"
@@ -131,9 +131,9 @@ echo "cleared device identity (regenerates on next boot)"
 
 # 5. Recorded tracks. A reset that leaves an asset's movement history on the
 # card has not reset the box in the sense an operator means.
-if [[ -d /var/lib/charontak/tracks ]]; then
-	find /var/lib/charontak/tracks -type f -exec shred -u -z -n1 {} + 2>/dev/null || \
-		find /var/lib/charontak/tracks -type f -delete 2>/dev/null || true
+if [[ -d /var/lib/cotbridge/tracks ]]; then
+	find /var/lib/cotbridge/tracks -type f -exec shred -u -z -n1 {} + 2>/dev/null || \
+		find /var/lib/cotbridge/tracks -type f -delete 2>/dev/null || true
 	echo "removed recorded tracks"
 fi
 

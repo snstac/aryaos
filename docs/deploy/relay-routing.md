@@ -1,24 +1,24 @@
 # Relay & CoT routing
 
-Run an AryaOS box purely as a Cursor on Target (CoT) router. Select the **`relay`** role and the device stops all sensors, dedicating itself to moving CoT between networks and TAK Servers through the **Charontak** hub.
+Run an AryaOS box purely as a Cursor on Target (CoT) router. Select the **`relay`** role and the device stops all sensors, dedicating itself to moving CoT between networks and TAK Servers through the **COTBridge** hub.
 
 Use a relay when you need to *carry the picture*, not *make* it: bridge a Mesh SA group to a TAK Server, join two networks, or place a forwarding node at the edge of a MANET.
 
-## What Charontak is
+## What COTBridge is
 
-**Charontak** is the CoT bridge/router at the heart of every AryaOS box (named for the ferryman - it *ferries* CoT). Every local feeder sends to Charontak, and Charontak owns all egress:
+**COTBridge** is the CoT bridge/router at the heart of every AryaOS box (named for the ferryman - it *ferries* CoT). Every local feeder sends to COTBridge, and COTBridge owns all egress:
 
 - It **listens** for CoT on `udp+ro://127.0.0.1:28087` (the site-config `COT_URL` default that feeders target with `udp+wo://127.0.0.1:28087`).
 - It **forwards** to one or more **lanes**. The default lane multicasts to **Mesh SA** at `udp+wo://239.2.3.1:6969`; optional lanes reach a [TAK Server](./connect-tak-server.md) over TLS.
 
-On AryaOS, Charontak is configured at `/etc/charontak.ini` and edited from **Cockpit > Charontak** at `https://<host>/admin/`. See [Charontak lanes](../admin/charontak-lanes.md) for the full editor reference.
+On AryaOS, COTBridge is configured at `/etc/cotbridge.ini` and edited from **Cockpit > COTBridge** at `https://<host>/admin/`. See [COTBridge lanes](../admin/cotbridge-lanes.md) for the full editor reference.
 
 ## Lanes: ingress > egress
 
 A **lane** is a one-directional route with an `ingress_cot_url` (where CoT comes in) and an `egress_cot_url` (where it goes out), plus `mode = forward`. Enable or disable each independently.
 
-```ini title="/etc/charontak.ini (AryaOS default)"
-[charontak]
+```ini title="/etc/cotbridge.ini (AryaOS default)"
+[cotbridge]
 DEBUG = false
 
 [lane:local-to-mesh]
@@ -88,7 +88,7 @@ For a pure relay you typically change the **ingress** to a network source rather
     2. In the **Device role** card, choose **Relay - CoT routing only**.
     3. Click **Apply role**.
 
-    All sensor units are stopped; Charontak (and the position core) keep running.
+    All sensor units are stopped; COTBridge (and the position core) keep running.
 
 === "Command line"
 
@@ -97,7 +97,7 @@ For a pure relay you typically change the **ingress** to a network source rather
     ```
 
 !!! note "A relay still beacons itself"
-    The `relay` role only disables *sensors*. `charontak`, `lincot`, `gpstak`, and `gpsd` stay running, so the relay node still routes CoT **and** reports its own position to the map. See [Own position / GPS](./own-position-gps.md).
+    The `relay` role only disables *sensors*. `cotbridge`, `lincot`, `gpscot`, and `gpsd` stay running, so the relay node still routes CoT **and** reports its own position to the map. See [Own position / GPS](./own-position-gps.md).
 
 ## When to use a relay
 
@@ -111,12 +111,12 @@ flowchart LR
       E1[ATAK] 
       E2[AryaOS sensor box]
     end
-    E1 & E2 -->|Mesh SA 239.2.3.1:6969| R[AryaOS relay<br/>Charontak]
+    E1 & E2 -->|Mesh SA 239.2.3.1:6969| R[AryaOS relay<br/>COTBridge]
     R -->|TLS lane| S[(TAK Server)]
 ```
 
 ## Related
 
-- [Charontak lanes](../admin/charontak-lanes.md) - full lane editor reference.
+- [COTBridge lanes](../admin/cotbridge-lanes.md) - full lane editor reference.
 - [Connect a TAK Server](./connect-tak-server.md) - provision the TLS/enrollment egress lane.
 - [Offline backpack](./offline-backpack.md) · [Device roles](../config/device-roles.md) · [Glossary](../reference/glossary.md)

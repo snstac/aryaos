@@ -52,7 +52,7 @@ install_file 0440 "${SHARED}/aryaos/aryaos.sudoers" "/etc/sudoers.d/aryaos"
 install_file 0644 "${SHARED}/aryaos/aryaos-config.txt" "/usr/share/aryaos/defaults/aryaos-config.txt"
 install_file 0644 "${SHARED}/aryaos/gpsd.default" "/usr/share/aryaos/defaults/gpsd.default"
 install_file 0644 "${SHARED}/aryaos/dronecot-dronescout.default" "/usr/share/aryaos/defaults/dronecot-dronescout.default"
-install_file 0644 "${SHARED}/charontak/charontak.ini" "/usr/share/aryaos/defaults/charontak.ini"
+install_file 0644 "${SHARED}/cotbridge/cotbridge.ini" "/usr/share/aryaos/defaults/cotbridge.ini"
 install_file 0755 "${SHARED}/aryaos/initramfs/set_partuuid" "/usr/share/aryaos/initramfs/set_partuuid"
 install_file 0755 "${SHARED}/aryaos/initramfs/zz-aryaos-set-partuuid-hook" "/etc/initramfs-tools/hooks/zz-aryaos-set-partuuid"
 
@@ -106,7 +106,7 @@ install_file 0644 "${SHARED}/aryaos/systemd/aryaos-zeroize.service" "/etc/system
 for unit in aryaos-crash-guard.service aryaos-safe-mode.service aryaos-boot-stable.service aryaos-boot-stable.timer; do
 	install_file 0644 "${SHARED}/aryaos/systemd/${unit}" "/etc/systemd/system/${unit}"
 done
-for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot aprscot dronecot sikw00fcot sapientcot; do
+for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot sikw00fcot sapientcot; do
 	install_file 0644 "${SHARED}/aryaos/systemd/safe-mode.conf" "/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-radio-silence.service" "/etc/systemd/system/aryaos-radio-silence.service"

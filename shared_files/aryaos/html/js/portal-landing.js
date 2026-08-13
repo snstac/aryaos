@@ -618,7 +618,7 @@
     var tg = d && d.tak_gateways;
     if (tg && tg.items && tg.items.length) {
       var sensors = tg.items.filter(function (it) {
-        return it && it.id !== "charontak" && it.id !== "lincot" &&
+        return it && it.id !== "cotbridge" && it.id !== "lincot" &&
           it.state !== "disabled" && it.state !== "absent" && it.state !== "unavailable";
       });
       var total = sensors.length, up = 0;

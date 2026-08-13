@@ -1,7 +1,24 @@
-# Agent handoff - state as of 2026-08-12
+# Agent handoff - state as of 2026-08-13
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
+
+## 2026-08-13 CoT naming and health cutover
+
+- Runtime and package identities are now COTBridge, GPSCOT, and GDLCOT. The
+  old service, executable, package, config, and Cockpit names are not aliases.
+  Package post-install scripts perform a one-time config migration and stop the
+  old units.
+- Local gateways continue to write to the fixed private bus
+  `udp+wo://127.0.0.1:28087`. Operators edit `ARYAOS_COT_OUTPUT_URL`, backed by
+  COTBridge `[lane:site-output]`; advanced lane editing remains in the
+  COTBridge plugin.
+- The shared PyTAK 7.5 status contract adds normalized `health`, `input`, and
+  `output` blocks. `aryaos-health status --json` aggregates current daemon
+  files and marks data older than 30 seconds as faulty.
+- ADS-B config now distinguishes `ARYAOS_ADSB_1090_SOURCE`,
+  `ARYAOS_ADSB_1090_DEVICE`, and `ARYAOS_UAT_978_DEVICE`, including ADSBee and
+  independent 1090/978 selection.
 
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
@@ -58,7 +75,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   2.3.8 and that setting. Live HIL on `.45` with the locally built
   `dronecot_2.3.8-1_all.deb` decoded 329 RID records in 45 seconds, matching the
   330 expected from the raw rate within the sampling boundary. CoT for lab RID
-  `1787F04BM24010011195` reached Charontak with current position. The service
+  `1787F04BM24010011195` reached COTBridge with current position. The service
   remained enabled and active with zero restarts, no failed units, and no Pi
   throttling.
 - The same host passed all 13 strict AryaAir HIL modules after the DroneCOT and
@@ -116,7 +133,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   cleared returned `ais` as an auto-applied capability and selected the correct
   stable by-id path.
 - The same boot produced one AISCOT restart. PyTAK correctly rebuilt the client
-  after a refused Charontak connection, but AISCOT did not close its UDP/5050
+  after a refused COTBridge connection, but AISCOT did not close its UDP/5050
   listener before the replacement worker bound the same port. AISCOT 7.3.1
   retains and closes the datagram transport through the PyTAK worker cleanup
   hook. Its regression starts a replacement worker on the same port in the same
@@ -126,7 +143,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `aiscot_7.3.1-1_all.deb`, and signed repository run `31638850105` published it
   for arm64 and armhf. AryaSea was upgraded to AISCOT 7.3.1 and AryaOS overlay
   2.0.24. The installed package closed and rebound the same UDP port in one
-  process, survived a 70-second Charontak outage with the same PID and zero
+  process, survived a 70-second COTBridge outage with the same PID and zero
   systemd restarts, and retained UDP/5050. After reboot, the six AIS/GPS/CoT
   services were active with zero restarts, no failed units or throttling, and
   all 13 strict HIL modules passed. The final RF window was quiet.
@@ -159,14 +176,14 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   at 78.75 C, with no throttling or service fault; its 15-minute
   1-worker/512 MiB phase passed at 73.8 C. Treat one sustained CPU worker as
   the safe current thermal envelope for the installed AryaSea enclosure.
-- Live DroneScout traffic exposed a GDLTAK crash loop: legitimate unknown CoT
-  fields arrived as `hae="nan"` and `speed="nan"`, and GDLTAK attempted to
-  convert them to integers. GDLTAK 1.0.1 rejects non-finite coordinates and
+- Live DroneScout traffic exposed a GDLCOT crash loop: legitimate unknown CoT
+  fields arrived as `hae="nan"` and `speed="nan"`, and GDLCOT attempted to
+  convert them to integers. GDLCOT 1.0.1 rejects non-finite coordinates and
   treats non-finite altitude/motion as unknown. Its 60-test suite and flake8
   pass, upstream PR 2 is merged as `b57f35c`, release/package `1.0.1-1` is in
   the signed repository, and both live hosts now carry it without changing
   their local configuration. AryaAir processed the same Remote ID stream with
-  zero subsequent GDLTAK restarts; AryaSea retains GDLTAK disabled/inactive as
+  zero subsequent GDLCOT restarts; AryaSea retains GDLCOT disabled/inactive as
   intended for its role.
 - A long-running DroneScout receiver can rotate its one-time MAVLink heartbeat
   line out of the RAM journal even while processing current Remote ID payloads.
@@ -175,7 +192,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   both hosts; ADS-B and AIS were RF-quiet during the final short windows, but
   service ownership, ports, role state, and restart checks passed. Earlier in
   the run, live/synthetic role traffic exercised both complete pipelines.
-- AryaOS commit `4c6f0c3` requires `gdltak >= 1.0.1` in HIL and mounted-image
+- AryaOS commit `4c6f0c3` requires `gdlcot >= 1.0.1` in HIL and mounted-image
   verification; `965013e` adds the journal-safe DroneScout HIL assertion and
   this handoff. Final image run `31612196240` passed every build, verification,
   SBOM, and publication step and released
@@ -184,28 +201,28 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   result is `acceptance-sampler/summary.json` and the final strict-suite logs
   are `final-hil-aryaair.log` and `final-hil-aryasea.log`.
 
-## 2026-08-11 `chronos` GPSTAK provisioning
+## 2026-08-11 `chronos` GPSCOT provisioning
 
 - `chronos` is a Raspberry Pi Zero W at `192.168.0.200`, running 32-bit
   Raspberry Pi OS Bookworm. Use `gba` and the AryaOS development SSH key.
-- `playbooks/gpstak-generic.yml` is the minimal, repeatable provisioning path.
+- `playbooks/gpscot-generic.yml` is the minimal, repeatable provisioning path.
   It assigns the PL011 to a GPIO14/15 GNSS receiver, disables Bluetooth and the
-  serial console, installs only gpsd/GPSTAK from the signed snstac repository,
-  and broadcasts `GPSTAK-chronos` CoT on UDP/4349.
-- Run it with `ansible-playbook -i inventory.yml playbooks/gpstak-generic.yml --limit chronos`.
-  Cockpit, LINCOT, CharonTAK, and the rest of the AryaOS
+  serial console, installs only gpsd/GPSCOT from the signed snstac repository,
+  and broadcasts `GPSCOT-chronos` CoT on UDP/4349.
+- Run it with `ansible-playbook -i inventory.yml playbooks/gpscot-generic.yml --limit chronos`.
+  Cockpit, LINCOT, COTBridge, and the rest of the AryaOS
   sensor stack are deliberately outside this host profile.
-- Provisioning installed `gpstak 1.0.1-1` and `pytak 7.4.3-1`. gpsd identified
+- Provisioning installed `gpscot 1.0.1-1` and `pytak 7.4.3-1`. gpsd identified
   the receiver as an MTK-3301 at 9600 baud and reported a mode-3 fix with 11 of
-  13 satellites used. A LAN capture verified `GPSTAK-chronos` CoT from
+  13 satellites used. A LAN capture verified `GPSCOT-chronos` CoT from
   `192.168.0.200`, including GNSS-derived CE/LE, altitude, course, and speed.
-- HIL passed a forced gpsd restart without restarting GPSTAK, a 12-sample soak
+- HIL passed a forced gpsd restart without restarting GPSCOT, a 12-sample soak
   with a continuous 3D fix and zero service restarts, an idempotent playbook run
   (`changed=0`), and a second reboot. The post-reboot host had no failed units,
   no Pi throttling, and about 284 MiB available memory.
-- Original boot files are retained as `config.txt.pre-gpstak` and
-  `cmdline.txt.pre-gpstak` under `/var/backups/aryaos-gpstak`. To roll back the
-  UART reassignment, stop/disable GPSTAK, restore those two files to
+- Original boot files are retained as `config.txt.pre-gpscot` and
+  `cmdline.txt.pre-gpscot` under `/var/backups/aryaos-gpscot`. To roll back the
+  UART reassignment, stop/disable GPSCOT, restore those two files to
   `/boot/firmware/`, re-enable `hciuart.service`, unmask any needed serial-getty
   unit, and reboot. Restoring the originals re-enables the serial console and
   returns the PL011 to Bluetooth.
@@ -224,9 +241,9 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   changes independently from GPS, and restarts AIS-catcher only when its port or
   baud actually changes. A 15-second stop timeout bounds a genuine reassignment.
 - A clean reboot retained the stable CP2102N GPS and CH340 dAISy paths. GPSD had
-  a 3D fix, AIS-catcher/AISCOT/Charontak were active with zero restarts, the AIS
+  a 3D fix, AIS-catcher/AISCOT/COTBridge were active with zero restarts, the AIS
   dashboard answered on TCP/8100, and no systemd unit failed. A checksum-valid
-  synthetic type-1 report produced `MMSI-366967102` CoT at Charontak's UDP/28087
+  synthetic type-1 report produced `MMSI-366967102` CoT at COTBridge's UDP/28087
   ingress, exercising the complete decoder-to-CoT path while RF was quiet.
 - Strict HIL passed all 13 modules. A three-minute, 12-sample burn-in had zero
   probe failures, service drops, restart increments, throttling events, storage
@@ -264,13 +281,13 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   plugins did not provide their own scroll container. Expanding **Debug Logs**
   or **Advanced Details** could therefore expose content below the viewport with
   no way to reach it. `#app` now owns vertical scrolling in ADSBCOT, AISCOT,
-  APRSCOT, Charontak, DroneCOT, LINCOT, and SAPIENTCOT.
+  APRSCOT, COTBridge, DroneCOT, LINCOT, and SAPIENTCOT.
 - Every plugin has a compiled-Sass regression for the viewport-height root and
   `overflow-y: auto`; the browser-enabled gateway suites also expand Debug Logs
   and prove the root can scroll. AryaOS HIL checks both the minimum fixed package
   versions and the installed (possibly gzip-compressed) CSS rule.
 - Fixed release floor: cockpit-adsbcot **1.2.3**, cockpit-aiscot **1.2.3**,
-  cockpit-aprscot **0.1.1**, cockpit-charontak **1.2.2**, cockpit-dronecot
+  cockpit-aprscot **0.1.1**, cockpit-cotbridge **1.2.2**, cockpit-dronecot
   **1.1.3**, cockpit-lincot **1.1.3**, cockpit-sapientcot **0.1.1**. The three
   direct GitHub download pins in `stage-aiscot` match those releases; the other
   plugins are sourced from the signed snstac apt repository.
@@ -302,8 +319,8 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 - AIS-catcher and AISCOT ran with zero steady-state restarts. Live RF produced
   checksum-valid `!AIVDM` traffic for MMSI `3669708`. A synthetic type-1
   position report exercised the complete UDP/5050 path and produced a valid
-  `MMSI-366967102` CoT event at Charontak's loopback ingress, proving
-  `serial receiver -> AIS-catcher -> AISCOT -> Charontak` end to end.
+  `MMSI-366967102` CoT event at COTBridge's loopback ingress, proving
+  `serial receiver -> AIS-catcher -> AISCOT -> COTBridge` end to end.
 - The strict HIL suite passed every module. Storage was clean, media manufacturer
   ID `0x000027` was valid, the boot PARTUUID matched, and the Pi 5 kernel and
   initramfs artifacts passed size checks. The node had no failed units or
@@ -519,15 +536,15 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 - ADSBee detection is protocol-verified with the read-only
   `AT+BIAS_TEE_ENABLE?` query. Five consecutive probes succeeded. Discovery
   configured readsb as `--device-type modesbeast` on the stable by-id path,
-  recorded `ARYAOS_ADSB_SOURCE=adsbee`, and deliberately kept `dump978-fa`
+  recorded `ARYAOS_ADSB_1090_SOURCE=adsbee`, and deliberately kept `dump978-fa`
   disabled. Repeated `discover --apply` is idempotent while readsb owns the tty.
 - Live receiver queries reported 1090 and sub-G receivers enabled, console
   output `BEAST`, trigger level `1569mV (-45 dBm)`, offset `600mV (-104 dBm)`,
   and more than 5,100 seconds of uninterrupted receiver uptime. After an
   initially quiet several-minute sample, readsb decoded 451 valid messages,
   six tracks, and 50 position updates in 9.4 minutes; three aircraft were
-  current and ADSBCOT consumed them. `readsb`, `adsbcot`, and `gdltak` are
-  enabled/active. readsb and gdltak have zero restarts; ADSBCOT restarted once
+  current and ADSBCOT consumed them. `readsb`, `adsbcot`, and `gdlcot` are
+  enabled/active. readsb and gdlcot have zero restarts; ADSBCOT restarted once
   after the controlled test stopped readsb and removed its runtime JSON tree,
   then recovered normally.
 - The PL2303 path was initially tested as a claimed DS110 and emitted no
@@ -538,9 +555,9 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   path. AryaOS serial discovery now validates SiRF binary framing in addition
   to NMEA, and capability discovery excludes an assigned GPS from PL2303/DS110
   probing.
-- The box exposed a second GPS-path defect: `gpstak.service` was installed but
-  disabled even though GPSTAK is documented as role-independent core plumbing.
-  Overlay 2.0.9 enables/starts GPSTAK during installation, and HIL now asserts
+- The box exposed a second GPS-path defect: `gpscot.service` was installed but
+  disabled even though GPSCOT is documented as role-independent core plumbing.
+  Overlay 2.0.9 enables/starts GPSCOT during installation, and HIL now asserts
   that it stays active. The package also reruns serial assignment after
   refreshing gpsd defaults, avoiding a blank `DEVICES` setting after update.
 - `dronecot-dronescout.service` now uses an `ExecCondition` that validates its
@@ -548,7 +565,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   a clean inactive/skipped unit (start result success, no failed unit) rather
   than a `Restart=always` loop.
 - Overlay 2.0.9 was initially installed on the box. The post-update closing HIL suite
-  passed 88 checks, including live GPS/portal data, GPSTAK, and ADSBee traffic;
+  passed 88 checks, including live GPS/portal data, GPSCOT, and ADSBee traffic;
   there are no failed units. The only deferred failure is the known corrupt
   binary `/boot/firmware/cmdline.txt`. Do not reboot this node until the
   separate command-line repair is completed.
@@ -562,7 +579,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   beacon, and emitted both UAS and operator CoT with `sensor_id=dronescout`.
   A 68.8-second runtime sample counted 411 received RID records and 819 emitted
   events with zero write errors; a separate 10-second wire capture saw 63 UAS
-  CoTs reach Charontak ingress. Overlay 2.0.10 is installed, and the closing HIL
+  CoTs reach COTBridge ingress. Overlay 2.0.10 is installed, and the closing HIL
   suite passed 94 checks. Its only failure remains the deliberately deferred
   corrupt boot cmdline; do not reboot this node.
 - Package HIL also found a zero-corrupted `/var/lib/apt/listchanges` pickle at
@@ -603,7 +620,7 @@ the recovery and post-flash validation are recorded below.
   writes. Dronecot `v2.3.7` reports DJI runtime state, preserves intentional
   service enablement across upgrades, and reloads changed systemd units. Lincot
   `v1.3.7` bounds the
-  no-GPS probe and kills its process group. Charontak `v0.2.1` fixes write-only
+  no-GPS probe and kills its process group. COTBridge `v0.2.1` fixes write-only
   UDP CPU spin, usrmerge packaging, and binary AES key handling.
 - All Cockpit gateway consumers use `cockpit-shared v1.3.1`, which closes the
   four-second D-Bus client leak. Sapient/APRS packaging and dependency audits
@@ -812,7 +829,7 @@ Hardware-in-the-loop pentest of the appliance. Landed (aryaos, all asserted in
 - **Unstyled plugins fixed**: React/esbuild plugins bundle SCSS to `dist/index.css` but
   `index.html` never linked it > completely unstyled in Cockpit. Added
   `<link rel="stylesheet" href="index.css">` + shared `branding.css` (matching
-  cockpit-gps/aiscatcher) to **cockpit-charontak/adsbcot/dronecot/aiscot/sdrconnect**.
+  cockpit-gps/aiscatcher) to **cockpit-cotbridge/adsbcot/dronecot/aiscot/sdrconnect**.
 - **Landing-page location chip** (cockpit-aryaos): offline **North America** base map +
   live position. Geometry ships in `aryaos-basemap.js` (`window.ARYAOS_BASEMAP`,
   public-domain Natural Earth 110m, ~29KB) rendered client-side as SVG with a Web-Mercator
@@ -841,7 +858,7 @@ Hardware-in-the-loop pentest of the appliance. Landed (aryaos, all asserted in
   image build. Skipping any step ships the old deb (and `verify-image` now catches the
   cockpit-aryaos case: `card-location` + `aryaos-basemap.js`).
 
-This sweep's plugin releases: cockpit-aryaos **v1.5.0**, cockpit-charontak **v1.2.1**,
+This sweep's plugin releases: cockpit-aryaos **v1.5.0**, cockpit-cotbridge **v1.2.1**,
 cockpit-aiscot **v1.2.2**, cockpit-dronecot **v1.1.2**, cockpit-adsbcot **v1.2.2**.
 (cockpit-sdrconnect CSS fix merged but unreleased - not in the image manifest / apt index.)
 
@@ -855,8 +872,8 @@ in dependency order: packages > aryaos > cockpit-aryaos > plugins). What landed:
   `aryaos-set-nodered-password` (rotates the publicly-known default and sets
   `settings.js` to `root:node-red 0640`), `aryaos-sdr` (RTL-SDR enumerate + EEPROM re-serial; this
   added the `rtl-sdr` package - only `librtlsdr0` shipped before), `aryaos-role`
-  (runtime device roles **multi/air/maritime/cuas/relay**; CoT core charontak/lincot/
-  gpstak/gpsd never touched; ADS-B decoder follows `ARYAOS_ADSB_DECODER`). Installed
+  (runtime device roles **multi/air/maritime/cuas/relay**; CoT core cotbridge/lincot/
+  gpscot/gpsd never touched; ADS-B decoder follows `ARYAOS_ADSB_DECODER`). Installed
   via overlay deb + chroot stage + Ansible; asserted in `verify-image.sh`; all four
   now in the CI shellcheck list (they have **no `.sh` suffix** - the globs missed them,
   don't re-break that).
@@ -869,10 +886,10 @@ in dependency order: packages > aryaos > cockpit-aryaos > plugins). What landed:
   Radios (RTL-SDR), Device role, comitup hotspot password, Tailscale join. The four
   helper-backed cards need aryaos-overlay ≥ the 2026-07 helpers; on older images they
   show a clear error toast.
-- **cockpit-charontak v1.2.0** - React/TS rewrite + **structured lane editor**.
-  `src/cotUrl.ts` is a differentially-tested port of `charontak/src/charontak/config.py`
+- **cockpit-cotbridge v1.2.0** - React/TS rewrite + **structured lane editor**.
+  `src/cotUrl.ts` is a differentially-tested port of `cotbridge/src/cotbridge/config.py`
   - **keep the two in sync** if lane/URL validation changes.
-- **gdltak** (new repo, v1.0.0) - CoT > GDL90 UDP broadcast so ForeFlight/EFBs display
+- **gdlcot** (new repo, v1.0.0) - CoT > GDL90 UDP broadcast so ForeFlight/EFBs display
   the TAK air picture. In the sensor manifest + air/multi roles; egress-only (no
   inbound firewall service). 48 tests incl. the GDL90-spec CRC known-answer.
 - **@snstac/cockpit-shared** (new repo, v1.1.0) - shared `serviceCard`/`tlsCard`/
@@ -881,7 +898,7 @@ in dependency order: packages > aryaos > cockpit-aryaos > plugins). What landed:
   (no npm registry, no build step); `cockpit` resolves from each consumer's `pkg/lib`.
   Keyless `npm ci` verified (pacote fetches public repos over anonymous https even
   though the lockfile `resolved` says `git+ssh`). **All five family-B plugins consume
-  it** (aiscot v1.2.1, adsbcot v1.2.1, dronecot v1.1.1, lincot v1.1.1, charontak v1.2.0).
+  it** (aiscot v1.2.1, adsbcot v1.2.1, dronecot v1.1.1, lincot v1.1.1, cotbridge v1.2.0).
   Bumping the shared package = bump its tag, then bump the `#vX.Y.Z` ref in each consumer.
 - **README** amd64 claim softened (arm64 today, amd64 planned) - tracking #129
   (installer-script path first: the apt repo + overlay deb already run on any Debian host).
@@ -897,7 +914,7 @@ plugins still on vanilla-JS could adopt cockpit-shared patterns.
 ## Current known-good build
 
 - Latest successful dev image: `v2026.07.17.165541-5fa79a7bfae5-dev` - **the milestone
-  build**: first image with gdltak, the four field-support helpers, device roles, and
+  build**: first image with gdlcot, the four field-support helpers, device roles, and
   working SBOM attachment.
 - Release: https://github.com/snstac/aryaos/releases/tag/v2026.07.17.165541-5fa79a7bfae5-dev
 - Assets verified present: `image_*.img.xz`, `aryaos-overlay_2.1_all.deb`, `*.spdx.json`,
@@ -912,7 +929,7 @@ plugins still on vanilla-JS could adopt cockpit-shared patterns.
 Recent build blockers fixed:
 
 - `sikw00fcot.service` was missing AryaOS site config inheritance. Root cause was
-  a broken `sed` expression in `stage-charontak` that used `/` as the delimiter
+  a broken `sed` expression in `stage-cotbridge` that used `/` as the delimiter
   while matching `/etc/default/<svc>`. Fixed in `81ca548` with a path-safe `awk`
   insert. Keep site `EnvironmentFile=/etc/aryaos/aryaos-config.txt` before the
   service-specific `/etc/default/<svc>` line.
@@ -934,7 +951,7 @@ AryaOS is the **master consumer of the PyTAK stack**. Three pillars landed in Ju
    binaries remain in this repo; the only vendored artifacts are trust anchors
    (`shared_files/aryaos/snstac-packages/`, FlightAware repo deb).
 2. **Cockpit is the single admin surface** - nine standalone `cockpit-*` plugin
-   repos/debs (adsbcot, aiscot, aiscatcher, dronecot, lincot, gps, charontak, gpstak,
+   repos/debs (adsbcot, aiscot, aiscatcher, dronecot, lincot, gps, cotbridge, gpscot,
    aryaos). `cockpit-aryaos` ("AryaOS Site") manages the site-wide layer:
    `/etc/aryaos/aryaos-config.txt` (site `COT_URL` etc.) and one-shot TAK TLS cert
    upload to `/etc/aryaos/tls` (key `0640 root:tak-certs`; group reconciled by
@@ -954,7 +971,7 @@ AryaOS is the **master consumer of the PyTAK stack**. Three pillars landed in Ju
   injection happens in each stage's chroot script (sed after `[Service]`); drop-in
   files would invert the precedence (drop-ins parse *after* the unit file).
 - **CoT routing hub**: `adsbcot`, `aiscot`, `dronecot`, `lincot`, and other local
-  PyTAK feeders should keep `COT_URL=udp+wo://127.0.0.1:28087`. Charontak listens on
+  PyTAK feeders should keep `COT_URL=udp+wo://127.0.0.1:28087`. COTBridge listens on
   `udp+ro://127.0.0.1:28087` and owns the external egress lanes: default Mesh SA
   `udp+wo://239.2.3.1:6969`, optional TAK Server, and other tools. Do not point each
   feeder independently at the same TAK Server except for deliberate legacy/debug bypass.
@@ -1027,15 +1044,15 @@ See [security.md](security.md) for the full posture. Summary of what landed:
 - New verify-image asserts cover all of the above; runtime checks are in
   `scripts/aryaos-test/tests/09-security.sh`.
 
-## GPSTAK (new, 2026-06-12)
+## GPSCOT (new, 2026-06-12)
 
-`gpstak` package > `/usr/bin/gpstak`: feeds onboard GNSS to TAK
+`gpscot` package > `/usr/bin/gpscot`: feeds onboard GNSS to TAK
 devices per https://ampledata.org/network_gps.html - CoT position events to `COT_URL`
 (default `udp+broadcast://255.255.255.255:4349`, ATAK's *External or Network GPS*) and
 raw-NMEA passthrough for WinTAK (`NMEA_TARGETS`). Reads gpsd's JSON socket; pytak for
-transport (so `PYTAK_TLS_*` applies). Ships **disabled**; managed in Cockpit > GPSTAK
-([cockpit-gpstak](https://github.com/snstac/cockpit-gpstak)). Verified live on the dev
-Pi. Source and Debian/RPM release packaging live in https://github.com/snstac/gpstak.
+transport (so `PYTAK_TLS_*` applies). Ships **disabled**; managed in Cockpit > GPSCOT
+([cockpit-gpscot](https://github.com/snstac/cockpit-gpscot)). Verified live on the dev
+Pi. Source and Debian/RPM release packaging live in https://github.com/snstac/gpscot.
 
 ## Fleet state (all on pytak >= 7.3.0, releasing versioned debs)
 
@@ -1043,12 +1060,12 @@ Pi. Source and Debian/RPM release packaging live in https://github.com/snstac/gp
 |---|---|---|
 | pytak | 7.3.11 | capability line: cert enrollment, `tak://`, `wss://`, `marti://`, `pytak dp`, `+wo`/`+ro`, MQTT |
 | adsbcot 9.1.0, aprscot 8.0.0, inrcot 5.2.1, cotproxy 1.0.1 | Jun 2026 | pipelines modernized (lincot-style ci.yml) |
-| aiscot 7.1.4, dronecot 2.1.3, djicot 1.2.0, lincot 1.2.3, charontak 0.1.13, sikw00fcot 1.0.0 | Jun 2026 | charontak ≥ 0.1.13 no longer ships its cockpit plugin in-deb; sikw00fcot is SiKW00F MAVLink fan-out to CoT |
+| aiscot 7.1.4, dronecot 2.1.3, djicot 1.2.0, lincot 1.2.3, cotbridge 0.1.13, sikw00fcot 1.0.0 | Jun 2026 | cotbridge ≥ 0.1.13 no longer ships its cockpit plugin in-deb; sikw00fcot is SiKW00F MAVLink fan-out to CoT |
 | python3-pymavlink | 2.4.49-1 | packaged for AryaOS so sikw00fcot can install cleanly; pure-Python fallback path, depends on `python3` and `python3-lxml` |
 | readsb | 3.16.15-2 | synced to wiedehopf dev; build debs in `debian:trixie` containers because Ubuntu builds depend on `librtlsdr2`, uninstallable on Debian |
 | AIS-catcher fork | 0.68 | release workflow runs upstream `build-debian.sh` as root; upstream CI workflows disabled on the fork |
 | windtak 1.0.0, takline 0.1.1 | Jun 2026 | |
-| cockpit-* x9 | 1.0.0+ | Cockpit plugins use the dark AryaOS/GPSTAK visual style; watch for regressions to white-on-white UI |
+| cockpit-* x9 | 1.0.0+ | Cockpit plugins use the dark AryaOS/GPSCOT visual style; watch for regressions to white-on-white UI |
 
 ## LINCOT / Host Beacon
 
@@ -1094,7 +1111,7 @@ ARYAOS_SSH=pi@<host> ./scripts/aryaos-test/run.sh
 
 After flashing the latest dev image, first checks should include:
 
-- `systemctl status charontak lincot adsbcot aiscot dronecot sikw00fcot`
+- `systemctl status cotbridge lincot adsbcot aiscot dronecot sikw00fcot`
 - `/cgi-bin/aryaos-portal-status` and `/admin/aryaos`
 - `gpsd` data on GPS-capable units
 - `readsb` and `/run/adsb/aircraft.json` on ADS-B units
@@ -1113,7 +1130,7 @@ After flashing the latest dev image, first checks should include:
    `gh release download` fails on a release with no deb assets).
 1. **Flash and test the latest dev image**: burn
    `v2026.06.23.212757-abe8e41bf5e2-dev`, then run the integration suite against the
-   current lab ADS-B and UAS boxes. Pay special attention to `sikw00fcot`, Charontak
+   current lab ADS-B and UAS boxes. Pay special attention to `sikw00fcot`, COTBridge
    inheritance, and the new Bluetooth PAN service.
 2. **Bluetooth PAN live validation**: pair an Android phone to AryaOS, confirm it
    receives `10.44.0.20-60`, confirm `https://10.44.0.1:9090/` works, and confirm no
@@ -1133,7 +1150,7 @@ After flashing the latest dev image, first checks should include:
 7. **Delete** stray fork `snstac/AIS-catcher-1` (accidental duplicate).
 8. adsbcot PyPI job needs a **trusted publisher** configured on PyPI (release works
    regardless; the job just reads red).
-9. Possible next plugins: charontak *lane editor* (structured `charontak.ini` UI -
+9. Possible next plugins: cotbridge *lane editor* (structured `cotbridge.ini` UI -
    current plugin is a raw editor), windtak/aprscot pages; backport SIGPIPE
    fixes everywhere `dpkg-deb -c | head` survives.
 10. Node-RED runtime check after the worldmap 5.x / tfr2cot 2.0 major bumps

@@ -5,7 +5,7 @@ Documentation=https://github.com/jvde-github/AIS-catcher
 # This is the RTL/over-the-air path (ais-catcher auto-tunes the 161.975/162.025
 # MHz AIS channels); the serial dAISy path is unchanged on ais-catcher.service —
 # the two never run on the same input. Feeds aiscot on UDP 5050 (as the serial
-# path does), so the aiscot -> charontak -> TAK chain is identical.
+# path does), so the aiscot -> cotbridge -> TAK chain is identical.
 After=local-fs.target
 
 [Service]

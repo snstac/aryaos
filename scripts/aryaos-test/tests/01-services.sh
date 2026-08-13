@@ -15,7 +15,7 @@ else
 	ok "no failed systemd units"
 fi
 
-CORE_SERVICES=(lighttpd gpsd gpstak)
+CORE_SERVICES=(lighttpd gpsd gpscot)
 if capability_enabled adsb; then
 	CORE_SERVICES=(readsb adsbcot "${CORE_SERVICES[@]}")
 fi
@@ -61,7 +61,7 @@ else
 	done
 fi
 
-for svc in charontak lincot adsbcot aiscot dronecot sikw00fcot; do
+for svc in cotbridge lincot adsbcot aiscot dronecot sikw00fcot; do
 	if ! unit_loaded "${svc}"; then
 		fail "TAK gateway unit ${svc} missing (portal expects it)"
 		continue

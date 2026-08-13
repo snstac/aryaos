@@ -182,7 +182,7 @@ require_path /etc/systemd/system/adsbcot.service.d/aryaos-startlimit.conf
 require_path /usr/local/sbin/aryaos-neighbord
 require_path /etc/systemd/system/aryaos-firstboot.service
 require_path /etc/systemd/system/aryaos-neighbord.service
-require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to charontak"
+require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to cotbridge"
 
 # Portal (stage-aryaos)
 require_path /var/www/html/index.html
@@ -226,20 +226,20 @@ require_grep 'ARYAOS_BASEMAP' /usr/share/cockpit/aryaos/aryaos-basemap.js "cockp
 require_grep 'get_throttled' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos power-health indicator"
 require_grep 'id="safe-mode-banner"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos safe-mode banner"
 
-# GPSTAK network GPS (package from stage-pytak)
-require_pkg gpstak
-require_path /usr/bin/gpstak
-require_path /lib/systemd/system/gpstak.service
-require_path /etc/default/gpstak
-require_path /usr/share/cockpit/gpstak/manifest.json
+# GPSCOT network GPS (package from stage-pytak)
+require_pkg gpscot
+require_path /usr/bin/gpscot
+require_path /lib/systemd/system/gpscot.service
+require_path /etc/default/gpscot
+require_path /usr/share/cockpit/gpscot/manifest.json
 
-# charontak cockpit page (ships inside the charontak deb >= 0.1.12)
-require_path /usr/share/cockpit/charontak/manifest.json
-require_path /etc/charontak.ini
-require_grep '^\[lane:local-to-mesh\]$' /etc/charontak.ini "charontak local-to-mesh lane"
-require_grep '^egress_cot_url = udp\+wo://239\.2\.3\.1:6969$' /etc/charontak.ini "charontak Mesh SA egress"
-require_grep '^\[lane:local-to-takserver\]$' /etc/charontak.ini "charontak local-to-takserver lane"
-require_grep '^ingress_cot_url = udp\+ro://127\.0\.0\.1:28087$' /etc/charontak.ini "charontak TAK Server lane local ingress"
+# cotbridge cockpit page (ships inside the cotbridge deb >= 0.1.12)
+require_path /usr/share/cockpit/cotbridge/manifest.json
+require_path /etc/cotbridge.ini
+require_grep '^\[lane:local-to-mesh\]$' /etc/cotbridge.ini "cotbridge local-to-mesh lane"
+require_grep '^egress_cot_url = udp\+wo://239\.2\.3\.1:6969$' /etc/cotbridge.ini "cotbridge Mesh SA egress"
+require_grep '^\[lane:local-to-takserver\]$' /etc/cotbridge.ini "cotbridge local-to-takserver lane"
+require_grep '^ingress_cot_url = udp\+ro://127\.0\.0\.1:28087$' /etc/cotbridge.ini "cotbridge TAK Server lane local ingress"
 
 # GNSS (stage-aryaos)
 require_path /etc/default/gpsd
@@ -272,9 +272,9 @@ require_pkg_version cockpit-lincot 1.1.3
 require_pkg cockpit-aiscatcher
 require_pkg cockpit-dronecot
 require_pkg_version cockpit-dronecot 1.1.3
-require_pkg cockpit-charontak
-require_pkg_version cockpit-charontak 1.2.2
-require_pkg cockpit-gpstak
+require_pkg cockpit-cotbridge
+require_pkg_version cockpit-cotbridge 1.2.2
+require_pkg cockpit-gpscot
 require_pkg cockpit-aryaos
 require_pkg cockpit-spyserver
 require_path /usr/share/cockpit/spyserver/manifest.json
@@ -282,8 +282,8 @@ require_pkg readsb
 require_pkg python3-gps
 require_pkg ais-catcher
 require_pkg sikw00fcot
-require_pkg gdltak
-require_pkg_version gdltak 1.0.1
+require_pkg gdlcot
+require_pkg_version gdlcot 1.0.1
 require_pkg_version pytak 7.4.3
 require_pkg_version acarscot 0.1.1
 require_pkg acarsdec
@@ -327,9 +327,9 @@ require_path /usr/local/libexec/aryaos/dronecot-serial-ready
 require_grep 'ExecCondition=/usr/local/libexec/aryaos/dronecot-serial-ready' /etc/systemd/system/dronecot-dronescout.service "DroneScout missing serial device skips cleanly"
 require_grep 'discover' /usr/local/sbin/aryaos-role "aryaos-role can discover hardware capabilities"
 require_grep 'capability-scan' /usr/local/sbin/aryaos-firstboot.sh "firstboot auto-detects capabilities"
-require_unit gdltak.service
+require_unit gdlcot.service
 require_unit lincot.service
-require_unit charontak.service
+require_unit cotbridge.service
 require_unit readsb.service
 require_path /etc/systemd/system/lincot.service.d/aryaos-config.conf
 require_grep '^EnvironmentFile=-/etc/aryaos/aryaos-config.txt$' /etc/systemd/system/lincot.service.d/aryaos-config.conf "lincot drop-in inherits AryaOS site config"
@@ -409,7 +409,7 @@ for _u in readsb.service dump978-fa.service adsbcot.service aiscot.service \
 done
 require_grep '^ARYAOS_CAPABILITIES=""$' /etc/aryaos/aryaos-config.txt "no sensor capabilities enabled out of the box"
 # ...while the CoT core still runs unconditionally.
-require_path /etc/systemd/system/multi-user.target.wants/charontak.service
+require_path /etc/systemd/system/multi-user.target.wants/cotbridge.service
 
 # One-click updates (Cockpit -> AryaOS Site drives aryaos-update)
 require_path /usr/local/sbin/aryaos-update
@@ -508,7 +508,7 @@ require_grep 'dpkg --configure -a' /usr/local/sbin/aryaos-factory-reset "factory
 require_path /usr/local/sbin/aryaos-zeroize
 require_path /etc/systemd/system/aryaos-factory-reset.service
 require_path /etc/systemd/system/aryaos-zeroize.service
-require_path /usr/share/aryaos/defaults/charontak.ini
+require_path /usr/share/aryaos/defaults/cotbridge.ini
 
 # Radios: WiFi hotspot control + EMCON/radio-silence (Cockpit -> AryaOS Site)
 require_path /usr/local/sbin/aryaos-radio

@@ -52,8 +52,8 @@ now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 config_paths() {
 	cat <<'EOF'
 etc/aryaos
-etc/charontak.ini
-etc/charontak
+etc/cotbridge.ini
+etc/cotbridge
 etc/comitup.conf
 etc/comitup.json
 etc/default/*cot*
@@ -83,7 +83,7 @@ EOF
 secret_globs() {
 	cat <<'EOF'
 --exclude=etc/aryaos/tls
---exclude=etc/charontak/tls
+--exclude=etc/cotbridge/tls
 --exclude=etc/adsbcot/tls
 --exclude=etc/aiscot/tls
 --exclude=etc/dronecot/tls
@@ -204,7 +204,7 @@ do_restore() {
 	if command -v systemctl >/dev/null 2>&1; then
 		systemctl daemon-reload 2>/dev/null || true
 		# shellcheck disable=SC1091
-		local svcs="charontak gpstak aiscot lincot adsbcot dronecot"
+		local svcs="cotbridge gpscot aiscot lincot adsbcot dronecot"
 		[[ -f /etc/aryaos/aryaos-config.txt ]] && . /etc/aryaos/aryaos-config.txt 2>/dev/null || true
 		[[ -n "${AOS_SERVICES:-}" ]] && svcs="${AOS_SERVICES}"
 		# shellcheck disable=SC2086

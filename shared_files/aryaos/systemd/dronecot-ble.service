@@ -4,7 +4,7 @@ Documentation=https://github.com/snstac/dronecot
 # A dronecot instance that captures Open Drone ID from Bluetooth LE
 # advertisements (ASTM F3411 service data, UUID 0xFFFA, app code 0x0D) using the
 # board's OWN Bluetooth radio — no Sniffle dongle, no add-on hardware. Decodes
-# with dronecot's BlueZWorker and feeds the same charontak hub as the Wi-Fi,
+# with dronecot's BlueZWorker and feeds the same cotbridge hub as the Wi-Fi,
 # AntSDR/DJI and DS101 sources.
 #
 # This is the only sensor with no external hardware to plug in, which is exactly

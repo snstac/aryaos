@@ -15,7 +15,7 @@ different mission - all without touching the OS or reinstalling packages.
 === "What it clears"
 
     - **Site config** - restores `/etc/aryaos/aryaos-config.txt` and
-      `/etc/charontak.ini` from the packaged defaults in
+      `/etc/cotbridge.ini` from the packaged defaults in
       `/usr/share/aryaos/defaults`; resets `issue`, `issue.net`, and `motd`.
     - **Per-gateway `/etc/default/<svc>`** - reinstalled to package defaults
       **when online** (via `apt-get --reinstall`). Offline, these are left as-is
@@ -23,7 +23,7 @@ different mission - all without touching the OS or reinstalling packages.
       after unpacking a package, reset completes pending package configuration
       before reboot so the package database remains consistent.
     - **Operator-uploaded TAK certificates** - deletes the files under
-      `/etc/aryaos/tls`, `/etc/charontak/tls`, and the per-gateway `tls`
+      `/etc/aryaos/tls`, `/etc/cotbridge/tls`, and the per-gateway `tls`
       directories (the directories themselves are kept).
     - **Device identity** - removes the machine-id and firstboot markers so
       `aryaos-firstboot` re-runs: the box gets a **new**

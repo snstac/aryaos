@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 
 
 SERVICES = (
-    "charontak",
+    "cotbridge",
     "lincot",
     "adsbcot",
     "aiscot",
@@ -140,7 +140,7 @@ def _service_state(name: str) -> str:
     which meant the fleet could not tell a deliberately-disabled sensor from a
     crash-looping one from a dead one. On a normal box most sensors are off by
     design, so a genuine failure was buried among a dozen equally "unknown"
-    units. Observed on aryaos-c998 with readsb, adsbcot and gdltak all failed and
+    units. Observed on aryaos-c998 with readsb, adsbcot and gdlcot all failed and
     all beaconing "unknown".
 
     So read stdout regardless of the exit code, which is what is-active is
@@ -459,7 +459,7 @@ DECODERS = {
     "dronecot": "rid",
     "lincot": "sys",
     "sapientcot": "sapient",
-    "gpstak": "gps",
+    "gpscot": "gps",
     "sikw00fcot": "sik",
 }
 

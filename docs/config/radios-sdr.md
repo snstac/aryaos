@@ -11,7 +11,7 @@ AryaOS selects dongles by a serial string written to each dongle's EEPROM:
 | `stx:1090:0` | ADS-B 1090 MHz | `readsb` or `dump1090-fa` |
 | `stx:978:0` | UAT 978 MHz | `dump978-fa` |
 
-The UAT serial is the value of [`ARYAOS_UAT_RTL_SERIAL`](./site-config.md#ads-b-radios) in the site config (default `stx:978:0`).
+The UAT serial is the value of [`ARYAOS_UAT_978_DEVICE`](./site-config.md#ads-b-radios) in the site config (default `stx:978:0`).
 
 !!! warning "The 1090 and UAT serials must differ"
     A 1090 MHz dongle and a 978 MHz dongle cannot share a serial. Pre-assembled AryaOS units ship with this factory pairing already written; Nooelec NESDR Nano 3 "978" sticks come pre-programmed as `stx:978:0`. If you build your own device or replace a dongle, write distinct serials before both bands will work.
@@ -89,7 +89,7 @@ Edit them with Cockpit's file editor or over SSH, then `sudo systemctl restart <
 
 ## See also
 
-- [Site configuration](./site-config.md) - `ARYAOS_ADSB_DECODER`, `ARYAOS_UAT_RTL_SERIAL`, `ARYAOS_ADSB_JSON_DIR`
+- [Site configuration](./site-config.md) - `ARYAOS_ADSB_DECODER`, `ARYAOS_UAT_978_DEVICE`, `ARYAOS_ADSB_JSON_DIR`
 ## Serial receivers - GPS and AIS
 
 USB-serial receivers - a **GPS puck** and a **dAISy** (or equivalent serial AIS receiver) - are
@@ -140,11 +140,11 @@ sudo aryaos-sdr task 1 off          # idle the SDR
     `rx_tools` for non-RTL is a roadmap item).
 
 - **`ais`** runs `ais-catcher` on the tasked SDR (`aryaos-ais-sdr` for any device;
-  the serial dAISy path is untouched) and feeds the same `aiscot > charontak > TAK`
+  the serial dAISy path is untouched) and feeds the same `aiscot > cotbridge > TAK`
   chain. It needs a **VHF marine antenna** to hear vessels.
 - **`aprs`** decodes 1200-baud packet **APRS on 144.39 MHz** (North America):
   `rtl_fm` > **Dire Wolf** (`aryaos-direwolf@N`, KISS TNC on `:8001`, receive-only)
-  then **aprscot** (KISS input, ≥ 8.2.0), followed by `charontak` and TAK. Fully **offline** - no
+  then **aprscot** (KISS input, ≥ 8.2.0), followed by `cotbridge` and TAK. Fully **offline** - no
   APRS-IS internet. Needs a **2 m (VHF) antenna**. Single dongle at a time (one
   APRS channel).
 - The job is **persisted** (`/etc/aryaos/sdr-tasks`) and re-applied at boot,

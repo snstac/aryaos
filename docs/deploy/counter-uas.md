@@ -63,11 +63,11 @@ flowchart LR
     RID[Remote ID<br/>Wi-Fi / BT] --> DC[dronecot]
     DJI[DJI DroneID<br/>AntSDR / SDR] --> DJICOT[DJICOT]
     MAV[SiK MAVLink] --> SK[sikw00fcot]
-    DC & DJICOT & SK -->|CoT| H[Charontak hub]
+    DC & DJICOT & SK -->|CoT| H[COTBridge hub]
     H -->|Mesh SA 239.2.3.1:6969| E[ATAK / WinTAK / iTAK]
 ```
 
-Each detector emits CoT to the Charontak hub at `udp+wo://127.0.0.1:28087`; Charontak forwards to Mesh SA and any [TAK Server lanes](./connect-tak-server.md).
+Each detector emits CoT to the COTBridge hub at `udp+wo://127.0.0.1:28087`; COTBridge forwards to Mesh SA and any [TAK Server lanes](./connect-tak-server.md).
 
 ## Manage the AntSDR
 
@@ -103,7 +103,7 @@ An **AntSDR E200** running the [alphafox02 DJI DroneID firmware](https://github.
 
 ## Connecting an EUD
 
-AirTAK C-UAS is tested with iTAK, WinTAK, and ATAK. By default, local feeders send to Charontak on the gateway, which multicasts CoT to the Mesh SA group `239.2.3.1:6969`. Add upstream TAK Server destinations as Charontak lanes. See [Connect a TAK Server](./connect-tak-server.md).
+AirTAK C-UAS is tested with iTAK, WinTAK, and ATAK. By default, local feeders send to COTBridge on the gateway, which multicasts CoT to the Mesh SA group `239.2.3.1:6969`. Add upstream TAK Server destinations as COTBridge lanes. See [Connect a TAK Server](./connect-tak-server.md).
 
 ## Related
 

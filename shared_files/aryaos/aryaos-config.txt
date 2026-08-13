@@ -18,10 +18,14 @@
 #
 
 # Where local *cot feeders (adsbcot, aiscot, …) send Cursor on Target messages.
-# Default: Charontak ingress on localhost. Upstream mesh / TAK Server forwarding is
-# configured in /etc/charontak.ini (Cockpit → Charontak at https://<host>/admin/).
+# Default: COTBridge ingress on localhost. Upstream mesh / TAK Server forwarding is
+# configured in /etc/cotbridge.ini (Cockpit → COTBridge at https://<host>/admin/).
 # See: https://pytak.readthedocs.io/en/stable/configuration/
 COT_URL=udp+wo://127.0.0.1:28087
+
+# Site-wide COTBridge output. This is the destination operators normally edit;
+# COT_URL above is the fixed local feeder bus and should remain on localhost.
+ARYAOS_COT_OUTPUT_URL=udp+wo://239.2.3.1:6969
 
 
 # For Mesh SA & multicast COT_URLs: Which network interface (wifi, ethernet) do we bind to?
@@ -35,7 +39,7 @@ WIFI_AP_IP=10.41.0.1
 #
 # EMPTY BY DEFAULT — the image ships with every sensor gateway disabled. A box
 # with no radios attached should be quiet, not crash-looping decoders it has no
-# hardware for. The CoT core (charontak, lincot, gpsd) always runs regardless,
+# hardware for. The CoT core (cotbridge, lincot, gpsd) always runs regardless,
 # so an out-of-box unit is still a working TAK node.
 #
 # Turn capabilities on with:
@@ -49,7 +53,8 @@ ARYAOS_ADSB_DECODER=readsb
 
 # Set by `aryaos-role discover --apply` when a protocol-verified ADSBee is the
 # 1090 MHz source. Empty means the normal RTL/Soapy receiver configuration.
-ARYAOS_ADSB_SOURCE=""
+ARYAOS_ADSB_1090_SOURCE=auto
+ARYAOS_ADSB_1090_DEVICE=""
 
 # 1090 MHz ADS-B JSON directory (readsb --write-json and dump1090-fa --write-json). adsbcot FEED_URL uses aircraft.json here.
 ARYAOS_ADSB_JSON_DIR=/run/adsb
@@ -57,13 +62,13 @@ ARYAOS_ADSB_JSON_DIR=/run/adsb
 # Network-facing CoT services to restart if network state changes.
 # Keep local decoders, GPS, UI, and Bluetooth bridge out of this list; restarting
 # them during boot interrupts radio ingest and Bluetooth pairing/RFCOMM.
-AOS_SERVICES="charontak gpstak aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
+AOS_SERVICES="cotbridge gpscot aiscot lincot adsbcot dronecot adsbxcot aprscot spotcot"
 
 # RTL-SDR USB serial string for dump978-fa (UAT / 978 MHz). Factory default matches Nooelec
 # NESDR Nano 3 “978” EEPROM preset: stx:978:0 — do not use the same serial as the 1090 path
 # (readsb / dump1090-fa use adsb_sdr_sn in Ansible / image build). Override here on a running
 # system, then: sudo systemctl restart dump978-fa
-ARYAOS_UAT_RTL_SERIAL=stx:978:0
+ARYAOS_UAT_978_DEVICE=auto
 
 
 # Device identity — set on first boot by aryaos-firstboot.sh; do not modify. NO STEP.

@@ -388,7 +388,7 @@ def probe_adsbee_serial():
     # the role manager recorded ADSBee as the source and readsb still names the
     # same present RP2040 path. Without this, a second `discover --apply` would
     # forget the source, re-enable dump978, and manufacture a restart loop.
-    if _config("ARYAOS_ADSB_SOURCE") == "adsbee":
+    if _config("ARYAOS_ADSB_1090_SOURCE") == "adsbee":
         options = _read("/etc/default/readsb")
         match = re.search(r"--device-type\s+modesbeast\b.*?--beast-serial\s+(\S+)", options)
         if match and match.group(1) in candidates:
@@ -547,7 +547,7 @@ def scan():
     #
     # Measured on aryaos-270d, which has a LimeSDR Mini and nothing else: the
     # probe said "1 SDR(s)" -> adsb auto-applied at firstboot -> readsb
-    # crash-looped 10 times, took adsbcot and gdltak down with it (29 restarts
+    # crash-looped 10 times, took adsbcot and gdlcot down with it (29 restarts
     # between them) and left the box in systemd `degraded` with its whole reason
     # for existing dead. Out of the box, with no operator error.
     #

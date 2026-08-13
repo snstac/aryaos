@@ -4,7 +4,7 @@ Documentation=https://github.com/jvde-github/AIS-catcher
 # Started by `aryaos-sdr task <index> ais` for ANY SDR (RTL-SDR, Airspy, HackRF,
 # LimeSDR, ...). The device selector is written to /etc/default/aryaos-ais-sdr by
 # aryaos-sdr (`-d <serial>` for RTL/Airspy, `-gu SOAPYSDR ...` for other Soapy
-# drivers). Feeds aiscot on UDP 5050 (the aiscot -> charontak -> TAK chain is
+# drivers). Feeds aiscot on UDP 5050 (the aiscot -> cotbridge -> TAK chain is
 # identical to the serial dAISy / RTL paths). Generalizes ais-catcher-rtl@.
 After=local-fs.target
 ConditionPathExists=/etc/default/aryaos-ais-sdr

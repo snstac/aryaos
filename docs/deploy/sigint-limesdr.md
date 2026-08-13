@@ -86,7 +86,7 @@ sudo scripts/readsb-use-lime.sh          # driver=lime, gain 40
 ```
 
 This sets `readsb` to `--device-type soapysdr --soapy-device driver=lime` and restarts it.
-CoT then flows through `adsbcot` > Charontak as usual. Two `readsb` bugs that made this path
+CoT then flows through `adsbcot` > COTBridge as usual. Two `readsb` bugs that made this path
 useless are fixed from **3.16.15-4** onward: `--gain` was applied ten times too large on the
 SoapySDR path, and a block was filled with a single `readStream()` call, which returns at most
 the driver's stream MTU - 2040 samples on a Lime against a 65536-sample buffer.
@@ -153,8 +153,8 @@ opaque string.
 
 #### Dedicated ACARSCOT TAK egress
 
-The normal AryaOS routing remains **ACARSCOT to Charontak to TAK Server**. A box
-with a dedicated ACARS server identity can deliberately bypass Charontak by
+The normal AryaOS routing remains **ACARSCOT to COTBridge to TAK Server**. A box
+with a dedicated ACARS server identity can deliberately bypass COTBridge by
 putting its `tak://` enrollment URL in `/etc/default/acarscot`:
 
 ```bash

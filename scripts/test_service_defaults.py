@@ -21,7 +21,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             "cockpit-adsbcot": "1.2.3",
             "cockpit-aiscot": "1.2.3",
             "cockpit-aprscot": "0.1.1",
-            "cockpit-charontak": "1.2.2",
+            "cockpit-cotbridge": "1.2.2",
             "cockpit-dronecot": "1.1.3",
             "cockpit-lincot": "1.1.3",
             "cockpit-sapientcot": "0.1.1",
@@ -177,7 +177,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
     def test_overlay_keeps_network_gps_core_active(self):
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
 
-        self.assertIn("systemctl enable --now gpstak.service", postinst)
+        self.assertIn("systemctl enable --now gpscot.service", postinst)
         self.assertIn("systemctl restart aryaos-serial-assign.service", postinst)
 
     def test_lighttpd_private_devices_exposes_only_pi_firmware_commands(self):

@@ -138,10 +138,10 @@
     dest: /etc/rpi/swap.conf.d/90-aryaos.conf
     mode: "0644"
 
-- name: Ship charontak.ini default for factory reset
+- name: Ship cotbridge.ini default for factory reset
   ansible.builtin.copy:
-    src: "{{ shared_files }}/charontak/charontak.ini"
-    dest: /usr/share/aryaos/defaults/charontak.ini
+    src: "{{ shared_files }}/cotbridge/cotbridge.ini"
+    dest: /usr/share/aryaos/defaults/cotbridge.ini
     mode: "0644"
 
 - name: Enable periodic TRIM (SD/NVMe longevity)

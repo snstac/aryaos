@@ -8,10 +8,10 @@ Run aircraft, vessels, and drones on a single box. Select the **`multi`** role a
 
 | Domain | Units enabled | Deep dive |
 |--------|---------------|-----------|
-| Air (ADS-B 1090 + UAT 978) | ADS-B decoder (`readsb`/`dump1090-fa`), `dump978-fa`, `adsbcot`, `gdltak` | [Air - ADS-B & UAT](./air-adsb.md) |
+| Air (ADS-B 1090 + UAT 978) | ADS-B decoder (`readsb`/`dump1090-fa`), `dump978-fa`, `adsbcot`, `gdlcot` | [Air - ADS-B & UAT](./air-adsb.md) |
 | Maritime (AIS) | `ais-catcher`, `aiscot` | [Maritime - AIS](./maritime-ais.md) |
 | Drones (C-UAS) | `dronecot`, `sikw00fcot` | [Counter-UAS](./counter-uas.md) |
-| Position core (always on) | `charontak`, `lincot`, `gpstak`, `gpsd` | [Own position / GPS](./own-position-gps.md) |
+| Position core (always on) | `cotbridge`, `lincot`, `gpscot`, `gpsd` | [Own position / GPS](./own-position-gps.md) |
 
 ## Turn on the multi role
 
@@ -29,15 +29,15 @@ Run aircraft, vessels, and drones on a single box. Select the **`multi`** role a
 
 ## Fusing into one COP
 
-Every feeder - air, maritime, drone, and position - publishes CoT to the **same** Charontak hub on `udp+wo://127.0.0.1:28087`. Charontak merges them and forwards a single stream to Mesh SA (and any [TAK Server lanes](./connect-tak-server.md)), so your EUD sees one unified picture.
+Every feeder - air, maritime, drone, and position - publishes CoT to the **same** COTBridge hub on `udp+wo://127.0.0.1:28087`. COTBridge merges them and forwards a single stream to Mesh SA (and any [TAK Server lanes](./connect-tak-server.md)), so your EUD sees one unified picture.
 
 ```mermaid
 flowchart LR
     ADSB[adsbcot + dump978] 
     AIS[aiscot + ais-catcher]
     DRONE[dronecot + sikw00fcot]
-    POS[lincot + gpstak]
-    ADSB & AIS & DRONE & POS -->|udp+wo://127.0.0.1:28087| H[Charontak hub]
+    POS[lincot + gpscot]
+    ADSB & AIS & DRONE & POS -->|udp+wo://127.0.0.1:28087| H[COTBridge hub]
     H -->|Mesh SA 239.2.3.1:6969| E[ATAK / WinTAK / iTAK]
     H -.->|optional TLS| S[TAK Server]
 ```

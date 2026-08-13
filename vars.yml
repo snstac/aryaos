@@ -25,7 +25,7 @@ aryaos_profile: rpi
 
 adsb_sdr_sn: stx:1090:0
 # UAT / 978 MHz RTL-SDR EEPROM serial (dump978-fa). Default matches Nooelec NESDR Nano 3 “978”.
-# Keep in sync with ARYAOS_UAT_RTL_SERIAL in shared_files/aryaos/aryaos-config.txt unless you override only at image build.
+# Keep in sync with ARYAOS_UAT_978_DEVICE in shared_files/aryaos/aryaos-config.txt unless you override only at image build.
 uat_sdr_sn: stx:978:0
 
 # readsb SDR: rtlsdr (RTL EEPROM serial in adsb_sdr_sn) or soapysdr (Airspy, etc. via readsb_soapy_device).
@@ -40,11 +40,11 @@ aryaos_adsb_decoder: readsb
 aryaos_adsb_json_dir: /run/adsb
 aryaos_adsb_feed_url: "file:///run/adsb/aircraft.json"
 
-# Sensor stack (pytak, charontak, lincot, *cot, cockpit-*) installs from the signed
+# Sensor stack (pytak, cotbridge, lincot, *cot, cockpit-*) installs from the signed
 # snstac apt repository — see manifests/aryaos-sensor-packages.yml.
-charontak_ingress_cot_url: udp+ro://127.0.0.1:28087
-charontak_egress_cot_url: udp+wo://239.2.3.1:6969
-charontak_feeder_cot_url: udp+wo://127.0.0.1:28087
+cotbridge_ingress_cot_url: udp+ro://127.0.0.1:28087
+cotbridge_egress_cot_url: udp+wo://239.2.3.1:6969
+cotbridge_feeder_cot_url: udp+wo://127.0.0.1:28087
 
 lincot_gps_info_cmd: gpspipe --json -n 5
 lincot_poll_interval: 61

@@ -198,7 +198,7 @@ See commented **`dev_arm64`** stubs in [`inventory.yml`](https://github.com/snst
 
 ### AirTAK-style readsb + adsbcot on DragonOS (`dragonball`)
 
-For a **generic amd64** host (e.g. Ubuntu DragonOS) with SSH as **`gba`** and key **`~/.ssh/id_ed25519_nopass`**, use the thin playbook [`playbooks/readsb-adsbcot-generic.yml`](https://github.com/snstac/aryaos/blob/main/playbooks/readsb-adsbcot-generic.yml) (pytak sensor `.debs`, **Charontak** CoT hub, + **`stage-adsbcot`** readsb build). Host vars: [`host_vars/dragonball.yml`](https://github.com/snstac/aryaos/blob/main/host_vars/dragonball.yml).
+For a **generic amd64** host (e.g. Ubuntu DragonOS) with SSH as **`gba`** and key **`~/.ssh/id_ed25519_nopass`**, use the thin playbook [`playbooks/readsb-adsbcot-generic.yml`](https://github.com/snstac/aryaos/blob/main/playbooks/readsb-adsbcot-generic.yml) (pytak sensor `.debs`, **COTBridge** CoT hub, + **`stage-adsbcot`** readsb build). Host vars: [`host_vars/dragonball.yml`](https://github.com/snstac/aryaos/blob/main/host_vars/dragonball.yml).
 
 ```bash
 ansible-galaxy collection install -r requirements.yml
@@ -218,7 +218,7 @@ Without sudo (e.g. **`gba`** in the **`docker`** group only): rsync the repo to 
 
 On a running host: [`scripts/readsb-use-airspy.sh`](https://github.com/snstac/aryaos/blob/main/scripts/readsb-use-airspy.sh) or [`scripts/readsb-use-rtl-serial.sh`](https://github.com/snstac/aryaos/blob/main/scripts/readsb-use-rtl-serial.sh). Probe Airspy with `SoapySDRUtil --probe="driver=airspy"`.
 
-After deploy: `systemctl status charontak readsb adsbcot`, confirm `/run/adsb/aircraft.json` existss.
+After deploy: `systemctl status cotbridge readsb adsbcot`, confirm `/run/adsb/aircraft.json` existss.
 
 ### Loop-mount / `nspawn` / `chroot` (advanced)
 

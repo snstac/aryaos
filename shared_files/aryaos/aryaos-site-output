@@ -1,0 +1,70 @@
+#!/usr/bin/python3
+"""Read or atomically update AryaOS's primary COTBridge output."""
+
+import configparser
+import json
+import os
+import sys
+import tempfile
+from pathlib import Path
+from urllib.parse import urlsplit
+
+CONFIG = Path("/etc/aryaos/aryaos-config.txt")
+BRIDGE = Path("/etc/cotbridge.ini")
+INGRESS = "udp+ro://127.0.0.1:28087"
+
+
+def valid(url):
+    parts = urlsplit(url)
+    return parts.scheme in {"udp", "udp+wo", "tcp", "tls", "ssl", "tak", "ws", "wss"} and bool(parts.netloc)
+
+
+def set_kv(path, key, value):
+    lines = path.read_text().splitlines() if path.exists() else []
+    out = []
+    seen = False
+    for line in lines:
+        if line.startswith(key + "="):
+            out.append(f'{key}="{value}"')
+            seen = True
+        else:
+            out.append(line)
+    if not seen:
+        out.append(f'{key}="{value}"')
+    path.write_text("\n".join(out) + "\n")
+
+
+def main():
+    cp = configparser.RawConfigParser()
+    cp.optionxform = str
+    cp.read(BRIDGE)
+    section = "lane:site-output"
+    current = cp.get(section, "egress_cot_url", fallback="")
+    if len(sys.argv) == 1:
+        print(json.dumps({"ok": True, "url": current}))
+        return
+    url = sys.argv[1].strip()
+    if not valid(url) or url.startswith("tak://"):
+        raise SystemExit("Use a persistent PyTAK output URL; import tak:// enrollment URLs in TAK connection")
+    if not cp.has_section("cotbridge"):
+        cp.add_section("cotbridge")
+    if not cp.has_section(section):
+        cp.add_section(section)
+    for key, value in {
+        "enabled": "true", "mode": "forward", "ingress_cot_url": INGRESS,
+        "egress_cot_url": url, "PYTAK_NO_HELLO": "true",
+    }.items():
+        cp.set(section, key, value)
+    BRIDGE.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile("w", dir=BRIDGE.parent, delete=False) as fp:
+        cp.write(fp)
+        temp = fp.name
+    os.chmod(temp, 0o644)
+    os.replace(temp, BRIDGE)
+    set_kv(CONFIG, "ARYAOS_COT_OUTPUT_URL", url)
+    os.system("systemctl try-restart cotbridge.service >/dev/null 2>&1")
+    print(json.dumps({"ok": True, "url": url}))
+
+
+if __name__ == "__main__":
+    main()

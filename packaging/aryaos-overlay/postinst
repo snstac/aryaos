@@ -39,7 +39,7 @@ case "$1" in
       fi
     done
 
-    for user in adsbcot aiscot dronecot lincot charontak; do
+    for user in adsbcot aiscot dronecot lincot cotbridge; do
       if getent passwd "$user" >/dev/null 2>&1; then
         usermod -aG tak-certs "$user" 2>/dev/null || true
       fi
@@ -85,7 +85,7 @@ case "$1" in
       systemctl reset-failed rpi-zram-writeback.timer 2>/dev/null || true
       systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-neighbord.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service 2>/dev/null || true
       # Network GPS is core plumbing, independent of the selected sensor role.
-      systemctl enable --now gpstak.service 2>/dev/null || true
+      systemctl enable --now gpscot.service 2>/dev/null || true
       # Time service: chrony (GPS-disciplined + serves the local network) replaces
       # the client-only systemd-timesyncd.
       systemctl disable --now systemd-timesyncd.service 2>/dev/null || true

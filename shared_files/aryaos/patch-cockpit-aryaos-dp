@@ -11,7 +11,7 @@ CSS = PLUGIN_DIR / "aryaos.css"
 
 DP_CARD = """    <section class="aos-card" id="card-dp">
       <h2>TAK connection</h2>
-      <p class="aos-hint">Import an ATAK/iTAK connection data package or paste a one-time TAK Server enrollment URL. AryaOS installs the certs under <code>/etc/aryaos/tls</code> and enables Charontak forwarding to the TAK Server.</p>
+      <p class="aos-hint">Import an ATAK/iTAK connection data package or paste a one-time TAK Server enrollment URL. AryaOS installs the certs under <code>/etc/aryaos/tls</code> and enables COTBridge forwarding to the TAK Server.</p>
       <table class="aos-table aos-status-table" id="tak-enrollment-table"><tbody></tbody></table>
       <div class="aos-upload-row">
         <label class="aos-file-label">One-time enrollment URL
@@ -142,7 +142,7 @@ function importDataPackage() {
         }))
         .then((payload) => {
             const target = payload.cot_url || "TAK Server";
-            setStatus(el, "Imported " + target + "; Charontak forwarding updated.", true);
+            setStatus(el, "Imported " + target + "; COTBridge forwarding updated.", true);
             showCurrentTls();
             refreshServices();
             refreshTakEnrollmentStatus();
@@ -178,7 +178,7 @@ function importEnrollmentUrl() {
         }))
         .then((payload) => {
             const target = payload.cot_url || "TAK Server";
-            setStatus(el, "Enrolled " + target + "; Charontak forwarding updated.", true);
+            setStatus(el, "Enrolled " + target + "; COTBridge forwarding updated.", true);
             input.value = "";
             showCurrentTls();
             refreshServices();

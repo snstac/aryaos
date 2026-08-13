@@ -10,19 +10,19 @@ flowchart TD
   svc1["/etc/default/adsbcot"]
   svc2["/etc/default/aiscot"]
   svc3["/etc/default/..."]
-  ct["/etc/charontak.ini<br/>(lanes)"]
+  ct["/etc/cotbridge.ini<br/>(lanes)"]
   site -->|EnvironmentFile, read first| svc1
   site -->|EnvironmentFile, read first| svc2
   site -->|EnvironmentFile, read first| svc3
   svc1 -->|overrides site| gw1[adsbcot service]
   svc2 -->|overrides site| gw2[aiscot service]
-  ct --> charontak[charontak service]
+  ct --> cotbridge[cotbridge service]
 ```
 
 Each gateway's systemd unit loads the **site config first**, then its own **`/etc/default/<svc>`** file. Because the per-service file is read second, **a value set per-service wins**; anything left unset falls through to the site default.
 
 !!! example "One place sets the CoT hub for everyone"
-    The site config sets `COT_URL=udp+wo://127.0.0.1:28087`. Every feeder inherits it and sends [Cursor on Target (CoT)](../reference/glossary.md) to the Charontak hub without per-service configuration. This is the AryaOS routing invariant: **feeders > charontak > Mesh SA / TAK Server**.
+    The site config sets `COT_URL=udp+wo://127.0.0.1:28087`. Every feeder inherits it and sends [Cursor on Target (CoT)](../reference/glossary.md) to the COTBridge hub without per-service configuration. This is the AryaOS routing invariant: **feeders > cotbridge > Mesh SA / TAK Server**.
 
 ## Where each thing lives
 
@@ -30,7 +30,7 @@ Each gateway's systemd unit loads the **site config first**, then its own **`/et
 |------|------|---------|
 | Site-wide TAK destination, decoder, roles, identity, Bluetooth PAN | `/etc/aryaos/aryaos-config.txt` | [AryaOS Site page](../admin/aryaos-site.md) |
 | Site-wide TLS client certs | `/etc/aryaos/tls/` | [AryaOS Site page](../admin/aryaos-site.md#site-wide-tak-tls-certificates) |
-| Upstream CoT lanes (Mesh SA, TAK Server, tools) | `/etc/charontak.ini` | [Charontak lane editor](../admin/charontak-lanes.md) |
+| Upstream CoT lanes (Mesh SA, TAK Server, tools) | `/etc/cotbridge.ini` | [COTBridge lane editor](../admin/cotbridge-lanes.md) |
 | Per-gateway tuning | `/etc/default/<svc>` | [Gateway pages](../admin/gateways.md) |
 | Onboarding hotspot | `/etc/comitup.conf` | [AryaOS Site page](../admin/aryaos-site.md#onboarding-hotspot-password) |
 
@@ -39,10 +39,10 @@ Each gateway's systemd unit loads the **site config first**, then its own **`/et
 Everything above can be edited in the web console - you should not need SSH or a text editor for normal configuration. As a rule:
 
 - **Site-wide behavior** (TAK destination, decoder, role, radios, TLS) > [AryaOS Site page](../admin/aryaos-site.md).
-- **Where CoT goes upstream** (mesh, TAK Server, fan-out) > [Charontak lane editor](../admin/charontak-lanes.md).
+- **Where CoT goes upstream** (mesh, TAK Server, fan-out) > [COTBridge lane editor](../admin/cotbridge-lanes.md).
 - **One service's own knobs** > that [gateway's page](../admin/gateways.md).
 
-Each editor writes the underlying file for you, preserving comments and any keys it does not manage. If you *do* edit a file directly (over SSH or with Cockpit's file editor), restart the affected units afterward - for example `sudo systemctl restart charontak adsbcot aiscot lincot`.
+Each editor writes the underlying file for you, preserving comments and any keys it does not manage. If you *do* edit a file directly (over SSH or with Cockpit's file editor), restart the affected units afterward - for example `sudo systemctl restart cotbridge adsbcot aiscot lincot`.
 
 ## The three configuration references
 
