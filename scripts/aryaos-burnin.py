@@ -272,6 +272,7 @@ def summarize(samples):
             "failed_units": [], "failed_unit_samples": 0, "last_failed_units": [],
             "service_nonactive": {}, "restart_range": {},
             "service_state_counts": {}, "service_types": {}, "journal_warnings": 0,
+            "gateway_activity": {},
             "journal_warning_observations": 0, "journal_event_tracking_samples": 0,
             "journal_warning_unique_events": None,
             "journal_warning_unique_messages": [], "boot_ids": [],
@@ -354,6 +355,38 @@ def summarize(samples):
             if isinstance(restarts, int):
                 limits = out["restart_range"].setdefault(name, [restarts, restarts])
                 limits[0], limits[1] = min(limits[0], restarts), max(limits[1], restarts)
+        for app, state in (sample.get("gateway_status") or {}).items():
+            activity = out["gateway_activity"].setdefault(
+                app,
+                {
+                    "samples": 0,
+                    "counter_increase": {},
+                    "counter_resets": {},
+                    "last_counters": {},
+                    "write_errors_range": None,
+                },
+            )
+            activity["samples"] += 1
+            for counter, value in (state.get("counters") or {}).items():
+                if not isinstance(value, (int, float)):
+                    continue
+                previous = activity["last_counters"].get(counter)
+                if isinstance(previous, (int, float)):
+                    if value >= previous:
+                        increase = activity["counter_increase"].get(counter, 0)
+                        activity["counter_increase"][counter] = increase + value - previous
+                    else:
+                        resets = activity["counter_resets"].get(counter, 0)
+                        activity["counter_resets"][counter] = resets + 1
+                activity["last_counters"][counter] = value
+            write_errors = state.get("write_errors")
+            if isinstance(write_errors, (int, float)):
+                limits = activity["write_errors_range"]
+                if limits is None:
+                    activity["write_errors_range"] = [write_errors, write_errors]
+                else:
+                    limits[0] = min(limits[0], write_errors)
+                    limits[1] = max(limits[1], write_errors)
     # Optional services are legitimately inactive for the whole run. Flag an
     # inactive sample only when that same service was observed active elsewhere
     # in the run: that is a role service dropping out, not an unused package.

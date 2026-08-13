@@ -215,6 +215,47 @@ class BurninSummaryTestCase(unittest.TestCase):
         self.assertEqual(host["failed_unit_samples"], 1)
         self.assertEqual(host["last_failed_units"], [])
 
+    def test_gateway_activity_tracks_generated_data_resets_and_errors(self):
+        first = sample(1, 10, "active")
+        second = sample(2, 10, "active")
+        reset = sample(3, 10, "active")
+        fourth = sample(4, 10, "active")
+        first["gateway_status"] = {
+            "dronecot-dronescout": {
+                "counters": {"rx": 100, "emitted": 200},
+                "write_errors": 0,
+            }
+        }
+        second["gateway_status"] = {
+            "dronecot-dronescout": {
+                "counters": {"rx": 110, "emitted": 220},
+                "write_errors": 0,
+            }
+        }
+        reset["gateway_status"] = {
+            "dronecot-dronescout": {
+                "counters": {"rx": 2, "emitted": 4},
+                "write_errors": 1,
+            }
+        }
+        fourth["gateway_status"] = {
+            "dronecot-dronescout": {
+                "counters": {"rx": 7, "emitted": 14},
+                "write_errors": 1,
+            }
+        }
+
+        host = burnin.summarize(
+            [first, second, reset, fourth]
+        )["hosts"]["192.0.2.1"]
+        activity = host["gateway_activity"]["dronecot-dronescout"]
+
+        self.assertEqual(activity["samples"], 4)
+        self.assertEqual(activity["counter_increase"], {"rx": 15, "emitted": 30})
+        self.assertEqual(activity["counter_resets"], {"rx": 1, "emitted": 1})
+        self.assertEqual(activity["last_counters"], {"rx": 7, "emitted": 14})
+        self.assertEqual(activity["write_errors_range"], [0, 1])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
