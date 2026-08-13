@@ -19,6 +19,7 @@ WIFI_INTERFACE=wlan1
 WIFI_HOP_CHANNELS=1,6,11
 WIFI_HOP_DWELL=3,1
 SENSOR_ID=wifi-rid
+STATUS_APP=dronecot-wifi
 
 # SIGINT / receiver detail carried in the CoT payload (dronecot >= 2.2.5):
 # SENSOR_TYPE = detection method/capability; SENSOR_MODEL = receiver hardware.

@@ -16,6 +16,7 @@
 FEED_URL=ble+hci://hci0
 BLE_ADAPTER=hci0
 SENSOR_ID=ble-rid
+STATUS_APP=dronecot-ble
 
 # Reader selection:
 #   monitor — HCI_CHANNEL_MONITOR socket (needs CAP_NET_RAW, granted by the

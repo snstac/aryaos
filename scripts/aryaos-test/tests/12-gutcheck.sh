@@ -86,6 +86,19 @@ else
 	fail "Gutcheck status API missing or unhealthy"
 fi
 
+if unit_active dronecot-dronescout; then
+	if python3 -c '
+import json, sys
+doc = json.load(sys.stdin)["status"]
+apps = {item.get("app") for item in doc.get("local_gateways", [])}
+assert "dronecot-dronescout" in apps
+' <<<"${API_JSON}" 2>/dev/null; then
+		ok "Gutcheck displays DroneScout instance health"
+	else
+		fail "Gutcheck missing active DroneScout instance health"
+	fi
+fi
+
 if python3 -c '
 import json, sys
 items = json.load(sys.stdin)["entities"].get("items", [])

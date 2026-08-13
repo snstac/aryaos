@@ -181,6 +181,30 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
 
+    def test_dronecot_instances_have_distinct_runtime_status(self):
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        health = (ROOT / "shared_files/aryaos/aryaos-health").read_text()
+        image_check = (ROOT / "scripts/verify-image.sh").read_text()
+        hil_check = (
+            ROOT / "scripts/aryaos-test/tests/05-packages.sh"
+        ).read_text()
+
+        for instance in ("dronescout", "wifi", "ble"):
+            name = f"dronecot-{instance}"
+            defaults = (
+                ROOT / f"shared_files/aryaos/{name}.default"
+            ).read_text()
+            self.assertIn(f"STATUS_APP={name}", defaults)
+            self.assertIn(f'aryaos/{name}.default"', builder)
+            self.assertIn(f'"{name}"', health)
+            self.assertIn(f"^STATUS_APP={name}$", image_check)
+
+        self.assertIn("for dronecot_instance in dronescout wifi ble", postinst)
+        self.assertIn("STATUS_APP=dronecot-%s", postinst)
+        self.assertIn("require_pkg_version dronecot 2.3.9", image_check)
+        self.assertIn("require_package_version dronecot 2.3.9", hil_check)
+
     def test_overlay_keeps_network_gps_core_active(self):
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
 

@@ -287,7 +287,7 @@ require_pkg_version gdlcot 1.0.1
 require_pkg_version pytak 7.4.3
 require_pkg_version acarscot 0.1.1
 require_pkg acarsdec
-require_pkg_version dronecot 2.3.8
+require_pkg_version dronecot 2.3.9
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
@@ -301,6 +301,7 @@ require_grep '^Environment=HOME=/var/lib/acarscot$' /usr/lib/systemd/system/acar
 require_path /etc/systemd/system/dronecot-dronescout.service
 require_grep '/dev/dronescout' /etc/default/dronecot-dronescout "dronecot-dronescout reads the DS101 ESP32-S3 (/dev/dronescout)"
 require_grep '^SERIAL_CRLF_NORMALIZE=1$' /etc/default/dronecot-dronescout "dronecot-dronescout repairs ESP console CRLF expansion"
+require_grep '^STATUS_APP=dronecot-dronescout$' /etc/default/dronecot-dronescout "dronecot-dronescout has an isolated runtime status namespace"
 require_grep '303a' /etc/udev/rules.d/99-aryaos-dronescout.rules "DS101 udev symlink rule present"
 # AntSDR E200 management: console access + DroneID feed health watchdog.
 require_path /usr/local/sbin/aryaos-antsdr-console
@@ -317,6 +318,8 @@ require_path /usr/lib/python3/dist-packages/scapy/all.py
 require_path /usr/local/sbin/aryaos-wifi-monitor
 require_grep 'aryaos-wifi-monitor' /etc/systemd/system/dronecot-wifi.service "dronecot-wifi preps monitor mode via ExecStartPre"
 require_grep 'SENSOR_TYPE' /etc/default/dronecot-wifi "dronecot-wifi carries SIGINT sensor detail"
+require_grep '^STATUS_APP=dronecot-wifi$' /etc/default/dronecot-wifi "dronecot-wifi has an isolated runtime status namespace"
+require_grep '^STATUS_APP=dronecot-ble$' /etc/default/dronecot-ble "dronecot-ble has an isolated runtime status namespace"
 # Capability model.
 require_grep 'ARYAOS_CAPABILITIES' /usr/local/sbin/aryaos-role "aryaos-role has the capability model"
 require_grep 'acarsdec acarscot' /usr/local/sbin/aryaos-role "aryaos-role manages the ACARS decoder and gateway"

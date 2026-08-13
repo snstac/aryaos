@@ -29,6 +29,15 @@ case "$1" in
         printf '\n# Repair ESP console LF-to-CRLF expansion in binary MAVLink.\nSERIAL_CRLF_NORMALIZE=%s\n' "$dronescout_crlf" >> "$dronescout_config"
       fi
     fi
+    # Each independently managed DroneCOT service needs its own PyTAK status
+    # namespace. Migrate existing conffiles in place without replacing local
+    # feed or sensor settings.
+    for dronecot_instance in dronescout wifi ble; do
+      instance_config="/etc/default/dronecot-$dronecot_instance"
+      if [ -f "$instance_config" ] && ! grep -q '^STATUS_APP=' "$instance_config"; then
+        printf '\nSTATUS_APP=dronecot-%s\n' "$dronecot_instance" >> "$instance_config"
+      fi
+    done
     if [ ! -f /etc/aryaos/aryaos-config.txt ] && [ -f /usr/share/aryaos/defaults/aryaos-config.txt ]; then
       install -d -m 0755 /etc/aryaos
       install -m 0644 -o root -g root /usr/share/aryaos/defaults/aryaos-config.txt /etc/aryaos/aryaos-config.txt

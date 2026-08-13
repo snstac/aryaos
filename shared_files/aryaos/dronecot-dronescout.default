@@ -18,7 +18,7 @@
 # OPEN_DRONE_ID_MESSAGE_PACK at 115200 baud on the ESP32-S3 CDC port.
 # Some DS110 firmware routes binary MAVLink through an ESP console stream and
 # expands every LF byte to CRLF. That corrupts frames whenever an LF occurs in a
-# header, payload, or checksum. DroneCOT 2.3.8 reverses this transformation
+# header, payload, or checksum. DroneCOT 2.3.8+ reverses this transformation
 # before pymavlink; keep it scoped to this dedicated DroneScout instance.
 # A DS110 connected through a USB-UART adapter is written here automatically by
 # `aryaos-role discover --apply`, but only after checksum-valid Remote-ID MAVLink
@@ -27,3 +27,4 @@
 FEED_URL=serial:///dev/dronescout:115200
 SERIAL_CRLF_NORMALIZE=1
 SENSOR_ID=dronescout
+STATUS_APP=dronecot-dronescout

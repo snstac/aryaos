@@ -6,7 +6,20 @@ import json
 import time
 from pathlib import Path
 
-APPS = ("cotbridge", "gpscot", "lincot", "gutcheck", "adsbcot", "aiscot", "dronecot", "acarscot", "gdlcot")
+APPS = (
+    "cotbridge",
+    "gpscot",
+    "lincot",
+    "gutcheck",
+    "adsbcot",
+    "aiscot",
+    "dronecot",
+    "dronecot-wifi",
+    "dronecot-ble",
+    "dronecot-dronescout",
+    "acarscot",
+    "gdlcot",
+)
 
 
 def load(app, now):
