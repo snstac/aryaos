@@ -68,6 +68,9 @@ class GatewayHealthTestCase(unittest.TestCase):
             )
 
         self.assertEqual(item["health"]["state"], "unknown")
+        self.assertEqual(
+            item["health"]["detail"], "service active; no runtime status"
+        )
         self.assertEqual(HEALTH.overall_health([item]), "degraded")
 
     def test_runtime_contract_carries_systemd_evidence(self):

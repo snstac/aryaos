@@ -19,10 +19,10 @@ else
 fi
 
 VERSION="$(dpkg-query -W -f='${Version}' gutcheck 2>/dev/null || true)"
-if [[ -n "${VERSION}" ]] && dpkg --compare-versions "${VERSION}" ge 0.3.4; then
+if [[ -n "${VERSION}" ]] && dpkg --compare-versions "${VERSION}" ge 0.3.5; then
 	ok "gutcheck package ${VERSION}"
 else
-	fail "gutcheck package ${VERSION:-missing}, expected >= 0.3.4"
+	fail "gutcheck package ${VERSION:-missing}, expected >= 0.3.5"
 fi
 
 HEALTH_CODE="$(curl -sS --connect-timeout 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:8181/healthz 2>/dev/null || true)"
@@ -80,6 +80,14 @@ assert doc.get("ok") is True
 assert doc.get("events_seen", 0) > 0
 assert doc.get("events_dropped") == 0
 assert doc.get("warnings") == []
+gateways = doc.get("local_gateways", [])
+assert gateways
+assert all(item.get("health", {}).get("state") != "disabled" for item in gateways)
+for item in gateways:
+    counters = item.get("counters", {})
+    if item.get("app") == "dronecot-dronescout":
+        assert counters.get("rx", 0) > 0
+        assert counters.get("emitted", 0) > 0
 ' <<<"${API_JSON}" 2>/dev/null; then
 	ok "Gutcheck API healthy with events and zero drops/warnings"
 else

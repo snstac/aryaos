@@ -89,10 +89,15 @@ def service_health(state):
 
 def missing_health(state):
     """Classify an absent runtime document without faulting unused roles."""
-    return service_health(state) or {
-        "state": "unknown",
-        "detail": "no runtime status",
-    }
+    override = service_health(state)
+    if override:
+        return override
+    detail = (
+        "service active; no runtime status"
+        if state.get("ActiveState") == "active"
+        else "no runtime status"
+    )
+    return {"state": "unknown", "detail": detail}
 
 
 def load(app, now, root=STATUS_ROOT, state=None):
