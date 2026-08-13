@@ -377,6 +377,10 @@ require_path /etc/firewalld/services/aryaos-mesh-sa.xml
 require_grep 'aryaos-mesh-sa' /etc/firewalld/zones/public.xml "firewall zone allows Mesh SA"
 require_path /etc/firewalld/services/aryaos-gutcheck.xml
 require_grep 'aryaos-gutcheck' /etc/firewalld/zones/public.xml "firewall zone allows token-gated Gutcheck on the LAN"
+require_path /etc/sudoers.d/aryaos-gutcheck-health
+require_grep '^gutcheck ALL=(root) NOPASSWD: ARYAOS_GUTCHECK_HEALTH$' /etc/sudoers.d/aryaos-gutcheck-health "Gutcheck has only read-only health collector privilege"
+require_path /etc/systemd/system/gutcheck.service.d/aryaos-health.conf
+require_grep '^Environment="LOCAL_HEALTH_COMMAND=/usr/bin/sudo -n /usr/local/sbin/aryaos-health --json"$' /etc/systemd/system/gutcheck.service.d/aryaos-health.conf "Gutcheck uses the scoped AryaOS health collector"
 require_grep 'name="https"' /etc/firewalld/zones/public.xml "firewall zone allows HTTPS"
 require_path /etc/systemd/system/multi-user.target.wants/firewalld.service
 require_path /etc/systemd/system/multi-user.target.wants/fail2ban.service

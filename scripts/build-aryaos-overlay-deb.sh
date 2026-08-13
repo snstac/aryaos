@@ -49,6 +49,7 @@ install_file 0644 "${SHARED}/aryaos/aryaos-release" "/etc/aryaos-release"
 install_file 0644 "${SHARED}/aryaos/aryaos-version" "/etc/aryaos-version"
 install_file 0644 "${SHARED}/aryaos/README-aryaos.txt" "/README-aryaos.txt"
 install_file 0440 "${SHARED}/aryaos/aryaos.sudoers" "/etc/sudoers.d/aryaos"
+install_file 0440 "${SHARED}/aryaos/aryaos-gutcheck-health.sudoers" "/etc/sudoers.d/aryaos-gutcheck-health"
 install_file 0644 "${SHARED}/aryaos/aryaos-config.txt" "/usr/share/aryaos/defaults/aryaos-config.txt"
 install_file 0644 "${SHARED}/aryaos/gpsd.default" "/usr/share/aryaos/defaults/gpsd.default"
 install_file 0644 "${SHARED}/aryaos/dronecot-dronescout.default" "/usr/share/aryaos/defaults/dronecot-dronescout.default"
@@ -132,6 +133,7 @@ install_file 0644 "${SHARED}/aryaos/systemd/aryaos-serial-assign.service" "/etc/
 install_file 0644 "${SHARED}/aryaos/systemd/bluetooth.service.d/aryaos-directory-mode.conf" "/etc/systemd/system/bluetooth.service.d/aryaos-directory-mode.conf"
 install_file 0644 "${SHARED}/aryaos/modules-load.d/lighttpd-mod-openssl.conf" "/etc/modules-load.d/lighttpd-mod-openssl.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/lighttpd.service.d/aryaos-netlink.conf" "/etc/systemd/system/lighttpd.service.d/aryaos-netlink.conf"
+install_file 0644 "${SHARED}/aryaos/systemd/gutcheck.service.d/aryaos-health.conf" "/etc/systemd/system/gutcheck.service.d/aryaos-health.conf"
 
 # Offline documentation: ship the rendered MkDocs site in the portal so the
 # device serves it at https://<host>/docs/ with no internet. CI pre-builds it

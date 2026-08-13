@@ -1,0 +1,4 @@
+# Permit the unprivileged Gutcheck dashboard to read only AryaOS's normalized,
+# read-only health aggregate. Runtime status files remain private to each daemon.
+Cmnd_Alias ARYAOS_GUTCHECK_HEALTH = /usr/local/sbin/aryaos-health --json
+gutcheck ALL=(root) NOPASSWD: ARYAOS_GUTCHECK_HEALTH

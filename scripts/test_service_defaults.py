@@ -213,10 +213,26 @@ class ServiceDefaultsTestCase(unittest.TestCase):
 
     def test_overlay_packages_gateway_health_cli(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        sudoers = (
+            ROOT / "shared_files/aryaos/aryaos-gutcheck-health.sudoers"
+        ).read_text()
+        dropin = (
+            ROOT
+            / "shared_files/aryaos/systemd/gutcheck.service.d/aryaos-health.conf"
+        ).read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
 
         self.assertIn(
             'aryaos-health" "/usr/local/sbin/aryaos-health"', builder
         )
+        self.assertIn("aryaos-gutcheck-health.sudoers", builder)
+        self.assertIn("gutcheck.service.d/aryaos-health.conf", builder)
+        self.assertIn(
+            "gutcheck ALL=(root) NOPASSWD: ARYAOS_GUTCHECK_HEALTH", sudoers
+        )
+        self.assertNotIn("ALL=(ALL)", sudoers)
+        self.assertIn("/usr/local/sbin/aryaos-health --json", dropin)
+        self.assertIn("dronecot-dronescout.service gutcheck.service", postinst)
 
     def test_overlay_orders_feeders_after_cotbridge(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
