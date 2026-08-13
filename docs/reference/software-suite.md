@@ -1,9 +1,9 @@
 # Software suite
 
-AryaOS ships the full [Sensors & Signals](https://www.snstac.com) open-source suite of Team Awareness Kit (TAK) gateways and Cursor on Target (CoT) tools, plus a touch-friendly [Cockpit](https://cockpit-project.org/) web plugin for each one. Every gateway is built on [PyTAK](#pytak) and, on AryaOS, feeds the [COTBridge](#cotbridge) hub, which owns egress to Mesh SA and any TAK Servers.
+AryaOS ships the full [Sensors & Signals](https://www.snstac.com) open-source suite of Team Awareness Kit (TAK) gateways and Cursor on Target (CoT) tools, plus a touch-friendly [Cockpit](https://cockpit-project.org/) web plugin for each one. Every gateway is built on [PyTAK](#pytak) and, on AryaOS, feeds the [COTBridge](#cotbridge) hub, which owns the site-wide egress to Mesh SA or a TAK Server.
 
 !!! info "How the pieces fit together"
-    Local feeders (adsbcot, aiscot, dronecot, lincot, gdlcot, gpscot) send CoT to COTBridge at `udp+wo://127.0.0.1:28087`. COTBridge listens on `udp+ro://127.0.0.1:28087` and forwards to the default Mesh SA multicast `udp+wo://239.2.3.1:6969` plus optional TAK Server lanes. See [Ports & protocols](ports.md) and [Relay & routing](../deploy/relay-routing.md).
+    Local feeders (adsbcot, aiscot, dronecot, lincot, gdlcot, gpscot) send CoT to COTBridge at `udp+wo://127.0.0.1:28087`. COTBridge listens on `udp+ro://127.0.0.1:28087` and forwards through `site-output`, which targets the Mesh SA multicast `udp+wo://239.2.3.1:6969` by default or a TAK Server selected in the AryaOS Site page. See [Ports & protocols](ports.md) and [Relay & routing](../deploy/relay-routing.md).
 
 ## Foundation
 

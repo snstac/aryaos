@@ -9,7 +9,7 @@ Use a relay when you need to *carry the picture*, not *make* it: bridge a Mesh S
 **COTBridge** is the CoT bridge/router at the heart of every AryaOS box (named for the ferryman - it *ferries* CoT). Every local feeder sends to COTBridge, and COTBridge owns all egress:
 
 - It **listens** for CoT on `udp+ro://127.0.0.1:28087` (the site-config `COT_URL` default that feeders target with `udp+wo://127.0.0.1:28087`).
-- It **forwards** to one or more **lanes**. The default lane multicasts to **Mesh SA** at `udp+wo://239.2.3.1:6969`; optional lanes reach a [TAK Server](./connect-tak-server.md) over TLS.
+- It **forwards** through the primary `site-output` lane. That lane multicasts to **Mesh SA** at `udp+wo://239.2.3.1:6969` by default and can instead reach a [TAK Server](./connect-tak-server.md) over TLS. Advanced configurations can add more lanes.
 
 On AryaOS, COTBridge is configured at `/etc/cotbridge.ini` and edited from **Cockpit > COTBridge** at `https://<host>/admin/`. See [COTBridge lanes](../admin/cotbridge-lanes.md) for the full editor reference.
 
@@ -21,19 +21,13 @@ A **lane** is a one-directional route with an `ingress_cot_url` (where CoT comes
 [cotbridge]
 DEBUG = false
 
-[lane:local-to-mesh]
+[lane:site-output]
 enabled = true
 mode = forward
 ingress_cot_url = udp+ro://127.0.0.1:28087
 egress_cot_url = udp+wo://239.2.3.1:6969
 PYTAK_NO_HELLO = true
 
-[lane:local-to-takserver]
-enabled = false
-mode = forward
-ingress_cot_url = udp+ro://127.0.0.1:28087
-egress_cot_url = tls://takserver.example.com:8089
-PYTAK_NO_HELLO = true
 ```
 
 For a pure relay you typically change the **ingress** to a network source rather than loopback. Common patterns:
@@ -56,7 +50,7 @@ For a pure relay you typically change the **ingress** to a network source rather
     Accept UDP CoT from feeders elsewhere on the network and republish to mesh.
 
     ```ini
-    [lane:local-to-mesh]
+    [lane:network-to-mesh]
     enabled = true
     mode = forward
     ingress_cot_url = udp://:18087          # udp://:PORT ≡ udp+ro://0.0.0.0:PORT

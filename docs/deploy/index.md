@@ -99,11 +99,12 @@ flowchart LR
     end
     C[LINCOT + GPSCOT<br/>own position]
     A & M & D & C -->|udp+wo://127.0.0.1:28087| H[COTBridge hub]
-    H -->|Mesh SA<br/>udp+wo://239.2.3.1:6969| E[ATAK / WinTAK / iTAK]
-    H -.->|optional TLS lane| S[TAK Server]
+    H --> O[site-output]
+    O -->|default: Mesh SA<br/>udp+wo://239.2.3.1:6969| E[ATAK / WinTAK / iTAK]
+    O -.->|or: TLS| S[TAK Server]
 ```
 
-Local feeders publish CoT to the COTBridge hub on `udp+wo://127.0.0.1:28087`. COTBridge owns egress: by default it multicasts to the **Mesh SA** group `udp+wo://239.2.3.1:6969` (which your EUD picks up automatically), and it can add one or more [TAK Server lanes](./connect-tak-server.md).
+Local feeders publish CoT to the COTBridge hub on `udp+wo://127.0.0.1:28087`. COTBridge owns egress: its site-wide output multicasts to the **Mesh SA** group `udp+wo://239.2.3.1:6969` by default (which your EUD picks up automatically) and can instead point at a [TAK Server](./connect-tak-server.md). Advanced COTBridge lanes remain available for specialized routing.
 
 ## Next steps
 

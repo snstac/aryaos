@@ -67,7 +67,9 @@ flowchart LR
     H -->|Mesh SA 239.2.3.1:6969| E[ATAK / WinTAK / iTAK]
 ```
 
-Each detector emits CoT to the COTBridge hub at `udp+wo://127.0.0.1:28087`; COTBridge forwards to Mesh SA and any [TAK Server lanes](./connect-tak-server.md).
+Each detector emits CoT to the COTBridge hub at `udp+wo://127.0.0.1:28087`;
+COTBridge sends the unified stream through the site-wide output to Mesh SA or
+a [TAK Server](./connect-tak-server.md).
 
 ## Manage the AntSDR
 

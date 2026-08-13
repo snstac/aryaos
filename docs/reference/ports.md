@@ -48,7 +48,9 @@ AryaOS forwards CoT outward through COTBridge:
 | Mesh SA multicast | `udp+wo://239.2.3.1:6969` | Default - phones on the hotspot see tracks with no server |
 | TAK Server | `tls://host:port` (or `tcp://`) | When a TAK connection is imported |
 
-TAK Server lanes are added by importing a connection data package or `tak://` enrollment link - see [Connect to a TAK Server](../deploy/connect-tak-server.md).
+Importing a connection data package or `tak://` enrollment link changes the
+site-wide output to the resulting persistent TAK Server connection. See
+[Connect to a TAK Server](../deploy/connect-tak-server.md).
 
 ## See also
 

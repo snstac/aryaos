@@ -77,7 +77,7 @@ Tracks reach Mesh SA but not your TAK Server.
 1. **Re-import the connection.** Import the TAK **data package** or `tak://` enrollment link again from the **TAK connection** card. AryaOS installs the certs and writes a COTBridge lane. See [Connect to a TAK Server](deploy/connect-tak-server.md).
 2. **Certificate/CA.** A bad or expired client certificate, or the wrong CA in the package, stops the TLS handshake - get a fresh package from your TAK admin.
 3. **Reachability.** The device must be able to reach the server host and port (the connect string in the package). On a disconnected box, add a route: Ethernet, an upstream Wi-Fi client connection, or the [VPN](networking/vpn-tailscale.md).
-4. **COTBridge lane.** Confirm the `lane:local-to-takserver` lane is enabled in the [COTBridge lane editor](admin/cotbridge-lanes.md).
+4. **COTBridge lane.** Confirm the `lane:site-output` lane is enabled and its egress URL names the intended server in the [COTBridge lane editor](admin/cotbridge-lanes.md).
 
 ## GPS has no fix
 

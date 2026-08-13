@@ -107,7 +107,7 @@ sudo aryaos-import-tak-dp connection-data-package.zip
 sudo aryaos-import-tak-dp --enrollment-url-file /path/to/tak-url.txt
 ```
 
-- Extracts the client and CA certificates, installs them under `/etc/aryaos/tls` (group `tak-certs`, keys `0640`), and writes a COTBridge `lane:local-to-takserver` egress lane pointing at the server, then restarts COTBridge.
+- Extracts the client and CA certificates, installs them under `/etc/aryaos/tls` (group `tak-certs`, keys `0640`), and points the COTBridge `lane:site-output` egress at the server, then restarts COTBridge.
 - Supports `ssl`/`tls`/`tcp` connect strings; a `tak://com.atakmap.app/enroll` enrollment URL is resolved to a data package via PyTAK before import.
 - Prints a JSON result describing the destination. This is the same import the **TAK connection** card runs. See [Connect to a TAK Server](../deploy/connect-tak-server.md).
 

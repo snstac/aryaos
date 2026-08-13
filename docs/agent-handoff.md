@@ -23,25 +23,39 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 ### Fleet rollout and upgrade-path fixes
 
 - Public releases are PyTAK 7.5.0, COTBridge 1.0.0, GPSCOT 2.0.0, GDLCOT
-  2.0.0, Cockpit COTBridge/GPSCOT/AryaOS 2.0.0, and LINCOT 1.3.8. The signed
+  2.0.0, DroneCOT 2.3.9, Cockpit COTBridge/GPSCOT/AryaOS 2.0.0, and LINCOT
+  1.3.8. The signed
   package repository now indexes the renamed public repositories instead of
   their legacy names. Gutcheck remains private and must not be added to the
   public `snstac/packages` product list; authorized lab deployments use its
   authenticated release asset.
-- Gutcheck 0.3.1 adds the normalized local gateway health view and generates a
-  protected, stable per-host web token during Debian installation. The service
-  remains opt-in because only one mesh node should own external alerting, but
-  dashboard-only instances are enabled on the current lab fleet.
-- AryaOS overlay 2.1.4 fixes four defects found by canary upgrades and reboot
-  testing: it packages `aryaos-health`, packages feeder ordering drop-ins,
-  migrates the new site-output and ADS-B keys without replacing operator
-  config, and keeps serial discovery off the verified ADSBee Beast port.
-  `readsb.service` is ordered after serial assignment to prevent both processes
-  from opening the Pico during boot.
+- Gutcheck 0.3.3 displays normalized local gateway and per-instance health. It
+  reads public status files directly and falls back to the exact protected
+  `sudo -n /usr/local/sbin/aryaos-health --json` command for daemon-owned
+  `0600` files. The sudo rule exposes only normalized, read-only health data;
+  Gutcheck remains unprivileged. Debian installation also generates a stable,
+  protected per-host web token. The service remains opt-in because only one
+  mesh node should own external alerting, but dashboard-only instances are
+  enabled on the current lab fleet.
+- DroneCOT 2.3.9 gives each systemd instance its own status namespace through
+  `STATUS_APP` and `STATUS_PATH`. This fixes the mismatch between the
+  `dronecot-dronescout` runtime directory and the former hard-coded
+  `dronecot` status path. The DroneScout status files now survive normal
+  service starts and appear in Gutcheck with live receive and emit counters.
+- AryaOS overlay 2.1.7 includes the canary and reboot fixes: it packages
+  `aryaos-health`, feeder ordering drop-ins, the protected Gutcheck collector,
+  and independent site-output and ADS-B keys without replacing operator
+  configuration. It keeps serial discovery off a verified ADSBee Beast port,
+  orders `readsb.service` after serial assignment, and migrates enabled legacy
+  COTBridge lanes to one `site-output` lane while disabling the old sections to
+  prevent duplicate CoT.
 - Current lab nodes are `192.168.0.44` (AIS), `192.168.0.45` (ADSBee, DS110,
   GNSS), and `192.168.0.199` (ADSBee, DroneScout, GNSS). All three run overlay
-  2.1.4 with PyTAK 7.5.0, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.0, LINCOT 1.3.8,
-  and Gutcheck 0.3.1. Post-reboot strict HIL passes on all three.
+  2.1.7 with PyTAK 7.5.0, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.0, LINCOT 1.3.8,
+  DroneCOT 2.3.9, and Gutcheck 0.3.3. Strict HIL passes on all three after the
+  live upgrade. `.45` and `.199` report healthy `dronecot-dronescout` instances
+  in Gutcheck with rising counters and zero write errors; `.44` reports its
+  COTBridge, GPSCOT, LINCOT, and AISCOT gateways.
 - A paced test delivered all 5,000 generated CoT events per node at about 675
   events per second with zero COTBridge write errors. A 50,000-event burst
   exercised UDP saturation without service failure. Four-core CPU load peaked
@@ -52,7 +66,12 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   output returned it to `ok` and `connected`, with traffic flowing again.
 - Eight-hour evidence is collected under the gitignored
   `.aryaos-burnin/20260813T1907Z-post-2.1.4/` directory. Check `summary.json`
-  and the per-node HIL logs before declaring the soak complete.
+  and the per-node HIL logs before declaring the soak complete. The directory
+  name records the starting deployment; the nodes were upgraded in place to
+  overlay 2.1.7, DroneCOT 2.3.9, and Gutcheck 0.3.3 during the same run. Image
+  workflow run `31736340576` is validating AryaOS commit `a451cf4`; do not call
+  the release complete until its mounted-image verification and publication
+  jobs pass.
 
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.

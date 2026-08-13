@@ -29,7 +29,7 @@ Run aircraft, vessels, and drones on a single box. Select the **`multi`** role a
 
 ## Fusing into one COP
 
-Every feeder - air, maritime, drone, and position - publishes CoT to the **same** COTBridge hub on `udp+wo://127.0.0.1:28087`. COTBridge merges them and forwards a single stream to Mesh SA (and any [TAK Server lanes](./connect-tak-server.md)), so your EUD sees one unified picture.
+Every feeder - air, maritime, drone, and position - publishes CoT to the **same** COTBridge hub on `udp+wo://127.0.0.1:28087`. COTBridge merges them and forwards a single stream through the site-wide output to Mesh SA or a [TAK Server](./connect-tak-server.md), so your EUD sees one unified picture.
 
 ```mermaid
 flowchart LR

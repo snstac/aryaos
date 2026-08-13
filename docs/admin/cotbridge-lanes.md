@@ -4,7 +4,7 @@
 
 Open it from Cockpit > **COTBridge**.
 
-![The COTBridge lane editor - service controls and two bridge lanes (feeders > Mesh SA, and Mesh SA > TAK Server), each with its ingress and egress CoT URLs](../media/screenshots/cotbridge-lane-editor.png)
+![The COTBridge lane editor with service controls and bridge lanes showing their ingress and egress CoT URLs](../media/screenshots/cotbridge-lane-editor.png)
 
 ## Concept: one hub, many lanes
 
@@ -19,8 +19,7 @@ flowchart LR
     d[lincot / gpscot / ...]
   end
   feeders -->|udp+wo://127.0.0.1:28087| hub[(COTBridge hub)]
-  hub -->|lane: local-to-mesh| mesh[Mesh SA<br/>udp+wo://239.2.3.1:6969]
-  hub -->|lane: local-to-takserver| tak[TAK Server<br/>tls://host:8089]
+  hub -->|lane: site-output| out[Primary site destination<br/>Mesh SA or TAK Server]
   hub -.->|extra lane| tool[Recorder / sidecar]
 ```
 
@@ -28,12 +27,17 @@ flowchart LR
 - COTBridge **listens** on that address and owns **egress**.
 - Each **lane** is a `[lane:*]` section in `/etc/cotbridge.ini` that relays CoT between two endpoints.
 
-The image ships two lanes:
+The image ships one operator-facing lane:
 
 | Lane | Default state | Flow |
 |------|--------------|------|
-| `local-to-mesh` | **enabled** | `udp+ro://127.0.0.1:28087` > `udp+wo://239.2.3.1:6969` |
-| `local-to-takserver` | disabled (template) | `udp+ro://127.0.0.1:28087` > `tls://takserver.example.com:8089` |
+| `site-output` | **enabled** | `udp+ro://127.0.0.1:28087` > the site-wide output URL; Mesh SA by default |
+
+Change the primary destination from **Cockpit > AryaOS Site > TAK destination**.
+Use this lane editor only when an advanced deployment needs extra destinations,
+nonstandard ingress, or per-lane overrides. Upgrades disable the retired
+`local-to-mesh`, `local-to-takserver`, and `mesh-to-takserver` sections so old
+configuration cannot duplicate events.
 
 !!! warning "COTBridge needs at least one lane"
     If no lanes are configured, COTBridge exits at startup. The editor warns you when the lane list is empty.
@@ -66,7 +70,7 @@ A new lane pre-fills the ingress with the AryaOS hub address `udp+ro://127.0.0.1
 
 !!! note "Ingress vs egress"
     - **Ingress** is the *local* side: where the lane reads CoT from. On AryaOS that is normally the hub, `udp+ro://127.0.0.1:28087`, where feeders publish.
-    - **Egress** is the *remote* side: where the lane writes CoT to - Mesh SA (`udp+wo://239.2.3.1:6969`), a TAK Server (`tls://host:8089`), or a `tak://` enrollment URL.
+    - **Egress** is the *remote* side: where the lane writes CoT to - Mesh SA (`udp+wo://239.2.3.1:6969`) or a TAK Server (`tls://host:8089`). Import a one-time `tak://` enrollment URL from the AryaOS Site page; it resolves that URL to a persistent TLS destination and certificate set.
 
     Both are required. Empty keys are removed so the lane falls back to the `[cotbridge]` global defaults.
 
@@ -84,7 +88,7 @@ Most AryaOS lanes are **forward**: read from the local hub, write to the remote 
 
 ### Suppress hello event (`PYTAK_NO_HELLO`)
 
-Enable this on bridge lanes so COTBridge does **not** inject its own presence "hello" event into the stream. It is on by default for new lanes and for the shipped lanes.
+Enable this on bridge lanes so COTBridge does **not** inject its own presence "hello" event into the stream. It is on by default for new lanes and for the shipped lane.
 
 ### TAK protocol (`TAK_PROTO`)
 
@@ -115,7 +119,7 @@ These are **per-lane**, so one COTBridge instance can hold different client iden
     `PYTAK_TLS_DONT_VERIFY` and `PYTAK_TLS_DONT_CHECK_HOSTNAME` disable TLS safety checks. Never leave them enabled in the field.
 
 !!! tip "Let the AryaOS Site page do it"
-    You usually do not fill the TLS fields by hand. The **TAK connection** card on the [AryaOS Site page](./aryaos-site.md#tak-connection) imports a data package or `tak://` enrollment URL and configures the TAK Server lane and its certs for you.
+    You usually do not fill the TLS fields by hand. The **TAK connection** card on the [AryaOS Site page](./aryaos-site.md#tak-connection) imports a data package or `tak://` enrollment URL and configures the `site-output` lane and its certs for you.
 
 ## Validation
 
