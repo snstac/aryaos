@@ -27,6 +27,23 @@ if [[ -f $AOS_CONFIG ]]; then
 fi
 
 COMITUP_CONF="/etc/comitup.conf"
+COMITUP_DNS_DIR="/usr/share/comitup/dns"
+
+# Bluetooth PAN and the Wi-Fi onboarding hotspot each run a dnsmasq DHCP
+# server. Both must bind their DHCP socket to exactly one interface or the
+# first process to claim UDP/67 prevents the other from starting. Comitup may
+# launch dnsmasq before wlan0 exists, so bind-dynamic is required here rather
+# than bind-interfaces. Reconcile this on every start because these files are
+# owned by the upstream comitup package and can be replaced by an apt upgrade.
+for dns_conf in \
+	"${COMITUP_DNS_DIR}/dns-hotspot.conf" \
+	"${COMITUP_DNS_DIR}/dns-connected.conf"; do
+	[[ -f "${dns_conf}" ]] || continue
+	if ! grep -qxF 'bind-dynamic' "${dns_conf}"; then
+		sed --follow-symlinks -i '/^bind-interfaces$/d' "${dns_conf}"
+		printf '\nbind-dynamic\n' >> "${dns_conf}"
+	fi
+done
 
 if [[ ! -f ${COMITUP_CONF} ]]; then
 	echo "${COMITUP_CONF} doesn't exist, initializing."

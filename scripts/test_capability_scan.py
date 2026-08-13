@@ -62,8 +62,8 @@ class AdsbCapabilityTestCase(unittest.TestCase):
             cls.src = fh.read()
         cls.block = _adsb_block(cls.src)
 
-    def decide(self, sdrs, with_pipeline=True):
-        ns = {"sdrs": sdrs, "caps": {}}
+    def decide(self, sdrs, with_pipeline=True, adsbee=None):
+        ns = {"sdrs": sdrs, "adsbee": adsbee or [], "caps": {}}
         exec(self.block, ns)
         if with_pipeline:
             exec(RECOMPUTE, ns)
@@ -117,6 +117,14 @@ class AdsbCapabilityTestCase(unittest.TestCase):
         self.assertFalse(cap["available"])
         self.assertFalse(cap["auto_apply"])
 
+    def test_adsbee_without_sdr_is_available_and_auto_applied(self):
+        cap = self.decide(
+            [], adsbee=["/dev/serial/by-id/usb-Raspberry_Pi_Pico_ADSBee-if00"]
+        )
+        self.assertTrue(cap["available"])
+        self.assertTrue(cap["auto_apply"])
+        self.assertIn("ADSBee", cap["evidence"])
+
     def test_driver_match_is_case_insensitive(self):
         cap = self.decide([{"driver": "RTLSDR", "label": "RTL2838UHIDIR"}])
         self.assertTrue(cap["auto_apply"])
@@ -127,10 +135,6 @@ class AdsbCapabilityTestCase(unittest.TestCase):
         reason = cap["deferred_reason"]
         self.assertIn("LimeSDR Mini", reason)
         self.assertIn("aryaos-role caps", reason)
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class AcarsCapabilityTestCase(unittest.TestCase):
@@ -192,3 +196,144 @@ class AcarsCapabilityTestCase(unittest.TestCase):
         self.assertGreater(idx, 0, "acars capability block missing from the scanner")
         block = text[idx : idx + 900]
         self.assertIn('"manual_only": True', block)
+
+    def test_role_manager_controls_both_acars_units(self):
+        """Persisting `acars` must also enable its decoder and gateway."""
+        import pathlib
+        import re
+
+        src = pathlib.Path(__file__).parent.parent / "shared_files/aryaos/aryaos-role"
+        text = src.read_text()
+        match = re.search(
+            r"all_managed_units\(\) \{(?P<body>.*?)\n\}", text, re.DOTALL
+        )
+        self.assertIsNotNone(match, "all_managed_units function missing")
+        managed = match.group("body")
+        self.assertIn("acarsdec", managed)
+        self.assertIn("acarscot", managed)
+
+
+class SerialRoleWiringTestCase(unittest.TestCase):
+    def test_ais_serial_is_assigned_before_services_start(self):
+        import pathlib
+        import re
+
+        role = (
+            pathlib.Path(__file__).parent.parent / "shared_files/aryaos/aryaos-role"
+        ).read_text()
+        self.assertRegex(
+            role,
+            re.compile(
+                r"set_caps\(\).*?prepare_serial_ais \"\$\{wanted\}\".*?"
+                r"apply_units \"\$\{wanted\}\"",
+                re.S,
+            ),
+        )
+        self.assertRegex(
+            role,
+            re.compile(
+                r"prepare_serial_ais\(\).*?systemctl enable ais-catcher\.service"
+                r".*?aryaos-serial-assign",
+                re.S,
+            ),
+        )
+
+    def test_factory_reset_rearms_hardware_discovery(self):
+        import pathlib
+
+        reset = (
+            pathlib.Path(__file__).parent.parent
+            / "shared_files/aryaos/aryaos-factory-reset"
+        ).read_text()
+        self.assertIn(".capabilities-autodetected", reset)
+        self.assertIn(".capabilities-autodetect-tries", reset)
+        self.assertIn("aryaos-role caps none", reset)
+        self.assertIn("aryaos-safe-mode reset-for-factory", reset)
+        self.assertIn("dpkg --configure -a", reset)
+
+        safe_mode = (
+            pathlib.Path(__file__).parent.parent
+            / "shared_files/aryaos/aryaos-safe-mode"
+        ).read_text()
+        self.assertIn("cmd_reset_for_factory", safe_mode)
+        self.assertIn("reset-for-factory) cmd_reset_for_factory", safe_mode)
+
+        overlay_builder = (
+            pathlib.Path(__file__).parent.parent
+            / "scripts/build-aryaos-overlay-deb.sh"
+        ).read_text()
+        self.assertIn('aryaos-safe-mode" "/usr/local/sbin/aryaos-safe-mode', overlay_builder)
+        self.assertIn("aryaos-crash-guard.service", overlay_builder)
+
+    def test_firstboot_applies_detected_transport_wiring(self):
+        import pathlib
+
+        root = pathlib.Path(__file__).parent.parent / "shared_files/aryaos"
+        firstboot = (root / "aryaos-firstboot.sh").read_text()
+        role = (root / "aryaos-role").read_text()
+        self.assertIn("aryaos-role apply-detected $DETECTED", firstboot)
+        self.assertRegex(
+            role,
+            re.compile(
+                r"apply_detected_caps\(\).*?configure_detected_inputs.*?set_caps",
+                re.S,
+            ),
+        )
+
+    def test_adsbee_selection_uses_modesbeast_and_skips_uat(self):
+        import pathlib
+
+        role = (
+            pathlib.Path(__file__).parent.parent / "shared_files/aryaos/aryaos-role"
+        ).read_text()
+        self.assertIn("--device-type modesbeast", role)
+        self.assertIn("ARYAOS_ADSB_SOURCE", role)
+        self.assertRegex(
+            role,
+            re.compile(r'ARYAOS_ADSB_SOURCE\).*?adsbee.*?adsbcot gdltak', re.S),
+        )
+
+    def test_dronescout_unit_has_missing_device_guard(self):
+        import pathlib
+
+        root = pathlib.Path(__file__).parent.parent / "shared_files/aryaos"
+        unit = (root / "systemd/dronecot-dronescout.service").read_text()
+        helper = (root / "dronecot-serial-ready").read_text()
+        self.assertIn("ExecCondition=/usr/local/libexec/aryaos/dronecot-serial-ready", unit)
+        self.assertIn('[[ -c "${device}" && -r "${device}" ]]', helper)
+
+    def test_dronescout_reverses_broken_crlf_expansion(self):
+        import pathlib
+
+        defaults = (
+            pathlib.Path(__file__).parent.parent
+            / "shared_files/aryaos/dronecot-dronescout.default"
+        ).read_text()
+        self.assertIn("SERIAL_CRLF_NORMALIZE=1", defaults)
+
+        scanner = (
+            pathlib.Path(__file__).parent.parent
+            / "shared_files/aryaos/aryaos-capability-scan"
+        ).read_text()
+        role = (
+            pathlib.Path(__file__).parent.parent
+            / "shared_files/aryaos/aryaos-role"
+        ).read_text()
+        self.assertIn('--rid-transport', scanner)
+        self.assertIn('[[ "${rid_transport}" == "esp32-usb" ]]', role)
+        self.assertIn("SERIAL_CRLF_NORMALIZE=${rid_crlf}", role)
+
+    def test_dronescout_discovery_avoids_colons_in_pymavlink_device(self):
+        import pathlib
+
+        role = (
+            pathlib.Path(__file__).parent.parent / "shared_files/aryaos/aryaos-role"
+        ).read_text()
+        self.assertIn("readlink -f /dev/dronescout", role)
+        self.assertIn('rid_feed_port="/dev/dronescout"', role)
+        self.assertIn('[[ "${rid_port}" == *:* ]]', role)
+        self.assertIn("FEED_URL=serial://${rid_feed_port}:115200", role)
+
+
+if __name__ == "__main__":
+    unittest.main()

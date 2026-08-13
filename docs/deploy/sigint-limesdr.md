@@ -151,6 +151,33 @@ opaque string.
     reliably adds is the operational context ADS-B cannot give you: tail number,
     flight ID and route.
 
+#### Dedicated ACARSCOT TAK egress
+
+The normal AryaOS routing remains **ACARSCOT to Charontak to TAK Server**. A box
+with a dedicated ACARS server identity can deliberately bypass Charontak by
+putting its `tak://` enrollment URL in `/etc/default/acarscot`:
+
+```bash
+sudoedit /etc/default/acarscot
+# COT_URL='tak://com.atakmap.app/enroll?host=takserver.example.com&username=USER&token=TOKEN'
+sudo chmod 0600 /etc/default/acarscot
+```
+
+PyTAK resolves that URL to WSS and caches the issued client certificate below
+the service account's home. ACARSCOT `0.1.1` and newer create persistent state
+under `/var/lib/acarscot`; no local systemd drop-in is required. PyTAK `7.4.3`
+and newer retry an unavailable TAK endpoint in the same process with bounded,
+jittered exponential backoff. A server outage therefore leaves the unit active
+instead of driving a systemd restart storm, and extracted certificate PEMs are
+removed after every connection attempt instead of accumulating in tmpfs.
+
+Run `sudo systemctl restart acarscot`. `systemctl is-active acarscot` should
+remain `active` even while the server is unavailable; the journal will show the
+next retry delay. Once reachable, it should show a resolved
+`wss://.../takproto/1` destination plus both `WSTXWorker` and `WSRXWorker`.
+Keep the enrollment URL and cached certificate files private; do not put either
+in a support bundle or source control.
+
 ### Audio-band decoders (APRS, pagers)
 
 `aryaos-sdr-fm` demodulates NBFM from any SoapySDR receiver and writes PCM to

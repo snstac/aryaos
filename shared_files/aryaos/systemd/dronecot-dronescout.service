@@ -1,20 +1,20 @@
 [Unit]
-Description=DroneCOT (DroneScout DS101) — MAVLink Remote ID over serial to TAK
+Description=DroneCOT (DroneScout DS101/DS110) — MAVLink Remote ID over serial to TAK
 Documentation=https://github.com/snstac/dronecot
-# A SECOND dronecot instance dedicated to a BlueMark DroneScout DS101 /
-# DroneBeacon, which emits detected Remote ID as MAVLink (OPEN_DRONE_ID_MESSAGE_PACK
-# or ADSB_VEHICLE) over its ESP32-S3 USB-serial (pinned to /dev/dronescout by
-# 99-aryaos-dronescout.rules). Runs alongside the AntSDR/DJI dronecot.service;
+# A SECOND dronecot instance dedicated to a BlueMark DroneScout / DroneBeacon,
+# which emits detected Remote ID as MAVLink (OPEN_DRONE_ID_MESSAGE_PACK or
+# ADSB_VEHICLE) over USB CDC or UART. Runs alongside AntSDR/DJI dronecot.service;
 # both feed the same charontak hub. Off by default (opt-in for a DS101 laydown)
 # — enable with:
 #   sudo systemctl enable --now dronecot-dronescout
-# The ConditionPathExists guards against starting with no DS101 present.
 Wants=network.target
 After=network.target local-fs.target
-ConditionPathExists=/dev/dronescout
 
 [Service]
 User=dronecot
+# Missing/unplugged serial hardware skips the unit cleanly instead of entering
+# Restart=always churn. The helper reads the configured FEED_URL.
+ExecCondition=/usr/local/libexec/aryaos/dronecot-serial-ready
 ExecStart=/usr/bin/dronecot
 RuntimeDirectory=dronecot-dronescout
 SyslogIdentifier=dronecot-dronescout

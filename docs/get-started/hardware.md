@@ -43,9 +43,15 @@ You write the AryaOS image to a microSD card and boot from it.
 |---|---|
 | Minimum capacity | 16 GB |
 | Recommended capacity | 32 GB |
-| Class | A1/A2 application-class recommended for responsiveness |
+| Class | A1/A2 application-class, high-endurance media recommended |
 
 The image resizes its filesystem to fill the card on [first boot](first-boot.md), so a larger card gives you room for logs, support bundles, and Node-RED flows without any manual steps.
+
+Use a reputable card whose manufacturer can be verified; counterfeit cards can
+report the advertised capacity while aliasing unrelated sectors. After first
+boot, run the [integration suite](../testing-dev-pi.md). A zero media
+manufacturer ID, binary boot command line, or missing boot artifact is a hard
+failure. Replace the card rather than reflashing it again.
 
 ## Radios (SDR dongles)
 

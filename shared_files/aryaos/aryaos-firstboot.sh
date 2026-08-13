@@ -201,7 +201,10 @@ if [[ ! -f "$CAP_MARKER" ]] \
 	done
 
 	if [[ -n "$DETECTED" ]]; then
-		if /usr/local/sbin/aryaos-role caps $DETECTED >/dev/null 2>&1; then
+		# The multi-pass union above is authoritative, but capability names alone
+		# are not enough: ADSBee and DroneScout also need their verified serial
+		# transports written before the services start.
+		if /usr/local/sbin/aryaos-role apply-detected $DETECTED >/dev/null 2>&1; then
 			echo "AryaOS firstboot: detected hardware -> capabilities: $DETECTED"
 			CHANGED=1
 		fi

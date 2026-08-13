@@ -19,19 +19,24 @@
 Description=ais-catcher
 Wants=network.target
 After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
 
 [Service]
 User=ais-catcher
 # FIXME Change ExecStart to allow system overrides via /etc/default/ais-catcher
-ExecStart=/usr/bin/AIS-catcher -u ${UDP_DEST_ADDR} ${UDP_DEST_PORT} -e ${SERIAL_BAUDRATE} ${SERIAL_PORT} -N ${HTTP_PORT}
+# A false condition is a clean inactive state when the receiver is unplugged or
+# has not been assigned yet; it must not become a restart/journal loop.
+ExecCondition=/bin/sh -c 'test -n "$SERIAL_PORT" && test -e "$SERIAL_PORT"'
+# AIS-catcher 0.68 enables its internet community feed by default. AryaOS is
+# private/offline by default, so sharing must always be an explicit opt-in.
+ExecStart=/usr/bin/AIS-catcher -X off -u ${UDP_DEST_ADDR} ${UDP_DEST_PORT} -e ${SERIAL_BAUDRATE} ${SERIAL_PORT} -N ${HTTP_PORT}
 RuntimeDirectory=ais-catcher
 SyslogIdentifier=ais-catcher
 EnvironmentFile=/etc/default/ais-catcher
 Type=simple
 Restart=always
 RestartSec=20
-StartLimitInterval=1
-StartLimitBurst=100
 RestartPreventExitStatus=64
 Nice=-1
 

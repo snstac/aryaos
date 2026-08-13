@@ -132,6 +132,12 @@
     dest: /etc/systemd/zram-generator.conf
     mode: "0644"
 
+- name: Force Raspberry Pi OS swap manager to use file-free zram
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/rpi-swap-aryaos.conf"
+    dest: /etc/rpi/swap.conf.d/90-aryaos.conf
+    mode: "0644"
+
 - name: Ship charontak.ini default for factory reset
   ansible.builtin.copy:
     src: "{{ shared_files }}/charontak/charontak.ini"

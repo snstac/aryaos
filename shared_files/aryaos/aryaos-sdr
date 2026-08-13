@@ -2,7 +2,8 @@
 # aryaos-sdr — enumerate RTL-SDR dongles and rewrite their EEPROM serials.
 #
 # Subcommands:
-#   list                       JSON list of detected dongles (index, product, serial).
+#   list                       JSON list of detected SDRs, including network discovery.
+#   list-local                 JSON list of local USB SDRs without network discovery.
 #   set-serial INDEX SERIAL    Stop SDR consumers, write a new EEPROM serial,
 #                              restart the consumers that were running.
 #
@@ -21,7 +22,7 @@ SDR_UNITS="readsb dump1090-fa dump978-fa ais-catcher aryaos-ais-sdr"
 SERIAL_RE='^[A-Za-z0-9:._-]{1,32}$'
 
 usage() {
-	echo "usage: aryaos-sdr {list | set-serial INDEX SERIAL | task INDEX {adsb|uat|ais|aprs|off} | apply-tasks | share INDEX {rtltcp|soapy|spyserver|off} | share-status}" >&2
+	echo "usage: aryaos-sdr {list | list-local | set-serial INDEX SERIAL | task INDEX {adsb|uat|ais|aprs|off} | apply-tasks | share INDEX {rtltcp|soapy|spyserver|off} | share-status}" >&2
 	exit 2
 }
 
@@ -52,9 +53,8 @@ require_rtl_eeprom() {
 # a DragonEgg with an Airspy/HackRF/Lime is listed too. Each `Found device N`
 # block yields driver + serial + label. Falls back to rtl_test on hosts without
 # SoapySDRUtil. `product`/`vendor` kept (from label) for backward compatibility.
-list_devices() {
-	if command -v SoapySDRUtil >/dev/null 2>&1; then
-		SoapySDRUtil --find 2>/dev/null | python3 -c '
+parse_soapy_devices() {
+	python3 -c '
 import json
 import re
 import sys
@@ -62,9 +62,8 @@ import sys
 devices = []
 cur = None
 for line in sys.stdin:
-    m = re.match(r"\s*Found device (\d+)", line)
-    if m:
-        cur = {"index": int(m.group(1)), "driver": "", "serial": "",
+    if re.match(r"\s*Found device \d+", line):
+        cur = {"index": len(devices), "driver": "", "serial": "",
                "label": "", "product": "", "vendor": ""}
         devices.append(cur)
         continue
@@ -76,6 +75,26 @@ for line in sys.stdin:
         cur[key] = km.group(2).strip()
 print(json.dumps({"devices": devices}))
 '
+}
+
+list_devices() {  # [local]
+	local mode="${1:-all}"
+	if command -v SoapySDRUtil >/dev/null 2>&1; then
+		if [[ "${mode}" == "local" ]]; then
+			# The remote/rfspace/redpitaya/UHD factories perform network
+			# discovery. During early boot the remote factory can spend a full
+			# minute waiting for Avahi, which made a bare node take 106 seconds
+			# to reach multi-user.target. Capability discovery only needs the
+			# locally attached receiver families AryaOS can configure itself.
+			{
+				local driver
+				for driver in rtlsdr airspy bladerf hackrf lime; do
+					SoapySDRUtil --find="driver=${driver}" 2>/dev/null || true
+				done
+			} | parse_soapy_devices
+		else
+			SoapySDRUtil --find 2>/dev/null | parse_soapy_devices
+		fi
 	else
 		# Legacy RTL-only fallback: rtl_test -d 99 lists dongles on stderr.
 		rtl_test -d 99 2>&1 | python3 -c '
@@ -309,7 +328,7 @@ task_sdr() {
 
 apply_tasks() {  # boot re-apply: map each persisted serial->current index+driver, start its job
 	[[ -f "${TASKS_FILE}" ]] || return 0
-	local line serial job index driver
+	local serial job index driver
 	while IFS='=' read -r serial job; do
 		[[ -n "${serial}" && -n "${job}" ]] || continue
 		index="$(_index_for_serial "${serial}")"
@@ -324,6 +343,10 @@ case "${cmd}" in
 	list)
 		require_tools
 		list_devices
+		;;
+	list-local)
+		require_tools
+		list_devices local
 		;;
 	task)
 		require_root

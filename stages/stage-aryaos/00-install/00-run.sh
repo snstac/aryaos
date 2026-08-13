@@ -133,6 +133,12 @@ install -v -D -m 0755 "${SHARED_FILES}/aryaos/aryaos-time-pps" \
 	"${ROOTFS_DIR}/usr/local/sbin/aryaos-time-pps"
 install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-time-pps.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-time-pps.service"
+install -v -D -m 0644 \
+	"${SHARED_FILES}/aryaos/systemd/bluetooth.service.d/aryaos-directory-mode.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/bluetooth.service.d/aryaos-directory-mode.conf"
+install -v -D -m 0644 \
+	"${SHARED_FILES}/aryaos/modules-load.d/lighttpd-mod-openssl.conf" \
+	"${ROOTFS_DIR}/etc/modules-load.d/lighttpd-mod-openssl.conf"
 # Re-trigger the helper when a PPS device appears: a USB GPS enumerates
 # asynchronously, so a boot-time-only run loses the race.
 install -v -D -m 0644 "${SHARED_FILES}/aryaos/udev/99-aryaos-pps.rules" \
@@ -219,9 +225,9 @@ for svc in readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot aprsc
 		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done
 
-## Serial assignment: identify GPS vs AIS/dAISy by the NMEA they emit and wire
+## Serial assignment: identify GPS vs AIS/dAISy by their serial protocol and wire
 ## gpsd/ais-catcher to the right by-id device at boot (robust to adapter/enum
-## changes) — the NMEA-serial analogue of aryaos-sdr's EEPROM-serial pinning.
+## changes) — the serial analogue of aryaos-sdr's EEPROM-serial pinning.
 # Operator handle on locally recorded CoT tracks (charontak recorder): how much
 # is stored, over what period, and purge on demand. Recordings are also cleared
 # by aryaos-factory-reset and aryaos-zeroize.
@@ -229,6 +235,8 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tracks" "${ROOTFS_DIR}/usr/loc
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tracks-query" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tracks-query"
 
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-serial-assign" "${ROOTFS_DIR}/usr/local/sbin/aryaos-serial-assign"
+install -v -D -m 0755 "${SHARED_FILES}/aryaos/aryaos-serial-classify" \
+	"${ROOTFS_DIR}/usr/local/libexec/aryaos/aryaos-serial-classify"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-serial-assign.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-serial-assign.service"
 
@@ -297,6 +305,8 @@ rm -rf "${SPYSERVER_TMP}"
 ## Media longevity: zram swap (compressed RAM swap instead of a swapfile) +
 ## the packaged charontak.ini default (source of truth for factory reset).
 install -v -m 0644 "${SHARED_FILES}/aryaos/zram-generator.conf" "${ROOTFS_DIR}/etc/systemd/zram-generator.conf"
+install -v -D -m 0644 "${SHARED_FILES}/aryaos/rpi-swap-aryaos.conf" \
+	"${ROOTFS_DIR}/etc/rpi/swap.conf.d/90-aryaos.conf"
 install -v -D -m 0644 "${SHARED_FILES}/charontak/charontak.ini" "${ROOTFS_DIR}/usr/share/aryaos/defaults/charontak.ini"
 
 ## gpsd: USB GNSS defaults (see shared_files/aryaos/gpsd.default)
@@ -445,6 +455,14 @@ install -v -m 755 "${SHARED_FILES}/aryaos/comitup-callback.sh" "${ROOTFS_DIR}/us
 install -v -m 644 "${SHARED_FILES}/aryaos/comitup.service" "${ROOTFS_DIR}/lib/systemd/system/"
 install -v -m 644 "${SHARED_FILES}/aryaos/comitup.json" "${ROOTFS_DIR}/var/lib/comitup/"
 install -v -m 755 "${SHARED_FILES}/aryaos/wifi-nuke.py" "${ROOTFS_DIR}/usr/local/sbin/"
+# Comitup and Bluetooth PAN each run a dnsmasq. Pin Comitup's DHCP socket to
+# wlan0 while allowing that interface to appear after the daemon starts.
+for dns_conf in dns-hotspot.conf dns-connected.conf; do
+	conf_path="${ROOTFS_DIR}/usr/share/comitup/dns/${dns_conf}"
+	[[ -f "${conf_path}" ]] || continue
+	sed --follow-symlinks -i '/^bind-interfaces$/d' "${conf_path}"
+	grep -qxF 'bind-dynamic' "${conf_path}" || printf '\nbind-dynamic\n' >> "${conf_path}"
+done
 ## FIXME Deprecated replace old NetworkManager Python module. https://github.com/snstac/aryaos/issues/54 
 install -v -m 644 "${SHARED_FILES}/aryaos/NetworkManager.py" "${ROOTFS_DIR}/usr/lib/python3/dist-packages/NetworkManager.py"
 

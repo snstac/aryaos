@@ -12,6 +12,6 @@ After=local-fs.target
 Type=simple
 # %i = RTL device index. AIS-catcher uses -d:<index> (a bare -d <n> means serial).
 # Root for reliable RTL USB access (admin-tasked service).
-ExecStart=/usr/bin/AIS-catcher -d:%i -u 127.0.0.1 5050 -N 8100
+ExecStart=/usr/bin/AIS-catcher -X off -d:%i -u 127.0.0.1 5050 -N 8100
 Restart=on-failure
 RestartSec=3

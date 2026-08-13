@@ -53,6 +53,10 @@ flowchart LR
 
 AIS-catcher exposes a local web UI and JSON on **port 8100** (allowed through the firewall by default), and `aiscot` reads its output and emits CoT to the Charontak hub at `udp+wo://127.0.0.1:28087`.
 
+AryaOS explicitly disables AIS-catcher's internet community feed. RF observations
+stay on the box and on outputs you configure; sharing to a public aggregation
+service is never enabled implicitly.
+
 ## Verify tracks
 
 1. Connect your EUD to the AryaOS hotspot (`AryaOS-xxxx`) or the same network; open your TAK client. Vessels appear automatically via Mesh SA.

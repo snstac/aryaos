@@ -8,10 +8,10 @@ if [[ -f /usr/src/lincot/lincot.default ]]; then
 	install -v -m 0644 /usr/src/lincot/lincot.default /etc/default/lincot
 fi
 
+install -d /etc/systemd/system/lincot.service.d
+install -v -m 0644 \
+	/usr/src/lincot/systemd/lincot.service.d/aryaos-config.conf \
+	/etc/systemd/system/lincot.service.d/aryaos-config.conf
+
 systemctl daemon-reload || true
 systemctl enable lincot.service 2>/dev/null || true
-
-# Inherit site-wide config (COT_URL, PYTAK_TLS_*) from /etc/aryaos; the unit's own
-# EnvironmentFile=/etc/default/lincot loads later, so per-service values override.
-grep -qF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/lincot.service || \
-	sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=-/etc/aryaos/aryaos-config.txt" /lib/systemd/system/lincot.service

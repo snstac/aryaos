@@ -15,3 +15,7 @@ export SHARED_FILES
 
 install -d "${ROOTFS_DIR}/usr/src/lincot"
 install -v -m 0644 "${SHARED_FILES}/lincot/lincot.default" "${ROOTFS_DIR}/usr/src/lincot/lincot.default"
+install -d "${ROOTFS_DIR}/usr/src/lincot/systemd/lincot.service.d"
+install -v -m 0644 \
+	"${SHARED_FILES}/lincot/systemd/lincot.service.d/aryaos-config.conf" \
+	"${ROOTFS_DIR}/usr/src/lincot/systemd/lincot.service.d/aryaos-config.conf"

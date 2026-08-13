@@ -9,10 +9,12 @@ Honesty rules, because guessing wrong is worse than saying "I don't know":
   * An RTL-SDR can serve ADS-B *or* AIS *or* APRS — one dongle cannot do all
     three at once. Capabilities that share a scarce radio are reported with the
     number of radios available so the caller can decide.
-  * A DroneScout DS101 and a SiKW00F are BOTH ESP32-S3 (303a:1001) — the USB id
-    alone cannot tell them apart. We probe the port for MAVLink framing (the
-    DS101 speaks it, and that is what dronecot consumes) and mark the capability
-    ambiguous when the port is silent.
+  * A DroneScout may use generic ESP32-S3 USB CDC or a generic USB-UART bridge;
+    neither USB id proves what is attached. We require checksum-valid MAVLink
+    (and a Remote-ID payload on generic UART bridges) and report silent/broken
+    streams as ambiguous.
+  * ADSBee uses the generic Raspberry Pi Pico USB id. It must answer a read-only
+    ADSBee-specific AT query before it is reported or selected for readsb.
   * SAPIENT is a network sensor with no local hardware signature; it is never
     auto-detected and must be configured deliberately.
 
@@ -31,12 +33,21 @@ from __future__ import annotations
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 import glob
+import selectors
+import shlex
+import termios
+import time
 
 CONFIG = "/etc/aryaos/aryaos-config.txt"
 ESP32_VID_PID = ("303a", "1001")  # Espressif native USB (DS101 *and* SiKW00F)
+ADSBEE_VID_PID = ("2e8a", "000a")  # Generic RP2040 CDC; protocol probe is mandatory.
+PL2303_VID_PID = ("067b", "2303")  # DS110 UART adapter, but also many unrelated cables.
+CH340_VID_PID = ("1a86", "7523")  # Lab dAISy UART; also used by AntSDR consoles.
+RID_MAVLINK_TYPES = {"ADSB_VEHICLE", "OPEN_DRONE_ID_MESSAGE_PACK"}
 ONBOARD_WIFI_DRIVERS = {"brcmfmac"}  # the Pi's own radio: never a RID sniffer
 
 # When capabilities contend for one scarce radio, this is the order auto-apply
@@ -92,14 +103,14 @@ def _config(key):
 
 
 def probe_sdrs():
-    """Enumerate SDRs via aryaos-sdr (SoapySDR/rtl_test under the hood).
+    """Enumerate local SDRs without waiting for network discovery/Avahi.
 
-    Generous timeout on purpose: SoapySDRUtil --find probes for NETWORK SDRs and
-    blocks activating Avahi over dbus. Early in boot that activation is slow, and
-    a 15s budget expired before the LimeSDR was ever reported — the box then
-    latched "no hardware" for good. Measured ~2s once avahi is up.
+    A generic Soapy ``--find`` loads its network factories. Before Avahi starts,
+    that took 60 seconds per scan and held multi-user.target for 106 seconds on a
+    bare node. ``list-local`` asks only the USB receiver families AryaOS knows how
+    to configure; the interactive ``aryaos-sdr list`` remains universal.
     """
-    out = _run(["/usr/local/sbin/aryaos-sdr", "list"], timeout=60)
+    out = _run(["/usr/local/sbin/aryaos-sdr", "list-local"], timeout=20)
     try:
         return json.loads(out).get("devices", []) if out else []
     except ValueError:
@@ -156,42 +167,271 @@ def probe_esp32_serial():
     return ports
 
 
-def probe_mavlink(port, seconds=3):
-    """Does this port emit MAVLink? Distinguishes a DS101 from a bare ESP32.
+def _serial_properties(path):
+    """Return the stable udev identity fields used to select probe candidates."""
+    props = _run(["/usr/bin/udevadm", "info", "-q", "property", "-n", path])
+    values = {}
+    for key in ("ID_VENDOR_ID", "ID_MODEL_ID", "ID_MODEL", "ID_SERIAL"):
+        match = re.search(rf"^{key}=(\S+)$", props, re.M)
+        values[key] = match.group(1) if match else ""
+    return values
 
-    Read-only and non-destructive: if something else holds the port we simply
-    report unknown rather than fighting for it.
-    """
+
+def _serial_ports_by_id(vid_pid):
+    ports = []
+    for path in sorted(glob.glob("/dev/serial/by-id/*")):
+        props = _serial_properties(path)
+        if (props["ID_VENDOR_ID"], props["ID_MODEL_ID"]) == vid_pid:
+            ports.append(path)
+    return ports
+
+
+def _open_nonblocking_with_timeout(port, seconds=1.0, flags=None):
+    """Open a serial device without letting a wedged USB tty block discovery."""
+
+    def timed_out(_signum, _frame):
+        raise TimeoutError
+
+    previous = signal.signal(signal.SIGALRM, timed_out)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        if flags is None:
+            flags = os.O_RDONLY
+        return os.open(port, flags | os.O_NONBLOCK | os.O_NOCTTY)
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
+def _close_with_timeout(fd, seconds=1.0):
+    """Close a USB tty without hanging discovery in a driver drain path."""
+
+    def timed_out(_signum, _frame):
+        raise TimeoutError
+
+    previous = signal.signal(signal.SIGALRM, timed_out)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        os.close(fd)
+    except (OSError, TimeoutError):
+        pass
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
+def _set_raw_115200(fd):
+    """Temporarily put a tty in the mode used by DroneScout and ADSBee."""
+    old = termios.tcgetattr(fd)
+    attrs = termios.tcgetattr(fd)
+    attrs[0] = 0
+    attrs[1] = 0
+    attrs[2] = termios.CS8 | termios.CREAD | termios.CLOCAL
+    attrs[3] = 0
+    attrs[4] = termios.B115200
+    attrs[5] = termios.B115200
+    attrs[6][termios.VMIN] = 0
+    attrs[6][termios.VTIME] = 0
+    termios.tcsetattr(fd, termios.TCSANOW, attrs)
+    return old
+
+
+def _restore_tty(fd, attrs):
+    if attrs is None:
+        return
+    try:
+        termios.tcsetattr(fd, termios.TCSANOW, attrs)
+    except (OSError, termios.error):
+        pass
+
+
+def _read_serial(port, seconds=3, limit=65536):
+    """Read a bounded 115200/8N1 sample and describe transport failures."""
     if not port or not os.path.exists(port):
-        return None
+        return {"status": "absent", "bytes": b""}
     if _run(["/usr/bin/fuser", port], timeout=3):
-        return None  # in use — don't disturb a running dronecot
+        return {"status": "busy", "bytes": b""}
     try:
-        import selectors
+        fd = _open_nonblocking_with_timeout(port)
+    except (OSError, TimeoutError):
+        return {"status": "open-failed", "bytes": b""}
 
-        fd = os.open(port, os.O_RDONLY | os.O_NONBLOCK)
-    except OSError:
-        return None
+    old = None
+    sel = None
+    buf = bytearray()
     try:
+        old = _set_raw_115200(fd)
         sel = selectors.DefaultSelector()
         sel.register(fd, selectors.EVENT_READ)
-        import time
+        end = time.monotonic() + seconds
+        while time.monotonic() < end and len(buf) < limit:
+            if not sel.select(timeout=min(0.5, max(0, end - time.monotonic()))):
+                continue
+            try:
+                chunk = os.read(fd, min(4096, limit - len(buf)))
+            except (OSError, BlockingIOError):
+                break
+            if not chunk:
+                break
+            buf.extend(chunk)
+    except (OSError, termios.error):
+        return {"status": "io-error", "bytes": bytes(buf)}
+    finally:
+        if sel is not None:
+            sel.close()
+        _restore_tty(fd, old)
+        _close_with_timeout(fd)
 
-        end = time.time() + seconds
-        buf = b""
-        while time.time() < end and len(buf) < 4096:
-            if sel.select(timeout=0.5):
+    data = bytes(buf)
+    if not data:
+        status = "silent"
+    elif not data.strip(b"\x00"):
+        # A powered UART should idle high. A continuous zero stream is a break /
+        # stuck-low line, not evidence that a DroneScout is speaking MAVLink.
+        status = "stuck-low"
+    else:
+        status = "data"
+    return {"status": status, "bytes": data}
+
+
+def _mavlink_message_types(data):
+    """Return message names from checksum-valid MAVLink v1/v2 frames."""
+    try:
+        from pymavlink.dialects.v20 import all as mavlink
+    except ImportError:
+        return []
+    parser = mavlink.MAVLink(None)
+    parser.robust_parsing = True
+    found = []
+    for byte in data:
+        try:
+            msg = parser.parse_char(bytes((byte,)))
+        except Exception:  # pymavlink raises on malformed partial frames.
+            continue
+        if msg is not None and msg.get_type() != "BAD_DATA":
+            found.append(msg.get_type())
+    return sorted(set(found))
+
+
+def probe_mavlink_stream(port, seconds=3):
+    """Describe a serial stream and validate MAVLink checksums."""
+    sample = _read_serial(port, seconds=seconds)
+    data = sample.pop("bytes")
+    message_types = _mavlink_message_types(data)
+    if message_types:
+        sample["status"] = "mavlink"
+    sample["bytes_read"] = len(data)
+    sample["message_types"] = message_types
+    return sample
+
+
+def probe_mavlink(port, seconds=3):
+    """Does this port emit checksum-valid MAVLink?"""
+    return probe_mavlink_stream(port, seconds=seconds)["status"] == "mavlink"
+
+
+def probe_adsbee(port, seconds=3):
+    """Identify an ADSBee without mistaking every RP2040 Pico for one.
+
+    The USB VID/PID and product string are Raspberry Pi's generic Pico defaults.
+    A read-only ADSBee-specific AT query is therefore required. The command does
+    not save settings, reset the radio, or interrupt its configured Beast stream.
+    """
+    if not port or not os.path.exists(port):
+        return False
+    if _run(["/usr/bin/fuser", port], timeout=3):
+        return False
+    try:
+        fd = _open_nonblocking_with_timeout(port, flags=os.O_RDWR)
+    except (OSError, TimeoutError):
+        return False
+    old = None
+    sel = None
+    try:
+        old = _set_raw_115200(fd)
+        termios.tcflush(fd, termios.TCIFLUSH)
+        os.write(fd, b"AT+BIAS_TEE_ENABLE?\r\n")
+        sel = selectors.DefaultSelector()
+        sel.register(fd, selectors.EVENT_READ)
+        end = time.monotonic() + seconds
+        buf = bytearray()
+        while time.monotonic() < end and len(buf) < 8192:
+            if sel.select(timeout=min(0.5, max(0, end - time.monotonic()))):
                 try:
-                    chunk = os.read(fd, 1024)
-                except OSError:
+                    chunk = os.read(fd, 4096)
+                except (OSError, BlockingIOError):
                     break
                 if not chunk:
                     break
-                buf += chunk
-        # MAVLink v1 starts 0xFE, v2 starts 0xFD.
-        return bool(buf) and (b"\xfd" in buf or b"\xfe" in buf)
+                buf.extend(chunk)
+        # Beast frames can end immediately before the textual AT reply, so no
+        # line boundary is guaranteed on the left. The command name + exact
+        # two-boolean response remains ADSBee-specific.
+        return bool(re.search(rb"BIAS_TEE_ENABLE=[01],[01][\r\n]", bytes(buf)))
+    except (OSError, termios.error):
+        return False
     finally:
-        os.close(fd)
+        if sel is not None:
+            sel.close()
+        _restore_tty(fd, old)
+        _close_with_timeout(fd)
+
+
+def probe_adsbee_serial():
+    candidates = _serial_ports_by_id(ADSBEE_VID_PID)
+    verified = [port for port in candidates if probe_adsbee(port)]
+    if verified:
+        return verified
+
+    # Once readsb owns the tty, discovery deliberately refuses to inject an AT
+    # query into the live feed. Preserve the earlier protocol verification when
+    # the role manager recorded ADSBee as the source and readsb still names the
+    # same present RP2040 path. Without this, a second `discover --apply` would
+    # forget the source, re-enable dump978, and manufacture a restart loop.
+    if _config("ARYAOS_ADSB_SOURCE") == "adsbee":
+        options = _read("/etc/default/readsb")
+        match = re.search(r"--device-type\s+modesbeast\b.*?--beast-serial\s+(\S+)", options)
+        if match and match.group(1) in candidates:
+            return [match.group(1)]
+    return []
+
+
+def probe_ds110_uart_candidates():
+    """PL2303 cables need protocol evidence; the USB id alone is never enough."""
+    gps_ports = configured_gps_ports()
+    return [
+        port
+        for port in _serial_ports_by_id(PL2303_VID_PID)
+        if not any(_same_serial_device(port, gps_port) for gps_port in gps_ports)
+    ]
+
+
+def configured_gps_ports():
+    """Return devices deliberately assigned to gpsd.
+
+    This is also protocol evidence: aryaos-serial-assign only writes DEVICES
+    after its binary-safe classifier sees valid NMEA or SiRF GNSS frames. An
+    operator's explicit gpsd assignment must likewise keep the RID scanner from
+    changing baud and consuming the live GPS stream.
+    """
+    for line in _read("/etc/default/gpsd").splitlines():
+        if not line.startswith("DEVICES="):
+            continue
+        try:
+            words = shlex.split(line.split("=", 1)[1])
+            return [port for word in words for port in word.split()]
+        except ValueError:
+            return []
+    return []
+
+
+def _same_serial_device(left, right):
+    if not left or not right:
+        return False
+    try:
+        return os.path.realpath(left) == os.path.realpath(right)
+    except OSError:
+        return left == right
 
 
 def probe_antsdr():
@@ -215,7 +455,9 @@ def probe_antsdr():
 
 
 def _is_gnss(port):
-    """Does udev identify this serial port as a GNSS receiver?"""
+    """Does config or udev identify this serial port as a GNSS receiver?"""
+    if any(_same_serial_device(port, gps_port) for gps_port in configured_gps_ports()):
+        return True
     props = _run(["/usr/bin/udevadm", "info", "-q", "property", "-n", port], timeout=5)
     if re.search(r"^ID_VENDOR_ID=1546$", props, re.M):
         return True
@@ -242,6 +484,40 @@ def probe_ais_serial():
     return None
 
 
+def probe_silent_daisy_candidate(antsdr=None):
+    """Return the one safe silent dAISy candidate in a maritime-style kit.
+
+    A dAISy emits nothing when no vessel is in range, so protocol probing alone
+    cannot distinguish a healthy quiet receiver from an unused serial cable.
+    The lab AryaSea hardware uses a generic CH340 beside a separately verified
+    GPS. Accept that narrow layout by elimination, but never claim the same
+    CH340 when an AntSDR is present because its maintenance console uses the
+    identical USB identity. The role manager still runs aryaos-serial-assign
+    before starting AIS-catcher and applies the final same-device guard.
+    """
+    gps_ports = configured_gps_ports()
+    if not gps_ports or antsdr:
+        return None
+
+    candidates = []
+    for port in sorted(glob.glob("/dev/serial/by-id/*")):
+        props = _serial_properties(port)
+        identity = (props.get("ID_VENDOR_ID"), props.get("ID_MODEL_ID"))
+        if identity != CH340_VID_PID:
+            continue
+        if any(_same_serial_device(port, gps_port) for gps_port in gps_ports):
+            continue
+        if os.path.exists("/dev/antsdr-console") and _same_serial_device(
+            port, "/dev/antsdr-console"
+        ):
+            continue
+        if _is_gnss(port):
+            continue
+        candidates.append(port)
+
+    return candidates[0] if len(candidates) == 1 else None
+
+
 # --- capability mapping -----------------------------------------------------
 
 
@@ -249,8 +525,14 @@ def scan():
     sdrs = probe_sdrs()
     wifi = probe_wifi_monitor()
     esp32 = probe_esp32_serial()
+    adsbee = probe_adsbee_serial()
+    ds110_uart = probe_ds110_uart_candidates()
     antsdr = probe_antsdr()
     ais_serial = probe_ais_serial()
+    silent_ais_serial = None
+    if not ais_serial:
+        silent_ais_serial = probe_silent_daisy_candidate(antsdr)
+        ais_serial = silent_ais_serial
 
     caps = {}
 
@@ -278,13 +560,16 @@ def scan():
     def _labels(ds):
         return ", ".join(d.get("label") or d.get("driver", "?") for d in ds)
 
+    adsb_evidence = []
+    if adsbee:
+        adsb_evidence.append(f"ADSBee (AT-verified Beast serial) at {adsbee[0]}")
+    if sdrs:
+        adsb_evidence.append(f"{len(sdrs)} SDR(s): " + _labels(sdrs))
     caps["adsb"] = {
-        "available": bool(sdrs),
-        "evidence": (
-            f"{len(sdrs)} SDR(s): " + _labels(sdrs) if sdrs else "no SDR detected"
-        ),
+        "available": bool(sdrs or adsbee),
+        "evidence": "; ".join(adsb_evidence) or "no ADSBee or SDR detected",
     }
-    if sdrs and not rtl_sdrs:
+    if sdrs and not rtl_sdrs and not adsbee:
         # manual_only, NOT auto_apply.
         #
         # My first version of this set auto_apply=False directly, and it did
@@ -311,14 +596,20 @@ def scan():
     ais_available = bool(ais_serial) or bool(sdrs)
     ais_ev = []
     if ais_serial:
-        ais_ev.append(f"NMEA AIS receiver at {ais_serial}")
+        if silent_ais_serial:
+            ais_ev.append(
+                f"silent dAISy candidate at {ais_serial} "
+                "(single CH340 beside verified GPS)"
+            )
+        else:
+            ais_ev.append(f"NMEA AIS receiver at {ais_serial}")
     if sdrs and not ais_serial:
         ais_ev.append(f"{len(sdrs)} SDR(s) could run AIS")
     caps["ais"] = {
         "available": ais_available,
         "evidence": "; ".join(ais_ev) or "no AIS receiver detected",
     }
-    if sdrs and not ais_serial and len(sdrs) < 2:
+    if sdrs and not ais_serial and len(sdrs) < 2 and not adsbee:
         caps["ais"]["contended_with"] = ["adsb"]
         caps["adsb"]["contended_with"] = ["ais"]
 
@@ -338,28 +629,47 @@ def scan():
         ),
     }
 
-    # DroneScout DS101 vs SiKW00F: same USB id, so probe for MAVLink.
-    rid = {"available": False, "evidence": "no ESP32-S3 serial device"}
+    # DS101/DroneBeacon uses generic ESP32-S3 USB. A DS110 may be wired through
+    # an equally generic PL2303 adapter. Require an actual Remote-ID MAVLink
+    # payload in both cases so a SiKW00F or flight-controller cable is not
+    # auto-enabled as DroneScout merely because it also speaks MAVLink.
+    rid = {"available": False, "evidence": "no DroneScout serial candidate"}
     sik = {"available": False, "evidence": "no ESP32-S3 serial device"}
-    if esp32:
-        mav = None
-        for port in esp32:
-            mav = probe_mavlink(port)
-            if mav:
-                break
-        if mav:
-            rid = {"available": True, "evidence": f"MAVLink on {esp32[0]}"}
+    rid_serial = None
+    rid_probes = []
+    for port in dict.fromkeys(esp32 + ds110_uart):
+        result = probe_mavlink_stream(port)
+        result["port"] = port
+        result["transport"] = "esp32-usb" if port in esp32 else "pl2303-uart"
+        rid_probes.append(result)
+        types = set(result["message_types"])
+        if result["status"] == "mavlink" and types.intersection(RID_MAVLINK_TYPES):
+            rid_serial = port
+            break
+    if rid_serial:
+        matched = next(p for p in rid_probes if p["port"] == rid_serial)
+        rid = {
+            "available": True,
+            "evidence": (
+                f"checksum-valid MAVLink ({', '.join(matched['message_types'])}) "
+                f"on {rid_serial}"
+            ),
+        }
+        if rid_serial in esp32:
             sik = {
                 "available": False,
                 "evidence": "ESP32 present but speaking MAVLink (DroneScout receiver)",
             }
-        else:
-            note = (
-                f"{len(esp32)} ESP32-S3 serial device(s) found, but a DS101 and a "
-                "SiKW00F share the same USB id and the port was silent or busy — "
-                "cannot tell them apart"
-            )
-            rid = {"available": False, "ambiguous": True, "evidence": note}
+    elif esp32 or ds110_uart:
+        details = "; ".join(
+            f"{p['port']}={p['status']} ({p['bytes_read']} bytes)" for p in rid_probes
+        )
+        note = (
+            "DroneScout candidate found, but no qualifying Remote-ID MAVLink "
+            f"was observed: {details or 'no readable stream'}"
+        )
+        rid = {"available": False, "ambiguous": True, "evidence": note}
+        if esp32:
             sik = {"available": False, "ambiguous": True, "evidence": note}
     caps["rid"] = rid
     caps["sik"] = sik
@@ -464,10 +774,15 @@ def scan():
         "ok": True,
         "hardware": {
             "sdrs": sdrs,
+            "adsbee_serial": adsbee[0] if adsbee else None,
             "wifi_monitor": wifi,
             "esp32_serial": esp32,
+            "ds110_uart_candidates": ds110_uart,
+            "rid_serial": rid_serial,
+            "rid_serial_probes": rid_probes,
             "antsdr": antsdr,
             "ais_serial": ais_serial,
+            "silent_ais_serial": silent_ais_serial,
         },
         "capabilities": caps,
         "detected": sorted(k for k, v in caps.items() if v.get("available")),
@@ -496,7 +811,26 @@ def report_text(report):
 
 
 def main():
+    if "--adsbee-port" in sys.argv:
+        ports = probe_adsbee_serial()
+        print(ports[0] if ports else "")
+        return 0
     report = scan()
+    if "--rid-port" in sys.argv:
+        print(report["hardware"].get("rid_serial") or "")
+        return 0
+    if "--rid-transport" in sys.argv:
+        rid_serial = report["hardware"].get("rid_serial")
+        probe = next(
+            (
+                item
+                for item in report["hardware"].get("rid_serial_probes", [])
+                if item.get("port") == rid_serial
+            ),
+            {},
+        )
+        print(probe.get("transport") or "")
+        return 0
     if "--caps" in sys.argv:
         # The auto-apply set, NOT everything detected: firstboot consumes this.
         print(" ".join(report["auto_apply"]))

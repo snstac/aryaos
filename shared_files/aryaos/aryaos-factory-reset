@@ -78,7 +78,15 @@ if command -v apt-get >/dev/null 2>&1 && ping -c1 -W2 deb.debian.org >/dev/null 
 		-o Dpkg::Options::=--force-confmiss -o Dpkg::Options::=--force-confask \
 		install adsbcot aiscot dronecot lincot gpstak gdltak charontak >/dev/null 2>&1 \
 		&& echo "reinstalled sensor package defaults" \
-		|| echo "note: sensor package reinstall skipped/failed (offline?) — /etc/default left as-is"
+		|| {
+			echo "note: sensor package reinstall skipped/failed — /etc/default may be left as-is"
+			# apt can fail after unpacking one or more gateways. Never carry a
+			# half-configured dpkg database into the reset reboot: finish any
+			# pending postinst work even though restoring defaults was best-effort.
+			DEBIAN_FRONTEND=noninteractive dpkg --configure -a >/dev/null 2>&1 \
+				&& echo "recovered pending package configuration" \
+				|| echo "warning: pending package configuration could not be recovered"
+		}
 else
 	echo "note: offline — per-gateway /etc/default/<svc> left as-is (reset online to restore package defaults)"
 fi
@@ -91,7 +99,23 @@ echo "removed uploaded TAK certificates"
 
 # 4. Clear device identity + firstboot markers so aryaos-firstboot re-runs.
 rm -f /etc/aryaos/.web-tls-regenerated /etc/aryaos/.default-pass-expired
+rm -f /etc/aryaos/.capabilities-autodetected /etc/aryaos/.capabilities-autodetect-tries
 rm -f /etc/lighttpd/ssl/snakeoil-combined.pem
+# A confirmed reset is not a failed boot. Clear the short-boot counter and any
+# sticky safe-mode latch, and restore USB power without restarting the old role.
+if [[ -x /usr/local/sbin/aryaos-safe-mode ]]; then
+	/usr/local/sbin/aryaos-safe-mode reset-for-factory >/dev/null 2>&1 \
+		&& echo "cleared crash-guard state and restored USB power" \
+		|| echo "note: could not clear crash-guard state"
+fi
+# Stop and disable every sensor role before reboot. Otherwise enabled units can
+# reclaim serial devices before firstboot has a chance to protocol-probe them,
+# while the restored default config falsely reports an empty capability set.
+if [[ -x /usr/local/sbin/aryaos-role ]]; then
+	/usr/local/sbin/aryaos-role caps none >/dev/null 2>&1 \
+		&& echo "disabled sensor capabilities (first boot will rediscover hardware)" \
+		|| echo "note: could not disable sensor capabilities"
+fi
 # New machine-id -> new DEVICE_SUFFIX / hostname on next boot.
 rm -f /etc/machine-id /var/lib/dbus/machine-id
 : > /etc/machine-id 2>/dev/null || true

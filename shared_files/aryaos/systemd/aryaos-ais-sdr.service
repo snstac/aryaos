@@ -14,6 +14,6 @@ Type=simple
 EnvironmentFile=/etc/default/aryaos-ais-sdr
 # Root for reliable USB access (admin-tasked service). Device args are
 # word-split intentionally (may be "-d <serial>" or "-gu SOAPYSDR ...").
-ExecStart=/bin/sh -c 'exec /usr/bin/AIS-catcher ${AIS_CATCHER_DEVICE_ARGS} -u 127.0.0.1 5050 -N 8100'
+ExecStart=/bin/sh -c 'exec /usr/bin/AIS-catcher -X off ${AIS_CATCHER_DEVICE_ARGS} -u 127.0.0.1 5050 -N 8100'
 Restart=on-failure
 RestartSec=3

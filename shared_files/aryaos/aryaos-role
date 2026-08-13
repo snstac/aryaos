@@ -16,6 +16,8 @@
 #   list                 JSON: capabilities, available caps/units, roles.
 #   caps CAP...          Set the active capability set (space/comma separated).
 #                        Use "none" to disable every sensor (bare CoT node).
+#   apply-detected CAP... Configure protocol-verified transports, then set the
+#                        detected capability set. Used by first boot/discovery.
 #   discover [--apply]   Detect attached hardware and report which capabilities
 #                        it supports; --apply enables them.
 #   set ROLE             Back-compat: apply a legacy role as a capability preset.
@@ -40,7 +42,7 @@ CAPS="adsb ais acars dji wifi-rid ble-rid rid sik sapient"
 LEGACY_ROLES="multi air maritime cuas relay"
 
 usage() {
-	echo "usage: aryaos-role {list | discover [--apply] | caps CAP... | set ROLE}" >&2
+	echo "usage: aryaos-role {list | discover [--apply] | caps CAP... | apply-detected CAP... | set ROLE}" >&2
 	echo "  caps:     ${CAPS}  (or 'none' for a bare CoT node)" >&2
 	echo "  roles:    ${LEGACY_ROLES}  (legacy presets)" >&2
 	exit 2
@@ -81,7 +83,17 @@ adsb_decoder_unit() {
 # Capability -> systemd sensor units.
 cap_units() {
 	case "$1" in
-		adsb)     echo "$(adsb_decoder_unit) dump978-fa adsbcot gdltak" ;;
+		adsb)
+			# ADSBee is a 1090 MHz Beast source. Do not start the independent
+			# dump978 UAT decoder when discovery selected it: there is no RTL-SDR
+			# for dump978 to open, and doing so would create a permanent restart
+			# loop on an otherwise healthy ADSBee box.
+			if [[ "$(config_get ARYAOS_ADSB_SOURCE)" == "adsbee" ]]; then
+				echo "$(adsb_decoder_unit) adsbcot gdltak"
+			else
+				echo "$(adsb_decoder_unit) dump978-fa adsbcot gdltak"
+			fi
+			;;
 		ais)      echo "ais-catcher aiscot" ;;
 		# Decoder and gateway, same split as readsb/adsbcot: acarsdec
 		# demodulates VHF, acarscot turns its JSON into CoT.
@@ -125,7 +137,7 @@ role_caps() {
 }
 
 all_managed_units() {
-	echo "readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot \
+	echo "readsb dump1090-fa dump978-fa adsbcot gdltak ais-catcher aiscot acarsdec acarscot \
 		dronecot dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot"
 }
 
@@ -214,20 +226,28 @@ apply_units() {
 	done
 }
 
-# Persist caps + a nearest-legacy-role alias, clear SDR re-tasks, re-run
-# serial-assign when AIS is now active (its dAISy elimination guard runs at boot
-# before the capability set is known).
+# A silent dAISy can only be assigned by elimination when ais-catcher is enabled.
+# Enable (but do not start) the unit and assign the serial input before
+# apply_units starts it. Starting first makes AIS-catcher parse an empty -e port,
+# exit, and enter a restart cycle until assignment catches up.
+prepare_serial_ais() {
+	local wanted="$1"
+	[[ " ${wanted} " == *" ais-catcher "* ]] || return 0
+	unit_exists ais-catcher || return 0
+	[[ -x /usr/local/sbin/aryaos-serial-assign ]] || return 0
+	systemctl enable ais-catcher.service >/dev/null 2>&1 || true
+	/usr/local/sbin/aryaos-serial-assign || true
+}
+
+# Persist caps + a nearest-legacy-role alias and clear SDR re-tasks.
 persist_and_settle() {
-	local caps="$1" wanted="$2"
+	local caps="$1"
 	config_set ARYAOS_CAPABILITIES "${caps}"
 	local r
 	for r in ${LEGACY_ROLES}; do
 		[[ "$(role_caps "${r}")" == "${caps}" ]] && { config_set ARYAOS_ROLE "${r}"; break; }
 	done
 	rm -f /etc/aryaos/sdr-tasks 2>/dev/null || true
-	if [[ " ${wanted} " == *" ais-catcher "* ]] && [[ -x /usr/local/sbin/aryaos-serial-assign ]]; then
-		/usr/local/sbin/aryaos-serial-assign || true
-	fi
 }
 
 set_caps() {
@@ -247,13 +267,102 @@ set_caps() {
 	done
 	local wanted
 	wanted="$(units_for_caps "${caps}" | xargs || true)"
+	prepare_serial_ais "${wanted}"
 	apply_units "${wanted}"
 	if [[ " ${caps} " == *" wifi-rid "* ]]; then wifi_rid_nm_unmanage 1; else wifi_rid_nm_unmanage 0; fi
-	persist_and_settle "${caps}" "${wanted}"
+	persist_and_settle "${caps}"
 	echo "Capabilities set to: ${caps:-<none>}"
 }
 
 CAP_SCAN="/usr/local/sbin/aryaos-capability-scan"
+
+# Apply transport details that cannot be expressed by a capability name alone.
+# Every path comes from a protocol-verified scanner result, not a generic USB id.
+configure_detected_inputs() {
+	local caps="$1" adsbee="" rid_port="" rid_feed_port="" rid_transport="" rid_crlf="0"
+
+	if [[ " ${caps} " == *" adsb "* ]]; then
+		adsbee="$("${CAP_SCAN}" --adsbee-port 2>/dev/null | head -1 || true)"
+		if [[ -n "${adsbee}" ]]; then
+			if [[ ! "${adsbee}" =~ ^/dev/serial/by-id/[A-Za-z0-9._:+-]+$ ]]; then
+				echo "aryaos-role: refusing unsafe ADSBee path '${adsbee}'" >&2
+				return 1
+			fi
+			if [[ -f /etc/default/readsb ]]; then
+				if grep -q '^RECEIVER_OPTIONS=' /etc/default/readsb; then
+					sed -i -E "s|^RECEIVER_OPTIONS=.*|RECEIVER_OPTIONS=\"--device-type modesbeast --beast-serial ${adsbee} --beast-baudrate 115200\"|" /etc/default/readsb
+				else
+					printf 'RECEIVER_OPTIONS="--device-type modesbeast --beast-serial %s --beast-baudrate 115200"\n' "${adsbee}" >> /etc/default/readsb
+				fi
+			fi
+			config_set ARYAOS_ADSB_DECODER readsb
+			config_set ARYAOS_ADSB_SOURCE adsbee
+			echo "configure readsb <- ADSBee ${adsbee} (Mode-S Beast)"
+		else
+			# Clear a stale discovery marker. Deliberate/manual readsb options are
+			# left untouched; aryaos-sdr owns RTL/Soapy receiver selection.
+			config_set ARYAOS_ADSB_SOURCE ""
+		fi
+	fi
+
+	if [[ " ${caps} " == *" rid "* ]]; then
+		rid_port="$("${CAP_SCAN}" --rid-port 2>/dev/null | head -1 || true)"
+		if [[ -n "${rid_port}" ]]; then
+			rid_transport="$("${CAP_SCAN}" --rid-transport 2>/dev/null | head -1 || true)"
+			if [[ "${rid_transport}" == "esp32-usb" ]]; then
+				rid_crlf="1"
+			fi
+			if [[ ! "${rid_port}" =~ ^/dev/serial/by-id/[A-Za-z0-9._:+-]+$ ]]; then
+				echo "aryaos-role: refusing unsafe DroneScout path '${rid_port}'" >&2
+				return 1
+			fi
+			rid_feed_port="${rid_port}"
+			# Espressif's stable by-id name embeds a MAC address with colons.
+			# pymavlink treats ANY device string containing ':' as UDP before it
+			# checks whether that string names a tty, so the apparently-correct
+			# serial URL leaves dronecot active but retrying forever. Prefer the
+			# colon-free udev alias only when it resolves to the exact port whose
+			# MAVLink Remote-ID payload the scanner verified.
+			if [[ -e /dev/dronescout ]] \
+				&& [[ "$(readlink -f /dev/dronescout 2>/dev/null)" == "$(readlink -f "${rid_port}" 2>/dev/null)" ]]; then
+				rid_feed_port="/dev/dronescout"
+			elif [[ "${rid_port}" == *:* ]]; then
+				echo "aryaos-role: verified DroneScout path contains ':' and no matching colon-free /dev/dronescout alias exists" >&2
+				return 1
+			fi
+			if [[ -f /etc/default/dronecot-dronescout ]]; then
+				if grep -q '^FEED_URL=' /etc/default/dronecot-dronescout; then
+					sed -i -E "s|^FEED_URL=.*|FEED_URL=serial://${rid_feed_port}:115200|" /etc/default/dronecot-dronescout
+				else
+					printf 'FEED_URL=serial://%s:115200\n' "${rid_feed_port}" >> /etc/default/dronecot-dronescout
+				fi
+				if grep -q '^SERIAL_CRLF_NORMALIZE=' /etc/default/dronecot-dronescout; then
+					sed -i -E "s|^SERIAL_CRLF_NORMALIZE=.*|SERIAL_CRLF_NORMALIZE=${rid_crlf}|" /etc/default/dronecot-dronescout
+				else
+					printf 'SERIAL_CRLF_NORMALIZE=%s\n' "${rid_crlf}" >> /etc/default/dronecot-dronescout
+				fi
+			fi
+			echo "configure dronecot-dronescout <- ${rid_feed_port} (verified as ${rid_port}; ${rid_transport:-unknown transport}; MAVLink 2 @ 115200)"
+		fi
+	fi
+}
+
+# Apply a capability set that came from aryaos-capability-scan. Unlike the
+# operator-facing `caps` command, this also wires device-specific transports
+# (for example ADSBee Beast serial and the colon-safe DroneScout alias) before
+# any newly selected service starts.
+apply_detected_caps() {
+	local caps="$1" cap
+	caps="$(normalize_caps "${caps}")"
+	for cap in ${caps}; do
+		cap_units "${cap}" >/dev/null 2>&1 || {
+			echo "aryaos-role: unknown capability '${cap}' (caps: ${CAPS})" >&2
+			exit 2
+		}
+	done
+	configure_detected_inputs "${caps}"
+	set_caps "${caps}"
+}
 
 # Detect attached hardware and (optionally) enable the capabilities it supports.
 # Report-only by default: seeing what a box COULD do should never change what it
@@ -282,7 +391,7 @@ discover() {
 		return 0
 	fi
 	echo
-	set_caps "${detected}"
+	apply_detected_caps "${detected}"
 }
 
 set_role() {
@@ -332,6 +441,12 @@ case "${cmd}" in
 		[[ $# -ge 2 ]] || usage
 		shift
 		set_caps "$*"
+		;;
+	apply-detected)
+		require_root
+		[[ $# -ge 2 ]] || usage
+		shift
+		apply_detected_caps "$*"
 		;;
 	set)
 		require_root

@@ -8,6 +8,10 @@ sensor_apt_packages:
   - takproto
   - python3-asyncinotify
   - aircot
+  # ACARS RF decoder + CoT gateway. ACARSCOT >= 0.1.1 requires the resilient
+  # PyTAK reconnect supervisor and keeps enrollment state under /var/lib.
+  - acarsdec
+  - acarscot
   - charontak
   - gpstak
   - adsbcot

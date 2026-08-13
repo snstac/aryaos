@@ -18,6 +18,8 @@
 #   aryaos-safe-mode status            Show safe-mode + crash-counter state (no root).
 #   aryaos-safe-mode on [reason]       Manually enter safe mode now.
 #   aryaos-safe-mode off [--reboot]    Exit: re-power USB, restart sensors (or reboot).
+#   aryaos-safe-mode reset-for-factory  Clear guard state/re-power USB without
+#                                       restarting the pre-reset sensor role.
 #   aryaos-safe-mode check-boot        (internal) early-boot crash-loop check.
 #   aryaos-safe-mode boot-ok           (internal) +180s: mark boot healthy, reset counter.
 #   aryaos-safe-mode --boot            (internal) re-assert USB-off if latched.
@@ -147,6 +149,15 @@ cmd_off() {
 	fi
 }
 
+cmd_reset_for_factory() {
+	require_root
+	install -d -m 0755 /etc/aryaos "$STATE_DIR"
+	rm -f "$SAFE_FLAG" "$REASON_FILE"
+	echo 0 > "$BOOT_COUNT"
+	usb_on
+	_log "safe-mode state cleared for confirmed factory reset"
+}
+
 cmd_check_boot() {
 	require_root
 	install -d -m 0755 /etc/aryaos "$STATE_DIR"
@@ -193,8 +204,9 @@ case "${1:-status}" in
 	status) cmd_status ;;
 	on) cmd_on "${2:-}" ;;
 	off) cmd_off "${2:-}" ;;
+	reset-for-factory) cmd_reset_for_factory ;;
 	check-boot) cmd_check_boot ;;
 	boot-ok) cmd_boot_ok ;;
 	--boot) cmd_boot_apply ;;
-	*) echo "usage: aryaos-safe-mode {status|on [reason]|off [--reboot]}" >&2; exit 2 ;;
+	*) echo "usage: aryaos-safe-mode {status|on [reason]|off [--reboot]|reset-for-factory}" >&2; exit 2 ;;
 esac

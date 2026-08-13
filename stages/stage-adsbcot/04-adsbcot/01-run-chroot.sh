@@ -72,3 +72,23 @@ fi
 # Cockpit module for adsbcot (Polkit rules + /usr/share/cockpit/adsbcot),
 # from the snstac apt repo (configured by stage-pytak).
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cockpit-adsbcot
+
+# FlightAware's bookworm repository is needed only while installing its
+# vendored decoder packages above. On trixie, apt/sqv rejects the repository's
+# SHA-1 Release signature on every later `apt update`; `trusted=yes` permits the
+# packages but does not suppress that verification warning. Disable the source
+# once its packages are installed so routine AryaOS updates are both quiet and
+# fail closed. ENABLED=no prevents the repository package from regenerating the
+# list file during a future dpkg configure pass.
+FA_DEFAULT=/etc/default/flightaware-apt-repository
+FA_LIST=/etc/apt/sources.list.d/flightaware-apt-repository.list
+if [[ -f "${FA_DEFAULT}" ]]; then
+	if grep -q '^ENABLED=' "${FA_DEFAULT}"; then
+		sed -i 's/^ENABLED=.*/ENABLED=no/' "${FA_DEFAULT}"
+	else
+		echo 'ENABLED=no' >> "${FA_DEFAULT}"
+	fi
+fi
+if [[ -f "${FA_LIST}" ]]; then
+	mv "${FA_LIST}" "${FA_LIST}.disabled"
+fi

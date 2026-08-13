@@ -44,6 +44,21 @@ test_profile() {
 	[[ "${ARYAOS_TEST_PROFILE:-default}" == "$1" ]]
 }
 
+capability_enabled() {
+	local capability="$1"
+	local config_file="${ARYAOS_CONFIG_FILE:-/etc/aryaos/aryaos-config.txt}"
+	local configured=""
+	if [[ -r "${config_file}" ]]; then
+		configured="$(grep '^ARYAOS_CAPABILITIES=' "${config_file}" | tail -n 1 || true)"
+		configured="${configured#*=}"
+		configured="${configured#\"}"
+		configured="${configured%\"}"
+		configured="${configured#\'}"
+		configured="${configured%\'}"
+	fi
+	[[ " ${configured//,/ } " == *" ${capability} "* ]]
+}
+
 print_summary() {
 	echo "---"
 	echo "passed=${ARYAOS_TEST_PASSED} failed=${ARYAOS_TEST_FAILED} warned=${ARYAOS_TEST_WARNED} skipped=${ARYAOS_TEST_SKIPPED}"
