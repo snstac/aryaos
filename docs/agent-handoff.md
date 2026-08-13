@@ -46,6 +46,38 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   example with `dpkg --force-confold --configure dronecot` if a noninteractive
   local-package install stops at the conffile prompt.
 
+### AryaAir/AryaSea fleet update and acceptance
+
+- AryaOS commit `e23106a` scopes CRLF normalization to protocol-verified
+  `esp32-usb` Remote ID transports. The role manager writes `0` for compliant
+  UART transports, and the overlay migration enables it only when the live
+  `/dev/dronescout` udev vendor is Espressif (`303a`). The complete 120-test
+  repository suite, Ansible syntax check, shellcheck, overlay package build,
+  and PR validation run `31657308366` pass. Image run `31657314290` was
+  triggered from that implementation commit.
+- `192.168.0.44` (`aryaos-b6b9`, AryaSea) and `192.168.0.45`
+  (`aryaos-fdb9`, AryaAir) now run overlay 2.0.25 and DroneCOT 2.3.8. The
+  update retained all role, GNSS, AIS, ADS-B, and gateway configuration hashes
+  and preserved service enablement. AryaSea has `SERIAL_CRLF_NORMALIZE=0` and
+  AryaAir's ESP32-S3 DS110 has `SERIAL_CRLF_NORMALIZE=1`. Neither host required
+  a reboot.
+- Both hosts passed all 13 strict HIL modules before and after a 15-minute
+  paired acceptance soak. The sampler collected 180 successful probes, 90 per
+  host, with no probe failures, failed units, service drops, restart growth,
+  throttling, filesystem alerts, or boot-ID changes. AryaSea peaked at 61.7 C,
+  load 0.07, 11.13% memory, and 23.11% disk. AryaAir peaked at 60.05 C, load
+  0.59, 5.98% memory, and 23.13% disk. Memory changed only +0.25 and +0.13
+  percentage points respectively. The only journal warning was the known
+  Broadcom Wi-Fi management-IE `-52` message.
+- AryaAir decoded 6,173 live Remote ID payloads during the final 15-minute
+  window. The current DroneScout process had zero restarts and no checksum,
+  traceback, bad-data, or runtime errors after startup; the portal reported
+  UAS up through `dronecot-dronescout`. AryaSea received one live AIS NMEA line
+  near the end of the run; AIS-catcher and AISCOT remained active with zero
+  restarts. Evidence is gitignored under
+  `.aryaos-burnin/20260813T012330Z-aryaair-aryasea/`, with the authoritative
+  result in `acceptance-sampler-15m/summary.json`.
+
 ## 2026-08-12 latest-firmware AryaAir/AryaSea regression follow-up
 
 - Fresh-image testing on `192.168.0.44` exposed a discovery dependency: its
