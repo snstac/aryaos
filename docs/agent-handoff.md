@@ -129,7 +129,9 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   stopped. Closing strict HIL logs are `closing-2.1.15-hil-{44,45,199}.log`;
   all modules pass. `.44` has no warnings and observes live AIS NMEA. `.45` and
   `.199` only warn that their disabled AIS role is inactive and that no ADS-B
-  aircraft were present during the closing sample. Full live backups include both
+  aircraft were present during the closing sample. The exact CI release package
+  was then reinstalled on all three hosts; `release-2.1.15-hil-{44,45,199}.log`
+  records the same all-module pass. Full live backups include both
   `/etc/default/gutcheck` and `/etc/default/acarsdec`; shareable backups exclude
   Gutcheck while retaining ACARS decoder settings. Image workflow `31736340576`
   exposed an escaped-regex bug in
@@ -152,7 +154,13 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 - Image runs `31757974913` and `31758220090` were canceled as superseded after
   the live backup audit found missing ACARS decoder coverage and closing HIL
   found the landing portal configuration dead end. Overlay 2.1.15 contains both
-  fixes and is the final release candidate.
+  fixes.
+- Authoritative image workflow `31759507279` built commit `cced9da`, passed 317
+  mounted-image checks with zero failures, generated SPDX and CycloneDX SBOMs,
+  and published prerelease `v2026.08.14.012330-cced9dae79da-dev`. Its
+  `aryaos-overlay_2.1.15_all.deb` digest is
+  `sha256:dd39aab638f1459f9a7fd94433d7078e8bc126cba41850b4fd4c1022b67dca7a`;
+  that exact asset is installed on `.44`, `.45`, and `.199`.
 
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
