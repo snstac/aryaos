@@ -17,7 +17,14 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         verifier = (ROOT / "scripts/verify-image.sh").read_text()
         hil = (ROOT / "scripts/aryaos-test/tests/02-config.sh").read_text()
 
-        self.assertIn("etc/default/gutcheck", backup)
+        config_paths = backup.split("config_paths() {", 1)[1].split("\n}", 1)[0]
+        secret_paths = backup.split("secret_paths() {", 1)[1].split("\n}", 1)[0]
+
+        self.assertIn("etc/default/acarsdec", config_paths)
+        self.assertNotIn("etc/default/gutcheck", config_paths)
+        self.assertIn("etc/default/gutcheck", secret_paths)
+        self.assertIn("ACARS decoder settings included in config backups", verifier)
+        self.assertIn("ACARS decoder settings included in config backups", hil)
         self.assertIn("Gutcheck settings included in full config backups", verifier)
         self.assertIn("Gutcheck settings included in full config backups", hil)
 
@@ -181,8 +188,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
-        self.assertIn("require_pkg_version aryaos-overlay 2.1.13", verifier)
-        self.assertIn("require_package_version aryaos-overlay 2.1.13", hil)
+        self.assertIn("require_pkg_version aryaos-overlay 2.1.14", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.1.14", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
         self.assertIn(
             'set_kv "$GPSD_DEF" DEVICES "$gps_dev" || true', assign

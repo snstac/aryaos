@@ -59,6 +59,7 @@ etc/comitup.json
 etc/default/*cot*
 etc/default/*tak*
 etc/default/ais-catcher
+etc/default/acarsdec
 etc/default/gpsd
 etc/default/readsb
 etc/default/dump1090-fa

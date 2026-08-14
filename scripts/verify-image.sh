@@ -145,7 +145,7 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.1.13
+require_pkg_version aryaos-overlay 2.1.14
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
 require_grep '^Defaults maxseq=128$' /etc/sudoers.d/aryaos "sudo I/O audit history bounded for /var/log tmpfs"
@@ -517,6 +517,7 @@ require_grep '^SERIAL_PORT=$' /etc/default/ais-catcher "ais-catcher serial not h
 # Lifecycle helpers (Cockpit -> AryaOS Site: backup/restore, factory reset, zeroize)
 require_path /usr/local/sbin/aryaos-config-backup
 require_grep '^etc/default/gutcheck$' /usr/local/sbin/aryaos-config-backup "Gutcheck settings included in full config backups"
+require_grep '^etc/default/acarsdec$' /usr/local/sbin/aryaos-config-backup "ACARS decoder settings included in config backups"
 require_path /usr/local/sbin/aryaos-factory-reset
 require_grep '\.capabilities-autodetected' /usr/local/sbin/aryaos-factory-reset "factory reset re-arms hardware discovery"
 require_grep 'aryaos-role caps none' /usr/local/sbin/aryaos-factory-reset "factory reset releases sensor devices before discovery"
@@ -698,7 +699,7 @@ backup_covers_gateway_configs() {
 		# absent from the manifest would not be checked.
 		is_ours=0
 		case "${base}" in
-			*cot*|*tak*|ais-catcher|readsb|dump*-fa|gpsd) is_ours=1 ;;
+			*cot*|*tak*|acarsdec|ais-catcher|readsb|dump*-fa|gpsd) is_ours=1 ;;
 		esac
 		if [[ "${is_ours}" -eq 0 ]]; then
 			# grep finding nothing must not be an error: under `set -euo

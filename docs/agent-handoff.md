@@ -48,7 +48,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `dronecot-dronescout` runtime directory and the former hard-coded
   `dronecot` status path. The DroneScout status files now survive normal
   service starts and appear in Gutcheck with live receive and emit counters.
-- AryaOS overlay 2.1.13 includes the canary and reboot fixes: it packages
+- AryaOS overlay 2.1.14 includes the canary and reboot fixes: it packages
   `aryaos-health`, feeder ordering drop-ins, the protected Gutcheck collector,
   and independent site-output and ADS-B keys without replacing operator
   configuration. It keeps serial discovery off a verified ADSBee Beast port,
@@ -69,8 +69,9 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   without a status contract remains visible as unknown. The fallback neighbor
   beacon now uses the same bare machine ID as LINCOT so new nodes do not create
   duplicate fleet entities. Full configuration backups now retain the private
-  Gutcheck defaults and web token. Shareable `--no-secrets` backups continue
-  to omit that secret-bearing file.
+  Gutcheck defaults and web token plus the local ACARS decoder settings.
+  Shareable `--no-secrets` backups continue to omit the secret-bearing
+  Gutcheck file while retaining the decoder configuration.
 - Node-RED now locks `socket.io-parser` 4.2.7, the first release that fixes
   GHSA-2m8v-j782-fhvr. Image verification and strict live HIL enforce that
   floor. Dependabot alert 75 is closed as fixed, and security workflow

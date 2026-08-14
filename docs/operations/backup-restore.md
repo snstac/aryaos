@@ -40,8 +40,8 @@ configuration set. Missing paths are skipped, not errors.
 | --- | --- |
 | **Site & CoT config** | `/etc/aryaos` (site config + TLS material), `/etc/cotbridge.ini`, `/etc/cotbridge` (lanes + TLS). |
 | **Onboarding / hotspot** | `/etc/comitup.conf`, `/etc/comitup.json`. |
-| **Gateway defaults** | `/etc/default/{adsbcot,aiscot,dronecot,lincot,gpscot,gdlcot,sikw00fcot,cotbridge,gpsd}` and the `/etc/{adsbcot,aiscot,dronecot,lincot}` config trees. |
-| **Secrets** *(full backup only)* | `/etc/NetworkManager/system-connections` (Wi-Fi PSKs), Node-RED `settings.js` and `flows_cred.json`, and the TLS key material inside the config trees above. |
+| **Gateway and decoder defaults** | `/etc/default/{acarsdec,adsbcot,aiscot,dronecot,lincot,gpscot,gdlcot,sikw00fcot,cotbridge,gpsd}` and the `/etc/{adsbcot,aiscot,dronecot,lincot}` config trees. |
+| **Secrets** *(full backup only)* | `/etc/NetworkManager/system-connections` (Wi-Fi PSKs), `/etc/default/gutcheck` (web token and runtime settings), Node-RED `settings.js` and `flows_cred.json`, and the TLS key material inside the config trees above. |
 
 Every archive carries a `MANIFEST.txt` recording when it was made, the
 hostname, the AryaOS version, whether secrets were included, and the exact list
@@ -50,16 +50,18 @@ genuine AryaOS backup.
 
 !!! danger "A full backup contains private keys and Wi-Fi passwords"
     The default `backup` includes **TAK client certificates and TLS private
-    keys, NetworkManager Wi-Fi PSKs, and Node-RED credentials.** Anyone holding
-    that archive can impersonate the unit and its TAK connection. AryaOS writes
+    keys, NetworkManager Wi-Fi PSKs, the Gutcheck web token, and Node-RED
+    credentials.** Anyone holding that archive can impersonate the unit and
+    its TAK connection. AryaOS writes
     every archive **`0600` root** and keeps the directory `0700`, but once you
     copy it off the box it is your responsibility - **store full backups
     securely.**
 
     For a copy you can safely share (attach to a ticket, hand to a teammate,
     template across a fleet), use **`--no-secrets`**: it omits the TLS key
-    material (`--exclude=etc/.../tls`) and the network/Node-RED secret files, so
-    the archive carries the *shape* of your config without any credentials.
+    material (`--exclude=etc/.../tls`) and the network, Gutcheck, and Node-RED
+    secret files, so the archive carries the *shape* of your config without any
+    credentials.
 
 ## Where backups land
 

@@ -113,11 +113,11 @@ sudo aryaos-import-tak-dp --enrollment-url-file /path/to/tak-url.txt
 
 ## aryaos-config-backup {#aryaos-config-backup}
 
-Backs up and restores the full AryaOS configuration set - site config, cotbridge lanes, gateway `/etc/default` files, saved networks, TAK certs, and Node-RED credentials - as a single tarball.
+Backs up and restores the full AryaOS configuration set - site config, cotbridge lanes, gateway `/etc/default` files, saved networks, TAK certs, the Gutcheck web token, and Node-RED credentials - as a single tarball.
 
 ```bash
 sudo aryaos-config-backup backup                 # full backup (includes secrets)
-sudo aryaos-config-backup backup --no-secrets    # shareable; TLS keys + network/Node-RED secrets excluded
+sudo aryaos-config-backup backup --no-secrets    # shareable; TLS, network, Gutcheck, and Node-RED secrets excluded
 sudo aryaos-config-backup restore FILE           # restore an archive (prompts to confirm)
 sudo aryaos-config-backup restore FILE --service # restore without prompting (Cockpit card)
 aryaos-config-backup list                         # list existing backups (JSON)
@@ -127,7 +127,7 @@ aryaos-config-backup list                         # list existing backups (JSON)
 - `restore` validates the archive by its `MANIFEST.txt`, unpacks in place preserving perms, then `try-restart`s the CoT fleet and `lighttpd`; recommends a reboot.
 
 !!! danger "A full backup contains private keys and Wi-Fi PSKs"
-    The default `backup` includes TAK client certs, TLS keys, NetworkManager PSKs, and Node-RED credentials - store it securely. Use `--no-secrets` for a shareable, config-only archive. Same action as the **Backup & restore** card. See [Back up & restore](../operations/backup-restore.md).
+    The default `backup` includes TAK client certs, TLS keys, NetworkManager PSKs, the Gutcheck web token, and Node-RED credentials - store it securely. Use `--no-secrets` for a shareable, config-only archive. Same action as the **Backup & restore** card. See [Back up & restore](../operations/backup-restore.md).
 
 ## aryaos-factory-reset {#aryaos-factory-reset}
 
