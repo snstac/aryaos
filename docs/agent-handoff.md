@@ -1,4 +1,4 @@
-# Agent handoff - state as of 2026-08-13
+# Agent handoff - state as of 2026-08-14
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
@@ -48,7 +48,7 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `dronecot-dronescout` runtime directory and the former hard-coded
   `dronecot` status path. The DroneScout status files now survive normal
   service starts and appear in Gutcheck with live receive and emit counters.
-- AryaOS overlay 2.1.14 includes the canary and reboot fixes: it packages
+- AryaOS overlay 2.1.15 includes the canary and reboot fixes: it packages
   `aryaos-health`, feeder ordering drop-ins, the protected Gutcheck collector,
   and independent site-output and ADS-B keys without replacing operator
   configuration. It keeps serial discovery off a verified ADSBee Beast port,
@@ -71,19 +71,24 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   duplicate fleet entities. Full configuration backups now retain the private
   Gutcheck defaults and web token plus the local ACARS decoder settings.
   Shareable `--no-secrets` backups continue to omit the secret-bearing
-  Gutcheck file while retaining the decoder configuration.
+  Gutcheck file while retaining the decoder configuration. The landing portal
+  now points operators to Admin for TAK connectivity configuration while
+  retaining the security boundary that keeps mutation off the unauthenticated
+  page.
 - Node-RED now locks `socket.io-parser` 4.2.7, the first release that fixes
   GHSA-2m8v-j782-fhvr. Image verification and strict live HIL enforce that
   floor. Dependabot alert 75 is closed as fixed, and security workflow
-  `31755011593` passes both the Python documentation and Node-RED npm jobs.
+  `31758220131` passes both the Python documentation and Node-RED npm jobs.
 - Current lab nodes are `192.168.0.44` (AIS), `192.168.0.45` (ADSBee, DS110,
   GNSS), and `192.168.0.199` (ADSBee, DroneScout, GNSS). All three run overlay
-  2.1.10 with PyTAK 7.5.2, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.1,
-  SiKW00FCOT 1.0.2, LINCOT 1.3.8, DroneCOT 2.3.9, and Gutcheck 0.3.3. Strict
-  HIL passes on all three after the
-  live upgrade. `.45` and `.199` report healthy `dronecot-dronescout` instances
-  in Gutcheck with rising counters and zero write errors; `.44` reports its
-  COTBridge, GPSCOT, LINCOT, and AISCOT gateways.
+  2.1.15 with PyTAK 7.5.2, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.1,
+  SiKW00FCOT 1.0.2, LINCOT 1.3.8, DroneCOT 2.3.9, Gutcheck 0.3.5, and
+  `socket.io-parser` 4.2.7. A single controlled reboot changed every boot ID;
+  all 13 strict HIL modules then passed on every host. Node-RED flows, settings,
+  and package manifest retained their pre-upgrade hashes. `.45` and `.199`
+  report healthy `dronecot-dronescout` instances in Gutcheck with rising
+  counters and zero write errors; `.44` reports its COTBridge, GPSCOT, LINCOT,
+  and AISCOT gateways.
 - A paced test delivered all 5,000 generated CoT events per node at about 675
   events per second with zero COTBridge write errors. A 50,000-event burst
   exercised UDP saturation without service failure. Four-core CPU load peaked
@@ -105,14 +110,29 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 - A deliberate `.45` COTBridge output outage also left the service active with
   zero restarts and correctly reported `degraded` and `retrying`. Restoring
   the output returned it to `ok` and `connected`, with traffic flowing again.
-- Eight-hour evidence is collected under the gitignored
+- The planned eight-hour run was stopped at the operator's request to prioritize
+  the closing software deployment. The primary sampler still collected 2,037
+  successful observations over 5 hours 39 minutes, 679 per host, with no probe
+  failures, failed units, throttling, filesystem alerts, or automatic service
+  restart growth. Peak temperatures were 65.55 C on `.44`, 65.55 C on `.45`,
+  and 40.8 C on `.199`. The expanded sampler collected another 1,482 successful
+  observations, 494 per host. During the primary window, `.45` DroneScout
+  received 123,583 records and emitted 247,166 events; `.199` received 116,147
+  and emitted 232,294. `.44` AISCOT received 85 records and emitted 64 events.
+  Every observed gateway write-error range remained `[0,0]`.
+- Burn-in evidence is collected under the gitignored
   `.aryaos-burnin/20260813T1907Z-post-2.1.4/` directory. Check `summary.json`
-  and the per-node HIL logs before declaring the soak complete. The directory
+  and the per-node HIL logs before drawing conclusions. The directory
   name records the starting deployment; the nodes were upgraded in place to
-  overlay 2.1.10, PyTAK 7.5.2, GPSCOT/GDLCOT 2.0.1, SiKW00FCOT 1.0.2,
-  DroneCOT 2.3.9, and Gutcheck 0.3.3 during the same run. Strict HIL logs after
-  the final live update are `post-overlay-2.1.10-hil-{44,45,199}.log` and all
-  modules pass. Image workflow `31736340576` exposed an escaped-regex bug in
+  overlay 2.1.15, PyTAK 7.5.2, GPSCOT/GDLCOT 2.0.1, SiKW00FCOT 1.0.2,
+  DroneCOT 2.3.9, Gutcheck 0.3.5, and `socket.io-parser` 4.2.7 after sampling
+  stopped. Closing strict HIL logs are `closing-2.1.15-hil-{44,45,199}.log`;
+  all modules pass. `.44` has no warnings and observes live AIS NMEA. `.45` and
+  `.199` only warn that their disabled AIS role is inactive and that no ADS-B
+  aircraft were present during the closing sample. Full live backups include both
+  `/etc/default/gutcheck` and `/etc/default/acarsdec`; shareable backups exclude
+  Gutcheck while retaining ACARS decoder settings. Image workflow `31736340576`
+  exposed an escaped-regex bug in
   the mounted-image verifier; commit `9b96407` fixed it, and replacement run
   `31738934689` passed image creation, mounted-image verification, SBOMs, tag
   creation, and release publication. Runs `31741703758` and `31741941854` were
@@ -129,6 +149,10 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `v2026.08.14.000533-342104777806-dev` contains the image, overlay 2.1.12,
   image metadata, and SPDX and CycloneDX SBOMs. The release tag resolves to the
   exact implementation commit.
+- Image runs `31757974913` and `31758220090` were canceled as superseded after
+  the live backup audit found missing ACARS decoder coverage and closing HIL
+  found the landing portal configuration dead end. Overlay 2.1.15 contains both
+  fixes and is the final release candidate.
 
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.
