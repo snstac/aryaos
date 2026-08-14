@@ -145,7 +145,7 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.1.12
+require_pkg_version aryaos-overlay 2.1.13
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
 require_grep '^Defaults maxseq=128$' /etc/sudoers.d/aryaos "sudo I/O audit history bounded for /var/log tmpfs"
@@ -516,6 +516,7 @@ require_grep '^SERIAL_PORT=$' /etc/default/ais-catcher "ais-catcher serial not h
 
 # Lifecycle helpers (Cockpit -> AryaOS Site: backup/restore, factory reset, zeroize)
 require_path /usr/local/sbin/aryaos-config-backup
+require_grep '^etc/default/gutcheck$' /usr/local/sbin/aryaos-config-backup "Gutcheck settings included in full config backups"
 require_path /usr/local/sbin/aryaos-factory-reset
 require_grep '\.capabilities-autodetected' /usr/local/sbin/aryaos-factory-reset "factory reset re-arms hardware discovery"
 require_grep 'aryaos-role caps none' /usr/local/sbin/aryaos-factory-reset "factory reset releases sensor devices before discovery"
@@ -643,7 +644,8 @@ fi
 # second hardcoded list here -- a second list would rot exactly the same way. A
 # /etc/default entry is ours if no package in the image claims it (our stage
 # scripts wrote it), or if the claiming package is one we install from the snstac
-# apt repo.
+# apt repo. Private Gutcheck is intentionally absent from that public manifest,
+# so its secret-bearing defaults also have an explicit check above.
 backup_covers_gateway_configs() {
 	local script="${MNT}/usr/local/sbin/aryaos-config-backup"
 	if [[ ! -r "${script}" ]]; then

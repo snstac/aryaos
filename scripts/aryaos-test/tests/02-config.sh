@@ -85,6 +85,12 @@ else
 	ok "local decoder/system services excluded from network restart list"
 fi
 
+if grep -qx 'etc/default/gutcheck' /usr/local/sbin/aryaos-config-backup 2>/dev/null; then
+	ok "Gutcheck settings included in full config backups"
+else
+	fail "Gutcheck settings missing from full config backups"
+fi
+
 if [[ -f /etc/default/lincot ]]; then
 	if grep -q '^ENABLED=1' /etc/default/lincot && grep -q 'gpspipe' /etc/default/lincot; then
 		ok "lincot enabled with gpspipe"

@@ -56,6 +56,27 @@ ssh-keyscan -H 192.168.0.44 192.168.0.45 192.168.0.199 \
   --duration-hours 8 --interval 30
 ```
 
+The generated `summary.json` reports service state counts, automatic restart
+ranges, boot IDs, filesystem alerts, and per-gateway `gateway_activity`.
+Gateway activity includes observed samples, total counter growth, counter
+resets, the last counters, and the range of CoT write errors. Positive receive
+and emit growth with a zero write-error range proves that the live hardware
+path generated data during the sampled window. A counter reset is not by
+itself an automatic service crash: correlate it with systemd `NRestarts`, the
+journal event cursor, and the sudo audit record to distinguish a controlled
+package or operator restart from an unexplained failure. Completed systemd
+oneshots and the run-to-completion GPS time synchronization helper are not
+reported as service drops.
+
+When sampler analysis changes after a long run, keep the raw JSONL and
+regenerate the summary from it:
+
+```bash
+python3 scripts/aryaos-burnin.py \
+  --summarize-existing .aryaos-burnin/<run>/samples.jsonl \
+  --summary-output .aryaos-burnin/<run>/summary.json
+```
+
 ## SSH authentication
 
 Same order as [dev-pi.md](dev-pi.md) and [scripts/sync-to-dev-pi.sh](https://github.com/snstac/aryaos/blob/main/scripts/sync-to-dev-pi.sh):

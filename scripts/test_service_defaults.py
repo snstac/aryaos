@@ -10,6 +10,17 @@ ROOT = Path(__file__).parents[1]
 
 
 class ServiceDefaultsTestCase(unittest.TestCase):
+    def test_config_backup_preserves_private_gutcheck_settings(self):
+        backup = (
+            ROOT / "shared_files/aryaos/aryaos-config-backup"
+        ).read_text()
+        verifier = (ROOT / "scripts/verify-image.sh").read_text()
+        hil = (ROOT / "scripts/aryaos-test/tests/02-config.sh").read_text()
+
+        self.assertIn("etc/default/gutcheck", backup)
+        self.assertIn("Gutcheck settings included in full config backups", verifier)
+        self.assertIn("Gutcheck settings included in full config backups", hil)
+
     def test_node_red_socket_io_parser_memory_exhaustion_fix(self):
         lock = json.loads(
             (ROOT / "shared_files/node-red/package-lock.json").read_text()
@@ -170,8 +181,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
-        self.assertIn("require_pkg_version aryaos-overlay 2.1.12", verifier)
-        self.assertIn("require_package_version aryaos-overlay 2.1.12", hil)
+        self.assertIn("require_pkg_version aryaos-overlay 2.1.13", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.1.13", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
         self.assertIn(
             'set_kv "$GPSD_DEF" DEVICES "$gps_dev" || true', assign

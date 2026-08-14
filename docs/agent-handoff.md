@@ -29,20 +29,26 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   their legacy names. Gutcheck remains private and must not be added to the
   public `snstac/packages` product list; authorized lab deployments use its
   authenticated release asset.
-- Gutcheck 0.3.3 displays normalized local gateway and per-instance health. It
+- Gutcheck 0.3.5 displays normalized local gateway and per-instance health. It
   reads public status files directly and falls back to the exact protected
   `sudo -n /usr/local/sbin/aryaos-health --json` command for daemon-owned
   `0600` files. The sudo rule exposes only normalized, read-only health data;
   Gutcheck remains unprivileged. Debian installation also generates a stable,
   protected per-host web token. The service remains opt-in because only one
   mesh node should own external alerting, but dashboard-only instances are
-  enabled on the current lab fleet.
+  enabled on the current lab fleet. The API and dashboard retain the AryaOS
+  capability, decoder, clock, Bluetooth PAN, and gateway activity fields.
+  Active gateways without runtime telemetry remain visible as unknown, while
+  disabled roles are omitted. DroneScout receive and emit counters are shown
+  directly. Mixed-version beacon aliases that differ only by an `aryaos-`
+  prefix on a 32-character machine ID collapse to one entity; unrelated UIDs
+  remain unchanged.
 - DroneCOT 2.3.9 gives each systemd instance its own status namespace through
   `STATUS_APP` and `STATUS_PATH`. This fixes the mismatch between the
   `dronecot-dronescout` runtime directory and the former hard-coded
   `dronecot` status path. The DroneScout status files now survive normal
   service starts and appear in Gutcheck with live receive and emit counters.
-- AryaOS overlay 2.1.10 includes the canary and reboot fixes: it packages
+- AryaOS overlay 2.1.13 includes the canary and reboot fixes: it packages
   `aryaos-health`, feeder ordering drop-ins, the protected Gutcheck collector,
   and independent site-output and ADS-B keys without replacing operator
   configuration. It keeps serial discovery off a verified ADSBee Beast port,
@@ -57,6 +63,18 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   unnecessary gpsd/GPSCOT interruption; missing or changed hardware still gets
   full protocol discovery. Overlay upgrades now migrate only missing gpsd keys
   instead of restoring the factory `DEVICES=""` template over a live receiver.
+  Gateway health now includes systemd enablement and live unit state. Disabled
+  inactive roles do not degrade the appliance, while an enabled failed or
+  inactive unit overrides a stale healthy status document. An active gateway
+  without a status contract remains visible as unknown. The fallback neighbor
+  beacon now uses the same bare machine ID as LINCOT so new nodes do not create
+  duplicate fleet entities. Full configuration backups now retain the private
+  Gutcheck defaults and web token. Shareable `--no-secrets` backups continue
+  to omit that secret-bearing file.
+- Node-RED now locks `socket.io-parser` 4.2.7, the first release that fixes
+  GHSA-2m8v-j782-fhvr. Image verification and strict live HIL enforce that
+  floor. Dependabot alert 75 is closed as fixed, and security workflow
+  `31755011593` passes both the Python documentation and Node-RED npm jobs.
 - Current lab nodes are `192.168.0.44` (AIS), `192.168.0.45` (ADSBee, DS110,
   GNSS), and `192.168.0.199` (ADSBee, DroneScout, GNSS). All three run overlay
   2.1.10 with PyTAK 7.5.2, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.1,
@@ -103,6 +121,13 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   and release publication. Prerelease
   `v2026.08.13.211809-2a249441c77e-dev` contains the resulting image, overlay
   2.1.10 package, image metadata, and both SBOM formats.
+- Image workflow `31755011645` built commit `3421047` and passed all
+  image creation, upload, mounted-image verification, SBOM, tag, metadata,
+  overlay, and release steps. The mounted verifier reported 315 checks passed
+  and zero failed. Prerelease
+  `v2026.08.14.000533-342104777806-dev` contains the image, overlay 2.1.12,
+  image metadata, and SPDX and CycloneDX SBOMs. The release tag resolves to the
+  exact implementation commit.
 
 !!! tip "Looking for what to work on next?"
     Outstanding work and follow-ups live in **[Roadmap & next steps](roadmap.md)**.

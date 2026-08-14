@@ -74,6 +74,7 @@ EOF
 secret_paths() {
 	cat <<'EOF'
 etc/NetworkManager/system-connections
+etc/default/gutcheck
 home/node-red/.node-red/settings.js
 home/node-red/.node-red/flows_cred.json
 EOF
