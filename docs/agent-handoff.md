@@ -24,6 +24,10 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 - The burn-in runner now records network and USB evidence and has an enforced
   acceptance evaluator for service health, restarts, storage, temperature,
   network continuity, portal responses, and decoder activity.
+- The ADS-B pi-gen package list no longer explicitly requests unused
+  `uuid-runtime`. With the temporary Bookworm dependency source enabled for
+  FlightAware, that request selected Bookworm 2.41-5 against Trixie's
+  security-updated 2.41.5 libraries and blocked every image build.
 
 ## 2026-08-14 DragonEgg position latency
 
