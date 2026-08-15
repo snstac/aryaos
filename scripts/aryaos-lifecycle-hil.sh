@@ -60,14 +60,19 @@ mkdir -p "${OUTPUT}"
 PASS_FILE="$(mktemp /dev/shm/aryaos-lifecycle-pass.XXXXXX)"
 openssl rand -base64 48 >"${PASS_FILE}"
 ENROLLMENT_URL=""
+SENSITIVE_FILES=()
 cleanup() {
+	local path
+	for path in "${SENSITIVE_FILES[@]}"; do
+		[[ ! -f "${path}" ]] || shred -u "${path}" 2>/dev/null || rm -f "${path}"
+	done
 	shred -u "${PASS_FILE}" 2>/dev/null || rm -f "${PASS_FILE}"
 	ENROLLMENT_URL=""
 }
 trap cleanup EXIT
 
 if [[ "${ENROLL_STDIN}" == 1 ]]; then
-	IFS= read -r ENROLLMENT_URL || true
+	IFS= read -r -s ENROLLMENT_URL || true
 	if [[ "${ENROLLMENT_URL}" != tak://com.atakmap.app/enroll\?* ]]; then
 		echo "stdin did not contain a valid TAK enrollment deep link" >&2
 		exit 2
@@ -144,6 +149,7 @@ for host in "${HOSTS[@]}"; do
 
 	plain="${host_dir}/full-backup.tar.gz"
 	cipher="${plain}.enc"
+	SENSITIVE_FILES+=("${plain}" "${cipher}")
 	copy_root_file "${host}" "${full_path}" "${plain}"
 	sha256sum "${plain}" >"${host_dir}/full-backup.sha256"
 	encrypt_and_remove "${plain}" "${cipher}"
