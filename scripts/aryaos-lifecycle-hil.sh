@@ -61,13 +61,23 @@ PASS_FILE="$(mktemp /dev/shm/aryaos-lifecycle-pass.XXXXXX)"
 openssl rand -base64 48 >"${PASS_FILE}"
 ENROLLMENT_URL=""
 SENSITIVE_FILES=()
+ACTIVE_ENROLL_HOST=""
 cleanup() {
+	local rc=$?
 	local path
+	trap - EXIT
+	set +e
+	if [[ -n "${ACTIVE_ENROLL_HOST}" && -n "${FULL_REMOTE[${ACTIVE_ENROLL_HOST}]:-}" ]]; then
+		echo "${ACTIVE_ENROLL_HOST}: recovering prior state after interrupted enrollment test" >&2
+		remote "${ACTIVE_ENROLL_HOST}" "sudo -n sh -c 'for d in /etc/aryaos/tls /etc/cotbridge/tls /etc/adsbcot/tls /etc/aiscot/tls /etc/dronecot/tls /etc/lincot/tls; do [ ! -d \"\$d\" ] || find \"\$d\" -type f -delete; done'" >/dev/null 2>&1
+		remote "${ACTIVE_ENROLL_HOST}" "sudo -n aryaos-config-backup restore '${FULL_REMOTE[${ACTIVE_ENROLL_HOST}]}' --service" >/dev/null 2>&1
+	fi
 	for path in "${SENSITIVE_FILES[@]}"; do
 		[[ ! -f "${path}" ]] || shred -u "${path}" 2>/dev/null || rm -f "${path}"
 	done
 	shred -u "${PASS_FILE}" 2>/dev/null || rm -f "${PASS_FILE}"
 	ENROLLMENT_URL=""
+	exit "${rc}"
 }
 trap cleanup EXIT
 
@@ -174,6 +184,7 @@ if [[ "${ENROLL_STDIN}" == 1 ]]; then
 	for host in "${HOSTS[@]}"; do
 		echo "==> ${host}: enrollment, redaction, and prior-state restore"
 		host_dir="${OUTPUT}/${host}"
+		ACTIVE_ENROLL_HOST="${host}"
 		# printf is a shell builtin; the secret crosses only stdin and is absent
 		# from both local and remote process argument lists.
 		printf '%s' "${ENROLLMENT_URL}" | remote "${host}" "sudo -n aryaos-tak-dp-import --enroll-stdin" \
@@ -216,6 +227,7 @@ with tarfile.open(sys.argv[1], "r:gz") as archive:
 			echo "${host}: prior configuration was not recovered after enrollment" >&2
 			exit 1
 		fi
+		ACTIVE_ENROLL_HOST=""
 	done
 	if [[ "$(printf '%s\n' "${CERT_FINGERPRINT[@]}" | sort -u | wc -l)" -ne "${#HOSTS[@]}" ]]; then
 		echo "enrollment did not issue a unique client certificate to every host" >&2

@@ -59,12 +59,17 @@ class TakDataPackageImportTestCase(unittest.TestCase):
                 mock.patch.object(importer, "install_tls_files") as install_tls,
                 mock.patch.object(importer, "update_cotbridge") as update_cotbridge,
                 mock.patch.object(importer, "update_kv_file") as update_kv_file,
+                mock.patch.object(
+                    importer,
+                    "resolve_server_expected_hostname",
+                    return_value="tak",
+                ),
                 mock.patch.object(importer.subprocess, "run") as run,
             ):
                 result = importer.import_package(str(package))
 
         install_tls.assert_called_once_with(b"client bundle", "", b"CA bundle", "")
-        update_cotbridge.assert_called_once_with("tak.example.test", 8089, "ssl")
+        update_cotbridge.assert_called_once_with("tak.example.test", 8089, "ssl", "tak")
         update_kv_file.assert_called_once_with(
             importer.ARYAOS_CONFIG,
             {
@@ -72,12 +77,35 @@ class TakDataPackageImportTestCase(unittest.TestCase):
                 "PYTAK_TLS_CLIENT_CERT": str(importer.TLS_DIR / "client.pem"),
                 "PYTAK_TLS_CLIENT_KEY": str(importer.TLS_DIR / "client.key"),
                 "PYTAK_TLS_CLIENT_CAFILE": str(importer.TLS_DIR / "ca.pem"),
+                "PYTAK_TLS_SERVER_EXPECTED_HOSTNAME": "tak",
             },
         )
         run.assert_called_once_with(
             ["/usr/bin/systemctl", "try-restart", "cotbridge.service"], check=False
         )
         self.assertEqual(result["cot_url"], "tls://tak.example.test:8089")
+
+    def test_server_expected_hostname_accepts_exact_or_short_dns_name(self):
+        importer = load_importer()
+
+        exact = {"subjectAltName": (("DNS", "tak.example.test"),)}
+        short = {"subjectAltName": (("DNS", "tak"),)}
+
+        self.assertEqual(
+            importer.select_expected_hostname("tak.example.test", exact),
+            "tak.example.test",
+        )
+        self.assertEqual(
+            importer.select_expected_hostname("tak.example.test", short),
+            "tak",
+        )
+
+    def test_server_expected_hostname_rejects_unrelated_ca_certificate(self):
+        importer = load_importer()
+        unrelated = {"subjectAltName": (("DNS", "other"),)}
+
+        with self.assertRaises(SystemExit):
+            importer.select_expected_hostname("tak.example.test", unrelated)
 
     def test_enrollment_url_can_be_supplied_without_argv_secret(self):
         frontend = load_frontend()

@@ -55,7 +55,8 @@ else
 	ok "dhbridge absent (private package)"
 fi
 
-require_package_version aryaos-overlay 2.1.16
+require_package_version aryaos-overlay 2.1.17
+require_package_version cotbridge 1.0.1
 
 if [[ -d /var/www/html/calfire_airbases ]]; then
 	warn "calfire_airbases tiles still present (removal not on this image)"

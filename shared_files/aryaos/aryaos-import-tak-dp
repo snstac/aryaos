@@ -8,6 +8,7 @@ import json
 import os
 import shutil
 import socket
+import ssl
 import subprocess
 import sys
 import tempfile
@@ -105,6 +106,46 @@ def parse_enrollment_url(value):
         fail("Enrollment URL must include host, username, and token")
     reject_ssrf_host(host)
     return value, host, username
+
+
+def select_expected_hostname(host, certificate):
+    """Choose a verified server name without disabling hostname checks.
+
+    Some TAK deployments publish a routable FQDN while their private-CA server
+    certificate contains only the appliance's short DNS name. Accept only the
+    requested host or its first DNS label; never accept an unrelated name from
+    another certificate issued by the same CA.
+    """
+    names = {
+        value.casefold()
+        for kind, value in certificate.get("subjectAltName", ())
+        if kind == "DNS" and value
+    }
+    for rdn in certificate.get("subject", ()):
+        for kind, value in rdn:
+            if kind == "commonName" and value:
+                names.add(value.casefold())
+    candidates = (host, host.split(".", 1)[0])
+    for candidate in candidates:
+        if candidate.casefold() in names:
+            return candidate
+    fail("TAK streaming certificate does not match the enrollment host or its short DNS name")
+
+
+def resolve_server_expected_hostname(host, port):
+    """Validate the streaming peer chain, then resolve its expected DNS name."""
+    context = ssl.create_default_context(cafile=str(TLS_DIR / "ca.pem"))
+    context.check_hostname = False
+    context.load_cert_chain(
+        certfile=str(TLS_DIR / "client.pem"), keyfile=str(TLS_DIR / "client.key")
+    )
+    try:
+        with socket.create_connection((host, port), timeout=15) as raw:
+            with context.wrap_socket(raw, server_hostname=host) as stream:
+                certificate = stream.getpeercert()
+    except (OSError, ssl.SSLError) as exc:
+        fail(f"Could not validate TAK streaming certificate: {exc}")
+    return select_expected_hostname(host, certificate)
 
 
 def parse_preferences(pref_bytes):
@@ -251,7 +292,7 @@ def update_kv_file(path, values):
     os.chmod(path, 0o644)
 
 
-def update_cotbridge(host, port, proto):
+def update_cotbridge(host, port, proto, expected_hostname=None):
     cfg = configparser.RawConfigParser()
     cfg.optionxform = str
     if COTBRIDGE_INI.exists():
@@ -281,6 +322,8 @@ def update_cotbridge(host, port, proto):
                 "PYTAK_TLS_CLIENT_CAFILE": str(TLS_DIR / "ca.pem"),
             }
         )
+        if expected_hostname:
+            values["PYTAK_TLS_SERVER_EXPECTED_HOSTNAME"] = expected_hostname
     for key, value in values.items():
         cfg.set(section, key, value)
     COTBRIDGE_INI.parent.mkdir(parents=True, exist_ok=True)
@@ -306,15 +349,21 @@ def import_package(path):
         ca_blob = read_zip_member(zf, ca_name)
     scheme = "tls" if meta["proto"] in ("ssl", "tls") else "tcp"
     install_tls_files(client_blob, meta["client_password"], ca_blob, meta["ca_password"])
-    update_cotbridge(meta["host"], meta["port"], meta["proto"])
+    expected_hostname = None
+    if scheme == "tls":
+        expected_hostname = resolve_server_expected_hostname(meta["host"], meta["port"])
+    update_cotbridge(meta["host"], meta["port"], meta["proto"], expected_hostname)
+    shared_values = {
+        "ARYAOS_COT_OUTPUT_URL": f"{scheme}://{meta['host']}:{meta['port']}",
+        "PYTAK_TLS_CLIENT_CERT": str(TLS_DIR / "client.pem"),
+        "PYTAK_TLS_CLIENT_KEY": str(TLS_DIR / "client.key"),
+        "PYTAK_TLS_CLIENT_CAFILE": str(TLS_DIR / "ca.pem"),
+    }
+    if expected_hostname:
+        shared_values["PYTAK_TLS_SERVER_EXPECTED_HOSTNAME"] = expected_hostname
     update_kv_file(
         ARYAOS_CONFIG,
-        {
-            "ARYAOS_COT_OUTPUT_URL": f"{scheme}://{meta['host']}:{meta['port']}",
-            "PYTAK_TLS_CLIENT_CERT": str(TLS_DIR / "client.pem"),
-            "PYTAK_TLS_CLIENT_KEY": str(TLS_DIR / "client.key"),
-            "PYTAK_TLS_CLIENT_CAFILE": str(TLS_DIR / "ca.pem"),
-        },
+        shared_values,
     )
     if os.environ.get("ARYAOS_IMPORT_TAK_DP_NO_RESTART") != "1":
         subprocess.run(["/usr/bin/systemctl", "try-restart", "cotbridge.service"], check=False)

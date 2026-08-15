@@ -3,6 +3,25 @@
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 
+## 2026-08-14 fleet lifecycle release gates
+
+- The lifecycle HIL runner now exercises encrypted backup, restore integrity,
+  TAK enrollment, enrollment rollback, support bundles, and an allowlisted
+  factory reset. Interrupted enrollment automatically restores the active
+  node's full backup. Enrollment credentials and recovery material remain
+  outside command lines and logs.
+- Enrollment validates the peer certificate chain, then records either the
+  requested DNS name or its certificate-backed short form as COTBridge's
+  expected TLS hostname. It refuses unrelated certificate names and keeps CA
+  and hostname verification enabled.
+- COTBridge 1.0.1 closes read-only UDP ingress transports when TLS egress setup
+  fails, preventing reconnect attempts from leaking the local socket and
+  ending in `EADDRINUSE`. AryaOS overlay 2.1.17 and both image/HIL gates require
+  that COTBridge floor.
+- The burn-in runner now records network and USB evidence and has an enforced
+  acceptance evaluator for service health, restarts, storage, temperature,
+  network continuity, portal responses, and decoder activity.
+
 ## 2026-08-14 DragonEgg position latency
 
 - DragonEgg `192.168.0.149` had a healthy live 3D GPS fix, but the landing CGI
