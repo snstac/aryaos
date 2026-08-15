@@ -61,6 +61,8 @@ class BurninSummaryTestCase(unittest.TestCase):
             "sikw00fsentinel",
             "aprscot",
             "sapientcot",
+            "acarscot",
+            "acarsdec",
         ):
             with self.subTest(service=service):
                 self.assertIn(f'"{service}"', service_block)
@@ -255,6 +257,33 @@ class BurninSummaryTestCase(unittest.TestCase):
         self.assertEqual(activity["counter_resets"], {"rx": 1, "emitted": 1})
         self.assertEqual(activity["last_counters"], {"rx": 7, "emitted": 14})
         self.assertEqual(activity["write_errors_range"], [0, 1])
+
+    def test_acceptance_rejects_release_health_regressions(self):
+        first = sample(1, 10, "active")
+        second = sample(2, 16, "inactive")
+        first.update(boot_id="one", usb=["radio"], networks={"eth0": {"rx_errors": 0, "tx_errors": 0}})
+        second.update(boot_id="two", usb=[], networks={"eth0": {"rx_errors": 1, "tx_errors": 0}})
+        second["throttled"] = "throttled=0x1"
+        second["services"]["role-service"]["NRestarts"] = 1
+
+        summary = burnin.summarize([first, second])
+        acceptance = burnin.evaluate_acceptance(summary)
+
+        self.assertFalse(acceptance["passed"])
+        rendered = "\n".join(item["failure"] for item in acceptance["failures"])
+        for expected in ("memory growth", "throttle events", "service drops", "unexpected boots", "network error growth", "restart count grew"):
+            self.assertIn(expected, rendered)
+
+    def test_acceptance_passes_clean_run(self):
+        first = sample(1, 10, "active")
+        second = sample(2, 11, "active")
+        for item in (first, second):
+            item.update(boot_id="one", usb=["radio"], networks={"eth0": {"rx_errors": 0, "tx_errors": 0}})
+
+        acceptance = burnin.evaluate_acceptance(burnin.summarize([first, second]))
+
+        self.assertTrue(acceptance["passed"])
+        self.assertEqual(acceptance["failures"], [])
 
 
 if __name__ == "__main__":

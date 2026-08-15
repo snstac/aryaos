@@ -280,6 +280,7 @@ def summarize(samples):
             "filesystem_alerts": 0, "filesystem_states": [],
             "first_probe_failure_utc": None, "last_probe_failure_utc": None,
             "first_probe_failure_cycle": None, "last_probe_failure_cycle": None,
+            "network_activity": {}, "usb_inventories": [],
         })
         out["samples"] += 1
         if not sample.get("ok"):
@@ -342,6 +343,19 @@ def summarize(samples):
             or filesystem.get("boot_artifacts_ok") is False
         ):
             out["filesystem_alerts"] += 1
+        usb_inventory = tuple(sorted(sample.get("usb") or []))
+        if "usb" in sample and list(usb_inventory) not in out["usb_inventories"]:
+            out["usb_inventories"].append(list(usb_inventory))
+        for interface, stats in (sample.get("networks") or {}).items():
+            activity = out["network_activity"].setdefault(
+                interface, {"first": {}, "last": {}, "delta": {}}
+            )
+            for counter in ("rx_errors", "tx_errors", "rx_dropped", "tx_dropped"):
+                value = stats.get(counter)
+                if not isinstance(value, int):
+                    continue
+                activity["first"].setdefault(counter, value)
+                activity["last"][counter] = value
         for name, state in (sample.get("services") or {}).items():
             unit_type = state.get("Type")
             if unit_type:
@@ -402,12 +416,49 @@ def summarize(samples):
                     out["service_nonactive"].get(name, 0) + inactive
                 )
     for host, out in summary["hosts"].items():
+        for activity in out["network_activity"].values():
+            activity["delta"] = {
+                key: activity["last"][key] - activity["first"].get(key, activity["last"][key])
+                for key in activity["last"]
+            }
         if out["journal_event_tracking_samples"]:
             out["journal_warning_unique_events"] = len(warning_cursors.get(host, set()))
             out["journal_warning_unique_messages"] = sorted(
                 warning_messages.get(host, set())
             )
     return summary
+
+
+def evaluate_acceptance(summary, max_temp_c=80.0, max_disk_pct=85.0, max_mem_delta_pct=5.0):
+    """Apply the fleet burn-in release gates and return actionable failures."""
+    failures = []
+    for host, state in summary.get("hosts", {}).items():
+        def reject(condition, detail):
+            if condition:
+                failures.append({"host": host, "failure": detail})
+
+        reject(state.get("probe_failures", 0) > 0, f"probe failures={state.get('probe_failures')}")
+        reject((state.get("max_temp_c") or 0) >= max_temp_c, f"max temperature={state.get('max_temp_c')}C")
+        reject((state.get("max_disk_pct") or 0) >= max_disk_pct, f"max disk={state.get('max_disk_pct')}%")
+        reject((state.get("mem_delta_pct") or 0) > max_mem_delta_pct, f"memory growth={state.get('mem_delta_pct')} points")
+        reject(state.get("throttle_events", 0) > 0, f"throttle events={state.get('throttle_events')}")
+        reject(state.get("failed_unit_samples", 0) > 0, f"failed-unit samples={state.get('failed_unit_samples')}")
+        reject(bool(state.get("service_nonactive")), f"service drops={state.get('service_nonactive')}")
+        reject(state.get("filesystem_alerts", 0) > 0, f"filesystem alerts={state.get('filesystem_alerts')}")
+        reject(len(state.get("boot_ids") or []) > 1, f"unexpected boots={len(state.get('boot_ids') or [])}")
+        reject(len(state.get("usb_inventories") or []) > 1, "USB inventory changed")
+        for service, restart_range in state.get("restart_range", {}).items():
+            reject(restart_range[1] > restart_range[0], f"{service} restart count grew {restart_range}")
+        for app, activity in state.get("gateway_activity", {}).items():
+            errors = activity.get("write_errors_range")
+            reject(bool(errors and errors[1] > 0), f"{app} write errors={errors}")
+        for interface, activity in state.get("network_activity", {}).items():
+            errors = activity.get("delta") or {}
+            reject(
+                errors.get("rx_errors", 0) > 0 or errors.get("tx_errors", 0) > 0,
+                f"{interface} network error growth={errors}",
+            )
+    return {"passed": not failures, "failures": failures}
 
 
 def read_samples(path):
@@ -426,7 +477,7 @@ def read_samples(path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--hosts", nargs="+", default=["192.168.0.13", "192.168.0.44", "192.168.0.60", "192.168.0.199"])
+    parser.add_argument("--hosts", nargs="+", default=["192.168.0.44", "192.168.0.45", "192.168.0.149", "192.168.0.199"])
     parser.add_argument("--user", default="pi")
     parser.add_argument("--key", default="shared_files/aryaos/ssh/aryaos-dev-lab")
     parser.add_argument("--known-hosts", default="/tmp/aryaos-burnin-known-hosts")
@@ -445,12 +496,18 @@ def main():
         metavar="SUMMARY_JSON",
         help="summary destination for --summarize-existing (default: stdout only)",
     )
+    parser.add_argument(
+        "--enforce-acceptance",
+        action="store_true",
+        help="exit non-zero when release burn-in thresholds are not met",
+    )
     args = parser.parse_args()
     if args.summarize_existing:
         if args.output:
             parser.error("--output cannot be combined with --summarize-existing")
         samples = read_samples(args.summarize_existing)
         result = summarize(samples)
+        result["acceptance"] = evaluate_acceptance(result)
         result["last_captured_utc"] = next(
             (
                 sample.get("captured_utc")
@@ -464,7 +521,7 @@ def main():
         if args.summary_output:
             Path(args.summary_output).write_text(rendered)
         print(rendered, end="")
-        return 0
+        return 0 if result["acceptance"]["passed"] or not args.enforce_acceptance else 1
     if args.summary_output:
         parser.error("--summary-output requires --summarize-existing")
     duration = args.duration_seconds if args.duration_seconds is not None else args.duration_hours * 3600
@@ -500,10 +557,11 @@ def main():
             if wait > 0 and not STOP:
                 time.sleep(wait)
     result = summarize(samples)
+    result["acceptance"] = evaluate_acceptance(result)
     result["finished_utc"] = dt.datetime.now(dt.timezone.utc).isoformat()
     (output / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({"output": str(output), **result}, indent=2), flush=True)
-    return 0
+    return 0 if result["acceptance"]["passed"] or not args.enforce_acceptance else 1
 
 
 if __name__ == "__main__":

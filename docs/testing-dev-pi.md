@@ -42,6 +42,10 @@ ARYAOS_SSH=pi@192.168.0.45 ARYAOS_TEST_TIER=strict \
   ./scripts/aryaos-test/run.sh
 ARYAOS_SSH=pi@192.168.0.199 ARYAOS_TEST_TIER=strict \
   ./scripts/aryaos-test/run.sh
+
+# DragonEgg: LimeSDR, ACARS, and GNSS
+ARYAOS_SSH=pi@192.168.0.149 ARYAOS_TEST_TIER=strict \
+  ./scripts/aryaos-test/run.sh
 ```
 
 For an unattended fleet soak, first populate the dedicated known-hosts file,
@@ -49,11 +53,11 @@ then run the sampler. Raw JSONL is the source of truth; regenerate summaries
 from it when analysis changes.
 
 ```bash
-ssh-keyscan -H 192.168.0.44 192.168.0.45 192.168.0.199 \
+ssh-keyscan -H 192.168.0.44 192.168.0.45 192.168.0.149 192.168.0.199 \
   > /tmp/aryaos-burnin-known-hosts
 ./scripts/aryaos-burnin.py \
-  --hosts 192.168.0.44 192.168.0.45 192.168.0.199 \
-  --duration-hours 8 --interval 30
+  --hosts 192.168.0.44 192.168.0.45 192.168.0.149 192.168.0.199 \
+  --duration-hours 8 --interval 60 --enforce-acceptance
 ```
 
 The generated `summary.json` reports service state counts, automatic restart
@@ -68,14 +72,41 @@ package or operator restart from an unexplained failure. Completed systemd
 oneshots and the run-to-completion GPS time synchronization helper are not
 reported as service drops.
 
+The release acceptance gate also rejects probe failures, service drops or
+restart growth, reboots, USB inventory changes, filesystem alerts, throttling,
+gateway write errors, network error growth, temperatures at or above 80 C,
+disk use at or above 85%, and memory growth above five percentage points.
+
 When sampler analysis changes after a long run, keep the raw JSONL and
 regenerate the summary from it:
 
 ```bash
 python3 scripts/aryaos-burnin.py \
   --summarize-existing .aryaos-burnin/<run>/samples.jsonl \
-  --summary-output .aryaos-burnin/<run>/summary.json
+  --summary-output .aryaos-burnin/<run>/summary.json \
+  --enforce-acceptance
 ```
+
+## Lifecycle HIL
+
+The controller-side lifecycle runner creates both backup forms, verifies a
+restore sentinel, encrypts full backups while they are off-device, optionally
+tests enrollment through stdin, scans a generated support bundle for the exact
+credential, restores the prior TAK state, and can factory-reset one designated
+lab box with networking retained:
+
+```bash
+# Paste the one-time URL when prompted by `read -s`; it is not echoed.
+read -r -s ENROLLMENT_URL
+printf '%s\n' "${ENROLLMENT_URL}" | ./scripts/aryaos-lifecycle-hil.sh \
+  --hosts 192.168.0.44 192.168.0.45 192.168.0.149 192.168.0.199 \
+  --enroll-stdin --factory-reset 192.168.0.45
+unset ENROLLMENT_URL
+```
+
+This is destructive lab testing. Do not select a factory-reset host without a
+known network path and working lab-key access. The runner intentionally does
+not expose or exercise `aryaos-zeroize`.
 
 ## SSH authentication
 
@@ -107,6 +138,8 @@ scripts/aryaos-test/
     11-wifi-rid.sh     # enabled Wi-Fi RID adapter/service/data-path health
     12-gutcheck.sh     # enabled capability API/dashboard/auth/runtime health
     13-ais.sh          # enabled AIS serial isolation, ports, privacy, live NMEA
+    14-acars.sh        # enabled ACARS SDR, listener, channels, and live activity
+    15-lifecycle.sh    # installed helpers, backup inventory/modes, redaction guard
 ```
 
 Expectations live in **`expectations.yml`**; update that file when image defaults change.
@@ -135,6 +168,9 @@ Expectations live in **`expectations.yml`**; update that file when image default
 - When the AIS capability is enabled: AIS-catcher/AISCOT are stable, the
   receiver uses a present by-id path distinct from GPS, local ports are open,
   and AIS-catcher explicitly disables its internet community feed
+- When ACARS is enabled: ACARSDEC/ACARSCOT are stable, the configured SDR is
+  present and opened, the decoder path is loopback-only, and the expected UDP
+  listener and channel count are valid
 
 ### Warn / skip (exit 0)
 
