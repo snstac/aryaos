@@ -4,7 +4,7 @@
 
 # Non-interactive SSH sessions get a PATH without sbin, hiding tools like
 # sysctl and turning real checks into silent warns.
-export PATH="${PATH}:/usr/sbin:/sbin"
+export PATH="${PATH}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin"
 
 ARYAOS_TEST_PASSED=0
 ARYAOS_TEST_FAILED=0

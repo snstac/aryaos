@@ -10,6 +10,11 @@ ROOT = Path(__file__).parents[1]
 
 
 class ServiceDefaultsTestCase(unittest.TestCase):
+    def test_hil_noninteractive_path_includes_aryaos_helpers(self):
+        library = (ROOT / "scripts/aryaos-test/lib.sh").read_text()
+
+        self.assertIn("/usr/local/sbin", library)
+
     def test_config_backup_preserves_private_gutcheck_settings(self):
         backup = (
             ROOT / "shared_files/aryaos/aryaos-config-backup"
