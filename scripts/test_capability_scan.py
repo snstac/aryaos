@@ -249,7 +249,10 @@ class SerialRoleWiringTestCase(unittest.TestCase):
         self.assertIn(".capabilities-autodetect-tries", reset)
         self.assertIn("aryaos-role caps none", reset)
         self.assertIn("aryaos-safe-mode reset-for-factory", reset)
-        self.assertIn("dpkg --configure -a", reset)
+        self.assertIn("dpkg --force-confmiss --force-confnew --configure -a", reset)
+        self.assertIn("--force-confnew", reset)
+        self.assertNotIn("--force-confask", reset)
+        self.assertIn("timeout --signal=TERM --kill-after=30s 5m", reset)
 
         safe_mode = (
             pathlib.Path(__file__).parent.parent

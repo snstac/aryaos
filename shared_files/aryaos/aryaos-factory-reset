@@ -74,26 +74,30 @@ done
 
 # 2. Best-effort reset of per-gateway /etc/default via package reinstall (online only).
 if command -v apt-get >/dev/null 2>&1 && ping -c1 -W2 deb.debian.org >/dev/null 2>&1; then
-	DEBIAN_FRONTEND=noninteractive apt-get -y --reinstall \
-		-o Dpkg::Options::=--force-confmiss -o Dpkg::Options::=--force-confask \
-		install adsbcot aiscot dronecot lincot gpscot gdlcot cotbridge >/dev/null 2>&1 \
-		&& echo "reinstalled sensor package defaults" \
-		|| {
+	if DEBIAN_FRONTEND=noninteractive timeout --signal=TERM --kill-after=30s 5m \
+		apt-get -y --reinstall \
+		-o Dpkg::Options::=--force-confmiss -o Dpkg::Options::=--force-confnew \
+		install adsbcot aiscot dronecot lincot gpscot gdlcot cotbridge >/dev/null 2>&1; then
+		echo "reinstalled sensor package defaults"
+	else
 			echo "note: sensor package reinstall skipped/failed — /etc/default may be left as-is"
 			# apt can fail after unpacking one or more gateways. Never carry a
 			# half-configured dpkg database into the reset reboot: finish any
 			# pending postinst work even though restoring defaults was best-effort.
-			DEBIAN_FRONTEND=noninteractive dpkg --configure -a >/dev/null 2>&1 \
+			DEBIAN_FRONTEND=noninteractive timeout --signal=TERM --kill-after=30s 5m \
+				dpkg --force-confmiss --force-confnew --configure -a >/dev/null 2>&1 \
 				&& echo "recovered pending package configuration" \
 				|| echo "warning: pending package configuration could not be recovered"
-		}
+	fi
 else
 	echo "note: offline — per-gateway /etc/default/<svc> left as-is (reset online to restore package defaults)"
 fi
 
 # 3. Remove operator-uploaded TAK certificates (keep the directories).
 for d in /etc/aryaos/tls /etc/cotbridge/tls /etc/adsbcot/tls /etc/aiscot/tls /etc/dronecot/tls /etc/lincot/tls; do
-	[[ -d "${d}" ]] && find "${d}" -type f -delete 2>/dev/null || true
+	if [[ -d "${d}" ]]; then
+		find "${d}" -type f -delete 2>/dev/null || true
+	fi
 done
 echo "removed uploaded TAK certificates"
 

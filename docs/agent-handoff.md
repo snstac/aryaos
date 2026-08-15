@@ -16,8 +16,11 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   and hostname verification enabled.
 - COTBridge 1.0.1 closes read-only UDP ingress transports when TLS egress setup
   fails, preventing reconnect attempts from leaking the local socket and
-  ending in `EADDRINUSE`. AryaOS overlay 2.1.17 and both image/HIL gates require
+  ending in `EADDRINUSE`. AryaOS overlay 2.1.18 and both image/HIL gates require
   that COTBridge floor.
+- Factory reset uses noninteractive `--force-confnew` package restoration with
+  a bounded timeout. This prevents a hidden conffile prompt from stalling an
+  unattended reset while still restoring packaged gateway defaults.
 - The burn-in runner now records network and USB evidence and has an enforced
   acceptance evaluator for service health, restarts, storage, temperature,
   network continuity, portal responses, and decoder activity.

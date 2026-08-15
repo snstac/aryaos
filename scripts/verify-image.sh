@@ -145,7 +145,7 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.1.17
+require_pkg_version aryaos-overlay 2.1.18
 require_pkg_version cotbridge 1.0.1
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
