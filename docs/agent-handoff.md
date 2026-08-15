@@ -28,6 +28,9 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   `uuid-runtime`. With the temporary Bookworm dependency source enabled for
   FlightAware, that request selected Bookworm 2.41-5 against Trixie's
   security-updated 2.41.5 libraries and blocked every image build.
+- The image release workflow marks SemVer prerelease tags such as
+  `v2.0.0-rc1` as GitHub prereleases even for field-safe builds; stable SemVer
+  tags remain normal releases.
 
 ## 2026-08-14 DragonEgg position latency
 

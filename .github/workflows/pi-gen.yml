@@ -444,7 +444,10 @@ jobs:
           done
           # Tiny (<1 KB) manifest the AryaOS Imager OS list is generated from.
           [ -f deploy/imager/image-info.json ] && args+=(deploy/imager/image-info.json)
-          if [ "${ARYAOS_LAB_ACCESS}" = "1" ]; then
+          # Lab images and SemVer prerelease tags (for example v2.0.0-rc1)
+          # must not appear as stable releases in GitHub or downstream tooling.
+          if [ "${ARYAOS_LAB_ACCESS}" = "1" ] || \
+             [[ "$TAG" =~ ^v[0-9]+[.][0-9]+[.][0-9]+- ]]; then
             args+=(--prerelease)
           fi
           gh "${args[@]}"
