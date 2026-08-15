@@ -70,8 +70,8 @@ else
 	fail "acarsdec frequency list must contain 1-8 channels (${frequencies:-unset})"
 fi
 
-recent_acars="$(journalctl -u acarsdec.service --since '30 minutes ago' --no-pager 2>/dev/null || true)"
-if grep -qE 'registration|flight|message|ARINC|ACARS' <<<"${recent_acars}"; then
+recent_acars="$(journalctl -u acarscot.service --since '30 minutes ago' --no-pager 2>/dev/null || true)"
+if grep -qE 'ACARS: [1-9][0-9]* messages' <<<"${recent_acars}"; then
 	ok "live ACARS decoder activity observed in the last 30 minutes"
 else
 	warn "no live ACARS message observed in the last 30 minutes (RF traffic may be quiet)"
