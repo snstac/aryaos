@@ -254,6 +254,13 @@ class SerialRoleWiringTestCase(unittest.TestCase):
         self.assertNotIn("--force-confask", reset)
         self.assertIn("timeout --signal=TERM --kill-after=30s 5m", reset)
 
+        verifier = (
+            pathlib.Path(__file__).parent.parent / "scripts/verify-image.sh"
+        ).read_text()
+        self.assertIn(
+            "dpkg --force-confmiss --force-confnew --configure -a", verifier
+        )
+
         safe_mode = (
             pathlib.Path(__file__).parent.parent
             / "shared_files/aryaos/aryaos-safe-mode"
