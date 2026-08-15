@@ -117,7 +117,7 @@ decrypt_backup() {
 	chmod 0600 "${destination}"
 }
 
-declare -A FULL_REMOTE FULL_ENCRYPTED PRE_DIGEST
+declare -A FULL_REMOTE FULL_ENCRYPTED PRE_DIGEST CERT_FINGERPRINT
 
 for host in "${HOSTS[@]}"; do
 	echo "==> ${host}: backup and restore round trip"
@@ -136,8 +136,8 @@ for host in "${HOSTS[@]}"; do
 	remote "${host}" "sudo -n tar -tzf '${full_path}'" >"${host_dir}/full-manifest.txt"
 	remote "${host}" "sudo -n tar -tzf '${share_path}'" >"${host_dir}/no-secrets-manifest.txt"
 	grep -q '/MANIFEST.txt$' "${host_dir}/full-manifest.txt"
-	grep -q '/etc/aryaos/aryaos-config.txt$' "${host_dir}/full-manifest.txt"
-	if grep -qE '/etc/(aryaos|cotbridge|adsbcot|aiscot|dronecot|lincot)/tls/' "${host_dir}/no-secrets-manifest.txt"; then
+	grep -qE '(^|/)etc/aryaos/aryaos-config.txt$' "${host_dir}/full-manifest.txt"
+	if grep -qE '(^|/)etc/(aryaos|cotbridge|adsbcot|aiscot|dronecot|lincot)/tls/' "${host_dir}/no-secrets-manifest.txt"; then
 		echo "${host}: no-secrets archive contains TAK TLS material" >&2
 		exit 1
 	fi
@@ -177,6 +177,16 @@ if [[ "${ENROLL_STDIN}" == 1 ]]; then
 		remote "${host}" "sudo -n aryaos-tak-dp-import --status" >"${host_dir}/enrollment-status.json"
 		python3 -c 'import json,sys; data=json.load(open(sys.argv[1])); assert data["enrollment_status"]["configured"]' \
 			"${host_dir}/enrollment-status.json"
+		deadline=$((SECONDS + 60))
+		while ((SECONDS < deadline)); do
+			if remote "${host}" "sudo -n python3 -c 'import json; d=json.load(open(\"/run/cotbridge/status.json\")); lane=d.get(\"lanes\",{}).get(\"site-output\",{}).get(\"output\",{}); assert d.get(\"health\",{}).get(\"state\")==\"ok\" and lane.get(\"state\")==\"connected\"'" >/dev/null 2>&1; then
+				break
+			fi
+			sleep 2
+		done
+		remote "${host}" "sudo -n python3 -c 'import json; d=json.load(open(\"/run/cotbridge/status.json\")); lane=d.get(\"lanes\",{}).get(\"site-output\",{}).get(\"output\",{}); assert d.get(\"health\",{}).get(\"state\")==\"ok\" and lane.get(\"state\")==\"connected\"'"
+		CERT_FINGERPRINT["${host}"]="$(remote "${host}" "sudo -n openssl x509 -in /etc/aryaos/tls/client.pem -noout -fingerprint -sha256" | sed 's/.*=//')"
+		printf '%s\n' "${CERT_FINGERPRINT[${host}]}" >"${host_dir}/enrollment-cert-fingerprint.txt"
 
 		bundle_path="$(remote "${host}" "sudo -n aryaos-support-bundle" | tail -n 1)"
 		bundle="${host_dir}/support-bundle.tar.gz"
@@ -201,6 +211,10 @@ with tarfile.open(sys.argv[1], "r:gz") as archive:
 			exit 1
 		fi
 	done
+	if [[ "$(printf '%s\n' "${CERT_FINGERPRINT[@]}" | sort -u | wc -l)" -ne "${#HOSTS[@]}" ]]; then
+		echo "enrollment did not issue a unique client certificate to every host" >&2
+		exit 1
+	fi
 fi
 
 if [[ -n "${RESET_HOST}" ]]; then
