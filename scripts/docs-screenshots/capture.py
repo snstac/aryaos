@@ -45,10 +45,11 @@ PORTAL_STATUS = {
     "ipv4_text": "wlan0        10.41.0.1/24\neth0         192.168.1.42/24\ntailscale0   100.72.14.3/32",
     "uptime": "3 days, 4:12",
     "tak_gateways": {"ok": True, "items": [
-        {"id": "adsbcot", "state": "active", "title": "adsbcot — active"},
-        {"id": "aiscot", "state": "active", "title": "aiscot — active"},
-        {"id": "dronecot", "state": "active", "title": "dronecot — active"},
-        {"id": "sikw00fcot", "state": "active", "title": "sikw00fcot — active"}]},
+        {"id": "adsbcot", "state": "up", "title": "adsbcot — active"},
+        {"id": "aiscot", "state": "up", "title": "aiscot — active"},
+        {"id": "acarscot", "state": "up", "title": "acarscot — active"},
+        {"id": "dronecot", "state": "up", "title": "dronecot — active"},
+        {"id": "sikw00fcot", "state": "up", "title": "sikw00fcot — active"}]},
     "system": {"cpu_temp_c": 47.8, "load": {"1": 0.42, "5": 0.55, "15": 0.48},
                "throttle": {"state": "ok", "current": [], "history": []}, "mem": None},
     "gps": {"ok": True, "error": None, "fix_type": "3D fix", "mode": 3,
@@ -56,7 +57,9 @@ PORTAL_STATUS = {
             "satellites_visible": 14, "alt_m": 21.4, "track_deg": 0, "speed_mps": 0,
             "time": "2026-07-18T22:41:00Z", "grid": "FM18lv"},
     "radios": {"ok": True, "error": None, "devices": [
-        {"index": 0, "vendor": "Realtek", "product": "RTL2838UHIDIR", "serial": "stx:1090:0"},
+        {"kind": "usb_sdr", "label": "RTL2838UHIDIR", "state": "present",
+         "detail": "Realtek · 0bda:2838 · sn stx:1090:0", "source": "sysfs",
+         "frequency_range_mhz": {"min": 24, "max": 1766}},
         {"index": 1, "vendor": "Realtek", "product": "RTL2838UHIDIR", "serial": "stx:978:0"}]},
 }
 PORTAL_NEIGHBORS = {"ok": True, "items": [

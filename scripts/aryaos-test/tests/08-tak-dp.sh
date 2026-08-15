@@ -18,6 +18,36 @@ else
 	fail "TAK DP import socket missing"
 fi
 
+TAK_STATUS_JSON="$(sudo -n /usr/local/sbin/aryaos-tak-dp-import --status 2>/dev/null || true)"
+if ! python3 -c 'import json,sys; json.load(sys.stdin)' <<<"${TAK_STATUS_JSON}" 2>/dev/null; then
+	fail "TAK enrollment status is not valid JSON"
+elif python3 -c 'import json,sys; raise SystemExit(not json.load(sys.stdin)["enrollment_status"]["configured"])' \
+	<<<"${TAK_STATUS_JSON}" 2>/dev/null; then
+	ok "TAK Server enrollment configured"
+	if runtime_detail="$(sudo -n python3 - 2>&1 <<'PY'
+import json
+from pathlib import Path
+
+status = json.loads(Path("/run/cotbridge/status.json").read_text())
+lane = status.get("lanes", {}).get("site-output", {})
+health = status.get("health", {}).get("state")
+output = lane.get("output", {})
+if health != "ok" or output.get("state") != "connected":
+    raise SystemExit(
+        f"health={health or 'missing'} output={output.get('state') or 'missing'} "
+        f"detail={output.get('detail') or status.get('health', {}).get('detail') or 'none'}"
+    )
+print(f"health={health} output={output['state']} tx={status.get('counters', {}).get('tx', 0)}")
+PY
+)"; then
+		ok "configured TAK site output connected (${runtime_detail})"
+	else
+		fail "configured TAK site output unhealthy (${runtime_detail})"
+	fi
+else
+	skip "TAK Server enrollment not configured"
+fi
+
 if unit_active aryaos-neighbord; then
 	if sudo systemctl restart aryaos-neighbord.service && [[ -S /run/aryaos/tak-dp-import.sock ]]; then
 		ok "neighbor restart preserves TAK DP import socket"

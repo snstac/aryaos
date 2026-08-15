@@ -100,8 +100,8 @@
         </a>
       </nav>
 
-      <!-- CoT gateway chips -->
-      <section class="aos-takrow" aria-label="CoT gateway services">
+      <!-- Sensor hardware and CoT gateway chips -->
+      <section class="aos-takrow" aria-label="Sensor hardware and CoT gateway services">
         <div id="aos-tak-error" class="aos-banner aos-banner--bad uk-hidden" role="alert"></div>
         <div class="aos-tak-chips" role="list">
           <div class="aos-tak-chip aos-tak--pending" role="listitem" id="aos-tak-chip-adsbcot" title="adsbcot">
@@ -112,6 +112,14 @@
             <span class="aos-tak-dot" aria-hidden="true"></span>
             <span class="aos-tak-chip-label">AIS</span>
           </div>
+          <div class="aos-tak-chip aos-tak--pending" role="listitem" id="aos-tak-chip-acarscot" title="acarscot">
+            <span class="aos-tak-dot" aria-hidden="true"></span>
+            <span class="aos-tak-chip-label">ACARS</span>
+          </div>
+          <div class="aos-tak-chip aos-tak--pending" role="listitem" id="aos-tak-chip-sdr" title="SDR inventory pending">
+            <span class="aos-tak-dot" aria-hidden="true"></span>
+            <span class="aos-tak-chip-label">SDR</span>
+          </div>
           <div class="aos-tak-chip aos-tak--pending" role="listitem" id="aos-tak-chip-dronecot" title="dronecot">
             <span class="aos-tak-dot" aria-hidden="true"></span>
             <span class="aos-tak-chip-label">UAS</span>
@@ -120,7 +128,7 @@
             <span class="aos-tak-dot" aria-hidden="true"></span>
             <span class="aos-tak-chip-label">SiK</span>
           </div>
-          <span class="aos-tak-hint">All green = CoT gateways up. Open <a href="/admin/">Admin</a> to configure TAK connectivity or inspect a gateway.</span>
+          <span class="aos-tak-hint">Sensor hardware and CoT gateways. Open <a href="/admin/">Admin</a> to configure TAK connectivity or inspect a gateway.</span>
         </div>
       </section>
 
@@ -248,7 +256,7 @@
           <p id="aos-radios-empty" class="aos-drawer-note uk-hidden" role="status"></p>
           <div class="uk-overflow-auto">
             <table class="uk-table uk-table-small uk-table-divider uk-table-middle aos-rf-table uk-hidden" id="aos-rf-table" aria-label="Radio and RF devices">
-              <thead><tr><th scope="col">Type</th><th scope="col">Device</th><th scope="col">State</th><th scope="col">Notes</th><th scope="col" class="aos-rf-col-src">Src</th></tr></thead>
+              <thead><tr><th scope="col">Type</th><th scope="col">Device</th><th scope="col">State</th><th scope="col">Coverage</th><th scope="col">Notes</th><th scope="col" class="aos-rf-col-src">Src</th></tr></thead>
               <tbody id="aos-radios-tbody"></tbody>
             </table>
           </div>
@@ -282,6 +290,6 @@
       </p>
     </main>
 
-    <script src="js/portal-landing.js" defer></script>
+    <script src="js/portal-landing.js?v=2.1.16-sdr-panel" defer></script>
   </body>
 </html>

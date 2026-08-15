@@ -3,6 +3,64 @@
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 
+## 2026-08-14 DragonEgg position latency
+
+- DragonEgg `192.168.0.149` had a healthy live 3D GPS fix, but the landing CGI
+  waited about seven seconds for an arbitrary 40-report ceiling and the
+  Cockpit AryaOS location card requested 12 gpspipe reports. The CGI now exits
+  on a complete TPV/SKY snapshot with a three-second worst-case bound, accepts
+  gpsd's compact `nSat`/`uSat` counters, and retains partial/no-fix behavior.
+- Sibling `cockpit-aryaos` requests eight reports, measured at about 0.7 seconds
+  on this receiver while retaining both TPV and SKY. Package `2.0.2-1`
+  (`sha256:2128f6c4e5c941a6c6ac01df060b922c531372391b9fa2eaca079c4aaa7d9b21`)
+  is installed on `.149`; the image and HIL floors now require 2.0.2.
+- Five warmed live CGI samples returned in 0.42-0.95 seconds with a current 3D
+  position and eight used satellites. The first request immediately after a
+  lighttpd reload was a separate 9.6-second cold-start outlier. GPSD, GPSCOT,
+  LINCOT, ACARSDEC, and ACARSCOT all remained active with zero restarts.
+
+## 2026-08-14 DragonEgg LimeSDR portal inventory
+
+- The landing portal now recognizes a LimeSDR Mini by its `Lime Micro` USB
+  descriptors on the shared FTDI FT601 `0403:601f` bridge without opening the
+  SDR. Its radio row exposes structured `frequency_range_mhz` metadata and the
+  UI renders the published 10-3,500 MHz range in a dedicated Coverage column.
+  Generic FT601 devices are not classified as LimeSDRs.
+- Unit coverage exercises both the Lime match and the generic-FT601 rejection;
+  HIL requires the identity and range whenever a LimeSDR Mini is present in
+  sysfs. The focused Python, shell, and JavaScript checks pass.
+- The three portal assets are deployed on DragonEgg `192.168.0.149`. Live JSON
+  reports the LimeSDR Mini, serial `1DBB4189078E3F`, and the expected range.
+  The sensor strip now includes ACARS gateway state plus a hardware-backed SDR
+  chip; the active ACARS path makes the Sensors hero read `1/1`, while the SDR
+  tooltip identifies the Lime and its coverage. ACARS decoding remained active
+  with zero restarts through deployment.
+
+## 2026-08-14 AryaAir TAK enrollment repair
+
+- `cockpit-aryaos` 2.0.0 placed the services-card reorder before the `$` DOM
+  helper declaration, so the whole AryaOS Site script stopped at load and the
+  Enroll button had no listener. The sibling `cockpit-aryaos` source now moves
+  that statement after the helper and includes a Node startup-preamble test;
+  local package `2.0.1-1` is installed on `192.168.0.199`.
+- The first live enrollment then exposed an `aryaos-import-tak-dp` partial-write
+  bug: `import_package()` used `scheme` after installing TLS and writing the
+  COTBridge lane but before assigning it, so it failed before updating shared
+  config or restarting COTBridge. Overlay 2.1.16 assigns the scheme before any
+  writes and adds an end-to-end connection-package regression test. The local
+  package digest is
+  `sha256:95fad1df565b8db3c5ee5a45de15cc0f61560f41a740835ecd970f83d880d109`.
+- `.199` is enrolled to `tls://takserver.snstak.com:8089`. The server certificate
+  SAN is `takserver`, so the lane pins
+  `PYTAK_TLS_SERVER_EXPECTED_HOSTNAME=takserver`; CA and hostname verification
+  remain enabled. COTBridge is healthy and connected with rising RX/TX counters
+  and zero write errors.
+- HIL now compares the configured AryaOS output with the COTBridge site-output
+  lane instead of requiring factory Mesh SA, and configured TAK nodes must show
+  a healthy connected runtime lane. Closing strict HIL passed all 13 modules;
+  evidence is in
+  `.aryaos-burnin/20260814T161836Z-aryaair-199-tak-enrollment-closing/`.
+
 ## 2026-08-13 CoT naming and health cutover
 
 - Runtime and package identities are now COTBridge, GPSCOT, and GDLCOT. The
@@ -80,8 +138,9 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
   floor. Dependabot alert 75 is closed as fixed, and security workflow
   `31758220131` passes both the Python documentation and Node-RED npm jobs.
 - Current lab nodes are `192.168.0.44` (AIS), `192.168.0.45` (ADSBee, DS110,
-  GNSS), and `192.168.0.199` (ADSBee, DroneScout, GNSS). All three run overlay
-  2.1.15 with PyTAK 7.5.2, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.1,
+  GNSS), and `192.168.0.199` (ADSBee, DroneScout, GNSS). `.44` and `.45` run
+  overlay 2.1.15; `.199` runs the enrollment-fix overlay 2.1.16. All three use
+  PyTAK 7.5.2, COTBridge 1.0.0, GPSCOT/GDLCOT 2.0.1,
   SiKW00FCOT 1.0.2, LINCOT 1.3.8, DroneCOT 2.3.9, Gutcheck 0.3.5, and
   `socket.io-parser` 4.2.7. A single controlled reboot changed every boot ID;
   all 13 strict HIL modules then passed on every host. Node-RED flows, settings,

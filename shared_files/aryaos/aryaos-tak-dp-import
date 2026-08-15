@@ -11,6 +11,7 @@ the onboarding Wi-Fi hotspot or the LAN.
 Modes:
   aryaos-tak-dp-import --status          print enrollment status JSON
   aryaos-tak-dp-import --enroll <url>    import a tak:// one-time enrollment URL
+  aryaos-tak-dp-import --enroll-stdin    read a tak:// enrollment URL from stdin
   aryaos-tak-dp-import [--package]       read a .zip/.dpk package from stdin, import it
 
 It forwards to the same root import daemon (aryaos-tak-dp-importd) over
@@ -174,13 +175,25 @@ def main():
     mode = args[0] if args else "--package"
     if mode == "--status":
         emit(enrollment_status(), 0)
-    if mode == "--enroll":
-        url = (args[1] if len(args) > 1 else "").strip()
+    if mode in ("--enroll", "--enroll-stdin"):
+        if mode == "--enroll-stdin":
+            raw = sys.stdin.buffer.read(MAX_ENROLLMENT_URL_BYTES + 1)
+            if len(raw) > MAX_ENROLLMENT_URL_BYTES:
+                fail("Enrollment URL is too large")
+            try:
+                url = raw.decode("utf-8").strip()
+            except UnicodeDecodeError:
+                fail("Enrollment URL must be UTF-8")
+        else:
+            # Compatibility for older cockpit-aryaos clients. New callers use
+            # --enroll-stdin so one-time credentials never appear in argv or
+            # process listings.
+            url = (args[1] if len(args) > 1 else "").strip()
         if not url:
             fail("Missing enrollment URL")
         if len(url.encode("utf-8")) > MAX_ENROLLMENT_URL_BYTES:
             fail("Enrollment URL is too large")
-        send_to_daemon(json.dumps(
+        return send_to_daemon(json.dumps(
             {"type": "enrollment_url", "enrollment_url": url}, separators=(",", ":")
         ).encode("utf-8"))
     if mode in ("--package", "-"):
@@ -189,7 +202,7 @@ def main():
             fail("No package on stdin")
         if len(payload) > MAX_UPLOAD_BYTES:
             fail("Connection package is too large")
-        send_to_daemon(payload)
+        return send_to_daemon(payload)
     fail(f"Unknown mode: {mode}")
 
 

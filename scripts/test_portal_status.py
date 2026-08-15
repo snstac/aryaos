@@ -4,6 +4,7 @@
 import importlib.machinery
 import importlib.util
 import socket
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -77,6 +78,102 @@ class GpsdReadTestCase(unittest.TestCase):
         self.assertEqual(code, -1)
         self.assertEqual(error, "gpsd unavailable")
 
+    def test_returns_as_soon_as_complete_snapshot_arrives(self):
+        fake = FakeSocket(
+            [
+                b'{"class":"VERSION"}\n'
+                b'{"class":"TPV","mode":3,"lat":1,"lon":2}\n'
+                b'{"class":"SKY","uSat":8}\n'
+            ]
+        )
+        with mock.patch.object(PORTAL.socket, "create_connection", return_value=fake):
+            stdout, code, error = PORTAL.read_gpsd(
+                max_lines=40,
+                timeout=3,
+                stop_when=PORTAL._gps_snapshot_ready,
+            )
+
+        self.assertEqual(code, 0)
+        self.assertEqual(error, "")
+        self.assertIn('"class":"TPV"', stdout)
+        self.assertIn('"class":"SKY"', stdout)
+
+    def test_valid_fix_waits_past_initial_empty_sky(self):
+        fake = FakeSocket(
+            [
+                b'{"class":"TPV","mode":3,"lat":1,"lon":2}\n'
+                b'{"class":"SKY","uSat":0}\n',
+                b'{"class":"SKY","uSat":8}\n',
+            ]
+        )
+        with mock.patch.object(PORTAL.socket, "create_connection", return_value=fake):
+            stdout, code, error = PORTAL.read_gpsd(
+                max_lines=40,
+                timeout=3,
+                stop_when=PORTAL._gps_snapshot_ready,
+            )
+
+        self.assertEqual(code, 0)
+        self.assertEqual(error, "")
+        self.assertIn('"uSat":8', stdout)
+
+    def test_gather_gps_uses_compact_sky_counters(self):
+        snapshot = (
+            '{"class":"TPV","mode":3,"lat":1,"lon":2}\n'
+            '{"class":"SKY","nSat":12,"uSat":8}\n'
+        )
+        with mock.patch.object(PORTAL, "read_gpsd", return_value=(snapshot, 0, "")):
+            gps = PORTAL.gather_gps()
+
+        self.assertEqual(gps["satellites_visible"], 12)
+        self.assertEqual(gps["satellites_used"], 8)
+
+
+class RadioInventoryTestCase(unittest.TestCase):
+    def test_limesdr_mini_has_model_and_frequency_range(self):
+        with tempfile.TemporaryDirectory() as root:
+            device = Path(root) / "2-1"
+            device.mkdir()
+            values = {
+                "idVendor": "0403\n",
+                "idProduct": "601f\n",
+                "manufacturer": "Lime Micro\n",
+                "product": "LimeSDR Mini\n",
+                "serial": "1DBB4189078E3F\n",
+            }
+            for name, value in values.items():
+                (device / name).write_text(value, encoding="utf-8")
+
+            radios = []
+            with mock.patch.object(PORTAL, "SYS_USB", root):
+                PORTAL._gather_usb_sdr(radios)
+
+        self.assertEqual(len(radios), 1)
+        self.assertEqual(radios[0]["kind"], "usb_sdr")
+        self.assertEqual(radios[0]["label"], "LimeSDR Mini")
+        self.assertEqual(
+            radios[0]["frequency_range_mhz"], {"min": 10, "max": 3500}
+        )
+
+    def test_generic_ft601_is_not_misidentified_as_limesdr(self):
+        with tempfile.TemporaryDirectory() as root:
+            device = Path(root) / "2-1"
+            device.mkdir()
+            values = {
+                "idVendor": "0403\n",
+                "idProduct": "601f\n",
+                "manufacturer": "FTDI\n",
+                "product": "FT601 USB bridge\n",
+            }
+            for name, value in values.items():
+                (device / name).write_text(value, encoding="utf-8")
+
+            radios = []
+            with mock.patch.object(PORTAL, "SYS_USB", root):
+                PORTAL._gather_usb_sdr(radios)
+
+        self.assertEqual(radios, [])
+
 
 class TakGatewayTestCase(unittest.TestCase):
     @staticmethod
@@ -126,6 +223,26 @@ class TakGatewayTestCase(unittest.TestCase):
 
         self.assertEqual(item["state"], "degraded")
         self.assertEqual(item["active_state"], "degraded")
+
+    def test_gateway_inventory_includes_acarscot(self):
+        with mock.patch.object(
+            PORTAL, "_gateway_item", side_effect=lambda unit_id, *_args: {"id": unit_id}
+        ):
+            result = PORTAL.gather_tac_gateways()
+
+        self.assertIn("acarscot", {item["id"] for item in result["items"]})
+
+
+class PortalMarkupTestCase(unittest.TestCase):
+    def test_sensor_strip_has_acars_and_sdr_chips(self):
+        root = Path(__file__).parents[1] / "shared_files/aryaos/html"
+        html = (root / "index.html").read_text(encoding="utf-8")
+        javascript = (root / "js/portal-landing.js").read_text(encoding="utf-8")
+
+        self.assertIn('id="aos-tak-chip-acarscot"', html)
+        self.assertIn('id="aos-tak-chip-sdr"', html)
+        self.assertIn("function fillSdrChip(radios)", javascript)
+        self.assertIn('"acarscot"', javascript)
 
 
 if __name__ == "__main__":

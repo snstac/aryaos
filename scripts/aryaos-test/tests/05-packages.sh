@@ -55,7 +55,7 @@ else
 	ok "dhbridge absent (private package)"
 fi
 
-require_package_version aryaos-overlay 2.1.15
+require_package_version aryaos-overlay 2.1.16
 
 if [[ -d /var/www/html/calfire_airbases ]]; then
 	warn "calfire_airbases tiles still present (removal not on this image)"
@@ -84,6 +84,7 @@ require_package_version cockpit-cotbridge 1.2.2
 require_package_version cockpit-dronecot 1.1.3
 require_package_version cockpit-lincot 1.1.3
 require_package_version cockpit-sapientcot 0.1.1
+require_package_version cockpit-aryaos 2.0.2
 # GDLCOT 2.0.1 retains the NaN/Inf guards from 1.0.1 and also rebuilds its
 # custom PyTAK client in-process after transient CoT transport failures.
 require_package_version gdlcot 2.0.1

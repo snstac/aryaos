@@ -304,6 +304,7 @@ def import_package(path):
         ca_name = resolve_zip_path(zf, meta["ca_location"])
         client_blob = read_zip_member(zf, client_name)
         ca_blob = read_zip_member(zf, ca_name)
+    scheme = "tls" if meta["proto"] in ("ssl", "tls") else "tcp"
     install_tls_files(client_blob, meta["client_password"], ca_blob, meta["ca_password"])
     update_cotbridge(meta["host"], meta["port"], meta["proto"])
     update_kv_file(
@@ -317,7 +318,6 @@ def import_package(path):
     )
     if os.environ.get("ARYAOS_IMPORT_TAK_DP_NO_RESTART") != "1":
         subprocess.run(["/usr/bin/systemctl", "try-restart", "cotbridge.service"], check=False)
-    scheme = "tls" if meta["proto"] in ("ssl", "tls") else "tcp"
     return {
         "ok": True,
         "description": meta["description"],

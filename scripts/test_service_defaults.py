@@ -188,8 +188,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
-        self.assertIn("require_pkg_version aryaos-overlay 2.1.15", verifier)
-        self.assertIn("require_package_version aryaos-overlay 2.1.15", hil)
+        self.assertIn("require_pkg_version aryaos-overlay 2.1.16", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.1.16", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
         self.assertIn(
             'set_kv "$GPSD_DEF" DEVICES "$gps_dev" || true', assign

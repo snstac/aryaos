@@ -24,6 +24,7 @@ EXPECTED_GATEWAY_IDS = (
     "lincot",
     "adsbcot",
     "aiscot",
+    "acarscot",
     "dronecot",
     "sikw00fcot",
 )

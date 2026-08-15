@@ -66,6 +66,17 @@ USB_RADIO_IDS = frozenset(
         "2500:0021",  # USRP B200/B210 family
     }
 )
+# Some SDRs use a general-purpose USB bridge VID:PID, so identify them only
+# when their programmable USB descriptors also name the radio.  This avoids
+# classifying every FTDI FT601 device as an SDR while keeping inventory probes
+# read-only (opening an in-use Lime through Soapy can reset its USB stream).
+USB_RADIO_METADATA = {
+    "0403:601f": {
+        "descriptor": "lime",
+        "label": "LimeSDR Mini",
+        "frequency_range_mhz": {"min": 10, "max": 3500},
+    },
+}
 # Extra Realtek DVB-T dongles often used as RTL-SDR.
 RTL_USB_VID = "0bda"
 RTL_USB_PIDS = frozenset(
@@ -106,7 +117,34 @@ def run(argv, timeout=8):
         return "", -1, "command timed out"
 
 
-def read_gpsd(max_lines=40, timeout=8):
+def _gps_snapshot_ready(payload):
+    """Return once TPV and SKY provide a complete current GPS snapshot."""
+    tpvs = []
+    skies = []
+    for line in payload.decode("utf-8", errors="replace").splitlines():
+        try:
+            message = json.loads(line)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if message.get("class") == "TPV":
+            tpvs.append(message)
+        elif message.get("class") == "SKY":
+            skies.append(message)
+    if not tpvs or not skies:
+        return False
+    best_tpv = max(tpvs, key=_tpv_score)
+    try:
+        mode = int(best_tpv.get("mode") or 0)
+    except (TypeError, ValueError):
+        mode = 0
+    if mode < 2 or best_tpv.get("lat") is None or best_tpv.get("lon") is None:
+        return True
+    # gpsd can emit an initial empty SKY immediately before the populated one.
+    # Do not trade correct satellite detail for a few hundred milliseconds.
+    return any((sky.get("uSat") or 0) > 0 for sky in skies)
+
+
+def read_gpsd(max_lines=40, timeout=8, stop_when=None):
     """Read bounded JSON reports directly from gpsd, retaining partial data.
 
     A direct socket read is intentional.  lighttpd may terminate a CGI process
@@ -127,6 +165,8 @@ def read_gpsd(max_lines=40, timeout=8):
                 if not chunk:
                     break
                 payload.extend(chunk)
+                if stop_when and stop_when(payload):
+                    break
     except OSError as e:
         partial = payload.decode("utf-8", errors="replace").strip()
         if not isinstance(e, socket.timeout):
@@ -546,7 +586,18 @@ def _gather_bluetooth(devices, rfkill_map):
         )
 
 
-def _usb_id_matches_radio(vid, pid):
+def _usb_radio_metadata(vid, pid, descriptor=""):
+    key = f"{(vid or '').lower().strip()}:{(pid or '').lower().strip()}"
+    metadata = USB_RADIO_METADATA.get(key)
+    if not metadata:
+        return None
+    required = metadata.get("descriptor", "").lower()
+    if required and required not in (descriptor or "").lower():
+        return None
+    return metadata
+
+
+def _usb_id_matches_radio(vid, pid, descriptor=""):
     vid = (vid or "").lower().strip()
     pid = (pid or "").lower().strip()
     if len(vid) != 4 or len(pid) != 4:
@@ -556,7 +607,7 @@ def _usb_id_matches_radio(vid, pid):
         return True
     if vid == RTL_USB_VID and pid in RTL_USB_PIDS:
         return True
-    return False
+    return _usb_radio_metadata(vid, pid, descriptor) is not None
 
 
 def _gather_usb_sdr(devices):
@@ -574,26 +625,29 @@ def _gather_usb_sdr(devices):
             continue
         vid = _read_txt(vfile, 8)
         pid = _read_txt(pfile, 8)
-        if not _usb_id_matches_radio(vid, pid):
-            continue
         man = _read_txt(os.path.join(devpath, "manufacturer"), 128)
         prod = _read_txt(os.path.join(devpath, "product"), 128)
         serial = _read_txt(os.path.join(devpath, "serial"), 128)
-        label = prod or f"USB {vid}:{pid}"
+        descriptor = f"{man} {prod}"
+        if not _usb_id_matches_radio(vid, pid, descriptor):
+            continue
+        metadata = _usb_radio_metadata(vid, pid, descriptor)
+        label = prod or (metadata or {}).get("label") or f"USB {vid}:{pid}"
         detail_bits = [f"{vid}:{pid}"]
         if man:
             detail_bits.insert(0, man)
         if serial:
             detail_bits.append(f"sn {serial}")
-        devices.append(
-            {
-                "kind": "usb_sdr",
-                "label": label[:80],
-                "state": "present",
-                "detail": " · ".join(detail_bits),
-                "source": "sysfs",
-            }
-        )
+        device = {
+            "kind": "usb_sdr",
+            "label": label[:80],
+            "state": "present",
+            "detail": " · ".join(detail_bits),
+            "source": "sysfs",
+        }
+        if metadata and metadata.get("frequency_range_mhz"):
+            device["frequency_range_mhz"] = dict(metadata["frequency_range_mhz"])
+        devices.append(device)
 
 
 def _gather_lsusb_extra(devices):
@@ -620,7 +674,7 @@ def _gather_lsusb_extra(devices):
         if not m:
             continue
         vid, pid, rest = m.group(1), m.group(2), m.group(3).strip()
-        if not _usb_id_matches_radio(vid, pid):
+        if not _usb_id_matches_radio(vid, pid, rest):
             continue
         key_hint = f"{vid.lower()}:{pid.lower()}"
         if key_hint in seen_pairs:
@@ -801,6 +855,7 @@ def gather_tac_gateways():
         ("lincot", "GNSS→TAK", "GNSS", ("lincot",)),
         ("adsbcot", "ADS-B→TAK", "ADS-B", ("adsbcot",)),
         ("aiscot", "AIS→TAK", "AIS", ("aiscot",)),
+        ("acarscot", "ACARS→TAK", "ACARS", ("acarscot",)),
         (
             "dronecot",
             "UAS / Remote ID→TAK",
@@ -830,8 +885,26 @@ def _tpv_score(tpv):
 def _sky_score(sky):
     if not sky:
         return (-1, 0)
+    visible, used = _sky_counts(sky)
+    return (visible if visible is not None else -1, used if used is not None else 0)
+
+
+def _sky_counts(sky):
+    if not sky:
+        return (None, None)
     sats = sky.get("satellites") or []
-    return (len(sats), sum(1 for s in sats if s.get("used")))
+    if sats:
+        return (len(sats), sum(1 for s in sats if s.get("used")))
+
+    def _counter(name):
+        try:
+            return int(sky[name]) if sky.get(name) is not None else None
+        except (TypeError, ValueError):
+            return None
+
+    # gpsd may omit the per-satellite array while retaining these aggregate
+    # counters, especially for short WATCH snapshots.
+    return (_counter("nSat"), _counter("uSat"))
 
 
 def gather_gps():
@@ -857,8 +930,13 @@ def gather_gps():
         "satellites_visible": None,
         "satellites_used": None,
     }
-    # Few lines suffice for VERSION/DEVICES/WATCH/SKY/TPV; large -n + short timeout caused false timeouts.
-    stdout, code, err = read_gpsd(max_lines=40, timeout=8)
+    # Return as soon as one TPV/SKY pair is complete. Waiting for an arbitrary
+    # line count made every otherwise-ready portal request idle for ~7 seconds.
+    stdout, code, err = read_gpsd(
+        max_lines=40,
+        timeout=3,
+        stop_when=_gps_snapshot_ready,
+    )
     if code != 0 and not stdout:
         out["error"] = err or f"gpspipe exit {code}"
         return out
@@ -898,9 +976,7 @@ def gather_gps():
         out["error"] = err
 
     if best_sky is not None:
-        sats = best_sky.get("satellites") or []
-        out["satellites_visible"] = len(sats)
-        out["satellites_used"] = sum(1 for s in sats if s.get("used"))
+        out["satellites_visible"], out["satellites_used"] = _sky_counts(best_sky)
 
     if best_tpv is None:
         if not out["error"]:

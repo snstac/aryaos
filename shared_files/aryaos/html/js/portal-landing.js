@@ -312,6 +312,14 @@
     return KIND_LABELS[k] || (k != null && k !== "" ? String(k) : "—");
   }
 
+  function frequencyRangeLabel(range) {
+    if (!range) return "—";
+    var min = Number(range.min);
+    var max = Number(range.max);
+    if (!isFinite(min) || !isFinite(max)) return "—";
+    return min.toLocaleString("en-US") + "–" + max.toLocaleString("en-US") + " MHz";
+  }
+
   function showTakErr(msg) {
     if (!takErrEl) return;
     if (!msg) {
@@ -349,7 +357,7 @@
   }
 
   function fillTakGateways(tg) {
-    var ids = ["adsbcot", "aiscot", "dronecot", "sikw00fcot"];
+    var ids = ["adsbcot", "aiscot", "acarscot", "dronecot", "sikw00fcot"];
     if (!tg || tg.ok === false) {
       showTakErr(tg && tg.error ? tg.error : "TAK gateway status unavailable.");
       ids.forEach(function (id) {
@@ -372,6 +380,32 @@
       }
       setTakChipState(chip, it.state, it.title || id);
     });
+  }
+
+  function fillSdrChip(radios) {
+    var chip = document.getElementById("aos-tak-chip-sdr");
+    if (!chip) return;
+    if (!radios || radios.ok === false) {
+      setTakChipState(chip, "unavailable", "SDR inventory unavailable");
+      return;
+    }
+    var devices = (radios.devices || []).filter(function (dev) {
+      return dev && dev.kind === "usb_sdr";
+    });
+    if (!devices.length) {
+      setTakChipState(chip, "absent", "No SDR detected");
+      return;
+    }
+    var descriptions = devices.map(function (dev) {
+      var text = dev.label || "SDR";
+      var coverage = frequencyRangeLabel(dev.frequency_range_mhz);
+      if (coverage !== "—") text += " · " + coverage;
+      return text + " · " + (dev.state || "present");
+    });
+    var healthy = devices.some(function (dev) {
+      return dev.state === "present" || dev.state === "up";
+    });
+    setTakChipState(chip, healthy ? "up" : "down", descriptions.join("; "));
   }
 
   function setPowerPill(throttle, loaded) {
@@ -471,11 +505,12 @@
     list.forEach(function (dev) {
       var tr = document.createElement("tr");
       var notes = dev.detail != null && dev.detail !== "" ? String(dev.detail) : "—";
-      var cells = [kindLabel(dev.kind), dev.label, dev.state, notes, dev.source];
+      var coverage = frequencyRangeLabel(dev.frequency_range_mhz);
+      var cells = [kindLabel(dev.kind), dev.label, dev.state, coverage, notes, dev.source];
       cells.forEach(function (text, idx) {
         var td = document.createElement("td");
         td.textContent = text != null && text !== "" ? String(text) : "—";
-        if (idx === 4) td.className = "aos-rf-col-src uk-text-meta";
+        if (idx === 5) td.className = "aos-rf-col-src uk-text-meta";
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -673,6 +708,7 @@
         fillGps(d.gps || null);
         fillRadios(d.radios != null ? d.radios : { ok: true, devices: [], error: null });
         fillTakGateways(d.tak_gateways != null ? d.tak_gateways : null);
+        fillSdrChip(d.radios != null ? d.radios : { ok: true, devices: [], error: null });
         fillSystem(d.system != null ? d.system : null);
       })
       .catch(function (e) {
@@ -682,6 +718,7 @@
         fillRadios(null);
         fillGps(null);
         fillTakGateways(null);
+        fillSdrChip(null);
         fillSystem(null);
       });
   }

@@ -145,7 +145,7 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.1.15
+require_pkg_version aryaos-overlay 2.1.16
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
 require_grep '^Defaults maxseq=128$' /etc/sudoers.d/aryaos "sudo I/O audit history bounded for /var/log tmpfs"
@@ -275,7 +275,7 @@ require_pkg_version cockpit-dronecot 1.1.3
 require_pkg cockpit-cotbridge
 require_pkg_version cockpit-cotbridge 1.2.2
 require_pkg cockpit-gpscot
-require_pkg cockpit-aryaos
+require_pkg_version cockpit-aryaos 2.0.2
 require_pkg cockpit-spyserver
 require_path /usr/share/cockpit/spyserver/manifest.json
 require_pkg readsb

@@ -69,6 +69,19 @@ assert 'satellites_visible' in g and 'satellites_used' in g
 " "${JSON}" && ok "portal JSON minimal schema" || fail "portal JSON schema"
 fi
 
+if grep -ilqx 'LimeSDR Mini' /sys/bus/usb/devices/*/product >/dev/null 2>&1; then
+	if python3 -c "
+import json, sys
+d = json.loads(sys.argv[1])
+lime = next(x for x in d['radios']['devices'] if x.get('kind') == 'usb_sdr' and 'limesdr' in x.get('label', '').lower())
+assert lime.get('frequency_range_mhz') == {'min': 10, 'max': 3500}
+" "${JSON}"; then
+		ok "portal identifies LimeSDR Mini and its 10–3,500 MHz coverage"
+	else
+		fail "portal is missing LimeSDR Mini identity or coverage"
+	fi
+fi
+
 if [[ -x /usr/bin/vcgencmd ]]; then
 	if python3 -c "
 import json, sys

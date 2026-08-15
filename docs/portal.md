@@ -49,11 +49,11 @@ consistent across OS-brand selection and remains available before login.
 |-----|---------|
 | `hostname`, `fqdn`, `primary_ip`, `ipv4_text`, `uptime` | Host |
 | `gps` | GNSS (`alt_m`, `alt_hae_m`, `ce_m`, `le_m`, `epx_m`, ...) |
-| `tak_gateways` | `{ ok, items[] }` per displayed gateway capability (`cotbridge`, feeders); aggregate items include member `units[]` with live systemd state |
+| `tak_gateways` | `{ ok, items[] }` per displayed gateway capability (`cotbridge`, feeders including ACARS); aggregate items include member `units[]` with live systemd state |
 
 Node-RED is **not** on the configuration critical path; use Cockpit and Comitup for writes (see [node-red.md](node-red.md)).
 | `system` | `{ ok, cpu_temp_c, load{1,5,15}, mem{total_mb,available_mb,used_pct}, throttle{raw,state,current[],history[]} }` |
-| `radios` | `{ ok, devices[] }` RF inventory |
+| `radios` | `{ ok, devices[] }` RF inventory; known SDRs include structured `frequency_range_mhz` coverage |
 
 ## AryaOS Neighbor Discovery
 

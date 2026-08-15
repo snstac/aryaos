@@ -24,11 +24,20 @@ if [[ -f /etc/cotbridge.ini ]]; then
 	else
 		fail "cotbridge.ini missing ingress 127.0.0.1:28087"
 	fi
-	if grep -q '^\[lane:site-output\]' /etc/cotbridge.ini &&
-		grep -q '^egress_cot_url = udp+wo://239.2.3.1:6969' /etc/cotbridge.ini; then
-		ok "cotbridge default site output"
+	aryaos_output="$(sed -n 's/^ARYAOS_COT_OUTPUT_URL=//p' /etc/aryaos/aryaos-config.txt 2>/dev/null \
+		| tail -n 1 | sed 's/^["'"'"']//; s/["'"'"']$//')"
+	cotbridge_output="$(python3 - <<'PY' 2>/dev/null || true
+import configparser
+
+config = configparser.RawConfigParser()
+config.read("/etc/cotbridge.ini")
+print(config.get("lane:site-output", "egress_cot_url", fallback=""))
+PY
+)"
+	if [[ -n "${aryaos_output}" && "${cotbridge_output}" == "${aryaos_output}" ]]; then
+		ok "cotbridge site output matches aryaos-config (${cotbridge_output})"
 	else
-		fail "cotbridge default site output missing"
+		fail "cotbridge site output (${cotbridge_output:-missing}) does not match aryaos-config (${aryaos_output:-missing})"
 	fi
 else
 	skip "cotbridge.ini not present"
