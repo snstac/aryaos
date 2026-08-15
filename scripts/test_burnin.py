@@ -3,6 +3,7 @@
 
 import importlib.machinery
 import importlib.util
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -21,6 +22,7 @@ def sample(cycle, memory, state, filesystem=None):
     return {
         "host": "192.0.2.1",
         "cycle": cycle,
+        "captured_utc": f"2026-01-01T00:{cycle - 1:02d}:00+00:00",
         "ok": True,
         "temperature_c": 40,
         "load": [0.5, 0.4, 0.3],
@@ -284,6 +286,67 @@ class BurninSummaryTestCase(unittest.TestCase):
 
         self.assertTrue(acceptance["passed"])
         self.assertEqual(acceptance["failures"], [])
+
+    def test_acceptance_rejects_short_or_sparse_run(self):
+        samples = [sample(1, 10, "active"), sample(2, 10, "active")]
+        summary = burnin.summarize(samples)
+
+        acceptance = burnin.evaluate_acceptance(
+            summary,
+            required_duration_s=600,
+            expected_interval_s=60,
+            expected_hosts=["192.0.2.1"],
+            max_gap_s=300,
+        )
+
+        self.assertFalse(acceptance["passed"])
+        rendered = "\n".join(item["failure"] for item in acceptance["failures"])
+        self.assertIn("cycle coverage", rendered)
+        self.assertIn("observed span", rendered)
+
+    def test_acceptance_rejects_excessive_telemetry_gap(self):
+        first = sample(1, 10, "active")
+        second = sample(2, 10, "active")
+        second["captured_utc"] = "2026-01-01T00:11:00+00:00"
+
+        acceptance = burnin.evaluate_acceptance(
+            burnin.summarize([first, second]), max_gap_s=600
+        )
+
+        self.assertFalse(acceptance["passed"])
+        self.assertIn("telemetry gap", acceptance["failures"][0]["failure"])
+
+    def test_acceptance_rejects_duplicate_host_cycle_samples(self):
+        first = sample(1, 10, "active")
+        duplicate = sample(1, 10, "active")
+
+        summary = burnin.summarize([first, duplicate])
+        acceptance = burnin.evaluate_acceptance(summary)
+
+        self.assertEqual(summary["duplicate_host_cycle_samples"], 1)
+        self.assertFalse(acceptance["passed"])
+        self.assertIn("duplicate host/cycle", acceptance["failures"][0]["failure"])
+
+    def test_load_run_policy_uses_metadata(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run = Path(temp_dir)
+            samples_path = run / "samples.jsonl"
+            samples_path.write_text("")
+            (run / "metadata.json").write_text(json.dumps({
+                "duration_s": 28800,
+                "interval_s": 60,
+                "hosts": ["one", "two"],
+                "min_coverage_ratio": 0.99,
+                "max_gap_s": 180,
+            }))
+
+            self.assertEqual(burnin.load_run_policy(samples_path), {
+                "required_duration_s": 28800.0,
+                "expected_interval_s": 60.0,
+                "expected_hosts": ["one", "two"],
+                "min_coverage_ratio": 0.99,
+                "max_gap_s": 180.0,
+            })
 
 
 if __name__ == "__main__":

@@ -6,7 +6,9 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import datetime as dt
+import fcntl
 import json
+import math
 import os
 import signal
 import subprocess
@@ -260,8 +262,59 @@ def probe(host, args):
     return sample
 
 
+def parse_timestamp(value):
+    """Return an aware UTC datetime for an ISO-8601 sample timestamp."""
+    if not value:
+        return None
+    try:
+        parsed = dt.datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+    return parsed.astimezone(dt.timezone.utc)
+
+
 def summarize(samples):
-    summary = {"sample_count": len(samples), "hosts": {}}
+    cycle_times = {}
+    for sample in samples:
+        cycle = sample.get("cycle")
+        captured = parse_timestamp(sample.get("captured_utc"))
+        if isinstance(cycle, int) and captured is not None:
+            cycle_times.setdefault(cycle, captured)
+    ordered_cycles = sorted(cycle_times.items())
+    gaps = [
+        (current_time - previous_time).total_seconds()
+        for (_, previous_time), (_, current_time) in zip(
+            ordered_cycles, ordered_cycles[1:]
+        )
+    ]
+    first_time = ordered_cycles[0][1] if ordered_cycles else None
+    last_time = ordered_cycles[-1][1] if ordered_cycles else None
+    seen_host_cycles = set()
+    duplicate_host_cycle_samples = 0
+    for sample in samples:
+        identity = (sample.get("host"), sample.get("cycle"))
+        if identity[0] is None or not isinstance(identity[1], int):
+            continue
+        if identity in seen_host_cycles:
+            duplicate_host_cycle_samples += 1
+        seen_host_cycles.add(identity)
+    summary = {
+        "sample_count": len(samples),
+        "duplicate_host_cycle_samples": duplicate_host_cycle_samples,
+        "cycle_count": len(ordered_cycles),
+        "first_cycle": ordered_cycles[0][0] if ordered_cycles else None,
+        "last_cycle": ordered_cycles[-1][0] if ordered_cycles else None,
+        "first_captured_utc": first_time.isoformat() if first_time else None,
+        "last_captured_utc": last_time.isoformat() if last_time else None,
+        "observed_span_s": (
+            round((last_time - first_time).total_seconds(), 3)
+            if first_time and last_time else 0
+        ),
+        "max_cycle_gap_s": round(max(gaps), 3) if gaps else 0,
+        "hosts": {},
+    }
     warning_cursors = {}
     warning_messages = {}
     for sample in samples:
@@ -429,9 +482,64 @@ def summarize(samples):
     return summary
 
 
-def evaluate_acceptance(summary, max_temp_c=80.0, max_disk_pct=85.0, max_mem_delta_pct=5.0):
+def evaluate_acceptance(
+    summary,
+    max_temp_c=80.0,
+    max_disk_pct=85.0,
+    max_mem_delta_pct=5.0,
+    required_duration_s=None,
+    expected_interval_s=None,
+    expected_hosts=None,
+    min_coverage_ratio=0.99,
+    max_gap_s=None,
+):
     """Apply the fleet burn-in release gates and return actionable failures."""
     failures = []
+    if required_duration_s is not None and expected_interval_s:
+        expected_cycles = max(1, math.ceil(required_duration_s / expected_interval_s))
+        minimum_cycles = math.ceil(expected_cycles * min_coverage_ratio)
+        actual_cycles = summary.get("cycle_count", 0)
+        if actual_cycles < minimum_cycles:
+            failures.append({
+                "host": "fleet",
+                "failure": (
+                    f"cycle coverage={actual_cycles}/{expected_cycles} "
+                    f"(<{min_coverage_ratio:.0%})"
+                ),
+            })
+        minimum_span = max(0, required_duration_s - expected_interval_s * 1.5)
+        if summary.get("observed_span_s", 0) < minimum_span:
+            failures.append({
+                "host": "fleet",
+                "failure": (
+                    f"observed span={summary.get('observed_span_s', 0)}s "
+                    f"(<{minimum_span}s)"
+                ),
+            })
+    if max_gap_s is not None and summary.get("max_cycle_gap_s", 0) > max_gap_s:
+        failures.append({
+            "host": "fleet",
+            "failure": (
+                f"telemetry gap={summary.get('max_cycle_gap_s')}s "
+                f"(>{max_gap_s}s)"
+            ),
+        })
+    if summary.get("duplicate_host_cycle_samples", 0):
+        failures.append({
+            "host": "fleet",
+            "failure": (
+                "duplicate host/cycle samples="
+                f"{summary.get('duplicate_host_cycle_samples')}"
+            ),
+        })
+    if expected_hosts is not None:
+        missing = sorted(set(expected_hosts) - set(summary.get("hosts", {})))
+        unexpected = sorted(set(summary.get("hosts", {})) - set(expected_hosts))
+        if missing or unexpected:
+            failures.append({
+                "host": "fleet",
+                "failure": f"host coverage missing={missing} unexpected={unexpected}",
+            })
     for host, state in summary.get("hosts", {}).items():
         def reject(condition, detail):
             if condition:
@@ -475,6 +583,22 @@ def read_samples(path):
     return samples
 
 
+def load_run_policy(samples_path):
+    """Load duration/host policy stored beside a burn-in samples artifact."""
+    metadata_path = Path(samples_path).parent / "metadata.json"
+    if not metadata_path.exists():
+        return {}
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    interval = float(metadata["interval_s"])
+    return {
+        "required_duration_s": float(metadata["duration_s"]),
+        "expected_interval_s": interval,
+        "expected_hosts": metadata.get("hosts"),
+        "min_coverage_ratio": float(metadata.get("min_coverage_ratio", 0.99)),
+        "max_gap_s": float(metadata.get("max_gap_s", max(180, interval * 3))),
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--hosts", nargs="+", default=["192.168.0.44", "192.168.0.45", "192.168.0.149", "192.168.0.199"])
@@ -486,6 +610,11 @@ def main():
     parser.add_argument("--interval", type=float, default=60.0)
     parser.add_argument("--probe-timeout", type=float, default=30.0)
     parser.add_argument("--output")
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="append to an interrupted --output run and retain its original deadline",
+    )
     parser.add_argument(
         "--summarize-existing",
         metavar="SAMPLES_JSONL",
@@ -503,18 +632,12 @@ def main():
     )
     args = parser.parse_args()
     if args.summarize_existing:
-        if args.output:
+        if args.output or args.resume:
             parser.error("--output cannot be combined with --summarize-existing")
         samples = read_samples(args.summarize_existing)
         result = summarize(samples)
-        result["acceptance"] = evaluate_acceptance(result)
-        result["last_captured_utc"] = next(
-            (
-                sample.get("captured_utc")
-                for sample in reversed(samples)
-                if sample.get("captured_utc")
-            ),
-            None,
+        result["acceptance"] = evaluate_acceptance(
+            result, **load_run_policy(args.summarize_existing)
         )
         result["summarized_utc"] = dt.datetime.now(dt.timezone.utc).isoformat()
         rendered = json.dumps(result, indent=2) + "\n"
@@ -524,17 +647,58 @@ def main():
         return 0 if result["acceptance"]["passed"] or not args.enforce_acceptance else 1
     if args.summary_output:
         parser.error("--summary-output requires --summarize-existing")
+    if args.resume and not args.output:
+        parser.error("--resume requires --output")
     duration = args.duration_seconds if args.duration_seconds is not None else args.duration_hours * 3600
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     output = Path(args.output or f".aryaos-burnin/{stamp}")
-    output.mkdir(parents=True, exist_ok=False)
-    (output / "metadata.json").write_text(json.dumps({
-        "started_utc": stamp, "duration_s": duration, "interval_s": args.interval,
-        "hosts": args.hosts, "argv": sys.argv,
-    }, indent=2) + "\n")
-    samples = []
-    deadline = time.monotonic() + duration
-    cycle = 0
+    output.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = output.parent / f".{output.name}.lock"
+    lock_stream = lock_path.open("w", encoding="utf-8")
+    try:
+        fcntl.flock(lock_stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        parser.error(f"another sampler already owns {output}")
+    if args.resume:
+        samples_path = output / "samples.jsonl"
+        metadata_path = output / "metadata.json"
+        if not samples_path.exists() or not metadata_path.exists():
+            parser.error("--resume output must contain metadata.json and samples.jsonl")
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        samples = read_samples(samples_path)
+        if metadata.get("hosts") != args.hosts:
+            parser.error("--resume hosts must exactly match the original run")
+        duration = float(metadata["duration_s"])
+        args.interval = float(metadata["interval_s"])
+        first_captured = parse_timestamp(
+            next((item.get("captured_utc") for item in samples if item.get("captured_utc")), None)
+        )
+        if first_captured is None:
+            parser.error("--resume samples do not contain a valid captured_utc")
+        remaining = max(
+            0,
+            (first_captured + dt.timedelta(seconds=duration) - dt.datetime.now(dt.timezone.utc)).total_seconds(),
+        )
+        deadline = time.monotonic() + remaining
+        cycle = max((item.get("cycle", 0) for item in samples), default=0)
+        with (output / "resume-events.jsonl").open("a", encoding="utf-8") as events:
+            events.write(json.dumps({
+                "resumed_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+                "previous_cycle": cycle,
+                "remaining_s": round(remaining, 3),
+                "argv": sys.argv,
+            }, separators=(",", ":")) + "\n")
+    else:
+        output.mkdir(parents=True, exist_ok=False)
+        max_gap_s = max(180, args.interval * 3)
+        (output / "metadata.json").write_text(json.dumps({
+            "started_utc": stamp, "duration_s": duration, "interval_s": args.interval,
+            "hosts": args.hosts, "argv": sys.argv,
+            "min_coverage_ratio": 0.99, "max_gap_s": max_gap_s,
+        }, indent=2) + "\n")
+        samples = []
+        deadline = time.monotonic() + duration
+        cycle = 0
     with (output / "samples.jsonl").open("a", buffering=1) as stream:
         while not STOP and time.monotonic() < deadline:
             cycle += 1
@@ -557,7 +721,9 @@ def main():
             if wait > 0 and not STOP:
                 time.sleep(wait)
     result = summarize(samples)
-    result["acceptance"] = evaluate_acceptance(result)
+    result["acceptance"] = evaluate_acceptance(
+        result, **load_run_policy(output / "samples.jsonl")
+    )
     result["finished_utc"] = dt.datetime.now(dt.timezone.utc).isoformat()
     (output / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({"output": str(output), **result}, indent=2), flush=True)
