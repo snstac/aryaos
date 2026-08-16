@@ -101,9 +101,10 @@ store it securely):
   This is for **re-use**; it does **not** securely erase anything.
 - **[Zeroize](operations/zeroize.md)** (`/usr/local/sbin/aryaos-zeroize`) - for
   **decommission or capture**: shreds and overwrites all keys, credentials,
-  logs, tracks, and identity, restores a secret-free config, overwrites free
-  space, TRIMs, and reboots clean. The Cockpit card requires a typed
-  confirmation phrase.
+  logs, tracks, and identity, restores the default site/COTBridge targets,
+  replaces and expires the `pi` password, removes authorized keys and lab
+  privilege, overwrites free space, TRIMs, and reboots clean. The Cockpit card
+  requires a typed confirmation phrase.
 
 !!! danger "Zeroize is best-effort on flash media"
     Wear-leveling on microSD/eMMC/NVMe means overwrite and TRIM **cannot

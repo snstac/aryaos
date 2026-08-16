@@ -115,21 +115,41 @@ if [[ "${KEEP_NETWORK}" != "1" ]]; then
 	echo "wiped saved Wi-Fi networks"
 fi
 
-# 7. Site config secrets: restore the packaged default (has no secrets) and
-#    strip any secret lines from whatever remains.
+# 7. Site config: shred the operator copy before restoring both packaged
+#    defaults. Resetting only aryaos-config.txt leaves the TAK Server hostname
+#    in COTBridge's site-output lane even after its certificates are gone. A
+#    zeroized device must reveal neither the old upstream nor its credentials.
+wipe /etc/aryaos/aryaos-config.txt /etc/cotbridge.ini
 if [[ -f /usr/share/aryaos/defaults/aryaos-config.txt ]]; then
-	install -m 0644 -o root -g root /usr/share/aryaos/defaults/aryaos-config.txt /etc/aryaos/aryaos-config.txt
+	install -D -m 0644 -o root -g root /usr/share/aryaos/defaults/aryaos-config.txt /etc/aryaos/aryaos-config.txt
+fi
+if [[ -f /usr/share/aryaos/defaults/cotbridge.ini ]]; then
+	install -D -m 0644 -o root -g root /usr/share/aryaos/defaults/cotbridge.ini /etc/cotbridge.ini
 fi
 if [[ -f /etc/aryaos/aryaos-config.txt ]]; then
 	sed -i -E '/^[[:space:]]*(export[[:space:]]+)?[A-Za-z0-9_]*(PASSWORD|TOKEN|SECRET|PASSPHRASE|PSK)[A-Za-z0-9_]*[[:space:]]*=/d' \
 		/etc/aryaos/aryaos-config.txt 2>/dev/null || true
 fi
+echo "restored secret-free site and COTBridge defaults"
 
-# 8. Shell history and lab access key.
-wipe /root/.bash_history /home/*/.bash_history
-if [[ -f /home/pi/.ssh/authorized_keys ]]; then
-	sed -i '/aryaos-dev-lab/d' /home/pi/.ssh/authorized_keys 2>/dev/null || true
+# 8. Login credentials, authorized keys, and shell history. Returning to a
+#    first-boot state means invalidating the operator's password, not merely
+#    expiring the same password. Reset pi to the image's published bootstrap
+#    password and force a change on first login; lock every other interactive
+#    local account. Remove the lab sudo grant and every authorized key so a lab
+#    image cannot retain a privileged access path after sanitization.
+if getent passwd pi >/dev/null 2>&1; then
+	printf 'pi:aryaos415\n' | chpasswd
+	chage -d 0 pi
 fi
+while IFS= read -r account; do
+	[[ "${account}" == "pi" ]] || passwd -l "${account}" >/dev/null 2>&1 || true
+done < <(awk -F: '$3 >= 1000 && $3 < 65534 && $7 !~ /(nologin|false)$/ {print $1}' /etc/passwd)
+passwd -l root >/dev/null 2>&1 || true
+wipe /root/.ssh/authorized_keys /home/*/.ssh/authorized_keys
+rm -f /etc/sudoers.d/aryaos-lab
+wipe /root/.bash_history /home/*/.bash_history
+echo "invalidated local login credentials and SSH authorized keys"
 
 # 9. Logs (journald is volatile/RAM, but clear anything on disk).
 journalctl --rotate >/dev/null 2>&1 || true

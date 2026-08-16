@@ -1,7 +1,39 @@
-# Agent handoff - state as of 2026-08-14
+# Agent handoff - state as of 2026-08-16
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
+
+## 2026-08-16 zeroize credential and target closure
+
+- AryaOS overlay 2.1.19 closes two live-test zeroize gaps. Zeroize now
+  replaces and expires the `pi` password, locks every other interactive local
+  account and root, removes all local SSH authorized keys and the lab sudo
+  grant, and erases shell histories. A reset unit returns to the published
+  bootstrap password but requires it to be changed at the next login.
+- Zeroize now wipes the active site and COTBridge configuration before
+  restoring the packaged defaults. This removes the prior TAK Server target as
+  well as its TLS credentials, rather than leaving an unusable endpoint string
+  behind.
+- Restoring an older full backup after zeroize now reconciles the deliberately
+  excluded per-device web certificate. If the restored first-boot marker exists
+  but Lighttpd's combined PEM does not, the restore helper regenerates the PEM
+  before restarting services; otherwise it clears the marker so first boot can
+  retry. A live `.45` restore with the PEM intentionally absent regenerated it,
+  returned Lighttpd to active, and passed another complete strict HIL run.
+- A destructive live zeroize on AryaAir `192.168.0.45` proved that the sentinel
+  password hash was replaced and expired, SSH keys and lab sudo access were
+  removed, packaged site/COTBridge defaults were restored byte-for-byte, and
+  TAK TLS material was gone. The retained root session then restored the
+  operating configuration and lab access, rebooted the node, and a fresh
+  post-recovery backup was created. Temporary off-device recovery material was
+  securely removed after validation.
+- The final overlay package is `aryaos-overlay_2.1.19_all.deb`, SHA-256
+  `1667108dc90f7ca484e9f95933d2123118d7e379292eb409a1ed829d61dfbc3c`.
+  That exact artifact is installed on `.44`, `.45`, `.149`, and `.199`. All
+  four report zero failed units, an HTTP 200 portal, configured TAK TLS, and a
+  healthy connected COTBridge output. All 165 local unit tests, shell checks,
+  Ansible syntax validation, and every strict fleet HIL run passed. Evidence is
+  in `.aryaos-lifecycle/20260816T020000Z-zeroize-2.1.19-deploy/`.
 
 ## 2026-08-14 fleet lifecycle release gates
 

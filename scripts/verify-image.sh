@@ -145,7 +145,7 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.1.18
+require_pkg_version aryaos-overlay 2.1.19
 require_pkg_version cotbridge 1.0.1
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
@@ -519,12 +519,19 @@ require_grep '^SERIAL_PORT=$' /etc/default/ais-catcher "ais-catcher serial not h
 require_path /usr/local/sbin/aryaos-config-backup
 require_grep '^etc/default/gutcheck$' /usr/local/sbin/aryaos-config-backup "Gutcheck settings included in full config backups"
 require_grep '^etc/default/acarsdec$' /usr/local/sbin/aryaos-config-backup "ACARS decoder settings included in config backups"
+require_grep 'make-ssl-cert generate-default-snakeoil --force-overwrite' /usr/local/sbin/aryaos-config-backup "backup restore repairs missing per-device web TLS"
+require_grep 'snakeoil-combined.pem' /usr/local/sbin/aryaos-config-backup "backup restore reinstalls the lighttpd certificate"
 require_path /usr/local/sbin/aryaos-factory-reset
 require_grep '\.capabilities-autodetected' /usr/local/sbin/aryaos-factory-reset "factory reset re-arms hardware discovery"
 require_grep 'aryaos-role caps none' /usr/local/sbin/aryaos-factory-reset "factory reset releases sensor devices before discovery"
 require_grep 'aryaos-safe-mode reset-for-factory' /usr/local/sbin/aryaos-factory-reset "factory reset clears false crash-loop state"
 require_grep 'dpkg --force-confmiss --force-confnew --configure -a' /usr/local/sbin/aryaos-factory-reset "factory reset recovers interrupted gateway configuration noninteractively"
 require_path /usr/local/sbin/aryaos-zeroize
+require_grep 'wipe /etc/aryaos/aryaos-config.txt /etc/cotbridge.ini' /usr/local/sbin/aryaos-zeroize "zeroize removes the persisted TAK target"
+require_grep '/usr/share/aryaos/defaults/cotbridge.ini /etc/cotbridge.ini' /usr/local/sbin/aryaos-zeroize "zeroize restores the default COTBridge target"
+require_grep '\| chpasswd' /usr/local/sbin/aryaos-zeroize "zeroize replaces the prior pi password"
+require_grep 'wipe /root/.ssh/authorized_keys /home/\*/.ssh/authorized_keys' /usr/local/sbin/aryaos-zeroize "zeroize removes all local SSH authorized keys"
+require_grep 'rm -f /etc/sudoers.d/aryaos-lab' /usr/local/sbin/aryaos-zeroize "zeroize removes lab privilege"
 require_path /etc/systemd/system/aryaos-factory-reset.service
 require_path /etc/systemd/system/aryaos-zeroize.service
 require_path /usr/share/aryaos/defaults/cotbridge.ini

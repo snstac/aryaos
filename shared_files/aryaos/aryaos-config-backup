@@ -202,6 +202,31 @@ do_restore() {
 	# Use a factory reset first if you need an exact return to the backed-up set.
 	tar -xzpf "${file}" -C / --numeric-owner --exclude='*/MANIFEST.txt'
 
+	# The per-device web certificate is deliberately not part of the config
+	# archive. A zeroize removes /etc/lighttpd/ssl, but an older full backup can
+	# restore /etc/aryaos/.web-tls-regenerated and make firstboot believe the
+	# combined PEM still exists. Reconcile it now so lighttpd works immediately
+	# and the restored marker can never suppress regeneration after reboot.
+	local web_pem=/etc/lighttpd/ssl/snakeoil-combined.pem
+	if [[ ! -s "${web_pem}" ]] && command -v make-ssl-cert >/dev/null 2>&1; then
+		if make-ssl-cert generate-default-snakeoil --force-overwrite >/dev/null 2>&1; then
+			(
+				umask 077
+				install -d -m 0755 /etc/lighttpd/ssl
+				cat /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/private/ssl-cert-snakeoil.key \
+					>"${web_pem}.tmp"
+				mv -f "${web_pem}.tmp" "${web_pem}"
+			)
+			chmod 0640 "${web_pem}"
+			chgrp ssl-cert "${web_pem}" 2>/dev/null || true
+			touch /etc/aryaos/.web-tls-regenerated
+			echo "Regenerated missing per-device web TLS certificate."
+		else
+			rm -f /etc/aryaos/.web-tls-regenerated
+			echo "Warning: web TLS regeneration failed; first boot will retry." >&2
+		fi
+	fi
+
 	# Reconcile group access to TAK certs and reload the fleet.
 	if command -v systemctl >/dev/null 2>&1; then
 		systemctl daemon-reload 2>/dev/null || true

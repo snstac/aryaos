@@ -147,7 +147,7 @@ sudo aryaos-factory-reset --no-reboot      # reset but don't reboot (testing)
 
 ## aryaos-zeroize {#aryaos-zeroize}
 
-**Best-effort** sanitization for decommission or capture: shreds and overwrites every key, credential, log, recorded track, and identity, restores a secret-free site config, overwrites free space, TRIMs, then reboots to a clean first-boot state. The box stays usable (SSH host keys are regenerated).
+**Best-effort** sanitization for decommission or capture: shreds and overwrites every key, credential, log, recorded track, and identity; restores the default site and COTBridge targets; replaces and expires the `pi` password; removes authorized keys and lab privilege; overwrites free space; TRIMs; then reboots to a clean first-boot state. The published bootstrap password starts the mandatory first-login password change; prior passwords and SSH keys no longer work.
 
 ```bash
 sudo aryaos-zeroize                  # wipe everything incl. saved networks; type "ERASE <hostname>" to confirm; reboot

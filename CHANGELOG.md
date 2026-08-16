@@ -1,5 +1,12 @@
 ## AryaOS (Unreleased)
 
+- Zeroize now shreds and restores the default COTBridge configuration so a
+  prior TAK Server hostname is not retained. It also replaces and expires the
+  `pi` password, locks other local login accounts, removes every authorized
+  SSH key, and removes lab-only passwordless sudo before rebooting.
+- Config restore regenerates missing per-device web TLS material before
+  restarting Lighttpd, preventing a restored first-boot marker from leaving
+  the web portal offline after a zeroize/restore cycle.
 - dhbridge (DroneHone Bluetooth bridge) and kraktak removed from public builds
   while their source is private. The Bluetooth PAN phone-to-box link stays:
   `stage-dhbridge` is now `stage-bt-pan` (payload in `shared_files/bt-pan/`),

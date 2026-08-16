@@ -7,7 +7,10 @@ is being **decommissioned** or is at risk of **capture** - when what matters is
 that nothing sensitive can be recovered from it, not that it stays configured.
 
 The box is **not bricked.** After a zeroize it reboots into a clean first-boot
-state and is fully usable again - it just has no more secrets on it.
+state and is fully usable again - it just has no more operator secrets on it.
+The prior `pi` password and every SSH authorized key stop working. AryaOS
+restores the published bootstrap password and expires it, so the next local or
+SSH login must replace it before administering the unit.
 
 !!! danger "Flash-media limitation - read this before you rely on zeroize"
     On flash media (microSD, eMMC, NVMe) **wear-leveling means overwriting a
@@ -44,8 +47,8 @@ zero - multi-pass is pointless on flash), then removes it. In order, it wipes:
 | **Node-RED credentials** | `flows_cred.json` wiped; admin password reset to a **random, unrecorded** value (rotate it from the web console after reboot). |
 | **Recorded tracks & local files** | `/var/www/html/recorder` (recorded CoT), `/var/lib/aryaos/backups`, `/var/lib/aryaos/support`, and the state JSON files. |
 | **Saved networks** | `/etc/NetworkManager/system-connections` and the comitup hotspot password - **wiped by default** (they hold PSKs); `--keep-network` preserves them. |
-| **Site-config secrets** | Restores the packaged default `aryaos-config.txt` (no secrets) and strips any remaining `PASSWORD`/`TOKEN`/`SECRET`/`PASSPHRASE`/`PSK` lines. |
-| **Shell history & lab key** | `root` and per-user `.bash_history`; removes the `aryaos-dev-lab` key from `pi`'s `authorized_keys`. |
+| **Site configuration** | Shreds the operator copies of `aryaos-config.txt` and `cotbridge.ini`, then restores both packaged defaults. This removes secrets and the prior TAK Server hostname. |
+| **Login credentials & shell history** | Replaces and expires the `pi` password, locks root and other interactive local accounts, removes every SSH authorized key and lab-only sudo grant, and wipes root/per-user `.bash_history`. |
 | **Logs** | Rotates and vacuums journald (already RAM-volatile), then shreds anything on disk under `/var/log`. |
 | **Device identity** | Removes machine-id and firstboot markers so a **new** [`DEVICE_SUFFIX`](../reference/glossary.md#device_suffix)/hostname is derived on next boot. |
 | **Free space** | Fills each writable filesystem with zeros until full, deletes the fill, then runs `fstrim -av` to return blocks to the controller. |
@@ -53,6 +56,13 @@ zero - multi-pass is pointless on flash), then removes it. In order, it wipes:
 The free-space overwrite is the slow step - the command prints *"overwriting
 free space (this can take a while)..."* while it runs. When it finishes the box
 reboots into a clean first-boot state.
+
+!!! note "First login after zeroize"
+    Use the published AryaOS bootstrap password and immediately choose a new
+    password when prompted. Any password or SSH key that worked before the
+    zeroize is intentionally invalid. A lab image also loses its lab key and
+    passwordless-sudo exception; zeroize returns it to the release access
+    posture.
 
 ## How to run it
 

@@ -15,6 +15,24 @@ for helper in aryaos-config-backup aryaos-factory-reset aryaos-zeroize aryaos-su
 	fi
 done
 
+ZEROIZE="$(command -v aryaos-zeroize 2>/dev/null || true)"
+if [[ -n "${ZEROIZE}" ]] \
+	&& grep -Fq 'wipe /etc/aryaos/aryaos-config.txt /etc/cotbridge.ini' "${ZEROIZE}" \
+	&& grep -Fq '/usr/share/aryaos/defaults/cotbridge.ini /etc/cotbridge.ini' "${ZEROIZE}"; then
+	ok "zeroize removes the persisted TAK target"
+else
+	fail "zeroize does not restore the default COTBridge target"
+fi
+if [[ -n "${ZEROIZE}" ]] \
+	&& grep -Fq '| chpasswd' "${ZEROIZE}" \
+	&& grep -Fq 'chage -d 0 pi' "${ZEROIZE}" \
+	&& grep -Fq 'wipe /root/.ssh/authorized_keys /home/*/.ssh/authorized_keys' "${ZEROIZE}" \
+	&& grep -Fq 'rm -f /etc/sudoers.d/aryaos-lab' "${ZEROIZE}"; then
+	ok "zeroize invalidates local password and SSH-key credentials"
+else
+	fail "zeroize leaves a prior local login credential usable"
+fi
+
 backup_list="$(sudo -n aryaos-config-backup list 2>/dev/null || true)"
 if python3 -c 'import json,sys; assert isinstance(json.load(sys.stdin).get("backups"), list)' \
 	<<<"${backup_list}" 2>/dev/null; then
@@ -43,6 +61,14 @@ if grep -Fq '(token=)' /usr/local/sbin/aryaos-support-bundle 2>/dev/null \
 	ok "support bundle carries enrollment redaction and no direct TLS-key copy"
 else
 	fail "support bundle secret-redaction guard is missing"
+fi
+
+if grep -Fq 'make-ssl-cert generate-default-snakeoil --force-overwrite' \
+	/usr/local/sbin/aryaos-config-backup 2>/dev/null \
+	&& grep -Fq 'snakeoil-combined.pem' /usr/local/sbin/aryaos-config-backup 2>/dev/null; then
+	ok "backup restore repairs missing per-device web TLS"
+else
+	fail "backup restore can retain a stale web-TLS marker without its certificate"
 fi
 
 print_summary
