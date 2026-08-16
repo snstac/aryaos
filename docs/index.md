@@ -8,6 +8,15 @@ hide:
 
 **The all-in-one operating system for building a Common Operating Picture.**
 
+!!! success "AryaOS 2 is available"
+    AOS2 is the complete, self-configuring rewrite of AryaOS. Stable
+    **v2.1.19** adds multi-domain sensors, resilient COTBridge routing, a field
+    console, lifecycle operations, appliance hardening, SBOMs, and hardware
+    release gates. AryaOS 1 devices require a fresh flash.
+
+    [Read the AOS2 reveal](launch/aos2/announcement.md){ .md-button .md-button--primary }
+    [Compare AOS2 with v1](launch/aos2/feature-matrix.md){ .md-button }
+
 AryaOS turns an inexpensive single-board computer into a turn-key gateway that
 puts live aircraft, vessels, and drones onto any [TAK](reference/glossary.md#tak)
 device - ATAK, WinTAK, iTAK, or a TAK Server - with no cloud, no subscription,
@@ -66,7 +75,7 @@ DJI DroneID, APRS, and your own GPS position - on one box, in one picture.
 ## What it can hear
 
 Capabilities are named after the signal, not after a product - `adsb`, `ais`,
-`wifi-rid`, `ble-rid`, `rid`, `dji`, `sik`, `sapient`. They are exactly the names
+`wifi-rid`, `ble-rid`, `rid`, `dji`, `sik`, `sapient`, `acars`. They are exactly the names
 you type, the names the box reports, and the names on the map.
 
 The image ships with every sensor **switched off**; on first boot the box works
@@ -76,7 +85,7 @@ capabilities want the same radio.
 
 | Capability | Enable with | What appears on the map | Hardware needed |
 |------------|-------------|-------------------------|-----------------|
-| **ADS-B / UAT** | `adsb` | Crewed aircraft on 1090 MHz and 978 MHz | **SDR** - RTL-SDR, or any SoapySDR device |
+| **ADS-B / UAT** | `adsb` | Crewed aircraft on 1090 MHz and 978 MHz | **ADSBee** or an SDR - RTL-SDR, or any SoapySDR device |
 | **AIS** | `ais` | Ships and vessels | dAISy NMEA receiver, or a spare **SDR** |
 | **Remote ID** - Wi-Fi | `wifi-rid` | ASTM F3411 Remote ID over 802.11, plus operator location | Monitor-mode Wi-Fi adapter (e.g. Atheros AR9271) |
 | **Remote ID** - Bluetooth | `ble-rid` | ASTM F3411 Remote ID over Bluetooth LE | **None** - the board's own radio |
@@ -84,6 +93,7 @@ capabilities want the same radio.
 | **DJI DroneID** | `dji` | DJI aircraft and the pilot's position | AntSDR E200 |
 | **MAVLink telemetry** | `sik` | Drone telemetry from a SiK radio | SiK / SiKW00F radio |
 | **SAPIENT C-UAS** | `sapient` | Counter-UAS sensors speaking BSI Flex 335 | Networked sensor |
+| **ACARS** | `acars` | Position-bearing aircraft messages | VHF-capable SDR, such as LimeSDR |
 
 Two things are **not** capabilities, because they are not optional receivers:
 **GPS** (a USB receiver, shared with every connected device via gpsd) and **APRS**

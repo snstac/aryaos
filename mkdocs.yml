@@ -10,13 +10,17 @@ exclude_docs: |
   brand/*.html
   brand/fonts/*.md
   brand/fonts/*.txt
+  launch/aos2/claims-ledger.md
+  launch/aos2/github-release-body.md
+  launch/aos2/publication-checklist.md
+  launch/aos2/social-and-email.md
 
 extra_css:
   - stylesheets/suite.css
 
 site_description: >-
-  Turn a Raspberry Pi into a TAK sensor gateway: ADS-B aircraft, AIS vessels and
-  drone Remote ID as Cursor on Target. Open source and offline-capable.
+  AryaOS 2 turns a Raspberry Pi into an offline-capable TAK edge gateway for
+  ADS-B aircraft, AIS vessels, drone Remote ID, GNSS, and other local sensors.
 site_author: Greg Albrecht <gba@snstac.com>
 copyright: Copyright Sensors &amp; Signals LLC https://www.snstac.com/
 
@@ -76,6 +80,11 @@ theme:
 
 nav:
   - Home: index.md
+  - AryaOS 2:
+      - The AOS2 reveal: launch/aos2/announcement.md
+      - AOS2 vs. v1: launch/aos2/feature-matrix.md
+      - Release notes: launch/aos2/release-notes.md
+      - Launch FAQ: launch/aos2/faq.md
   - Get started:
       - get-started/overview.md
       - Quickstart: get-started/quickstart.md

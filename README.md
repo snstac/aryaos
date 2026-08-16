@@ -13,6 +13,23 @@ everything else is configured from a touch-friendly web console.
 
 [**Get started in 15 minutes >**](https://www.aryaos.org/get-started/quickstart/)
 
+## AryaOS 2 is here
+
+AryaOS 2 turns the original AirTAK sensor image into a self-configuring,
+multi-sensor, fleet-ready edge platform. It adds hardware discovery, mission
+roles, resilient COTBridge routing, one-step TAK enrollment, a complete HTTPS
+field console, disconnected networking, lifecycle tools, appliance hardening,
+SBOMs, and hardware-tested release gates.
+
+Stable **v2.1.19** is available for Raspberry Pi 3, 4, and 5 arm64 systems.
+AryaOS 1 devices require a fresh flash.
+
+[**Read the AOS2 reveal**](https://www.aryaos.org/launch/aos2/announcement/)
+&nbsp;·&nbsp;
+[**Compare AOS2 with v1**](https://www.aryaos.org/launch/aos2/feature-matrix/)
+&nbsp;·&nbsp;
+[**Flash or build a gateway**](https://www.aryaos.org/get-started/flash-the-image/)
+
 ## What you can build with it
 
 | Mission | What AryaOS does |
@@ -28,7 +45,7 @@ everything else is configured from a touch-friendly web console.
 ## What it can hear
 
 Capabilities are named after the signal, not after a product - `adsb`, `ais`,
-`wifi-rid`, `ble-rid`, `rid`, `dji`, `sik`, `sapient`. They are exactly the names
+`wifi-rid`, `ble-rid`, `rid`, `dji`, `sik`, `sapient`, `acars`. They are exactly the names
 you type, the names the box reports, and the names on the map.
 
 Each capability is a receiver AryaOS turns into TAK tracks. The image ships with every sensor
@@ -46,6 +63,7 @@ is capable of.
 | **DJI DroneID** | `dji` | DJI aircraft and the pilot's position | AntSDR E200 |
 | **MAVLink telemetry** | `sik` | Drone telemetry from a SiK radio | SiK / SiKW00F radio |
 | **SAPIENT C-UAS** | `sapient` | Counter-UAS sensors speaking BSI Flex 335 | Networked sensor |
+| **ACARS** | `acars` | Position-bearing aircraft messages | VHF-capable SDR, such as LimeSDR |
 
 Two things are **not** capabilities, because they are not optional receivers:
 **GPS** (a USB receiver, shared with every connected device via gpsd) and
@@ -66,8 +84,8 @@ capabilities want the same radio.
   errors.
 * **No terminal required.** Network, radios, TAK certificates, VPN, updates, and diagnostics all
   live in the browser.
-* **Open source, end to end.** Every gateway is built on [PyTAK](https://github.com/snstac/pytak)
-  and licensed Apache 2.0.
+* **Open-source foundation.** AryaOS and its PyTAK gateway suite are licensed
+  under Apache 2.0; optional specialist integrations identify their own terms.
 * **Inexpensive, low SWaP-C hardware.** Built for Arm (arm64) single-board computers such as the
   Raspberry Pi 4 and 5. Intel/amd64 support is planned
   ([#129](https://github.com/snstac/aryaos/issues/129)) - the full gateway suite already installs on
