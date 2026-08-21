@@ -9,7 +9,7 @@ operations, and a complete field lifecycle.
 
 AryaOS 2 is here.
 
-What began as AirTAK—a Raspberry Pi turning local aircraft into TAK tracks—has
+What began as AirTAK, a Raspberry Pi turning local aircraft into TAK tracks, has
 become a self-configuring, multi-sensor, fleet-ready edge platform.
 
 AryaOS 1 proved the idea with ADS-B, AIS, Remote ID, and APRS. AOS2 keeps that
@@ -53,8 +53,8 @@ Firefighting and the USDA Forest Service.
 
 AryaOS 2 is here.
 
-What began as AirTAK—a Raspberry Pi turning local aircraft into TAK
-tracks—has been rebuilt into a self-configuring, multi-sensor, fleet-ready edge
+What began as AirTAK, a Raspberry Pi turning local aircraft into TAK
+tracks, has been rebuilt into a self-configuring, multi-sensor, fleet-ready edge
 platform.
 
 In a disconnected San Diego backpack test, a tuned AryaOS air node received
@@ -84,7 +84,7 @@ zeroize
 integration tests, and fleet burn-in gates
 
 AryaAir, AryaSea, AryaUAS, and DragonEgg are now configurations of the same
-capability-first platform—not separate operating systems.
+capability-first platform, not separate operating systems.
 
 Stable `v2.1.19` is available now for Raspberry Pi 3, 4, and 5 arm64 systems.
 AryaOS 1 users should plan a fresh flash.
@@ -110,7 +110,7 @@ Routine operation from a field-ready web console. 🧵
 
 The original idea still matters: in a disconnected San Diego backpack test, a
 tuned AryaOS air node received aircraft as far as 55 miles away and put the
-picture into TAK—with no internet connection.
+picture into TAK with no internet connection.
 
 ### Post 3
 

@@ -1,4 +1,4 @@
-# AryaOS 2 — v2.1.19
+# AryaOS 2: v2.1.19
 
 AryaOS 2 is the complete, field-ready rewrite of the operating system that
 began as AirTAK. One arm64 image can discover its attached hardware, activate
