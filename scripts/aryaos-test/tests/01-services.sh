@@ -15,6 +15,28 @@ else
 	ok "no failed systemd units"
 fi
 
+# Capability-aware tests normally follow the box's configured state. Hardware
+# acceptance needs one additional contract: a known kit must not silently pass
+# as a smaller role because a receiver was quiet during first-boot discovery.
+# The caller supplies a required subset; deeper modules then exercise each
+# enabled data path.
+EXPECTED_CAPS="${ARYAOS_EXPECT_CAPABILITIES:-}"
+EXPECTED_CAPS="${EXPECTED_CAPS//,/ }"
+for cap in ${EXPECTED_CAPS}; do
+	case "${cap}" in
+		adsb | ais | acars | dji | wifi-rid | ble-rid | rid | sik | sapient) ;;
+		*)
+			fail "unknown required capability ${cap}"
+			continue
+			;;
+	esac
+	if capability_enabled "${cap}"; then
+		ok "required capability ${cap} enabled"
+	else
+		fail "required capability ${cap} not enabled"
+	fi
+done
+
 CORE_SERVICES=(lighttpd gpsd gpscot)
 if capability_enabled adsb; then
 	CORE_SERVICES=(readsb adsbcot "${CORE_SERVICES[@]}")

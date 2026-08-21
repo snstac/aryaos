@@ -6,6 +6,7 @@
 #   ARYAOS_SSH=pi@10.0.0.5 ./scripts/aryaos-test/run.sh
 #   ARYAOS_TEST_TIER=strict ./scripts/aryaos-test/run.sh
 #   ARYAOS_TEST_PROFILE=uas ./scripts/aryaos-test/run.sh
+#   ARYAOS_EXPECT_CAPABILITIES="adsb rid" ./scripts/aryaos-test/run.sh
 #
 # SPDX-License-Identifier: Apache-2.0
 # Copyright Sensors & Signals LLC https://www.snstac.com/
@@ -16,8 +17,13 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TEST_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "${REPO_ROOT}"
 
-# shellcheck disable=SC1091
-[[ -f scripts/.dev-pi-creds.local ]] && . scripts/.dev-pi-creds.local
+# An explicit one-shot password wins over the gitignored fallback file. This is
+# important for freshly flashed release images, which deliberately do not carry
+# the lab key and may not use the same password as the usual development Pi.
+if [[ -z "${ARYAOS_DEV_PI_PASSWORD:-}" && -f scripts/.dev-pi-creds.local ]]; then
+	# shellcheck disable=SC1091
+	. scripts/.dev-pi-creds.local
+fi
 
 PI_USER="${ARYAOS_DEV_PI_USER:-pi}"
 PI_HOST="${ARYAOS_DEV_PI_HOST:-aryaos-dev-pi}"
@@ -80,9 +86,43 @@ if ! "${SSH[@]}" "${PI}" true; then
 	exit 2
 fi
 
+EXPECTED_CAPABILITIES="${ARYAOS_EXPECT_CAPABILITIES:-}"
+if [[ ! "${EXPECTED_CAPABILITIES}" =~ ^[a-z0-9,_[:space:]-]*$ ]]; then
+	echo "ARYAOS_EXPECT_CAPABILITIES contains an invalid character" >&2
+	exit 2
+fi
+
+# Lab images grant the development key passwordless sudo. Release images keep
+# the field security policy and require pi's password. Authenticate once without
+# putting that password in argv; /etc/sudoers.d/aryaos uses a global timestamp,
+# so the existing sudo -n assertions can then run unchanged over later SSH
+# connections. Fail before staging tests if neither form of elevation works,
+# instead of turning every privileged assertion into a misleading product fault.
+SUDO_METHOD="noninteractive"
+if ! "${SSH[@]}" "${PI}" "sudo -n true" >/dev/null 2>&1; then
+	if [[ -z "${ARYAOS_DEV_PI_PASSWORD:-}" ]]; then
+		echo "Cannot use noninteractive sudo on ${PI}; set ARYAOS_DEV_PI_PASSWORD for a release image" >&2
+		exit 2
+	fi
+	if ! printf '%s\n' "${ARYAOS_DEV_PI_PASSWORD}" \
+		| "${SSH[@]}" "${PI}" "sudo -S -p '' -v" >/dev/null 2>&1; then
+		echo "Cannot authenticate sudo on ${PI}" >&2
+		exit 2
+	fi
+	if ! "${SSH[@]}" "${PI}" "sudo -n true" >/dev/null 2>&1; then
+		echo "Authenticated sudo on ${PI} did not create a reusable noninteractive timestamp" >&2
+		exit 2
+	fi
+	SUDO_METHOD="password credential cached"
+fi
+
 echo "==> AryaOS integration tests on ${PI} (tier=${ARYAOS_TEST_TIER:-default})"
 echo "==> Profile: ${ARYAOS_TEST_PROFILE:-default}"
 echo "==> SSH: using ${SSH_METHOD}"
+echo "==> Sudo: ${SUDO_METHOD}"
+if [[ -n "${EXPECTED_CAPABILITIES}" ]]; then
+	echo "==> Required capabilities: ${EXPECTED_CAPABILITIES}"
+fi
 
 REMOTE_STAGE="/tmp/aryaos-test.$$"
 "${SSH[@]}" "${PI}" "mkdir -p '${REMOTE_STAGE}/tests'"
@@ -99,7 +139,7 @@ for t in "${TEST_DIR}"/tests/*.sh; do
 	echo ""
 	echo "==> ${name}"
 	set +e
-	"${SSH[@]}" "${PI}" "export ARYAOS_TEST_TIER='${ARYAOS_TEST_TIER:-default}'; export ARYAOS_TEST_PROFILE='${ARYAOS_TEST_PROFILE:-default}'; export ARYAOS_VALIDATE_PORTAL='${REMOTE_STAGE}/validate_portal.py'; bash '${REMOTE_STAGE}/tests/${name}'"
+	"${SSH[@]}" "${PI}" "export ARYAOS_TEST_TIER='${ARYAOS_TEST_TIER:-default}'; export ARYAOS_TEST_PROFILE='${ARYAOS_TEST_PROFILE:-default}'; export ARYAOS_EXPECT_CAPABILITIES='${EXPECTED_CAPABILITIES}'; export ARYAOS_VALIDATE_PORTAL='${REMOTE_STAGE}/validate_portal.py'; bash '${REMOTE_STAGE}/tests/${name}'"
 	rc=$?
 	set -e
 	if [[ "${rc}" -ne 0 ]]; then

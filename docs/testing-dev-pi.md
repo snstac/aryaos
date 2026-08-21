@@ -17,6 +17,15 @@ Default target: **`pi@aryaos-dev-pi`** (`172.17.2.158` via `~/.ssh/config`). Ove
 ARYAOS_SSH=pi@10.0.0.5 ./scripts/aryaos-test/run.sh
 ```
 
+For a known hardware kit, require its capabilities explicitly. This prevents a
+quiet receiver from being omitted during first-boot discovery and then skipped
+by the capability-aware modules:
+
+```bash
+ARYAOS_SSH=pi@10.0.0.5 ARYAOS_EXPECT_CAPABILITIES="adsb rid" \
+  ARYAOS_TEST_TIER=strict ./scripts/aryaos-test/run.sh
+```
+
 Optional pre-sync (legacy wrapper):
 
 ```bash
@@ -35,16 +44,20 @@ wrong for an ADSBee plus DS110 box.
 ```bash
 # AryaSea: dAISy/AIS receiver
 ARYAOS_SSH=pi@192.168.0.44 ARYAOS_TEST_PROFILE=ais \
+  ARYAOS_EXPECT_CAPABILITIES="ais" \
   ARYAOS_TEST_TIER=strict ./scripts/aryaos-test/run.sh
 
 # AryaAir: ADSBee, DroneScout, and GNSS
-ARYAOS_SSH=pi@192.168.0.45 ARYAOS_TEST_TIER=strict \
+ARYAOS_SSH=pi@192.168.0.45 ARYAOS_EXPECT_CAPABILITIES="adsb rid" \
+  ARYAOS_TEST_TIER=strict \
   ./scripts/aryaos-test/run.sh
-ARYAOS_SSH=pi@192.168.0.199 ARYAOS_TEST_TIER=strict \
+ARYAOS_SSH=pi@192.168.0.199 ARYAOS_EXPECT_CAPABILITIES="adsb rid" \
+  ARYAOS_TEST_TIER=strict \
   ./scripts/aryaos-test/run.sh
 
 # DragonEgg: LimeSDR, ACARS, and GNSS
-ARYAOS_SSH=pi@192.168.0.149 ARYAOS_TEST_TIER=strict \
+ARYAOS_SSH=pi@192.168.0.149 ARYAOS_EXPECT_CAPABILITIES="acars" \
+  ARYAOS_TEST_TIER=strict \
   ./scripts/aryaos-test/run.sh
 ```
 
@@ -116,6 +129,13 @@ Same order as [dev-pi.md](dev-pi.md) and [scripts/sync-to-dev-pi.sh](https://git
 2. Repo dev key **`shared_files/aryaos/ssh/aryaos-dev-lab`**
 3. **`ARYAOS_DEV_PI_PASSWORD`** or gitignored **`scripts/.dev-pi-creds.local`** with **`sshpass`**
 
+Release images intentionally omit the lab key and passwordless-sudo grant. If
+password authentication is selected, the runner sends the password to
+`sudo -S -v` over SSH stdin (never in argv) and verifies that the resulting
+global timestamp supports the suite's existing `sudo -n` checks. An explicitly
+exported `ARYAOS_DEV_PI_PASSWORD` takes precedence over the fallback credentials
+file.
+
 ## Layout
 
 ```
@@ -155,6 +175,7 @@ Expectations live in **`expectations.yml`**; update that file when image default
 ### Hard fail (exit 1)
 
 - SSH unreachable
+- Any capability named by `ARYAOS_EXPECT_CAPABILITIES` is not enabled
 - Core units: `readsb`, `adsbcot`, `lighttpd`, `gpsd`
 - TAK gateway units expected by portal CGI: `cotbridge`, `lincot`, `adsbcot`, `aiscot`, `dronecot`
 - Config: `COT_URL=udp+wo://127.0.0.1:28087`, adsbcot `FEED_URL`, cotbridge ingress (when present)
