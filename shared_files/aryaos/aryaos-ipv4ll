@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+"""Control AryaOS's DHCP-compatible Ethernet IPv4LL fallback."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import tempfile
+
+
+CONFIG_PATH = Path(os.environ.get("ARYAOS_CONFIG", "/etc/aryaos/aryaos-config.txt"))
+NM_CONF_PATH = Path(
+    os.environ.get(
+        "ARYAOS_IPV4LL_NM_CONF",
+        "/etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf",
+    )
+)
+CONFIG_KEY = "ARYAOS_IPV4LL_FALLBACK"
+FALLBACK_VALUE = "4"
+DISABLED_VALUE = "2"
+
+
+def _read_key(path: Path, key: str, default: str = "") -> str:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return default
+    match = re.search(rf"^\s*{re.escape(key)}\s*=\s*(.*?)\s*$", text, re.MULTILINE)
+    if not match:
+        return default
+    return match.group(1).strip().strip("\"'")
+
+
+def _truthy(value: str) -> bool:
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _atomic_write(path: Path, text: str, mode: int = 0o644) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write(text)
+        os.chmod(temporary, mode)
+        os.replace(temporary, path)
+    finally:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+
+
+def _set_config(enabled: bool) -> None:
+    try:
+        text = CONFIG_PATH.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        text = ""
+    line = f"{CONFIG_KEY}={1 if enabled else 0}"
+    pattern = re.compile(rf"^\s*#?\s*{CONFIG_KEY}=.*$", re.MULTILINE)
+    if pattern.search(text):
+        text = pattern.sub(line, text, count=1)
+    else:
+        text = text.rstrip() + "\n\n# DHCP-less Ethernet MANET fallback.\n" + line + "\n"
+    _atomic_write(CONFIG_PATH, text)
+
+
+def _nm_default(enabled: bool) -> str:
+    value = FALLBACK_VALUE if enabled else DISABLED_VALUE
+    return (
+        "# Managed by aryaos-ipv4ll; NetworkManager enum: 4=fallback, 2=disabled.\n"
+        "[connection-aryaos-ethernet-ipv4ll]\n"
+        "match-device=type:ethernet\n"
+        f"ipv4.link-local={value}\n"
+    )
+
+
+def _run(args: list[str], *, check: bool = False) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(args, check=check, capture_output=True, text=True)
+
+
+def _connection_profiles() -> list[dict[str, str]]:
+    try:
+        listing = _run(["nmcli", "-t", "-f", "UUID,TYPE", "connection", "show"])
+    except OSError:
+        return []
+    if listing.returncode:
+        return []
+    profiles = []
+    for line in listing.stdout.splitlines():
+        if ":" not in line:
+            continue
+        uuid, profile_type = line.split(":", 1)
+        if profile_type not in {"802-3-ethernet", "ethernet"}:
+            continue
+        detail = _run(
+            [
+                "nmcli",
+                "-g",
+                "connection.id,connection.interface-name,connection.zone,ipv4.method,ipv4.link-local",
+                "connection",
+                "show",
+                "uuid",
+                uuid,
+            ]
+        )
+        if detail.returncode:
+            continue
+        values = detail.stdout.splitlines()
+        values += [""] * (5 - len(values))
+        item = dict(
+            uuid=uuid,
+            name=values[0],
+            interface=values[1],
+            zone=values[2],
+            method=values[3],
+            link_local=values[4],
+        )
+        if item["method"] != "auto":
+            continue
+        if item["name"] == "AryaOS ANTSDR" or item["zone"] == "trusted":
+            continue
+        profiles.append(item)
+    return profiles
+
+
+def _apply_profiles(enabled: bool) -> list[dict[str, str]]:
+    target = "fallback" if enabled else "disabled"
+    profiles = _connection_profiles()
+    for profile in profiles:
+        if profile["link_local"] == target:
+            continue
+        _run(
+            [
+                "nmcli",
+                "connection",
+                "modify",
+                "uuid",
+                profile["uuid"],
+                "ipv4.link-local",
+                target,
+            ],
+            check=True,
+        )
+    _run(["nmcli", "general", "reload", "conf"])
+    _run(["nmcli", "connection", "reload"])
+    return profiles
+
+
+def _configured_enabled() -> bool:
+    return _truthy(_read_key(CONFIG_PATH, CONFIG_KEY, "1"))
+
+
+def _networkmanager_default() -> str:
+    return _read_key(NM_CONF_PATH, "ipv4.link-local")
+
+
+def _status() -> dict[str, object]:
+    enabled = _configured_enabled()
+    expected = FALLBACK_VALUE if enabled else DISABLED_VALUE
+    profiles = _connection_profiles()
+    target = "fallback" if enabled else "disabled"
+    pending = [item["name"] for item in profiles if item["link_local"] != target]
+    return {
+        "enabled": enabled,
+        "networkmanager_default": _networkmanager_default() == expected,
+        "eligible_profiles": len(profiles),
+        "pending_profiles": pending,
+        "takes_effect": "next Ethernet activation or reboot",
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("command", choices=("status", "enable", "disable"))
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+
+    if args.command == "status":
+        status = _status()
+        if args.json:
+            print(json.dumps(status, sort_keys=True))
+        else:
+            state = "enabled" if status["enabled"] else "disabled"
+            pending = status["pending_profiles"]
+            print(f"IPv4LL MANET fallback: {state}")
+            if pending:
+                print("Pending next activation: " + ", ".join(pending))
+        return 0
+
+    if os.geteuid() != 0:
+        parser.error(f"{args.command} requires root")
+    enabled = args.command == "enable"
+    _set_config(enabled)
+    _atomic_write(NM_CONF_PATH, _nm_default(enabled))
+    profiles = _apply_profiles(enabled)
+    state = "enabled" if enabled else "disabled"
+    print(
+        f"IPv4LL MANET fallback {state}; {len(profiles)} Ethernet profile(s) "
+        "will use the setting on next activation or reboot."
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

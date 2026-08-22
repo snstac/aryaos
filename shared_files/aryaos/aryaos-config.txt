@@ -28,9 +28,18 @@ COT_URL=udp+wo://127.0.0.1:28087
 ARYAOS_COT_OUTPUT_URL=udp+wo://239.2.3.1:6969
 
 
-# For Mesh SA & multicast COT_URLs: Which network interface (wifi, ethernet) do we bind to?
-# Options are IP, or 0.0.0.0 for all. Default is WiFi AP IP: 10.41.0.1
+# Mesh SA multicast interface selection. "auto" resolves every active physical
+# Ethernet/Wi-Fi link plus the AryaOS Bluetooth PAN at service start. An explicit
+# comma-separated address list restricts multicast to those addresses.
+PYTAK_MULTICAST_LOCAL_ADDRS=auto
+
+# Legacy single-interface setting. PyTAK still accepts it when the plural setting
+# is absent; 0.0.0.0 lets Linux choose ONE route, not all interfaces.
 PYTAK_MULTICAST_LOCAL_ADDR=10.41.0.1
+
+# Optional DHCP-less Ethernet MANET support. NetworkManager uses RFC 3927 IPv4LL
+# only when DHCP supplies no IPv4 address. Control with: aryaos-ipv4ll enable|disable
+ARYAOS_IPV4LL_FALLBACK=1
 
 # DEPRECATED: Legacy setting.
 WIFI_AP_IP=10.41.0.1

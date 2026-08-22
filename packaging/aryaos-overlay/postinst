@@ -60,7 +60,8 @@ case "$1" in
     aryaos_defaults=/usr/share/aryaos/defaults/aryaos-config.txt
     if [ -f "$aryaos_config" ] && [ -f "$aryaos_defaults" ]; then
       for key in ARYAOS_COT_OUTPUT_URL ARYAOS_ADSB_1090_SOURCE \
-        ARYAOS_ADSB_1090_DEVICE ARYAOS_UAT_978_DEVICE; do
+        ARYAOS_ADSB_1090_DEVICE ARYAOS_UAT_978_DEVICE \
+        PYTAK_MULTICAST_LOCAL_ADDRS ARYAOS_IPV4LL_FALLBACK; do
         if ! grep -q "^${key}=" "$aryaos_config"; then
           default_line="$(grep "^${key}=" "$aryaos_defaults" | tail -n 1)"
           [ -n "$default_line" ] && printf '\n%s\n' "$default_line" >> "$aryaos_config"
@@ -74,6 +75,15 @@ case "$1" in
         adsbee_device="$(sed -n 's|.*--beast-serial \([^ ]*\).*|\1|p' /etc/default/readsb | head -n 1)"
         sed -i 's/^ARYAOS_ADSB_1090_SOURCE=.*/ARYAOS_ADSB_1090_SOURCE=adsbee/' "$aryaos_config"
         sed -i "s|^ARYAOS_ADSB_1090_DEVICE=.*|ARYAOS_ADSB_1090_DEVICE=\"$adsbee_device\"|" "$aryaos_config"
+      fi
+    fi
+    # Materialize the optional NetworkManager IPv4LL default and migrate
+    # existing ordinary DHCP Ethernet profiles without reconnecting them.
+    if [ -x /usr/local/sbin/aryaos-ipv4ll ]; then
+      if grep -Eq '^ARYAOS_IPV4LL_FALLBACK=(0|false|no|off)$' "$aryaos_config" 2>/dev/null; then
+        /usr/local/sbin/aryaos-ipv4ll disable >/dev/null 2>&1 || true
+      else
+        /usr/local/sbin/aryaos-ipv4ll enable >/dev/null 2>&1 || true
       fi
     fi
     # Collapse pre-COTBridge lane layouts into one operator-facing site output.
@@ -132,7 +142,7 @@ case "$1" in
       systemctl stop rpi-zram-writeback.timer 2>/dev/null || true
       systemctl daemon-reload || true
       systemctl reset-failed rpi-zram-writeback.timer 2>/dev/null || true
-      systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-neighbord.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service 2>/dev/null || true
+      systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-multicast-links.service aryaos-neighbord.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service 2>/dev/null || true
       # Network GPS is core plumbing, independent of the selected sensor role.
       systemctl enable --now gpscot.service 2>/dev/null || true
       # Time service: chrony (GPS-disciplined + serves the local network) replaces
@@ -149,7 +159,7 @@ case "$1" in
       systemctl reload ssh.service 2>/dev/null || true
       systemctl try-restart fail2ban.service 2>/dev/null || true
       firewall-cmd --reload >/dev/null 2>&1 || true
-      systemctl restart aryaos-tak-dp-importd.service aryaos-neighbord.service lighttpd.service 2>/dev/null || true
+      systemctl restart aryaos-tak-dp-importd.service aryaos-multicast-links.service cotbridge.service aryaos-neighbord.service lighttpd.service 2>/dev/null || true
       # Fill missing gpsd defaults above without replacing its verified device.
       # Rerun discovery to exercise new classifiers and detect hardware changes;
       # an unchanged stable assignment takes the no-interruption fast path.

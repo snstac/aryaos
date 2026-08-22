@@ -66,15 +66,20 @@ GitHub Actions: [`.github/workflows/pi-gen.yml`](.github/workflows/pi-gen.yml). 
 
 For playbook/config checks without pi-gen: **`make ansible-syntax`** (see [docs/build.md](docs/build.md)).
 
-## Local lab Pi (portal / quick tests)
+## Local lab device (portal / quick tests)
 
-Team default dev host: **`pi@aryaos-dev-pi`** (SSH config → **`172.17.2.158`**). Prefer the **lab SSH key** ([`docs/dev-pi.md`](docs/dev-pi.md), [`shared_files/aryaos/ssh/README.md`](shared_files/aryaos/ssh/README.md)): run **`./scripts/setup-dev-ssh.sh`**, then **`./scripts/sync-to-dev-pi.sh`** and **`ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh`** (or `pi@aryaos-dev-pi` if you prefer). Lab password belongs in **gitignored** `scripts/.dev-pi-creds.local` only if key auth is unavailable — never commit credentials.
+Use LINCOT-based discovery: **`./scripts/aryaos-dev-device list`**, then
+**`./scripts/sync-to-dev-pi.sh`** or **`./scripts/sync-portal-review.sh`**. Set
+**`ARYAOS_DEV_DEVICE=<hostname-or-uid>`** when multiple devices are visible, or
+**`ARYAOS_SSH=pi@<address>`** when multicast is unavailable. Prefer the lab SSH
+key documented in [`docs/dev-pi.md`](docs/dev-pi.md); never commit credentials.
 
-After portal sync or a new flash, run **`make test-dev-pi`** or **`./scripts/aryaos-test/run.sh`** — see [docs/testing-dev-pi.md](docs/testing-dev-pi.md).
+After portal sync or a new flash, run **`make test-dev-device`** or
+**`./scripts/aryaos-test/run.sh`** — see [docs/testing-dev-pi.md](docs/testing-dev-pi.md).
 
 ## HTTPS landing portal
 
 Static UI + **`/cgi-bin/aryaos-portal-status`** JSON (TAK gateways, GNSS, host, RF). Source: [`shared_files/aryaos/html/`](../shared_files/aryaos/html/), [`shared_files/aryaos/cgi-bin/aryaos-portal-status`](../shared_files/aryaos/cgi-bin/aryaos-portal-status).
 
-- **Deploy to lab Pi:** `ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh`
+- **Deploy to lab device:** `./scripts/sync-portal-review.sh`
 - **Detail + agent handoff / next steps:** [docs/portal.md](docs/portal.md)

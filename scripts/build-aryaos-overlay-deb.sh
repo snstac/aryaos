@@ -73,6 +73,8 @@ install_file 0755 "${SHARED}/aryaos/aryaos-cot-detail" "/usr/local/sbin/aryaos-c
 install_file 0755 "${SHARED}/aryaos/aryaos-health" "/usr/local/sbin/aryaos-health"
 install_file 0755 "${SHARED}/aryaos/aryaos-site-output" "/usr/local/sbin/aryaos-site-output"
 install_file 0755 "${SHARED}/aryaos/aryaos-neighbord" "/usr/local/sbin/aryaos-neighbord"
+install_file 0755 "${SHARED}/aryaos/aryaos-ipv4ll" "/usr/local/sbin/aryaos-ipv4ll"
+install_file 0755 "${SHARED}/aryaos/aryaos-multicast-links" "/usr/local/sbin/aryaos-multicast-links"
 install_file 0755 "${SHARED}/aryaos/aryaos-capability-scan" "/usr/local/sbin/aryaos-capability-scan"
 install_file 0755 "${SHARED}/aryaos/aryaos-serial-classify" "/usr/local/libexec/aryaos/aryaos-serial-classify"
 install_file 0755 "${SHARED}/aryaos/aryaos-serial-assign" "/usr/local/sbin/aryaos-serial-assign"
@@ -99,6 +101,7 @@ install_file 0644 "${SHARED}/aryaos/aryaos-firstboot.service" "/etc/systemd/syst
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-gps-time-sync.service" "/etc/systemd/system/aryaos-gps-time-sync.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-tak-dp-importd.service" "/etc/systemd/system/aryaos-tak-dp-importd.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-neighbord.service" "/etc/systemd/system/aryaos-neighbord.service"
+install_file 0644 "${SHARED}/aryaos/systemd/aryaos-multicast-links.service" "/etc/systemd/system/aryaos-multicast-links.service"
 install_file 0644 "${SHARED}/aryaos/systemd/acarsdec.service" "/etc/systemd/system/acarsdec.service"
 install_file 0644 "${SHARED}/aryaos/systemd/dronecot-dronescout.service" "/etc/systemd/system/dronecot-dronescout.service"
 install_file 0644 "${SHARED}/aryaos/systemd/ais-catcher.service.d/aryaos-private.conf" "/etc/systemd/system/ais-catcher.service.d/aryaos-private.conf"
@@ -118,6 +121,7 @@ for svc in adsbcot aiscot dronecot sikw00fcot lincot aircot; do
 	install_file 0644 "${SHARED}/cotbridge/systemd/after-cotbridge.conf" "/etc/systemd/system/${svc}.service.d/after-cotbridge.conf"
 done
 install_file 0644 "${SHARED}/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf" "/etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf"
+install_file 0644 "${SHARED}/cotbridge/systemd/cotbridge.service.d/aryaos-config.conf" "/etc/systemd/system/cotbridge.service.d/aryaos-config.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-radio-silence.service" "/etc/systemd/system/aryaos-radio-silence.service"
 # EMCON gate: keep the radio users from starting (and un-blocking the radios)
 # while /etc/aryaos/emcon exists.
@@ -161,6 +165,7 @@ install_file 0644 "${SHARED}/aryaos/95-aryaos-cockpit-https.conf" "/etc/lighttpd
 install_file 0644 "${SHARED}/aryaos/99-aryaos-recorder.conf" "/etc/lighttpd/conf-available/99-aryaos-recorder.conf"
 
 install_file 0600 "${SHARED}/aryaos/NetworkManager/system-connections/aryaos-antsdr.nmconnection" "/etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection"
+install_file 0644 "${SHARED}/aryaos/NetworkManager/conf.d/90-aryaos-ipv4ll.conf" "/usr/share/aryaos/defaults/90-aryaos-ipv4ll.conf"
 
 install_file 0644 "${SHARED}/aryaos/sshd/50-aryaos.conf" "/etc/ssh/sshd_config.d/50-aryaos.conf"
 install_file 0644 "${SHARED}/aryaos/sysctl/90-aryaos-hardening.conf" "/etc/sysctl.d/90-aryaos-hardening.conf"

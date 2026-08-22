@@ -1,0 +1,492 @@
+#!/usr/bin/env python3
+"""Discover and connect to AryaOS development devices on the local LAN."""
+
+from __future__ import annotations
+
+import argparse
+import concurrent.futures
+import datetime as dt
+import fcntl
+import ipaddress
+import json
+import os
+from pathlib import Path
+import shutil
+import socket
+import ssl
+import struct
+import subprocess
+import sys
+import time
+from typing import Callable, Iterable
+import urllib.error
+import urllib.request
+import xml.etree.ElementTree as ET
+
+
+GROUP = "239.2.3.1"
+PORT = 6969
+DEFAULT_TIMEOUT = 15.0
+DEFAULT_TTL = 240
+MAX_DATAGRAM = 65507
+EXIT_INVALID = 2
+EXIT_NONE = 3
+EXIT_AMBIGUOUS = 4
+EXIT_CONNECT = 5
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_KEY = REPO_ROOT / "shared_files/aryaos/ssh/aryaos-dev-lab"
+
+
+class DiscoveryError(Exception):
+    """Base class for actionable discovery failures."""
+
+
+class InvalidInput(DiscoveryError):
+    """The caller supplied an invalid selector, timeout, or interface."""
+
+
+def _strip_ns(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1] if "}" in tag else tag
+
+
+def _child(parent: ET.Element, name: str) -> ET.Element | None:
+    return next((item for item in parent if _strip_ns(item.tag) == name), None)
+
+
+def _valid_ipv4(value: object) -> str | None:
+    try:
+        address = ipaddress.ip_address(str(value))
+    except ValueError:
+        return None
+    if not isinstance(address, ipaddress.IPv4Address):
+        return None
+    if address.is_unspecified or address.is_multicast:
+        return None
+    return str(address)
+
+
+def _timestamp(value: object) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def _cot_time(value: str) -> int | None:
+    try:
+        parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+    return int(parsed.timestamp())
+
+
+def _capabilities(value: object) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    names: list[str] = []
+    for item in value:
+        if isinstance(item, str):
+            name = item
+        elif isinstance(item, dict):
+            name = str(item.get("name") or item.get("id") or "")
+        else:
+            continue
+        if name and name not in names:
+            names.append(name)
+    return names
+
+
+def parse_beacon(data: bytes, source_ip: str, now: int | None = None) -> dict | None:
+    """Return one normalized AryaOS node from an untrusted CoT datagram."""
+
+    if len(data) > MAX_DATAGRAM or b"<!DOCTYPE" in data.upper() or b"<!ENTITY" in data.upper():
+        return None
+    source = _valid_ipv4(source_ip)
+    if source is None:
+        return None
+    try:
+        root = ET.fromstring(data.strip())
+    except (ET.ParseError, ValueError):
+        return None
+    if _strip_ns(root.tag) != "event":
+        return None
+    detail = _child(root, "detail")
+    if detail is None:
+        return None
+    aryaos = next(
+        (item for item in detail if _strip_ns(item.tag) in {"__aryaos", "aryaos"}),
+        None,
+    )
+    if aryaos is None:
+        return None
+    host = _child(aryaos, "host")
+    host_data = dict(host.attrib) if host is not None else {}
+    uid = str(root.attrib.get("uid") or "").strip()
+    hostname = str(host_data.get("name") or "").strip()
+    if not uid and not hostname:
+        return None
+    observed = int(time.time()) if now is None else now
+    stale = _cot_time(str(root.attrib.get("stale") or ""))
+    if stale is not None and stale < observed:
+        return None
+    caps = _child(aryaos, "capabilities")
+    cap_items = [dict(item.attrib) for item in caps] if caps is not None else []
+    return {
+        "hostname": hostname or uid,
+        "fqdn": str(host_data.get("fqdn") or "").strip(),
+        "uid": uid,
+        "ip": source,
+        "capabilities": _capabilities(cap_items),
+        "seen_at": observed,
+        "age_s": 0,
+        "source": "multicast",
+    }
+
+
+def parse_neighbors(payload: object, now: int | None = None) -> list[dict]:
+    """Validate and normalize the public aryaos-neighbors JSON schema."""
+
+    if not isinstance(payload, dict) or payload.get("ok") is not True:
+        return []
+    items = payload.get("items")
+    ttl = _timestamp(payload.get("ttl_s"))
+    if not isinstance(items, list) or ttl is None or not 1 <= ttl <= 3600:
+        return []
+    current = int(time.time()) if now is None else now
+    nodes = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        host = item.get("host")
+        if not isinstance(host, dict):
+            host = {}
+        uid = str(item.get("uid") or "").strip()
+        hostname = str(host.get("name") or "").strip()
+        address = _valid_ipv4(item.get("source_ip"))
+        remote_seen_at = _timestamp(item.get("seen_at"))
+        reported_age = _timestamp(item.get("age_s"))
+        if (not uid and not hostname) or address is None or remote_seen_at is None:
+            continue
+        # Prefer the seed's age calculation so harmless clock skew between the
+        # workstation and appliance cannot hide an otherwise fresh neighbor.
+        age = reported_age if reported_age is not None else current - remote_seen_at
+        if age < 0 or age > ttl:
+            continue
+        seen_at = current - age
+        nodes.append(
+            {
+                "hostname": hostname or uid,
+                "fqdn": str(host.get("fqdn") or "").strip(),
+                "uid": uid,
+                "ip": address,
+                "capabilities": _capabilities(item.get("capabilities")),
+                "seen_at": seen_at,
+                "age_s": max(0, age),
+                "source": "neighbor-cache",
+            }
+        )
+    return nodes
+
+
+def _interface_ipv4() -> list[tuple[str, str]]:
+    """Enumerate UP, multicast-capable IPv4 interfaces without extra packages."""
+
+    found = []
+    probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        for _index, name in socket.if_nameindex():
+            encoded = name.encode("utf-8")[:15]
+            request = struct.pack("256s", encoded)
+            try:
+                flags_raw = fcntl.ioctl(probe.fileno(), 0x8913, request)
+                flags = struct.unpack("H", flags_raw[16:18])[0]
+                if not flags & 0x1 or not flags & 0x1000:
+                    continue
+                address_raw = fcntl.ioctl(probe.fileno(), 0x8915, request)
+            except OSError:
+                continue
+            address = socket.inet_ntoa(address_raw[20:24])
+            if _valid_ipv4(address):
+                found.append((name, address))
+    finally:
+        probe.close()
+    return found
+
+
+def discovery_interfaces(requested: str | None = None) -> list[tuple[str, str]]:
+    interfaces = _interface_ipv4()
+    if requested:
+        interfaces = [item for item in interfaces if requested in item]
+        if not interfaces:
+            raise InvalidInput(f"interface {requested!r} has no active multicast IPv4 address")
+    if not interfaces:
+        raise InvalidInput("no active multicast-capable IPv4 interfaces")
+    return interfaces
+
+
+def multicast_scan(
+    timeout: float,
+    interface: str | None = None,
+    *,
+    clock: Callable[[], float] = time.monotonic,
+    now: Callable[[], int] = lambda: int(time.time()),
+) -> list[dict]:
+    """Listen for the complete scan window and return directly observed seeds."""
+
+    interfaces = discovery_interfaces(interface)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        sock.bind(("", PORT))
+        joined = 0
+        for _name, address in interfaces:
+            try:
+                membership = struct.pack("=4s4s", socket.inet_aton(GROUP), socket.inet_aton(address))
+                sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, membership)
+                joined += 1
+            except OSError:
+                continue
+        if not joined:
+            raise InvalidInput("could not join AryaOS multicast on any selected interface")
+        deadline = clock() + timeout
+        nodes = []
+        while True:
+            remaining = deadline - clock()
+            if remaining <= 0:
+                break
+            sock.settimeout(min(remaining, 0.5))
+            try:
+                data, source = sock.recvfrom(MAX_DATAGRAM + 1)
+            except socket.timeout:
+                continue
+            except OSError:
+                continue
+            node = parse_beacon(data, source[0], now())
+            if node is not None:
+                nodes.append(node)
+        return nodes
+    finally:
+        sock.close()
+
+
+def fetch_neighbors(seed: dict, timeout: float = 3.0) -> list[dict]:
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    request = urllib.request.Request(
+        f"https://{seed['ip']}/cgi-bin/aryaos-neighbors",
+        headers={"Accept": "application/json", "User-Agent": "aryaos-dev-device/1"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
+            if response.status != 200:
+                return []
+            body = response.read(1024 * 1024 + 1)
+    except (OSError, urllib.error.URLError, ValueError):
+        return []
+    if len(body) > 1024 * 1024:
+        return []
+    try:
+        payload = json.loads(body)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return []
+    return parse_neighbors(payload)
+
+
+def _identity(node: dict) -> str:
+    return "uid:" + node["uid"] if node.get("uid") else "host:" + node["hostname"].lower()
+
+
+def merge_nodes(nodes: Iterable[dict]) -> list[dict]:
+    """Deduplicate by machine UID and prefer fresh, directly sourced addresses."""
+
+    merged: dict[str, dict] = {}
+    for node in nodes:
+        key = _identity(node)
+        old = merged.get(key)
+        rank = (int(node.get("seen_at") or 0), node.get("source") == "multicast")
+        old_rank = (
+            int(old.get("seen_at") or 0),
+            old.get("source") == "multicast",
+        ) if old else (-1, False)
+        if old is None or rank > old_rank:
+            merged[key] = dict(node)
+    current = int(time.time())
+    for node in merged.values():
+        node["age_s"] = max(0, current - int(node.get("seen_at") or current))
+    return sorted(merged.values(), key=lambda item: (item["hostname"].lower(), item["ip"]))
+
+
+def discover(timeout: float, interface: str | None = None) -> list[dict]:
+    seeds = merge_nodes(multicast_scan(timeout, interface))
+    expanded: list[dict] = list(seeds)
+    if seeds:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, len(seeds))) as pool:
+            for items in pool.map(fetch_neighbors, seeds):
+                expanded.extend(items)
+    return merge_nodes(expanded)
+
+
+def select_node(nodes: list[dict], selector: str | None) -> dict:
+    if selector:
+        wanted = selector.strip().lower()
+        if not wanted or any(char.isspace() for char in wanted) or "@" in wanted:
+            raise InvalidInput(f"invalid device selector: {selector!r}")
+        matches = [
+            node
+            for node in nodes
+            if wanted
+            in {
+                str(node.get("hostname") or "").lower(),
+                str(node.get("fqdn") or "").lower(),
+                str(node.get("uid") or "").lower(),
+                str(node.get("ip") or "").lower(),
+            }
+        ]
+        if not matches:
+            raise LookupError(f"no discovered AryaOS device matches {selector!r}")
+        if len(matches) > 1:
+            raise RuntimeError(f"selector {selector!r} matches multiple AryaOS devices")
+        return matches[0]
+    if not nodes:
+        raise LookupError("no AryaOS devices discovered")
+    if len(nodes) != 1:
+        raise RuntimeError("multiple AryaOS devices discovered; choose a hostname, UID, or IP")
+    return nodes[0]
+
+
+def _legacy(name: str, canonical: str) -> str:
+    value = os.environ.get(name, "")
+    if value:
+        print(f"warning: {name} is deprecated; use {canonical}", file=sys.stderr)
+    return value
+
+
+def device_user() -> str:
+    return os.environ.get("ARYAOS_DEV_DEVICE_USER") or _legacy(
+        "ARYAOS_DEV_PI_USER", "ARYAOS_DEV_DEVICE_USER"
+    ) or "pi"
+
+
+def device_key() -> str:
+    return os.environ.get("ARYAOS_DEV_DEVICE_SSH_KEY") or _legacy(
+        "ARYAOS_DEV_PI_SSH_KEY", "ARYAOS_DEV_DEVICE_SSH_KEY"
+    ) or str(DEFAULT_KEY)
+
+
+def device_password() -> str:
+    return os.environ.get("ARYAOS_DEV_DEVICE_PASSWORD") or _legacy(
+        "ARYAOS_DEV_PI_PASSWORD", "ARYAOS_DEV_DEVICE_PASSWORD"
+    )
+
+
+def _known_hosts_args() -> list[str]:
+    path = os.environ.get("ARYAOS_SSH_KNOWN_HOSTS_FILE")
+    if path:
+        return ["-o", "StrictHostKeyChecking=yes", "-o", f"UserKnownHostsFile={path}"]
+    return ["-o", "StrictHostKeyChecking=accept-new"]
+
+
+def _ssh_command(target: str) -> list[str]:
+    common = ["-o", "ConnectTimeout=12", *_known_hosts_args()]
+    config = os.environ.get("ARYAOS_SSH_CONFIG_FILE")
+    if config:
+        common = ["-F", config, *common]
+    default = ["ssh", *common]
+    probe = [*default, "-o", "BatchMode=yes", target, "true"]
+    if subprocess.run(probe, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+        return default
+    key = device_key()
+    if key and Path(key).is_file():
+        keyed = ["ssh", *common, "-i", key, "-o", "IdentitiesOnly=yes"]
+        probe = [*keyed, "-o", "BatchMode=yes", target, "true"]
+        if subprocess.run(probe, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+            return keyed
+    password = device_password()
+    if password:
+        if not shutil.which("sshpass"):
+            raise DiscoveryError("sshpass is required when ARYAOS_DEV_DEVICE_PASSWORD is set")
+        os.environ["SSHPASS"] = password
+        return [
+            "sshpass", "-e", "ssh", *common,
+            "-o", "PreferredAuthentications=password",
+            "-o", "PubkeyAuthentication=no",
+        ]
+    return default
+
+
+def _print_human(nodes: list[dict], stream=sys.stdout) -> None:
+    if not nodes:
+        print("No AryaOS devices discovered.", file=stream)
+        return
+    print("HOSTNAME\tIP\tUID\tAGE\tCAPABILITIES", file=stream)
+    for node in nodes:
+        print(
+            f"{node['hostname']}\t{node['ip']}\t{node.get('uid') or '-'}\t"
+            f"{node.get('age_s', 0)}s\t{','.join(node.get('capabilities') or []) or '-'}",
+            file=stream,
+        )
+
+
+def _timeout() -> float:
+    raw = os.environ.get("ARYAOS_DISCOVERY_TIMEOUT", str(DEFAULT_TIMEOUT))
+    try:
+        value = float(raw)
+    except ValueError as exc:
+        raise InvalidInput(f"invalid ARYAOS_DISCOVERY_TIMEOUT: {raw!r}") from exc
+    if not 0 < value <= 300:
+        raise InvalidInput("ARYAOS_DISCOVERY_TIMEOUT must be greater than 0 and at most 300")
+    return value
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+    list_parser = sub.add_parser("list", help="list devices discovered on the LAN")
+    list_parser.add_argument("--json", action="store_true")
+    resolve_parser = sub.add_parser("resolve", help="print one selected device IP")
+    resolve_parser.add_argument("selector", nargs="?")
+    ssh_parser = sub.add_parser("ssh", help="discover a device and open SSH")
+    ssh_parser.add_argument("selector", nargs="?")
+    ssh_parser.add_argument("ssh_args", nargs=argparse.REMAINDER)
+    args = parser.parse_args(argv)
+
+    selector = getattr(args, "selector", None) or os.environ.get("ARYAOS_DEV_DEVICE")
+    interface = os.environ.get("ARYAOS_DISCOVERY_INTERFACE") or None
+    try:
+        nodes = discover(_timeout(), interface)
+        if args.command == "list":
+            if args.json:
+                print(json.dumps({"devices": nodes}, sort_keys=True))
+            else:
+                _print_human(nodes)
+            return 0 if nodes else EXIT_NONE
+        node = select_node(nodes, selector)
+        if args.command == "resolve":
+            print(node["ip"])
+            return 0
+        target = f"{device_user()}@{node['ip']}"
+        ssh_args = args.ssh_args
+        if ssh_args and ssh_args[0] == "--":
+            ssh_args = ssh_args[1:]
+        return subprocess.call([*_ssh_command(target), target, *ssh_args])
+    except InvalidInput as exc:
+        print(f"aryaos-dev-device: {exc}", file=sys.stderr)
+        return EXIT_INVALID
+    except LookupError as exc:
+        print(f"aryaos-dev-device: {exc}", file=sys.stderr)
+        _print_human(locals().get("nodes", []), sys.stderr)
+        return EXIT_NONE
+    except RuntimeError as exc:
+        print(f"aryaos-dev-device: {exc}", file=sys.stderr)
+        _print_human(locals().get("nodes", []), sys.stderr)
+        return EXIT_AMBIGUOUS
+    except DiscoveryError as exc:
+        print(f"aryaos-dev-device: {exc}", file=sys.stderr)
+        return EXIT_CONNECT
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

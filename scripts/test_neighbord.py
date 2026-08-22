@@ -20,6 +20,20 @@ spec.loader.exec_module(neighbord)
 
 
 class BeaconV5TestCase(unittest.TestCase):
+    def test_plural_multicast_addresses_override_legacy_single_address(self):
+        with (
+            mock.patch.object(
+                neighbord,
+                "MULTICAST_LOCAL_ADDRS",
+                "10.41.0.1, 169.254.2.3 10.41.0.1",
+            ),
+            mock.patch.object(neighbord, "MULTICAST_LOCAL_ADDR", "192.0.2.10"),
+        ):
+            self.assertEqual(
+                neighbord._multicast_local_addrs(),
+                ("10.41.0.1", "169.254.2.3"),
+            )
+
     def test_fallback_beacon_uid_matches_lincot_machine_id(self):
         machine_id = "0e4474225f2843a4b8d3ac3e74a7fdb9"
         with mock.patch.object(neighbord, "_read", return_value=machine_id):

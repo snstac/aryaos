@@ -6,8 +6,7 @@
 #   ./scripts/sync-portal-review.sh pi@10.0.0.5
 #   ARYAOS_SSH=pi@aryaos.local ./scripts/sync-portal-review.sh
 #
-# Uses normal ssh/scp (ssh-agent + ~/.ssh/config). Set ARYAOS_DEV_PI_SSH_KEY to a private key path
-# to force `ssh -i …` for all transfers (optional).
+# Without an explicit target, resolves a unique AryaOS device from LAN beacons.
 #
 # Requires SSH access. /var/www/html is owned by node-red on the image — we rsync to /tmp
 # first, then sudo rsync into place (does not --delete; extra dirs on the box are kept).
@@ -15,23 +14,39 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-RSYNC_E=(ssh -o StrictHostKeyChecking=accept-new)
-SSH_CMD=(ssh -o StrictHostKeyChecking=accept-new)
-SCP_CMD=(scp -o StrictHostKeyChecking=accept-new)
-if [[ -n "${ARYAOS_DEV_PI_SSH_KEY:-}" && -r "${ARYAOS_DEV_PI_SSH_KEY}" ]]; then
-	RSYNC_E=(ssh -i "${ARYAOS_DEV_PI_SSH_KEY}" -o StrictHostKeyChecking=accept-new)
-	SSH_CMD=(ssh -i "${ARYAOS_DEV_PI_SSH_KEY}" -o StrictHostKeyChecking=accept-new)
-	SCP_CMD=(scp -i "${ARYAOS_DEV_PI_SSH_KEY}" -o StrictHostKeyChecking=accept-new)
-fi
-RSYNC_RSH="${RSYNC_E[*]}"
+# shellcheck disable=SC1091
+[[ -f "${REPO_ROOT}/scripts/.dev-pi-creds.local" ]] && . "${REPO_ROOT}/scripts/.dev-pi-creds.local"
+# shellcheck source=scripts/lib/dev-device.sh
+. "${REPO_ROOT}/scripts/lib/dev-device.sh"
 
-DEST="${1:-${ARYAOS_SSH:-}}"
-
-if [[ -z "${DEST}" ]]; then
-  echo "Usage: $0 user@host" >&2
-  echo "   or: ARYAOS_SSH=user@host $0" >&2
-  exit 1
+DEST="$(aryaos_dev_target "${REPO_ROOT}" "${1:-}")"
+DEV_KEY="$(aryaos_dev_key "${REPO_ROOT}")"
+DEV_PASSWORD="$(aryaos_dev_password)"
+KNOWN_HOSTS=(-o StrictHostKeyChecking=accept-new)
+if [[ -n "${ARYAOS_SSH_KNOWN_HOSTS_FILE:-}" ]]; then
+	KNOWN_HOSTS=(-o StrictHostKeyChecking=yes -o "UserKnownHostsFile=${ARYAOS_SSH_KNOWN_HOSTS_FILE}")
 fi
+RSYNC_E=(ssh "${KNOWN_HOSTS[@]}")
+SSH_CMD=(ssh "${KNOWN_HOSTS[@]}")
+SCP_CMD=(scp "${KNOWN_HOSTS[@]}")
+if ssh -o BatchMode=yes -o ConnectTimeout=6 "${KNOWN_HOSTS[@]}" "${DEST}" true 2>/dev/null; then
+	:
+elif [[ -r "${DEV_KEY}" ]] && ssh -i "${DEV_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes \
+	-o ConnectTimeout=6 "${KNOWN_HOSTS[@]}" "${DEST}" true 2>/dev/null; then
+	RSYNC_E=(ssh -i "${DEV_KEY}" -o IdentitiesOnly=yes "${KNOWN_HOSTS[@]}")
+	SSH_CMD=(ssh -i "${DEV_KEY}" -o IdentitiesOnly=yes "${KNOWN_HOSTS[@]}")
+	SCP_CMD=(scp -i "${DEV_KEY}" -o IdentitiesOnly=yes "${KNOWN_HOSTS[@]}")
+elif [[ -n "${DEV_PASSWORD}" ]]; then
+	if ! command -v sshpass >/dev/null; then
+		echo "sshpass is required when ARYAOS_DEV_DEVICE_PASSWORD is set" >&2
+		exit 1
+	fi
+	export SSHPASS="${DEV_PASSWORD}"
+	RSYNC_E=(sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no "${KNOWN_HOSTS[@]}")
+	SSH_CMD=(sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no "${KNOWN_HOSTS[@]}")
+	SCP_CMD=(sshpass -e scp -o PreferredAuthentications=password -o PubkeyAuthentication=no "${KNOWN_HOSTS[@]}")
+fi
+printf -v RSYNC_RSH '%q ' "${RSYNC_E[@]}"
 
 REMSTAGE="/tmp/aryaos-portal-review.$$"
 echo "==> rsync portal HTML -> ${DEST}:${REMSTAGE}/ (staging)"

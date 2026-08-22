@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# Rsync this repository to the lab Raspberry Pi (default pi@aryaos-dev-pi — use ~/.ssh/config Host from scripts/setup-dev-ssh.sh; override with ARYAOS_DEV_PI_HOST=172.17.2.158 if needed).
-# Prefers shared_files/aryaos/ssh/aryaos-dev-lab (or ARYAOS_DEV_PI_SSH_KEY); else sshpass
-# when ARYAOS_DEV_PI_PASSWORD is set (or scripts/.dev-pi-creds.local).
+# Rsync this repository to a dynamically discovered AryaOS development device.
 #
 # From repo root:
 #   ./scripts/sync-to-dev-pi.sh
@@ -16,12 +14,17 @@ cd "${REPO_ROOT}"
 
 # shellcheck disable=SC1091
 [[ -f scripts/.dev-pi-creds.local ]] && . scripts/.dev-pi-creds.local
+# shellcheck source=scripts/lib/dev-device.sh
+. scripts/lib/dev-device.sh
 
-PI_USER="${ARYAOS_DEV_PI_USER:-pi}"
-PI_HOST="${ARYAOS_DEV_PI_HOST:-aryaos-dev-pi}"
-DEST="${PI_USER}@${PI_HOST}:~/aryaos-sync/"
-
-DEV_KEY="${ARYAOS_DEV_PI_SSH_KEY:-${REPO_ROOT}/shared_files/aryaos/ssh/aryaos-dev-lab}"
+TARGET="$(aryaos_dev_target "${REPO_ROOT}" "${1:-}")"
+DEST="${TARGET}:~/aryaos-sync/"
+DEV_KEY="$(aryaos_dev_key "${REPO_ROOT}")"
+DEV_PASSWORD="$(aryaos_dev_password)"
+KNOWN_HOSTS=(-o StrictHostKeyChecking=accept-new)
+if [[ -n "${ARYAOS_SSH_KNOWN_HOSTS_FILE:-}" ]]; then
+	KNOWN_HOSTS=(-o StrictHostKeyChecking=yes -o "UserKnownHostsFile=${ARYAOS_SSH_KNOWN_HOSTS_FILE}")
+fi
 
 if ! command -v rsync >/dev/null; then
 	echo "rsync is required." >&2
@@ -29,31 +32,31 @@ if ! command -v rsync >/dev/null; then
 fi
 
 RSYNC_RSH=""
-# 1) Default ssh (ssh-agent + ~/.ssh/config Host / IdentityFile — matches interactive `ssh pi@aryaos-dev-pi`)
-if ssh -o BatchMode=yes -o ConnectTimeout=6 -o StrictHostKeyChecking=accept-new "${PI_USER}@${PI_HOST}" true 2>/dev/null; then
-	RSYNC_RSH="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
+# 1) Default ssh (ssh-agent and user config).
+if ssh -o BatchMode=yes -o ConnectTimeout=6 "${KNOWN_HOSTS[@]}" "${TARGET}" true 2>/dev/null; then
+	printf -v RSYNC_RSH '%q ' ssh -o BatchMode=yes "${KNOWN_HOSTS[@]}"
 # 2) Explicit repo key file (optional; avoids relying on agent/config)
 elif [[ -r "${DEV_KEY}" ]] && [[ -z "${ARYAOS_DEV_PI_SKIP_KEY:-}" ]]; then
-	if ssh -i "${DEV_KEY}" -o BatchMode=yes -o ConnectTimeout=6 -o StrictHostKeyChecking=accept-new \
-		"${PI_USER}@${PI_HOST}" true 2>/dev/null; then
-		RSYNC_RSH="ssh -i $(printf '%q' "${DEV_KEY}") -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
+	if ssh -i "${DEV_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=6 \
+		"${KNOWN_HOSTS[@]}" "${TARGET}" true 2>/dev/null; then
+		printf -v RSYNC_RSH '%q ' ssh -i "${DEV_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes "${KNOWN_HOSTS[@]}"
 	fi
 fi
-if [[ -z "${RSYNC_RSH}" ]] && [[ -n "${ARYAOS_DEV_PI_PASSWORD:-}" ]]; then
+if [[ -z "${RSYNC_RSH}" ]] && [[ -n "${DEV_PASSWORD}" ]]; then
 	if ! command -v sshpass >/dev/null; then
-		echo "sshpass is required when ARYAOS_DEV_PI_PASSWORD is set (SSH probes to ${PI_HOST} failed)." >&2
+		echo "sshpass is required when ARYAOS_DEV_DEVICE_PASSWORD is set (SSH probes to ${TARGET} failed)." >&2
 		exit 1
 	fi
-	export SSHPASS="${ARYAOS_DEV_PI_PASSWORD}"
-	RSYNC_RSH="sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=accept-new"
+	export SSHPASS="${DEV_PASSWORD}"
+	printf -v RSYNC_RSH '%q ' sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no "${KNOWN_HOSTS[@]}"
 elif [[ -z "${RSYNC_RSH}" ]]; then
-	echo "Cannot SSH to ${PI_USER}@${PI_HOST}." >&2
-	echo "Fix ~/.ssh/config (see ./scripts/setup-dev-ssh.sh), enroll ${DEV_KEY}, set ARYAOS_DEV_PI_PASSWORD, or add scripts/.dev-pi-creds.local — see docs/dev-pi.md" >&2
+	echo "Cannot SSH to ${TARGET}." >&2
+	echo "Enroll ${DEV_KEY}, set ARYAOS_DEV_DEVICE_PASSWORD, or use an explicit ARYAOS_SSH target; see docs/dev-pi.md" >&2
 	exit 1
 fi
 
 if [[ "${RSYNC_RSH}" == sshpass* ]]; then
-	echo "==> SSH: using password (agent/config and repo key probes failed for ${PI_HOST})"
+	echo "==> SSH: using password (agent/config and repo key probes failed for ${TARGET})"
 elif [[ "${RSYNC_RSH}" == ssh\ -i* ]]; then
 	echo "==> SSH: using explicit key file ${DEV_KEY}"
 else
@@ -79,4 +82,4 @@ rsync -avz --delete \
 	-e "${RSYNC_RSH}" \
 	./ "${DEST}"
 
-echo "==> Done. Tree is under ~/aryaos-sync/ on the Pi. For portal/CGI install: ARYAOS_SSH=${PI_USER}@${PI_HOST} ./scripts/sync-portal-review.sh"
+echo "==> Done. Tree is under ~/aryaos-sync/ on the device. For portal/CGI install: ARYAOS_SSH=${TARGET} ./scripts/sync-portal-review.sh"

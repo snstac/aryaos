@@ -121,10 +121,10 @@ Every gateway on AryaOS is managed from a touch-friendly browser UI built on [Co
 | Lab Pi sync & portal deploy | [docs/dev-pi.md](docs/dev-pi.md), [docs/portal.md](docs/portal.md) |
 | Runtime / SDR / readsb | [docs/config.md](docs/config.md) |
 
-**Quick lab portal update** (from repo root, SSH to `aryaos-dev-pi`):
+**Quick lab portal update** (discovers a unique AryaOS device):
 
 ```bash
-ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh
+./scripts/sync-portal-review.sh
 ```
 
 Agent handoff and open tasks: [docs/agent-handoff.md](docs/agent-handoff.md).

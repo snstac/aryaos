@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+"""Ansible dynamic inventory for the discovered AryaOS development device."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+
+ROOT = Path(__file__).resolve().parents[1]
+RESOLVER = ROOT / "scripts/aryaos-dev-device"
+HOST = "aryaos-dev-device"
+
+
+def _legacy(name: str, canonical: str) -> str:
+    value = os.environ.get(name, "")
+    if value:
+        print(f"warning: {name} is deprecated; use {canonical}", file=sys.stderr)
+    return value
+
+
+def _explicit_target() -> tuple[str, str] | None:
+    target = os.environ.get("ARYAOS_SSH", "")
+    if not target:
+        legacy_host = _legacy("ARYAOS_DEV_PI_HOST", "ARYAOS_SSH or ARYAOS_DEV_DEVICE")
+        if legacy_host:
+            target = legacy_host
+    if not target:
+        return None
+    if "@" in target:
+        user, target = target.rsplit("@", 1)
+    else:
+        user = os.environ.get("ARYAOS_DEV_DEVICE_USER") or _legacy(
+            "ARYAOS_DEV_PI_USER", "ARYAOS_DEV_DEVICE_USER"
+        ) or "pi"
+    return user, target
+
+
+def inventory() -> dict:
+    explicit = _explicit_target()
+    if explicit:
+        user, address = explicit
+    else:
+        selector = os.environ.get("ARYAOS_DEV_DEVICE", "")
+        command = [str(RESOLVER), "resolve"]
+        if selector:
+            command.append(selector)
+        result = subprocess.run(command, check=False, capture_output=True, text=True)
+        if result.returncode:
+            if result.stderr:
+                print(result.stderr.rstrip(), file=sys.stderr)
+            raise SystemExit(result.returncode)
+        address = result.stdout.strip()
+        user = os.environ.get("ARYAOS_DEV_DEVICE_USER") or _legacy(
+            "ARYAOS_DEV_PI_USER", "ARYAOS_DEV_DEVICE_USER"
+        ) or "pi"
+    variables = {"ansible_host": address, "ansible_user": user}
+    key = os.environ.get("ARYAOS_DEV_DEVICE_SSH_KEY") or _legacy(
+        "ARYAOS_DEV_PI_SSH_KEY", "ARYAOS_DEV_DEVICE_SSH_KEY"
+    )
+    if key:
+        variables["ansible_ssh_private_key_file"] = key
+    return {
+        "aryaos_dev_devices": {"hosts": [HOST]},
+        "_meta": {"hostvars": {HOST: variables}},
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--list", action="store_true")
+    parser.add_argument("--host")
+    args = parser.parse_args()
+    data = inventory()
+    if args.host:
+        print(json.dumps(data["_meta"]["hostvars"].get(args.host, {})))
+    else:
+        print(json.dumps(data))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

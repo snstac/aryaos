@@ -1,0 +1,180 @@
+#!/usr/bin/env python3
+"""Resolve AryaOS multicast source addresses and write the runtime environment."""
+
+from __future__ import annotations
+
+import argparse
+import ipaddress
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import tempfile
+
+
+CONFIG_PATH = Path(os.environ.get("ARYAOS_CONFIG", "/etc/aryaos/aryaos-config.txt"))
+RUNTIME_PATH = Path(
+    os.environ.get("ARYAOS_MULTICAST_ENV", "/run/aryaos/multicast.env")
+)
+SYS_CLASS_NET = Path(os.environ.get("ARYAOS_SYS_CLASS_NET", "/sys/class/net"))
+AUTO_VALUE = "auto"
+LEGACY_DEFAULTS = {"", "0.0.0.0", "10.41.0.1"}
+EXCLUDED_PREFIXES = (
+    "br-",
+    "cni",
+    "docker",
+    "dummy",
+    "flannel",
+    "lo",
+    "tap",
+    "tailscale",
+    "tun",
+    "veth",
+    "virbr",
+    "wg",
+)
+
+
+def _read_key(key: str, default: str = "") -> str:
+    try:
+        text = CONFIG_PATH.read_text(encoding="utf-8")
+    except OSError:
+        return default
+    match = re.search(rf"^\s*{re.escape(key)}\s*=\s*(.*?)\s*$", text, re.MULTILINE)
+    if not match:
+        return default
+    return match.group(1).strip().strip("\"'")
+
+
+def _requested() -> str:
+    plural = _read_key("PYTAK_MULTICAST_LOCAL_ADDRS")
+    if plural:
+        return plural
+    legacy = _read_key("PYTAK_MULTICAST_LOCAL_ADDR")
+    return AUTO_VALUE if legacy in LEGACY_DEFAULTS else legacy
+
+
+def _run(args: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(args, check=False, capture_output=True, text=True)
+
+
+def _connection_is_sensor(interface: str) -> bool:
+    try:
+        active = _run(
+            ["nmcli", "-g", "GENERAL.CONNECTION", "device", "show", interface]
+        )
+    except OSError:
+        return False
+    name = active.stdout.strip() if active.returncode == 0 else ""
+    if not name or name == "--":
+        return False
+    if name == "AryaOS ANTSDR":
+        return True
+    detail = _run(["nmcli", "-g", "connection.zone", "connection", "show", name])
+    return detail.returncode == 0 and detail.stdout.strip() == "trusted"
+
+
+def _eligible_interface(name: str, item: dict[str, object]) -> bool:
+    if name == "pan0":
+        return True
+    if name.startswith(EXCLUDED_PREFIXES):
+        return False
+    flags = {str(flag).upper() for flag in item.get("flags", [])}
+    if "MULTICAST" not in flags or "UP" not in flags:
+        return False
+    physical = (SYS_CLASS_NET / name / "device").exists()
+    conventional = re.match(r"^(en|eth|usb|wl|wlan)", name) is not None
+    if not physical and not conventional:
+        return False
+    return not _connection_is_sensor(name)
+
+
+def _auto_addresses() -> list[str]:
+    try:
+        result = _run(["ip", "-j", "-4", "address", "show", "up"])
+    except OSError:
+        return []
+    if result.returncode:
+        return []
+    try:
+        links = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return []
+    selected = []
+    for item in links:
+        name = str(item.get("ifname", ""))
+        if not _eligible_interface(name, item):
+            continue
+        addresses = []
+        for info in item.get("addr_info", []):
+            if info.get("family") != "inet":
+                continue
+            try:
+                address = ipaddress.IPv4Address(str(info.get("local", "")))
+            except ipaddress.AddressValueError:
+                continue
+            if address.is_loopback or address.is_multicast or address.is_unspecified:
+                continue
+            score = 1 if address.is_link_local else 0
+            addresses.append((score, str(address)))
+        if addresses:
+            selected.append(sorted(addresses)[0][1])
+    return selected
+
+
+def resolve() -> list[str]:
+    requested = _requested()
+    if requested.lower() == AUTO_VALUE:
+        addresses = _auto_addresses()
+    else:
+        addresses = []
+        for value in re.split(r"[\s,]+", requested.strip()):
+            if not value:
+                continue
+            address = str(ipaddress.IPv4Address(value))
+            if address not in addresses:
+                addresses.append(address)
+    return addresses or ["0.0.0.0"]
+
+
+def _write(addresses: list[str]) -> bool:
+    text = "PYTAK_MULTICAST_LOCAL_ADDRS=" + ",".join(addresses) + "\n"
+    try:
+        if RUNTIME_PATH.read_text(encoding="utf-8") == text:
+            return False
+    except OSError:
+        pass
+    RUNTIME_PATH.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(
+        prefix=f".{RUNTIME_PATH.name}.", dir=RUNTIME_PATH.parent
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write(text)
+        os.chmod(temporary, 0o644)
+        os.replace(temporary, RUNTIME_PATH)
+    finally:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+    return True
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--json", action="store_true")
+    parser.add_argument("--no-write", action="store_true")
+    args = parser.parse_args()
+    addresses = resolve()
+    changed = False if args.no_write else _write(addresses)
+    if args.json:
+        print(json.dumps({"addresses": addresses, "changed": changed}, sort_keys=True))
+    else:
+        print("changed" if changed else "unchanged")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

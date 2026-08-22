@@ -1,0 +1,14 @@
+[Unit]
+Description=Resolve AryaOS multicast output interfaces
+After=NetworkManager.service
+Before=cotbridge.service aryaos-neighbord.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+ExecStart=/usr/local/sbin/aryaos-multicast-links
+RuntimeDirectory=aryaos
+RuntimeDirectoryPreserve=yes
+
+[Install]
+WantedBy=multi-user.target

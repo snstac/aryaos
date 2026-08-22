@@ -117,6 +117,7 @@ nav:
       - Network SDR sharing: config/network-sdr.md
   - Network:
       - Wi-Fi & onboarding hotspot: networking/wifi-hotspot.md
+      - DHCP-less MANET fallback: networking/manet-ipv4ll.md
       - Bluetooth PAN: bluetooth-pan.md
       - VPN (Tailscale): networking/vpn-tailscale.md
       - Firewall: networking/firewall.md

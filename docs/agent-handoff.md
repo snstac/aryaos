@@ -1360,8 +1360,8 @@ for `/cgi-bin/aryaos-neighbors` and the landing-page neighbor table.
 
 Known lab hosts recently used:
 
-- `pi@aryaos-dev-pi` / `pi@172.17.2.158`: original default dev Pi; may be unreachable
-  depending on current lab network.
+- The retired fixed-address development target may be unreachable on current
+  lab networks; use `scripts/aryaos-dev-device` or an explicit current address.
 - `192.168.0.199`: ADS-B box used for readsb/adsbcot/gpsd/dashboard checks.
 - `192.168.0.13`: UAS-mode box with AntSDR and BlueMark DroneScout bridge DS100.
 

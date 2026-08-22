@@ -26,7 +26,8 @@ From the repo root:
 ./scripts/setup-dev-ssh.sh
 ```
 
-Then **`ssh aryaos-dev-pi`** (see [docs/dev-pi.md](../../../docs/dev-pi.md)).
+Then run **`./scripts/aryaos-dev-device ssh`** from the repository root (see
+[docs/dev-pi.md](../../../docs/dev-pi.md)).
 
 ## Rotation
 

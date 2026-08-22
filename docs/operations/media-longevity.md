@@ -74,7 +74,7 @@ use, and produce no ACARSCOT PEM listing. The HIL service and security modules
 check the configuration and capacity automatically:
 
 ```bash
-ARYAOS_SSH=pi@aryaos-dev-pi ./scripts/aryaos-test/run.sh
+ARYAOS_DEV_DEVICE=aryaos-e406 ./scripts/aryaos-test/run.sh
 ```
 
 The characteristic exhausted-tmpfs error is:

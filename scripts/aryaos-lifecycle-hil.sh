@@ -6,8 +6,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-KEY="${ARYAOS_DEV_PI_SSH_KEY:-${ROOT}/shared_files/aryaos/ssh/aryaos-dev-lab}"
-USER_NAME="${ARYAOS_DEV_PI_USER:-pi}"
+# shellcheck source=scripts/lib/dev-device.sh
+. "${ROOT}/scripts/lib/dev-device.sh"
+KEY="$(aryaos_dev_key "${ROOT}")"
+USER_NAME="$(aryaos_dev_user)"
 OUTPUT=""
 RESET_HOST=""
 ENROLL_STDIN=0

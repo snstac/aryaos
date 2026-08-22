@@ -70,15 +70,16 @@ CoT beacon so the node still appears in other AryaOS dashboards. The landing pag
 reads the cache through `/cgi-bin/aryaos-neighbors` to show nearby AryaOS boxes and
 admin links.
 
-## Deploy to lab Pi (fast iteration)
+## Deploy to a lab device (fast iteration)
 
-From repo root (host must reach **`172.17.2.158`**; see [dev-pi.md](dev-pi.md)):
+From the repo root, discover a unique device (see [dev-pi.md](dev-pi.md)):
 
 ```bash
-ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh
+./scripts/sync-portal-review.sh
 ```
 
-(`Host aryaos-dev-pi` in `~/.ssh/config` with `User pi` is enough; `pi@aryaos-dev-pi` also works.)
+Use `ARYAOS_DEV_DEVICE=<hostname-or-uid>` when multiple devices are visible or
+`ARYAOS_SSH=pi@<address>` when multicast discovery is unavailable.
 
 Full tree mirror (optional): `./scripts/sync-to-dev-pi.sh` then portal script above.
 
@@ -100,7 +101,7 @@ After portal/CGI edits on **`main`**, CI builds a new image; local lab can use *
 | `79b096e` | GNSS MSL/HAE, CE/LE, text Copy buttons |
 | `8d2304a` | Status UI polish: grouped rows, icon copy, GNSS pill, TAK tile tints |
 
-**Lab Pi (`aryaos-dev-pi` / `172.17.2.158`) - operational notes:**
+**Historical lab device - operational notes:**
 
 - **readsb:** pi-gen now runs [`readsb-install.sh`](https://github.com/snstac/aryaos/blob/main/shared_files/adsbcot/readsb-install.sh) (`RTLSDR=yes`) after the stock `.deb` and restores the AryaOS `run_readsb.sh` unit.
 - **readsb RTL serial `2002`:** `RECEIVER_OPTIONS="--device-type rtlsdr --device 2002 ..."`; helper [`scripts/readsb-use-rtl-serial.sh`](https://github.com/snstac/aryaos/blob/main/scripts/readsb-use-rtl-serial.sh).
@@ -111,7 +112,8 @@ After portal/CGI edits on **`main`**, CI builds a new image; local lab can use *
 ## Next steps for agents
 
 1. **Verify portal on lab Pi** (when SSH works):  
-   `ARYAOS_SSH=aryaos-dev-pi ./scripts/sync-portal-review.sh` > open `https://<pi>/` - check TAK strip, GNSS CE/LE/HAE, icon copy, grouped status rows.
+   `./scripts/sync-portal-review.sh` > open the discovered device's HTTPS portal
+   and check the TAK strip, GNSS CE/LE/HAE, icon copy, and grouped status rows.
 2. **Optional follow-ups (not started):**
    - RF table: per-row copy or compact state badges (v1 scope excluded icon copy on RF).
    - `adsbcot_feed_ok`: mark ADS-B chip degraded if `readsb` up but `aircraft.json` stale/empty.

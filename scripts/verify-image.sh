@@ -145,8 +145,8 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.1.19
-require_pkg_version cotbridge 1.0.1
+require_pkg_version aryaos-overlay 2.1.20
+require_pkg_version cotbridge 1.1.0
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
 require_grep '^Defaults maxseq=128$' /etc/sudoers.d/aryaos "sudo I/O audit history bounded for /var/log tmpfs"
@@ -182,8 +182,22 @@ require_path /etc/systemd/system/multi-user.target.wants/aryaos-time-pps.service
 require_path /etc/systemd/system/readsb.service.d/aryaos-startlimit.conf
 require_path /etc/systemd/system/adsbcot.service.d/aryaos-startlimit.conf
 require_path /usr/local/sbin/aryaos-neighbord
+require_path /usr/local/sbin/aryaos-ipv4ll
+require_path /usr/local/sbin/aryaos-multicast-links
 require_path /etc/systemd/system/aryaos-firstboot.service
 require_path /etc/systemd/system/aryaos-neighbord.service
+require_path /etc/systemd/system/aryaos-multicast-links.service
+require_path /etc/systemd/system/multi-user.target.wants/aryaos-multicast-links.service
+require_path /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf
+require_grep '^ipv4.link-local=4$' /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf \
+	"ordinary Ethernet uses DHCP-compatible IPv4LL fallback"
+require_grep '^ARYAOS_IPV4LL_FALLBACK=1$' /etc/aryaos/aryaos-config.txt \
+	"IPv4LL MANET fallback is enabled by default"
+require_grep '^PYTAK_MULTICAST_LOCAL_ADDRS=auto$' /etc/aryaos/aryaos-config.txt \
+	"multicast source interfaces resolve automatically"
+require_grep '^EnvironmentFile=-/run/aryaos/multicast.env$' \
+	/etc/systemd/system/cotbridge.service.d/aryaos-config.conf \
+	"cotbridge consumes resolved multicast interfaces"
 require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to cotbridge"
 
 # Portal (stage-aryaos)
@@ -227,6 +241,8 @@ require_path /usr/share/cockpit/aryaos/aryaos-basemap.js
 require_grep 'ARYAOS_BASEMAP' /usr/share/cockpit/aryaos/aryaos-basemap.js "cockpit-aryaos offline base map data"
 require_grep 'get_throttled' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos power-health indicator"
 require_grep 'id="safe-mode-banner"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos safe-mode banner"
+require_grep 'id="card-ipv4ll"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos IPv4LL MANET fallback card"
+require_grep 'aryaos-ipv4ll' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos IPv4LL helper integration"
 
 # GPSCOT network GPS (package from stage-pytak)
 require_pkg gpscot
@@ -276,7 +292,7 @@ require_pkg_version cockpit-dronecot 1.1.3
 require_pkg cockpit-cotbridge
 require_pkg_version cockpit-cotbridge 1.2.2
 require_pkg cockpit-gpscot
-require_pkg_version cockpit-aryaos 2.0.2
+require_pkg_version cockpit-aryaos 2.1.0
 require_pkg cockpit-spyserver
 require_path /usr/share/cockpit/spyserver/manifest.json
 require_pkg readsb
@@ -288,7 +304,7 @@ require_pkg gpscot
 require_pkg_version gpscot 2.0.1
 require_pkg gdlcot
 require_pkg_version gdlcot 2.0.1
-require_pkg_version pytak 7.5.2
+require_pkg_version pytak 7.6.0
 require_pkg_version acarscot 0.1.1
 require_pkg acarsdec
 require_pkg_version dronecot 2.3.9

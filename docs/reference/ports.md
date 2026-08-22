@@ -28,7 +28,10 @@ Every port, multicast group, and network address AryaOS uses, and what each is f
 |---|---|---|---|
 | `239.2.3.1` | 6969 | UDP | **TAK Mesh SA** - COTBridge egress/ingress and `aryaos-neighbord` neighbor discovery. `udp+wo://239.2.3.1:6969`. |
 
-Multicast source binding is controlled by `PYTAK_MULTICAST_LOCAL_ADDR` in the site config (default `10.41.0.1`, the hotspot IP). See [Relay & routing](../deploy/relay-routing.md) and [Nearby nodes](../operations/neighbors.md).
+Multicast source fanout is controlled by `PYTAK_MULTICAST_LOCAL_ADDRS` in the
+site config (default `auto`). AryaOS sends once on every eligible active local
+link. See [DHCP-less MANET fallback](../networking/manet-ipv4ll.md),
+[Relay & routing](../deploy/relay-routing.md), and [Nearby nodes](../operations/neighbors.md).
 
 ## Network addresses
 
@@ -36,6 +39,7 @@ Multicast source binding is controlled by `PYTAK_MULTICAST_LOCAL_ADDR` in the si
 |---|---|---|
 | Wi-Fi hotspot (`wlan0`) | `10.41.0.1/24` | Onboarding/AP network `AryaOS-xxxx`. Phones and laptops get DHCP here; this is the default multicast bind address. |
 | Bluetooth PAN (`pan0`) | `10.44.0.1/24` | Local Bluetooth NAP. AryaOS serves DHCP (`10.44.0.20`-`10.44.0.60`) to paired phones. **No NAT or forwarding** - for reaching AryaOS services over Bluetooth. |
+| DHCP-less Ethernet | `169.254.x.x/16` | Optional RFC 3927 fallback used only when DHCP supplies no IPv4 address. |
 
 See [Wi-Fi & onboarding hotspot](../networking/wifi-hotspot.md) and [Bluetooth PAN](../bluetooth-pan.md).
 

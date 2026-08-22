@@ -18,7 +18,7 @@ class OnboardingNetworkTestCase(unittest.TestCase):
 
     def test_dispatcher_accepts_callback_reapply_event(self):
         dispatcher = (ROOT / "shared_files/aryaos/99-aryaos-dispatcher").read_text()
-        self.assertIn("dhcp6-change|reapply)", dispatcher)
+        self.assertIn("dhcp4-change|reapply)", dispatcher)
 
     def test_nodered_notification_is_bounded_and_best_effort(self):
         callback = (ROOT / "shared_files/aryaos/comitup-callback.sh").read_text()

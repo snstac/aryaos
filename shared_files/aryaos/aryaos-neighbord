@@ -6,6 +6,8 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
+import ipaddress
+import re
 import socket
 import struct
 import subprocess
@@ -24,6 +26,22 @@ BEACON_ENABLED = os.environ.get("ARYAOS_NEIGHBOR_BEACON", "1").lower() not in {"
 BEACON_INTERVAL = int(os.environ.get("ARYAOS_NEIGHBOR_BEACON_INTERVAL", "60"))
 BEACON_CMD = os.environ.get("ARYAOS_NEIGHBOR_DETAIL_CMD", "/usr/local/sbin/aryaos-cot-detail")
 MULTICAST_LOCAL_ADDR = os.environ.get("PYTAK_MULTICAST_LOCAL_ADDR", "0.0.0.0")
+MULTICAST_LOCAL_ADDRS = os.environ.get("PYTAK_MULTICAST_LOCAL_ADDRS", "")
+
+
+def _multicast_local_addrs() -> tuple[str, ...]:
+    raw = MULTICAST_LOCAL_ADDRS.strip()
+    values = re.split(r"[\s,]+", raw) if raw and raw.lower() != "auto" else []
+    if not values:
+        values = [MULTICAST_LOCAL_ADDR or "0.0.0.0"]
+    addresses: list[str] = []
+    for value in values:
+        if not value:
+            continue
+        address = str(ipaddress.IPv4Address(value))
+        if address not in addresses:
+            addresses.append(address)
+    return tuple(addresses or ["0.0.0.0"])
 
 
 def _strip_ns(tag: str) -> str:
@@ -325,22 +343,46 @@ def _socket() -> socket.socket:
     except OSError:
         pass
     sock.bind(("", PORT))
-    mreq = struct.pack("=4s4s", socket.inet_aton(GROUP), socket.inet_aton("0.0.0.0"))
-    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    memberships = 0
+    errors = []
+    for local_addr in _multicast_local_addrs():
+        try:
+            mreq = struct.pack(
+                "=4s4s", socket.inet_aton(GROUP), socket.inet_aton(local_addr)
+            )
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+            memberships += 1
+        except OSError as exc:
+            errors.append(exc)
+    if not memberships:
+        sock.close()
+        raise errors[0]
     sock.settimeout(1.0)
     return sock
 
 
-def _tx_socket() -> socket.socket:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
-    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
-    if MULTICAST_LOCAL_ADDR and MULTICAST_LOCAL_ADDR != "0.0.0.0":
+def _tx_sockets() -> list[socket.socket]:
+    sockets = []
+    errors = []
+    for local_addr in _multicast_local_addrs():
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         try:
-            sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(MULTICAST_LOCAL_ADDR))
-        except OSError:
-            pass
-    return sock
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+            if local_addr != "0.0.0.0":
+                sock.bind((local_addr, 0))
+                sock.setsockopt(
+                    socket.IPPROTO_IP,
+                    socket.IP_MULTICAST_IF,
+                    socket.inet_aton(local_addr),
+                )
+            sockets.append(sock)
+        except OSError as exc:
+            errors.append(exc)
+            sock.close()
+    if not sockets:
+        raise errors[0]
+    return sockets
 
 
 def main() -> int:
@@ -353,13 +395,23 @@ def main() -> int:
     if os.geteuid() == 0:
         _detail_xml()
     sock = _socket()
-    tx_sock = _tx_socket()
+    tx_socks = _tx_sockets()
     next_beacon = 0.0
     while True:
         now = time.monotonic()
         if BEACON_ENABLED and now >= next_beacon:
             if _should_beacon(cache):
-                tx_sock.sendto(_self_event(), (GROUP, PORT))
+                event = _self_event()
+                healthy = []
+                for tx_sock in tx_socks:
+                    try:
+                        tx_sock.sendto(event, (GROUP, PORT))
+                        healthy.append(tx_sock)
+                    except OSError:
+                        tx_sock.close()
+                tx_socks = healthy
+                if not tx_socks:
+                    raise OSError("No usable multicast beacon interfaces")
             next_beacon = now + BEACON_INTERVAL
         try:
             data, addr = sock.recvfrom(65535)

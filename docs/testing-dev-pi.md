@@ -8,12 +8,14 @@ From the repository root:
 
 ```bash
 ./scripts/aryaos-test/run.sh
-make test-dev-pi
+make test-dev-device
 ```
 
-Default target: **`pi@aryaos-dev-pi`** (`172.17.2.158` via `~/.ssh/config`). Override:
+The default path discovers exactly one device through AryaOS Mesh SA. Select a
+device or provide an explicit fallback target:
 
 ```bash
+ARYAOS_DEV_DEVICE=aryaos-e406 make test-dev-device
 ARYAOS_SSH=pi@10.0.0.5 ./scripts/aryaos-test/run.sh
 ```
 
@@ -26,10 +28,10 @@ ARYAOS_SSH=pi@10.0.0.5 ARYAOS_EXPECT_CAPABILITIES="adsb rid" \
   ARYAOS_TEST_TIER=strict ./scripts/aryaos-test/run.sh
 ```
 
-Optional pre-sync (legacy wrapper):
+Optional pre-sync:
 
 ```bash
-ARYAOS_DEV_PI_SYNC=1 ./scripts/test-dev-pi.sh
+ARYAOS_DEV_DEVICE_SYNC=1 ./scripts/test-dev-device.sh
 ```
 
 This runs `sync-to-dev-pi.sh` and `sync-portal-review.sh`, then the same test runner.
@@ -127,13 +129,13 @@ Same order as [dev-pi.md](dev-pi.md) and [scripts/sync-to-dev-pi.sh](https://git
 
 1. Normal **`ssh`** (agent / `~/.ssh/config`)
 2. Repo dev key **`shared_files/aryaos/ssh/aryaos-dev-lab`**
-3. **`ARYAOS_DEV_PI_PASSWORD`** or gitignored **`scripts/.dev-pi-creds.local`** with **`sshpass`**
+3. **`ARYAOS_DEV_DEVICE_PASSWORD`** or gitignored **`scripts/.dev-pi-creds.local`** with **`sshpass`**
 
 Release images intentionally omit the lab key and passwordless-sudo grant. If
 password authentication is selected, the runner sends the password to
 `sudo -S -v` over SSH stdin (never in argv) and verifies that the resulting
 global timestamp supports the suite's existing `sudo -n` checks. An explicitly
-exported `ARYAOS_DEV_PI_PASSWORD` takes precedence over the fallback credentials
+exported `ARYAOS_DEV_DEVICE_PASSWORD` takes precedence over the fallback credentials
 file.
 
 ## Layout

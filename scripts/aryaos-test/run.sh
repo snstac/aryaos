@@ -20,19 +20,16 @@ cd "${REPO_ROOT}"
 # An explicit one-shot password wins over the gitignored fallback file. This is
 # important for freshly flashed release images, which deliberately do not carry
 # the lab key and may not use the same password as the usual development Pi.
-if [[ -z "${ARYAOS_DEV_PI_PASSWORD:-}" && -f scripts/.dev-pi-creds.local ]]; then
+if [[ -z "${ARYAOS_DEV_DEVICE_PASSWORD:-}" && -z "${ARYAOS_DEV_PI_PASSWORD:-}" && -f scripts/.dev-pi-creds.local ]]; then
 	# shellcheck disable=SC1091
 	. scripts/.dev-pi-creds.local
 fi
+# shellcheck source=scripts/lib/dev-device.sh
+. scripts/lib/dev-device.sh
 
-PI_USER="${ARYAOS_DEV_PI_USER:-pi}"
-PI_HOST="${ARYAOS_DEV_PI_HOST:-aryaos-dev-pi}"
-if [[ -n "${ARYAOS_SSH:-}" ]]; then
-	PI="${ARYAOS_SSH}"
-else
-	PI="${PI_USER}@${PI_HOST}"
-fi
-DEV_KEY="${ARYAOS_DEV_PI_SSH_KEY:-${REPO_ROOT}/shared_files/aryaos/ssh/aryaos-dev-lab}"
+PI="$(aryaos_dev_target "${REPO_ROOT}")"
+DEV_KEY="$(aryaos_dev_key "${REPO_ROOT}")"
+DEV_PASSWORD="$(aryaos_dev_password)"
 KNOWN_HOSTS_ARGS=()
 if [[ -n "${ARYAOS_SSH_KNOWN_HOSTS_FILE:-}" ]]; then
 	KNOWN_HOSTS_ARGS=(-o StrictHostKeyChecking=yes -o "UserKnownHostsFile=${ARYAOS_SSH_KNOWN_HOSTS_FILE}")
@@ -48,10 +45,10 @@ SSH=(ssh "${SSH_CONFIG_ARGS[@]}" -o BatchMode=yes -o ConnectTimeout=12 "${KNOWN_
 SCP=(scp "${SSH_CONFIG_ARGS[@]}" "${KNOWN_HOSTS_ARGS[@]}")
 SSH_METHOD="ssh defaults"
 
-if [[ -n "${ARYAOS_DEV_PI_SSH_KEY:-}" && -r "${ARYAOS_DEV_PI_SSH_KEY}" ]]; then
-	SSH=(ssh "${SSH_CONFIG_ARGS[@]}" -i "${ARYAOS_DEV_PI_SSH_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
-	SCP=(scp "${SSH_CONFIG_ARGS[@]}" -i "${ARYAOS_DEV_PI_SSH_KEY}" -o IdentitiesOnly=yes "${KNOWN_HOSTS_ARGS[@]}")
-	SSH_METHOD="explicit key ${ARYAOS_DEV_PI_SSH_KEY}"
+if [[ -n "${ARYAOS_DEV_DEVICE_SSH_KEY:-}${ARYAOS_DEV_PI_SSH_KEY:-}" && -r "${DEV_KEY}" ]]; then
+	SSH=(ssh "${SSH_CONFIG_ARGS[@]}" -i "${DEV_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
+	SCP=(scp "${SSH_CONFIG_ARGS[@]}" -i "${DEV_KEY}" -o IdentitiesOnly=yes "${KNOWN_HOSTS_ARGS[@]}")
+	SSH_METHOD="explicit key ${DEV_KEY}"
 elif [[ -r "${DEV_KEY}" && -z "${ARYAOS_DEV_PI_SKIP_KEY:-}" ]]; then
 	SSH=(ssh "${SSH_CONFIG_ARGS[@]}" -i "${DEV_KEY}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
 	SCP=(scp "${SSH_CONFIG_ARGS[@]}" -i "${DEV_KEY}" -o IdentitiesOnly=yes "${KNOWN_HOSTS_ARGS[@]}")
@@ -64,16 +61,17 @@ elif [[ -r "${DEV_KEY}" && -z "${ARYAOS_DEV_PI_SKIP_KEY:-}" ]]; then
 fi
 
 if ! "${SSH[@]}" "${PI}" true 2>/dev/null; then
-	if [[ -n "${ARYAOS_DEV_PI_PASSWORD:-}" ]] && command -v sshpass >/dev/null; then
-		export SSHPASS="${ARYAOS_DEV_PI_PASSWORD}"
+	if [[ -n "${DEV_PASSWORD}" ]] && command -v sshpass >/dev/null; then
+		export SSHPASS="${DEV_PASSWORD}"
 		SSH=(sshpass -e ssh "${SSH_CONFIG_ARGS[@]}" -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
 		SCP=(sshpass -e scp "${SSH_CONFIG_ARGS[@]}" -o PreferredAuthentications=password -o PubkeyAuthentication=no "${KNOWN_HOSTS_ARGS[@]}")
 		SSH_METHOD="password"
 	elif command -v sshpass >/dev/null; then
 		# shellcheck disable=SC1091
 		[[ -f scripts/.dev-pi-creds.local ]] && . scripts/.dev-pi-creds.local
-		if [[ -n "${ARYAOS_DEV_PI_PASSWORD:-}" ]]; then
-			export SSHPASS="${ARYAOS_DEV_PI_PASSWORD}"
+		DEV_PASSWORD="$(aryaos_dev_password)"
+		if [[ -n "${DEV_PASSWORD}" ]]; then
+			export SSHPASS="${DEV_PASSWORD}"
 			SSH=(sshpass -e ssh "${SSH_CONFIG_ARGS[@]}" -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=12 "${KNOWN_HOSTS_ARGS[@]}")
 			SCP=(sshpass -e scp "${SSH_CONFIG_ARGS[@]}" -o PreferredAuthentications=password -o PubkeyAuthentication=no "${KNOWN_HOSTS_ARGS[@]}")
 			SSH_METHOD="password"
@@ -100,11 +98,11 @@ fi
 # instead of turning every privileged assertion into a misleading product fault.
 SUDO_METHOD="noninteractive"
 if ! "${SSH[@]}" "${PI}" "sudo -n true" >/dev/null 2>&1; then
-	if [[ -z "${ARYAOS_DEV_PI_PASSWORD:-}" ]]; then
-		echo "Cannot use noninteractive sudo on ${PI}; set ARYAOS_DEV_PI_PASSWORD for a release image" >&2
+	if [[ -z "${DEV_PASSWORD}" ]]; then
+		echo "Cannot use noninteractive sudo on ${PI}; set ARYAOS_DEV_DEVICE_PASSWORD for a release image" >&2
 		exit 2
 	fi
-	if ! printf '%s\n' "${ARYAOS_DEV_PI_PASSWORD}" \
+	if ! printf '%s\n' "${DEV_PASSWORD}" \
 		| "${SSH[@]}" "${PI}" "sudo -S -p '' -v" >/dev/null 2>&1; then
 		echo "Cannot authenticate sudo on ${PI}" >&2
 		exit 2

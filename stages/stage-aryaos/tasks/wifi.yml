@@ -34,6 +34,39 @@
     dest: /etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection
     mode: "0600"
 
+- name: Ensure NetworkManager drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/NetworkManager/conf.d
+    state: directory
+    mode: "0755"
+
+- name: Enable optional IPv4LL fallback for ordinary Ethernet profiles
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/NetworkManager/conf.d/90-aryaos-ipv4ll.conf"
+    dest: /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf
+    mode: "0644"
+
+- name: Install IPv4LL and multicast-link helpers
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/{{ item }}"
+    dest: "/usr/local/sbin/{{ item }}"
+    mode: "0755"
+  loop:
+    - aryaos-ipv4ll
+    - aryaos-multicast-links
+
+- name: Install multicast-link resolver unit
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/systemd/aryaos-multicast-links.service"
+    dest: /etc/systemd/system/aryaos-multicast-links.service
+    mode: "0644"
+
+- name: Enable multicast-link resolver
+  ansible.builtin.systemd:
+    name: aryaos-multicast-links.service
+    enabled: true
+    daemon_reload: true
+
 - name: Fix comitup port
   ansible.builtin.lineinfile:
     path: /usr/share/comitup/web/comitupweb.py
@@ -115,4 +148,4 @@
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/99-aryaos-dispatcher"
     dest: /etc/NetworkManager/dispatcher.d/
-    mode: "0644"
+    mode: "0755"

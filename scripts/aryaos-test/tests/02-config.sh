@@ -159,4 +159,24 @@ else
 	fail "sikw00fcot service missing"
 fi
 
+if [[ -x /usr/local/sbin/aryaos-ipv4ll ]] &&
+	/usr/local/sbin/aryaos-ipv4ll status --json 2>/dev/null | grep -q '"enabled": true'; then
+	ok "IPv4LL MANET fallback enabled"
+else
+	fail "IPv4LL MANET fallback helper/config missing or disabled"
+fi
+
+if [[ -x /usr/local/sbin/aryaos-multicast-links ]] &&
+	/usr/local/sbin/aryaos-multicast-links --json --no-write 2>/dev/null | grep -q '"addresses"'; then
+	ok "multicast interface resolver reports addresses"
+else
+	fail "multicast interface resolver unavailable"
+fi
+
+if systemctl is-enabled --quiet aryaos-multicast-links.service 2>/dev/null; then
+	ok "multicast interface resolver enabled"
+else
+	fail "multicast interface resolver not enabled"
+fi
+
 print_summary

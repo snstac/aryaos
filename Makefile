@@ -16,7 +16,7 @@
 # pi-gen is intentionally not phony: the clone recipe runs only when ./pi-gen is missing.
 .PHONY: help sync mkdocs aryaaio ansible-syntax check build build-docker \
 	build-docker-clean apt-cacher-up apt-cacher-down apt-cacher-logs apt-cacher-ping \
-	clean distclean clean-logs pi-gen-pull skip unskip test-dev-pi package-overlay \
+	clean distclean clean-logs pi-gen-pull skip unskip test-dev-device test-dev-pi package-overlay \
 	copyback skip3 skip4 skip5 debauto imxtak
 
 # Optional apt HTTP cache for Docker builds: start `apt-cacher-up`, then:
@@ -52,7 +52,8 @@ help:
 	@echo "  pi-gen / pi-gen-pull    Clone or update upstream pi-gen (arm64)"
 	@echo "  skip / unskip           Touch or remove SKIP for stage0-2 (faster rebuild loop)"
 	@echo "  ansible-syntax          ansible-playbook --syntax-check"
-	@echo "  test-dev-pi             SSH integration tests against lab Pi (scripts/aryaos-test/run.sh)"
+	@echo "  test-dev-device         Discover and test an AryaOS lab device"
+	@echo "  test-dev-pi             Deprecated alias for test-dev-device"
 	@echo "  package-overlay         Build deploy/debs/aryaos-overlay_<version>_all.deb"
 	@echo "  mkdocs                  Docs dev server (pip install -r docs/requirements.txt)"
 	@echo "  Also: check, debauto, imxtak, aryaaio, sync, copyback — see Makefile"
@@ -71,8 +72,12 @@ ansible-syntax:
 	ansible-galaxy collection install -r requirements.yml
 	ansible-playbook -i localhost, -c local site.yml --syntax-check
 
+test-dev-device:
+	./scripts/test-dev-device.sh
+
 test-dev-pi:
-	./scripts/aryaos-test/run.sh
+	@echo "warning: test-dev-pi is deprecated; use test-dev-device" >&2
+	./scripts/test-dev-device.sh
 
 package-overlay:
 	./scripts/build-aryaos-overlay-deb.sh

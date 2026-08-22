@@ -1,5 +1,7 @@
 # Dynamic AryaOS Dev-Device Discovery
 
+Status: implemented in the 2026-08-21 development tree.
+
 ## Summary
 
 Replace the retired static `aryaos-dev-pi` host convention with LINCOT-based

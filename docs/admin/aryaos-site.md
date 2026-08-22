@@ -5,7 +5,7 @@ The **AryaOS Site** page is the single most important admin surface on the devic
 ![The AryaOS Site page in Cockpit - TAK destination, device role, radios, TLS, sensor services, updates, backup, and decommission cards](../media/screenshots/aryaos-site-cockpit.png)
 
 !!! info "How saving works"
-    The page edits known keys **in place** and preserves everything else in the file, including comments. Most cards apply immediately, but the **TAK destination** and TLS fields at the top only take effect when you press **Save & restart sensors** (or **Save only**) at the bottom of the page - see [Save & restart](#save-restart). Cards with their own buttons (role, hotspot, radios, updates, VPN, support, Node-RED) act on their own.
+    The page edits known keys **in place** and preserves everything else in the file, including comments. Most cards apply immediately, but the **TAK destination** and TLS fields at the top only take effect when you press **Save & restart sensors** (or **Save only**) at the bottom of the page - see [Save & restart](#save-restart). Cards with their own buttons (role, hotspot, MANET fallback, radios, updates, VPN, support, Node-RED) act on their own.
 
 The cards appear in the order below.
 
@@ -66,6 +66,24 @@ When no known Wi-Fi is in range, AryaOS broadcasts its onboarding hotspot (`Arya
 
 !!! warning "Applies to the next hotspot"
     A password change applies the **next** time the hotspot comes up. Reboot the device to force it. If you are currently connected over the hotspot, changing it will drop your connection. See [Wi-Fi & onboarding hotspot](../networking/wifi-hotspot.md).
+
+---
+
+## MANET fallback (IPv4LL)
+
+**What it does.** Keeps ordinary Ethernet usable when it has carrier but the
+attached MANET has no DHCP server. With the checkbox enabled, NetworkManager
+assigns a `169.254.x.x/16` address only when no other IPv4 address is available;
+DHCP automatically replaces it when service appears.
+
+Press **Apply setting** after changing the checkbox. AryaOS updates current and
+future DHCP Ethernet profiles but does not reconnect an active interface, so it
+cannot deliberately cut off the Cockpit session you are using. The setting
+takes effect on the next Ethernet activation or reboot. Static profiles and the
+AntSDR sensor link are excluded.
+
+**Backend:** `aryaos-ipv4ll`; persistent key `ARYAOS_IPV4LL_FALLBACK`. See
+[DHCP-less Ethernet and MANET fallback](../networking/manet-ipv4ll.md).
 
 ---
 

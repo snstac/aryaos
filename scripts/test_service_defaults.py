@@ -193,10 +193,10 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
-        self.assertIn("require_pkg_version aryaos-overlay 2.1.19", verifier)
-        self.assertIn("require_package_version aryaos-overlay 2.1.19", hil)
-        self.assertIn("require_pkg_version cotbridge 1.0.1", verifier)
-        self.assertIn("require_package_version cotbridge 1.0.1", hil)
+        self.assertIn("require_pkg_version aryaos-overlay 2.1.20", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.1.20", hil)
+        self.assertIn("require_pkg_version cotbridge 1.1.0", verifier)
+        self.assertIn("require_package_version cotbridge 1.1.0", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
         self.assertIn(
             'set_kv "$GPSD_DEF" DEVICES "$gps_dev" || true', assign
@@ -214,6 +214,29 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             / "shared_files/aryaos/systemd/aryaos-serial-assign.service"
         ).read_text()
         self.assertIn("Before=ais-catcher.service gpsd.service readsb.service", serial_unit)
+
+    def test_overlay_packages_ipv4ll_multicast_discovery(self):
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        config = (ROOT / "shared_files/aryaos/aryaos-config.txt").read_text()
+        cotbridge_dropin = (
+            ROOT
+            / "shared_files/cotbridge/systemd/cotbridge.service.d/aryaos-config.conf"
+        ).read_text()
+
+        for name in ("aryaos-ipv4ll", "aryaos-multicast-links"):
+            self.assertIn(
+                f'aryaos/{name}" "/usr/local/sbin/{name}', builder
+            )
+        self.assertIn("aryaos-multicast-links.service", builder)
+        self.assertIn("90-aryaos-ipv4ll.conf", builder)
+        self.assertIn("PYTAK_MULTICAST_LOCAL_ADDRS=auto", config)
+        self.assertIn("ARYAOS_IPV4LL_FALLBACK=1", config)
+        self.assertIn("aryaos-ipv4ll enable", postinst)
+        self.assertIn("aryaos-multicast-links.service", postinst)
+        self.assertIn(
+            "EnvironmentFile=-/run/aryaos/multicast.env", cotbridge_dropin
+        )
 
     def test_dronescout_hil_survives_rotated_startup_heartbeat(self):
         hil = (
@@ -273,7 +296,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         ).read_text()
 
         for package, version in (
-            ("pytak", "7.5.2"),
+            ("pytak", "7.6.0"),
             ("gpscot", "2.0.1"),
             ("gdlcot", "2.0.1"),
             ("sikw00fcot", "1.0.2"),

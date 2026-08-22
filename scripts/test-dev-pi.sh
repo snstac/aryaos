@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Sync (optional) and verify AryaOS on the lab Pi (aryaos-dev-pi).
-# Thin wrapper around scripts/aryaos-test/run.sh for backward compatibility.
+# Deprecated compatibility alias for test-dev-device.sh.
 #
 # Usage (repo root):
 #   ./scripts/test-dev-pi.sh              # verify only
@@ -13,13 +12,5 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "${REPO_ROOT}"
-
-if [[ "${ARYAOS_DEV_PI_SYNC:-0}" == 1 ]]; then
-	echo "==> sync-to-dev-pi"
-	./scripts/sync-to-dev-pi.sh
-	echo "==> sync-portal-review"
-	ARYAOS_SSH="${ARYAOS_SSH:-pi@aryaos-dev-pi}" ./scripts/sync-portal-review.sh
-fi
-
-exec ./scripts/aryaos-test/run.sh "$@"
+echo "warning: test-dev-pi.sh is deprecated; use test-dev-device.sh" >&2
+exec "${REPO_ROOT}/scripts/test-dev-device.sh" "$@"
