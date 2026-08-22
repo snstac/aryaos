@@ -142,6 +142,8 @@ case "$1" in
       systemctl stop rpi-zram-writeback.timer 2>/dev/null || true
       systemctl daemon-reload || true
       systemctl reset-failed rpi-zram-writeback.timer 2>/dev/null || true
+      systemctl reset-failed NetworkManager-wait-online.service 2>/dev/null || true
+      systemctl start NetworkManager-wait-online.service 2>/dev/null || true
       systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-multicast-links.service aryaos-neighbord.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service 2>/dev/null || true
       # Network GPS is core plumbing, independent of the selected sensor role.
       systemctl enable --now gpscot.service 2>/dev/null || true
@@ -160,6 +162,10 @@ case "$1" in
       systemctl try-restart fail2ban.service 2>/dev/null || true
       firewall-cmd --reload >/dev/null 2>&1 || true
       systemctl restart aryaos-tak-dp-importd.service aryaos-multicast-links.service cotbridge.service aryaos-neighbord.service lighttpd.service 2>/dev/null || true
+      if systemctl is-enabled --quiet gdlcot.service 2>/dev/null; then
+        systemctl reset-failed gdlcot.service 2>/dev/null || true
+        systemctl restart gdlcot.service 2>/dev/null || true
+      fi
       # Fill missing gpsd defaults above without replacing its verified device.
       # Rerun discovery to exercise new classifiers and detect hardware changes;
       # an unchanged stable assignment takes the no-interruption fast path.

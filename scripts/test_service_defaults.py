@@ -193,8 +193,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
-        self.assertIn("require_pkg_version aryaos-overlay 2.1.20", verifier)
-        self.assertIn("require_package_version aryaos-overlay 2.1.20", hil)
+        self.assertIn("require_pkg_version aryaos-overlay 2.1.26", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.1.26", hil)
         self.assertIn("require_pkg_version cotbridge 1.1.0", verifier)
         self.assertIn("require_package_version cotbridge 1.1.0", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
@@ -223,6 +223,10 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             ROOT
             / "shared_files/cotbridge/systemd/cotbridge.service.d/aryaos-config.conf"
         ).read_text()
+        gdlcot_dropin = (
+            ROOT
+            / "shared_files/aryaos/systemd/gdlcot.service.d/aryaos-multicast.conf"
+        ).read_text()
 
         for name in ("aryaos-ipv4ll", "aryaos-multicast-links"):
             self.assertIn(
@@ -237,6 +241,29 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn(
             "EnvironmentFile=-/run/aryaos/multicast.env", cotbridge_dropin
         )
+        self.assertIn(
+            "EnvironmentFile=-/run/aryaos/multicast.env", gdlcot_dropin
+        )
+        self.assertIn("gdlcot.service.d/aryaos-multicast.conf", builder)
+        resolver_unit = (
+            ROOT / "shared_files/aryaos/systemd/aryaos-multicast-links.service"
+        ).read_text()
+        self.assertIn("After=NetworkManager.service", resolver_unit)
+        self.assertIn("StartLimitIntervalSec=0", resolver_unit)
+        self.assertNotIn("network-online.target", resolver_unit)
+        neighbord_unit = (
+            ROOT / "shared_files/aryaos/systemd/aryaos-neighbord.service"
+        ).read_text()
+        self.assertNotIn("network-online.target", neighbord_unit)
+        dispatcher = (ROOT / "shared_files/aryaos/99-aryaos-dispatcher").read_text()
+        self.assertIn("$AOS_SERVICES gdlcot aryaos-neighbord", dispatcher)
+        wait_online = (
+            ROOT
+            / "shared_files/aryaos/systemd/NetworkManager-wait-online.service.d/aryaos.conf"
+        ).read_text()
+        self.assertIn("ExecStart=/usr/bin/nm-online --quiet --timeout=60", wait_online)
+        self.assertNotIn("--wait-for-startup", wait_online)
+        self.assertIn("NetworkManager-wait-online.service.d/aryaos.conf", builder)
 
     def test_dronescout_hil_survives_rotated_startup_heartbeat(self):
         hil = (

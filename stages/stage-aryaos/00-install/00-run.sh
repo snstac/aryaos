@@ -142,6 +142,12 @@ install -v -D -m 0644 \
 	"${SHARED_FILES}/aryaos/modules-load.d/lighttpd-mod-openssl.conf" \
 	"${ROOTFS_DIR}/etc/modules-load.d/lighttpd-mod-openssl.conf"
 install -v -D -m 0644 \
+	"${SHARED_FILES}/aryaos/systemd/gdlcot.service.d/aryaos-multicast.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/gdlcot.service.d/aryaos-multicast.conf"
+install -v -D -m 0644 \
+	"${SHARED_FILES}/aryaos/systemd/NetworkManager-wait-online.service.d/aryaos.conf" \
+	"${ROOTFS_DIR}/etc/systemd/system/NetworkManager-wait-online.service.d/aryaos.conf"
+install -v -D -m 0644 \
 	"${SHARED_FILES}/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf" \
 	"${ROOTFS_DIR}/etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf"
 # Re-trigger the helper when a PPS device appears: a USB GPS enumerates

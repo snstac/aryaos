@@ -31,9 +31,11 @@ links = load_tool(
 
 
 class IPv4LLTestCase(unittest.TestCase):
-    def test_default_is_fallback_and_disabled_is_explicit(self):
-        self.assertIn("ipv4.link-local=4", ipv4ll._nm_default(True))
+    def test_default_is_enabled_and_disabled_is_explicit(self):
+        self.assertIn("ipv4.link-local=3", ipv4ll._nm_default(True))
         self.assertIn("ipv4.link-local=2", ipv4ll._nm_default(False))
+        self.assertIn("ipv4.required-timeout=0", ipv4ll._nm_default(True))
+        self.assertIn("ipv6.method=link-local", ipv4ll._nm_default(True))
         self.assertIn("match-device=type:ethernet", ipv4ll._nm_default(True))
 
     def test_setting_preserves_unknown_site_configuration(self):
@@ -53,7 +55,7 @@ class IPv4LLTestCase(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             nm_config = Path(directory) / "ipv4ll.conf"
             nm_config.write_text(
-                "# 4=fallback, 2=disabled\nipv4.link-local=2\n",
+                "# 3=enabled, 2=disabled\nipv4.link-local=2\n",
                 encoding="utf-8",
             )
             with mock.patch.object(ipv4ll, "NM_CONF_PATH", nm_config):
@@ -64,8 +66,8 @@ class IPv4LLTestCase(unittest.TestCase):
             [], 0, "u1:802-3-ethernet\nu2:802-3-ethernet\nu3:wifi\n", ""
         )
         details = {
-            "u1": "Wired connection 1\nend0\npublic\nauto\nauto\n",
-            "u2": "AryaOS ANTSDR\neth1\ntrusted\nmanual\ndisabled\n",
+            "u1": "Wired connection 1\nend0\npublic\nauto\nauto\n-1\nauto\n",
+            "u2": "AryaOS ANTSDR\neth1\ntrusted\nmanual\ndisabled\n-1\ndisabled\n",
         }
 
         def run(args, **_kwargs):
@@ -77,6 +79,63 @@ class IPv4LLTestCase(unittest.TestCase):
         with mock.patch.object(ipv4ll, "_run", side_effect=run):
             profiles = ipv4ll._connection_profiles()
         self.assertEqual([item["uuid"] for item in profiles], ["u1"])
+
+    def test_apply_uses_numeric_enum_and_materializes_public_zone(self):
+        profiles = [
+            {
+                "uuid": "u1",
+                "name": "Wired connection 1",
+                "interface": "end0",
+                "zone": "",
+                "method": "auto",
+                "link_local": "0",
+                "required_timeout": "-1",
+                "ipv6_method": "auto",
+            },
+            {
+                "uuid": "u2",
+                "name": "Site Ethernet",
+                "interface": "end1",
+                "zone": "site-zone",
+                "method": "auto",
+                "link_local": "3",
+                "required_timeout": "0",
+                "ipv6_method": "link-local",
+            },
+        ]
+        result = subprocess.CompletedProcess([], 0, "", "")
+        with (
+            mock.patch.object(ipv4ll, "_connection_profiles", return_value=profiles),
+            mock.patch.object(ipv4ll, "_run", return_value=result) as run,
+        ):
+            ipv4ll._apply_profiles(True)
+
+        modify_calls = [
+            call.args[0]
+            for call in run.call_args_list
+            if call.args[0][:3] == ["nmcli", "connection", "modify"]
+        ]
+        self.assertEqual(len(modify_calls), 1)
+        modify = modify_calls[0]
+        self.assertEqual(
+            modify,
+            [
+                "nmcli",
+                "connection",
+                "modify",
+                "uuid",
+                "u1",
+                "ipv4.link-local",
+                "3",
+                "ipv4.required-timeout",
+                "0",
+                "ipv6.method",
+                "link-local",
+                "connection.zone",
+                "public",
+            ],
+        )
+        self.assertNotIn("u2", modify)
 
 
 class MulticastLinksTestCase(unittest.TestCase):

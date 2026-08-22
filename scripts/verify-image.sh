@@ -145,7 +145,7 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.1.20
+require_pkg_version aryaos-overlay 2.1.26
 require_pkg_version cotbridge 1.1.0
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
@@ -187,10 +187,18 @@ require_path /usr/local/sbin/aryaos-multicast-links
 require_path /etc/systemd/system/aryaos-firstboot.service
 require_path /etc/systemd/system/aryaos-neighbord.service
 require_path /etc/systemd/system/aryaos-multicast-links.service
+require_path /etc/systemd/system/NetworkManager-wait-online.service.d/aryaos.conf
 require_path /etc/systemd/system/multi-user.target.wants/aryaos-multicast-links.service
 require_path /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf
-require_grep '^ipv4.link-local=4$' /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf \
-	"ordinary Ethernet uses DHCP-compatible IPv4LL fallback"
+require_grep '^ipv4.link-local=3$' /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf \
+	"ordinary Ethernet keeps a DHCP-compatible IPv4LL backup"
+require_grep '^ipv4.required-timeout=0$' /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf \
+	"IPv4 DHCP does not delay a usable link-local connection"
+require_grep '^ipv6.method=link-local$' /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf \
+	"Ethernet has a successful address family while optional DHCP continues"
+require_grep '^ExecStart=/usr/bin/nm-online --quiet --timeout=60$' \
+	/etc/systemd/system/NetworkManager-wait-online.service.d/aryaos.conf \
+	"network-online accepts any usable AryaOS link while optional DHCP continues"
 require_grep '^ARYAOS_IPV4LL_FALLBACK=1$' /etc/aryaos/aryaos-config.txt \
 	"IPv4LL MANET fallback is enabled by default"
 require_grep '^PYTAK_MULTICAST_LOCAL_ADDRS=auto$' /etc/aryaos/aryaos-config.txt \
@@ -198,6 +206,9 @@ require_grep '^PYTAK_MULTICAST_LOCAL_ADDRS=auto$' /etc/aryaos/aryaos-config.txt 
 require_grep '^EnvironmentFile=-/run/aryaos/multicast.env$' \
 	/etc/systemd/system/cotbridge.service.d/aryaos-config.conf \
 	"cotbridge consumes resolved multicast interfaces"
+require_grep '^EnvironmentFile=-/run/aryaos/multicast.env$' \
+	/etc/systemd/system/gdlcot.service.d/aryaos-multicast.conf \
+	"gdlcot consumes resolved multicast interfaces"
 require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to cotbridge"
 
 # Portal (stage-aryaos)

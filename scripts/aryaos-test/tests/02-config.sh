@@ -159,11 +159,14 @@ else
 	fail "sikw00fcot service missing"
 fi
 
+ipv4ll_status="$(/usr/local/sbin/aryaos-ipv4ll status --json 2>/dev/null || true)"
 if [[ -x /usr/local/sbin/aryaos-ipv4ll ]] &&
-	/usr/local/sbin/aryaos-ipv4ll status --json 2>/dev/null | grep -q '"enabled": true'; then
-	ok "IPv4LL MANET fallback enabled"
+	grep -q '"enabled": true' <<<"${ipv4ll_status}" &&
+	grep -q '"networkmanager_default": true' <<<"${ipv4ll_status}" &&
+	grep -q '"pending_profiles": \[\]' <<<"${ipv4ll_status}"; then
+	ok "IPv4LL MANET fallback enabled and Ethernet profiles migrated"
 else
-	fail "IPv4LL MANET fallback helper/config missing or disabled"
+	fail "IPv4LL MANET fallback helper/config missing, disabled, or pending migration"
 fi
 
 if [[ -x /usr/local/sbin/aryaos-multicast-links ]] &&

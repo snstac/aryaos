@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Control AryaOS's DHCP-compatible Ethernet IPv4LL fallback."""
+"""Control AryaOS's DHCP-compatible Ethernet IPv4LL backup."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ NM_CONF_PATH = Path(
     )
 )
 CONFIG_KEY = "ARYAOS_IPV4LL_FALLBACK"
-FALLBACK_VALUE = "4"
+ENABLED_VALUE = "3"
 DISABLED_VALUE = "2"
 
 
@@ -69,12 +69,14 @@ def _set_config(enabled: bool) -> None:
 
 
 def _nm_default(enabled: bool) -> str:
-    value = FALLBACK_VALUE if enabled else DISABLED_VALUE
+    value = ENABLED_VALUE if enabled else DISABLED_VALUE
     return (
-        "# Managed by aryaos-ipv4ll; NetworkManager enum: 4=fallback, 2=disabled.\n"
+        "# Managed by aryaos-ipv4ll; NetworkManager enum: 3=enabled, 2=disabled.\n"
         "[connection-aryaos-ethernet-ipv4ll]\n"
         "match-device=type:ethernet\n"
         f"ipv4.link-local={value}\n"
+        "ipv4.required-timeout=0\n"
+        "ipv6.method=link-local\n"
     )
 
 
@@ -100,7 +102,7 @@ def _connection_profiles() -> list[dict[str, str]]:
             [
                 "nmcli",
                 "-g",
-                "connection.id,connection.interface-name,connection.zone,ipv4.method,ipv4.link-local",
+                "connection.id,connection.interface-name,connection.zone,ipv4.method,ipv4.link-local,ipv4.required-timeout,ipv6.method",
                 "connection",
                 "show",
                 "uuid",
@@ -110,7 +112,7 @@ def _connection_profiles() -> list[dict[str, str]]:
         if detail.returncode:
             continue
         values = detail.stdout.splitlines()
-        values += [""] * (5 - len(values))
+        values += [""] * (7 - len(values))
         item = dict(
             uuid=uuid,
             name=values[0],
@@ -118,6 +120,8 @@ def _connection_profiles() -> list[dict[str, str]]:
             zone=values[2],
             method=values[3],
             link_local=values[4],
+            required_timeout=values[5],
+            ipv6_method=values[6],
         )
         if item["method"] != "auto":
             continue
@@ -128,10 +132,25 @@ def _connection_profiles() -> list[dict[str, str]]:
 
 
 def _apply_profiles(enabled: bool) -> list[dict[str, str]]:
-    target = "fallback" if enabled else "disabled"
+    target = ENABLED_VALUE if enabled else DISABLED_VALUE
     profiles = _connection_profiles()
     for profile in profiles:
-        if profile["link_local"] == target:
+        changes = []
+        if profile["link_local"] != target:
+            changes.extend(["ipv4.link-local", target])
+        if enabled and profile["required_timeout"] != "0":
+            changes.extend(["ipv4.required-timeout", "0"])
+        # An IPv6 link-local configuration completes immediately, allowing the
+        # DHCP-compatible IPv4 configuration to remain active and accept a
+        # later lease instead of failing and repeatedly reconnecting the link.
+        if enabled and profile["ipv6_method"] != "link-local":
+            changes.extend(["ipv6.method", "link-local"])
+        # An explicit zone avoids upgraded, DHCP-less connections falling into
+        # an unexpected runtime zone. Preserve every operator-selected zone;
+        # only materialize AryaOS's normal wired-LAN default when it is unset.
+        if not profile["zone"]:
+            changes.extend(["connection.zone", "public"])
+        if not changes:
             continue
         _run(
             [
@@ -140,8 +159,7 @@ def _apply_profiles(enabled: bool) -> list[dict[str, str]]:
                 "modify",
                 "uuid",
                 profile["uuid"],
-                "ipv4.link-local",
-                target,
+                *changes,
             ],
             check=True,
         )
@@ -160,10 +178,19 @@ def _networkmanager_default() -> str:
 
 def _status() -> dict[str, object]:
     enabled = _configured_enabled()
-    expected = FALLBACK_VALUE if enabled else DISABLED_VALUE
+    expected = ENABLED_VALUE if enabled else DISABLED_VALUE
     profiles = _connection_profiles()
-    target = "fallback" if enabled else "disabled"
-    pending = [item["name"] for item in profiles if item["link_local"] != target]
+    target = expected
+    pending = [
+        item["name"]
+        for item in profiles
+        if (
+            item["link_local"] != target
+            or not item["zone"]
+            or (enabled and item["required_timeout"] != "0")
+            or (enabled and item["ipv6_method"] != "link-local")
+        )
+    ]
     return {
         "enabled": enabled,
         "networkmanager_default": _networkmanager_default() == expected,

@@ -73,7 +73,7 @@ restart_aos_services() {
     echo "$now" > "$RESTART_STAMP" 2>/dev/null || true
 
     seen_services=" "
-    for srv in $AOS_SERVICES aryaos-neighbord; do
+    for srv in $AOS_SERVICES gdlcot aryaos-neighbord; do
         case "$seen_services" in *" $srv "*) continue ;; esac
         seen_services="$seen_services$srv "
         if [ "$(systemctl is-enabled "$srv")" = "enabled" ]; then

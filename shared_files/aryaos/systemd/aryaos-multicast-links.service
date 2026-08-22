@@ -1,7 +1,8 @@
 [Unit]
 Description=Resolve AryaOS multicast output interfaces
+StartLimitIntervalSec=0
 After=NetworkManager.service
-Before=cotbridge.service aryaos-neighbord.service
+Before=cotbridge.service gdlcot.service aryaos-neighbord.service
 
 [Service]
 Type=oneshot
