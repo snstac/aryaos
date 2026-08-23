@@ -83,7 +83,7 @@ else
 	done
 fi
 
-for svc in cotbridge lincot adsbcot aiscot dronecot sikw00fcot; do
+for svc in cotbridge lincot gutcheck adsbcot aiscot dronecot-dji sikw00fcot; do
 	if ! unit_loaded "${svc}"; then
 		fail "TAK gateway unit ${svc} missing (portal expects it)"
 		continue
@@ -94,7 +94,9 @@ for svc in cotbridge lincot adsbcot aiscot dronecot sikw00fcot; do
 		skip "TAK gateway ${svc} inactive (adsb capability disabled)"
 	elif test_profile uas && [[ "${svc}" == "adsbcot" ]]; then
 		skip "TAK gateway ${svc} inactive on UAS profile"
-	elif ! test_profile uas && [[ "${svc}" == "dronecot" ]]; then
+	elif [[ "${svc}" == "gutcheck" ]]; then
+		fail "TAK discovery core ${svc} loaded but not active"
+	elif ! test_profile uas && [[ "${svc}" == "dronecot-dji" ]]; then
 		skip "TAK gateway ${svc} inactive outside UAS profile"
 	elif [[ "${svc}" == "sikw00fcot" ]]; then
 		warn "TAK gateway ${svc} loaded but not active (SiK radio/fan-out optional)"
@@ -102,6 +104,12 @@ for svc in cotbridge lincot adsbcot aiscot dronecot sikw00fcot; do
 		warn "TAK gateway ${svc} loaded but not active"
 	fi
 done
+
+if [[ "$(systemctl is-enabled dronecot.service 2>/dev/null || true)" == "masked" ]]; then
+	ok "ambiguous generic dronecot.service masked (DJI is dronecot-dji.service)"
+else
+	fail "generic dronecot.service is not masked"
+fi
 
 # ACARSCOT >= 0.1.1/PyTAK >= 7.5.2 owns reconnects inside one long-running
 # process. A TAK server outage or transient local network-policy replacement

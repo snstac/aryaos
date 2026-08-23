@@ -1063,6 +1063,24 @@
   gap: clamp(0.9rem, 2.2vw, 1.4rem);
 }
 
+.aos-use-notice {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+  padding: 0.8rem 1rem;
+  border: 2px solid var(--aos-warn);
+  background: color-mix(in srgb, var(--aos-warn) 12%, var(--aos-panel));
+  color: var(--aos-text);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.aos-use-notice strong {
+  color: var(--aos-warn);
+  font-family: var(--aos-mono);
+  letter-spacing: 0.08em;
+}
+
 /* --- Big status pills --- */
 .aos-statusrow {
   display: grid;

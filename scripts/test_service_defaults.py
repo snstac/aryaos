@@ -57,7 +57,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             "cockpit-aiscot": "1.2.3",
             "cockpit-aprscot": "0.1.1",
             "cockpit-cotbridge": "1.2.2",
-            "cockpit-dronecot": "1.1.3",
+            "cockpit-dronecot": "1.2.0",
             "cockpit-lincot": "1.1.3",
             "cockpit-sapientcot": "0.1.1",
         }
@@ -193,8 +193,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
-        self.assertIn("require_pkg_version aryaos-overlay 2.1.26", verifier)
-        self.assertIn("require_package_version aryaos-overlay 2.1.26", hil)
+        self.assertIn("require_pkg_version aryaos-overlay 2.2.0", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.2.0", hil)
         self.assertIn("require_pkg_version cotbridge 1.1.0", verifier)
         self.assertIn("require_package_version cotbridge 1.1.0", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
@@ -227,6 +227,10 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             ROOT
             / "shared_files/aryaos/systemd/gdlcot.service.d/aryaos-multicast.conf"
         ).read_text()
+        gutcheck_dropin = (
+            ROOT
+            / "shared_files/aryaos/systemd/gutcheck.service.d/aryaos-health.conf"
+        ).read_text()
 
         for name in ("aryaos-ipv4ll", "aryaos-multicast-links"):
             self.assertIn(
@@ -244,6 +248,9 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn(
             "EnvironmentFile=-/run/aryaos/multicast.env", gdlcot_dropin
         )
+        self.assertIn(
+            "EnvironmentFile=-/run/aryaos/multicast.env", gutcheck_dropin
+        )
         self.assertIn("gdlcot.service.d/aryaos-multicast.conf", builder)
         resolver_unit = (
             ROOT / "shared_files/aryaos/systemd/aryaos-multicast-links.service"
@@ -251,12 +258,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("After=NetworkManager.service", resolver_unit)
         self.assertIn("StartLimitIntervalSec=0", resolver_unit)
         self.assertNotIn("network-online.target", resolver_unit)
-        neighbord_unit = (
-            ROOT / "shared_files/aryaos/systemd/aryaos-neighbord.service"
-        ).read_text()
-        self.assertNotIn("network-online.target", neighbord_unit)
         dispatcher = (ROOT / "shared_files/aryaos/99-aryaos-dispatcher").read_text()
-        self.assertIn("$AOS_SERVICES gdlcot aryaos-neighbord", dispatcher)
+        self.assertIn("$AOS_SERVICES gdlcot gutcheck", dispatcher)
         wait_online = (
             ROOT
             / "shared_files/aryaos/systemd/NetworkManager-wait-online.service.d/aryaos.conf"
@@ -282,7 +285,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("ID_VENDOR_ID=303a", postinst)
         self.assertIn(
             "try-restart lincot.service acarsdec.service "
-            "dronecot-dronescout.service",
+            "dronecot-dji.service dronecot-dronescout.service",
             postinst,
         )
 
@@ -309,6 +312,29 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("STATUS_APP=dronecot-%s", postinst)
         self.assertIn("require_pkg_version dronecot 2.3.9", image_check)
         self.assertIn("require_package_version dronecot 2.3.9", hil_check)
+
+    def test_generic_dronecot_is_migrated_to_explicit_dji_service(self):
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        dji_unit = (
+            ROOT / "shared_files/aryaos/systemd/dronecot-dji.service"
+        ).read_text()
+        dji_defaults = (
+            ROOT / "shared_files/aryaos/dronecot-dji.default"
+        ).read_text()
+        hil = (ROOT / "scripts/aryaos-test/tests/01-services.sh").read_text()
+        image_check = (ROOT / "scripts/verify-image.sh").read_text()
+
+        self.assertIn("EnvironmentFile=/etc/default/dronecot-dji", dji_unit)
+        self.assertIn("ExecStart=/usr/bin/dronecot", dji_unit)
+        self.assertNotIn("Alias=dronecot.service", dji_unit)
+        self.assertIn("STATUS_APP=dronecot-dji", dji_defaults)
+        self.assertIn("dronecot-dji.service", builder)
+        self.assertIn("dronecot-dji.default", builder)
+        self.assertIn("legacy_dji_config=/etc/default/dronecot", postinst)
+        self.assertIn("systemctl mask dronecot.service", postinst)
+        self.assertIn('== "masked"', hil)
+        self.assertIn("ambiguous generic dronecot.service is masked", image_check)
 
     def test_overlay_keeps_network_gps_core_active(self):
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
@@ -390,7 +416,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             verifier,
         )
         self.assertIn("/usr/local/sbin/aryaos-health --json", dropin)
-        self.assertIn("dronecot-dronescout.service gutcheck.service", postinst)
+        self.assertIn("cotbridge.service gutcheck.service lighttpd.service", postinst)
         self.assertIn('"UnitFileState"', health)
         self.assertIn('!= "disabled"', health)
         self.assertNotIn('"gutcheck",', health)
@@ -399,7 +425,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
 
         self.assertIn(
-            "for svc in adsbcot aiscot dronecot sikw00fcot lincot aircot",
+            "for svc in adsbcot aiscot dronecot-dji sikw00fcot lincot aircot",
             builder,
         )
         self.assertIn(

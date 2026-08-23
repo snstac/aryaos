@@ -797,7 +797,7 @@ def _gateway_item(unit_id, label, label_short, member_ids):
     """Aggregate every service that can implement one displayed capability.
 
     Remote ID has several independent DroneCOT instances.  Treating only the
-    legacy ``dronecot.service`` as UAS made a live DroneScout or Wi-Fi receiver
+    DJI-only ``dronecot-dji.service`` as UAS made a live DroneScout or Wi-Fi receiver
     appear disabled on the landing page.
     """
     units = [_gateway_unit(member_id) for member_id in member_ids]
@@ -860,7 +860,7 @@ def gather_tac_gateways():
             "dronecot",
             "UAS / Remote ID→TAK",
             "UAS",
-            ("dronecot", "dronecot-wifi", "dronecot-ble", "dronecot-dronescout", "sapientcot"),
+            ("dronecot-dji", "dronecot-wifi", "dronecot-ble", "dronecot-dronescout", "sapientcot"),
         ),
         ("sikw00fcot", "SiK→TAK", "SiK", ("sikw00fcot",)),
     )

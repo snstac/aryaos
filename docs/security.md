@@ -9,6 +9,12 @@ expiry), never in posture.
 
 ## Access
 
+- **Authorized-use notices** are shown before authentication over SSH
+  (`/etc/issue.net`), on local consoles (`/etc/issue`), after login
+  (`/etc/motd`), and persistently on the HTTPS landing page. The notice states
+  that access is restricted and activity may be monitored, recorded, and
+  audited. This is CMMC-aligned preparatory language, not a claim that a
+  particular deployment is CMMC certified or compliant.
 - **Default password** (`pi` / published) is force-expired at first login on
   release images (`chage -d 0`, `aryaos-firstboot.sh`).
 - **sshd** (`/etc/ssh/sshd_config.d/50-aryaos.conf`): root login disabled,
@@ -26,13 +32,13 @@ expiry), never in posture.
 - **firewalld** is enabled with an explicit inbound allowlist in the default
   zone (`/etc/firewalld/zones/public.xml`): SSH, HTTP/HTTPS (portal +
   Cockpit proxy), mDNS, DHCP/DNS (comitup hotspot + Bluetooth PAN leases),
-  Mesh SA multicast (`6969/udp`), Node-RED (`1880`, adminAuth-protected),
-  AIS-catcher dashboard (`8100`), comitup onboarding (`9080`). Custom service
+  Mesh SA multicast (`6969/udp`), GutCheck identity discovery (`1900/udp`),
+  AIS-catcher dashboard (`8100`), and comitup onboarding (`9080`). Custom service
   definitions live in `/etc/firewalld/services/aryaos-*.xml`.
 - Operators manage the firewall in **Cockpit > Networking > Firewall** (no
   shell needed).
 - The AntSDR point-to-point link (`eth1`, `aryaos-antsdr.nmconnection`) is in
-  the **trusted** zone so the sensor can reach the dronecot listener.
+  the **trusted** zone so the sensor can reach the `dronecot-dji` listener.
 - Docker-published ports (CloudTAK, UAS broker) are governed by Docker's own
   firewalld integration, not the public zone.
 - **cockpit-ws** binds loopback only; lighttpd terminates TLS on `:443` and

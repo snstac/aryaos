@@ -52,6 +52,7 @@ install_file 0440 "${SHARED}/aryaos/aryaos.sudoers" "/etc/sudoers.d/aryaos"
 install_file 0440 "${SHARED}/aryaos/aryaos-gutcheck-health.sudoers" "/etc/sudoers.d/aryaos-gutcheck-health"
 install_file 0644 "${SHARED}/aryaos/aryaos-config.txt" "/usr/share/aryaos/defaults/aryaos-config.txt"
 install_file 0644 "${SHARED}/aryaos/gpsd.default" "/usr/share/aryaos/defaults/gpsd.default"
+install_file 0644 "${SHARED}/aryaos/dronecot-dji.default" "/usr/share/aryaos/defaults/dronecot-dji.default"
 install_file 0644 "${SHARED}/aryaos/dronecot-dronescout.default" "/usr/share/aryaos/defaults/dronecot-dronescout.default"
 install_file 0644 "${SHARED}/aryaos/dronecot-wifi.default" "/usr/share/aryaos/defaults/dronecot-wifi.default"
 install_file 0644 "${SHARED}/aryaos/dronecot-ble.default" "/usr/share/aryaos/defaults/dronecot-ble.default"
@@ -72,8 +73,8 @@ install_file 0755 "${SHARED}/aryaos/aryaos-lincot-remarks" "/usr/local/sbin/arya
 install_file 0755 "${SHARED}/aryaos/aryaos-cot-detail" "/usr/local/sbin/aryaos-cot-detail"
 install_file 0755 "${SHARED}/aryaos/aryaos-health" "/usr/local/sbin/aryaos-health"
 install_file 0755 "${SHARED}/aryaos/aryaos-site-output" "/usr/local/sbin/aryaos-site-output"
-install_file 0755 "${SHARED}/aryaos/aryaos-neighbord" "/usr/local/sbin/aryaos-neighbord"
 install_file 0755 "${SHARED}/aryaos/aryaos-ipv4ll" "/usr/local/sbin/aryaos-ipv4ll"
+install_file 0755 "${SHARED}/dronecot/aryaos-dronecot-ready" "/usr/local/sbin/aryaos-dronecot-ready"
 install_file 0755 "${SHARED}/aryaos/aryaos-multicast-links" "/usr/local/sbin/aryaos-multicast-links"
 install_file 0755 "${SHARED}/aryaos/aryaos-capability-scan" "/usr/local/sbin/aryaos-capability-scan"
 install_file 0755 "${SHARED}/aryaos/aryaos-serial-classify" "/usr/local/libexec/aryaos/aryaos-serial-classify"
@@ -100,11 +101,11 @@ install_file 0755 "${SHARED}/aryaos/get_position.sh" "/usr/local/bin/get_positio
 install_file 0644 "${SHARED}/aryaos/aryaos-firstboot.service" "/etc/systemd/system/aryaos-firstboot.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-gps-time-sync.service" "/etc/systemd/system/aryaos-gps-time-sync.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-tak-dp-importd.service" "/etc/systemd/system/aryaos-tak-dp-importd.service"
-install_file 0644 "${SHARED}/aryaos/systemd/aryaos-neighbord.service" "/etc/systemd/system/aryaos-neighbord.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-multicast-links.service" "/etc/systemd/system/aryaos-multicast-links.service"
 install_file 0644 "${SHARED}/aryaos/systemd/NetworkManager-wait-online.service.d/aryaos.conf" "/etc/systemd/system/NetworkManager-wait-online.service.d/aryaos.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/acarsdec.service" "/etc/systemd/system/acarsdec.service"
 install_file 0644 "${SHARED}/aryaos/systemd/dronecot-dronescout.service" "/etc/systemd/system/dronecot-dronescout.service"
+install_file 0644 "${SHARED}/aryaos/systemd/dronecot-dji.service" "/etc/systemd/system/dronecot-dji.service"
 install_file 0644 "${SHARED}/aryaos/systemd/ais-catcher.service.d/aryaos-private.conf" "/etc/systemd/system/ais-catcher.service.d/aryaos-private.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/gdlcot.service.d/aryaos-multicast.conf" "/etc/systemd/system/gdlcot.service.d/aryaos-multicast.conf"
 install_file 0644 "${SHARED}/aryaos/systemd/ais-catcher-rtl@.service" "/etc/systemd/system/ais-catcher-rtl@.service"
@@ -116,10 +117,10 @@ install_file 0644 "${SHARED}/aryaos/systemd/aryaos-zeroize.service" "/etc/system
 for unit in aryaos-crash-guard.service aryaos-safe-mode.service aryaos-boot-stable.service aryaos-boot-stable.timer; do
 	install_file 0644 "${SHARED}/aryaos/systemd/${unit}" "/etc/systemd/system/${unit}"
 done
-for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot sikw00fcot sapientcot; do
+for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot-dji sikw00fcot sapientcot; do
 	install_file 0644 "${SHARED}/aryaos/systemd/safe-mode.conf" "/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done
-for svc in adsbcot aiscot dronecot sikw00fcot lincot aircot; do
+for svc in adsbcot aiscot dronecot-dji sikw00fcot lincot aircot; do
 	install_file 0644 "${SHARED}/cotbridge/systemd/after-cotbridge.conf" "/etc/systemd/system/${svc}.service.d/after-cotbridge.conf"
 done
 install_file 0644 "${SHARED}/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf" "/etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf"

@@ -11,6 +11,7 @@ import sys
 import socket
 import subprocess
 import time
+import uuid
 import xml.etree.ElementTree as ET
 
 
@@ -19,7 +20,7 @@ SERVICES = (
     "lincot",
     "adsbcot",
     "aiscot",
-    "dronecot",
+    "dronecot-dji",
     "dronecot-wifi",
     "dronecot-ble",
     "dronecot-dronescout",
@@ -29,13 +30,14 @@ SERVICES = (
 SITE_CONFIG = "/etc/aryaos/aryaos-config.txt"
 CAP_SCAN = "/usr/local/sbin/aryaos-capability-scan"
 CAP_CACHE = "/run/aryaos/capabilities-detected"
+DISCOVERY_NAMESPACE = uuid.UUID("36cead4f-4d6d-51d2-b032-3cb4a65a5cde")
 
 # Capability key -> (human label, capability unit, default sensor description).
 # Mirrors the capability registry in aryaos-role.
 CAPABILITIES = {
     "adsb": ("ADS-B / UAT", "adsbcot", "RTL-SDR / SoapySDR receiver"),
     "ais": ("AIS", "aiscot", "AIS receiver"),
-    "dji": ("DJI DroneID", "dronecot", "AntSDR (DJI OcuSync)"),
+    "dji": ("DJI DroneID", "dronecot-dji", "AntSDR (DJI OcuSync)"),
     "wifi-rid": ("Wi-Fi Remote ID", "dronecot-wifi", "Wi-Fi monitor-mode adapter"),
     "ble-rid": ("Bluetooth Remote ID", "dronecot-ble", "onboard Bluetooth adapter"),
     "acars": ("ACARS", "acarscot", "VHF SDR"),
@@ -51,6 +53,12 @@ def _read(path: str) -> str:
             return fp.read().strip()
     except OSError:
         return ""
+
+
+def _discovery_id(hostname: str) -> str:
+    """Opaque stable ID shared by CoT, DNS-SD, and SSDP discovery."""
+    seed = _read("/etc/machine-id") or _read("/var/lib/dbus/machine-id") or hostname
+    return str(uuid.uuid5(DISCOVERY_NAMESPACE, seed))
 
 
 def _run(args: list[str], timeout: float = 1.0) -> str:
@@ -166,7 +174,7 @@ def _roles() -> dict[str, str]:
         "adsb": str(_service_state("adsbcot") == "active").lower(),
         "ais": str(_service_state("aiscot") == "active").lower(),
         "uas": str(
-            _service_state("dronecot") == "active"
+            _service_state("dronecot-dji") == "active"
             or _service_state("dronecot-wifi") == "active"
             or _service_state("dronecot-dronescout") == "active"
         ).lower(),
@@ -203,20 +211,20 @@ def _detected_caps() -> set:
     """
     # Existence, not truthiness, is the cache-valid marker. A legitimate empty
     # hardware snapshot used to trigger a fresh 20-second scan on every beacon;
-    # aryaos-neighbord's 3-second detail budget then killed the subprocess and
+    # The old neighbor daemon's 3-second detail budget then killed the subprocess and
     # permanently reduced that node to a host-only fallback record.
     if os.path.exists(CAP_CACHE):
         return set(_read(CAP_CACHE).split())
     # lincot invokes this helper as its unprivileged service user. It cannot
     # populate the root-owned /run cache, so scanning here would burn seconds on
-    # every keepalive forever. aryaos-neighbord performs one root warm-up at
+    # every keepalive forever. Capability discovery performs a root warm-up at
     # startup; until then, active gateways still count as available below.
     if os.geteuid() != 0:
         return set()
     if not os.path.exists(CAP_SCAN):
         return set()
     # This runs inside the beacon path. The scanner has its own per-probe
-    # bounds; keep the aggregate below aryaos-neighbord's detail budget so a
+    # bounds; keep the aggregate below the beacon detail budget so a
     # missing cache cannot turn every beacon into a host-only fallback.
     out = _run([CAP_SCAN, "--detected"], timeout=7)
     try:
@@ -456,7 +464,7 @@ DECODERS = {
     "aiscot": "ais",
     "acarscot": "acars",
     "aprscot": "aprs",
-    "dronecot": "rid",
+    "dronecot-dji": "rid",
     "lincot": "sys",
     "sapientcot": "sapient",
     "gpscot": "gps",
@@ -618,7 +626,13 @@ def main() -> int:
     # every box in the fleet advertised the same value regardless of what was
     # actually attached to it. A consumer trusting that field was worse off than
     # one ignoring it. Capabilities carry the real answer and are measured.
-    root = ET.Element("__aryaos", {"version": "5"})
+    root = ET.Element(
+        "__aryaos",
+        {
+            "version": "5",
+            "point_source": os.environ.get("ARYAOS_POINT_SOURCE", "gpsd"),
+        },
+    )
     ET.SubElement(
         root,
         "host",
@@ -628,6 +642,7 @@ def main() -> int:
             "ip": _primary_ip(),
             "admin_url": f"https://{hostname}.local/admin/",
             "ssh": f"pi@{hostname}.local",
+            "discovery_id": _discovery_id(hostname),
             "seen_source": os.environ.get("ARYAOS_SEEN_SOURCE", "lincot"),
         },
     )

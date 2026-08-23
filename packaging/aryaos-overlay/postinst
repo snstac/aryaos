@@ -52,6 +52,34 @@ case "$1" in
         printf '\nSTATUS_APP=dronecot-%s\n' "$dronecot_instance" >> "$instance_config"
       fi
     done
+    # AryaOS 2.2 makes the formerly generic DJI/AntSDR instance explicit.
+    # Preserve an operator's existing feed/bind settings, but never leave both
+    # units runnable: the upstream generic service is masked after migration.
+    dji_defaults=/usr/share/aryaos/defaults/dronecot-dji.default
+    dji_config=/etc/default/dronecot-dji
+    legacy_dji_config=/etc/default/dronecot
+    legacy_dji_enabled=0
+    if command -v systemctl >/dev/null 2>&1 \
+      && systemctl is-enabled --quiet dronecot.service 2>/dev/null; then
+      legacy_dji_enabled=1
+    fi
+    if [ ! -f "$dji_config" ]; then
+      if [ -f "$legacy_dji_config" ]; then
+        install -m 0644 -o root -g root "$legacy_dji_config" "$dji_config"
+      elif [ -f "$dji_defaults" ]; then
+        install -m 0644 -o root -g root "$dji_defaults" "$dji_config"
+      fi
+    fi
+    if [ -f "$dji_config" ] && [ -f "$dji_defaults" ]; then
+      sed -i '/^#\?FEED_URL=/d' "$dji_config"
+      for dji_key in DJI_TCP_PORT DJI_BIND_ADDRESS DJI_SENSOR_NAME SENSOR_KEEPALIVE_PERIOD STATUS_APP; do
+        if ! grep -q "^${dji_key}=" "$dji_config"; then
+          dji_line="$(grep "^${dji_key}=" "$dji_defaults" | tail -n 1)"
+          [ -n "$dji_line" ] && printf '\n%s\n' "$dji_line" >> "$dji_config"
+        fi
+      done
+      sed -i 's/^STATUS_APP=.*/STATUS_APP=dronecot-dji/' "$dji_config"
+    fi
     if [ ! -f /etc/aryaos/aryaos-config.txt ] && [ -f /usr/share/aryaos/defaults/aryaos-config.txt ]; then
       install -d -m 0755 /etc/aryaos
       install -m 0644 -o root -g root /usr/share/aryaos/defaults/aryaos-config.txt /etc/aryaos/aryaos-config.txt
@@ -97,6 +125,10 @@ case "$1" in
         install -m 0644 -o root -g root "/usr/share/aryaos/defaults/$banner" "/etc/$banner"
       fi
     done
+    # SSH sends issue.net before the client's password prompt. CRLF is
+    # intentional here: a bare LF leaves some Windows terminals at the old
+    # column, visually prepending the next prompt to the banner.
+    sed -i 's/\r$//; s/$/\r/' /etc/issue.net
 
     for user in adsbcot aiscot dronecot lincot cotbridge; do
       if getent passwd "$user" >/dev/null 2>&1; then
@@ -144,7 +176,14 @@ case "$1" in
       systemctl reset-failed rpi-zram-writeback.timer 2>/dev/null || true
       systemctl reset-failed NetworkManager-wait-online.service 2>/dev/null || true
       systemctl start NetworkManager-wait-online.service 2>/dev/null || true
-      systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-multicast-links.service aryaos-neighbord.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service 2>/dev/null || true
+      systemctl disable --now aryaos-neighbord.service dronecot.service 2>/dev/null || true
+      systemctl mask dronecot.service 2>/dev/null || true
+      rm -f /etc/systemd/system/aryaos-neighbord.service /usr/local/sbin/aryaos-neighbord
+      systemctl daemon-reload || true
+      systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-multicast-links.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service gutcheck.service 2>/dev/null || true
+      if [ "$legacy_dji_enabled" = 1 ]; then
+        systemctl enable dronecot-dji.service 2>/dev/null || true
+      fi
       # Network GPS is core plumbing, independent of the selected sensor role.
       systemctl enable --now gpscot.service 2>/dev/null || true
       # Time service: chrony (GPS-disciplined + serves the local network) replaces
@@ -161,7 +200,7 @@ case "$1" in
       systemctl reload ssh.service 2>/dev/null || true
       systemctl try-restart fail2ban.service 2>/dev/null || true
       firewall-cmd --reload >/dev/null 2>&1 || true
-      systemctl restart aryaos-tak-dp-importd.service aryaos-multicast-links.service cotbridge.service aryaos-neighbord.service lighttpd.service 2>/dev/null || true
+      systemctl restart aryaos-tak-dp-importd.service aryaos-multicast-links.service cotbridge.service gutcheck.service lighttpd.service 2>/dev/null || true
       if systemctl is-enabled --quiet gdlcot.service 2>/dev/null; then
         systemctl reset-failed gdlcot.service 2>/dev/null || true
         systemctl restart gdlcot.service 2>/dev/null || true
@@ -172,7 +211,7 @@ case "$1" in
       systemctl restart aryaos-serial-assign.service 2>/dev/null || true
       # These are role-dependent, so refresh only instances that were already
       # running; package installation must not enable a new radio role.
-      systemctl try-restart lincot.service acarsdec.service dronecot-dronescout.service gutcheck.service 2>/dev/null || true
+      systemctl try-restart lincot.service acarsdec.service dronecot-dji.service dronecot-dronescout.service 2>/dev/null || true
       # aryaos-serial-assign already resumed gpsd with the detected device.
       # Restarting the socket/service pair again races the tty open path.
       systemctl try-restart cockpit.socket 2>/dev/null || true

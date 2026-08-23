@@ -9,5 +9,5 @@
 
 - name: Restart DroneCOT
   ansible.builtin.systemd:
-    name: dronecot.service
+    name: dronecot-dji.service
     state: restarted

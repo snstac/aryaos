@@ -179,7 +179,7 @@ Expectations live in **`expectations.yml`**; update that file when image default
 - SSH unreachable
 - Any capability named by `ARYAOS_EXPECT_CAPABILITIES` is not enabled
 - Core units: `readsb`, `adsbcot`, `lighttpd`, `gpsd`
-- TAK gateway units expected by portal CGI: `cotbridge`, `lincot`, `adsbcot`, `aiscot`, `dronecot`
+- TAK gateway units expected by portal CGI: `cotbridge`, `lincot`, `adsbcot`, `aiscot`, and the explicit `dronecot-*` instances
 - Config: `COT_URL=udp+wo://127.0.0.1:28087`, adsbcot `FEED_URL`, cotbridge ingress (when present)
 - readsb `--help` includes RTL-SDR, SoapySDR, HackRF
 - `/run/adsb/aircraft.json` exists and is valid JSON

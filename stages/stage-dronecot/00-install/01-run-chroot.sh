@@ -8,4 +8,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 systemctl daemon-reload 2>/dev/null || true
+systemctl disable dronecot.service 2>/dev/null || true
+systemctl mask dronecot.service 2>/dev/null || true
 systemctl enable aryaos-antsdr-health.timer 2>/dev/null || true

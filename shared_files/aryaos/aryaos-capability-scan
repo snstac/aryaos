@@ -60,7 +60,7 @@ CAP_UNITS = {
     "adsb": "adsbcot",
     "ais": "aiscot",
     "acars": "acarscot",
-    "dji": "dronecot",
+    "dji": "dronecot-dji",
     "wifi-rid": "dronecot-wifi",
     "ble-rid": "dronecot-ble",
     "rid": "dronecot-dronescout",
@@ -437,7 +437,7 @@ def _same_serial_device(left, right):
 def probe_antsdr():
     """Is an AntSDR present on the point-to-point link?"""
     bind = ""
-    for line in _read("/etc/default/dronecot").splitlines():
+    for line in _read("/etc/default/dronecot-dji").splitlines():
         if line.startswith("DJI_BIND_ADDRESS="):
             bind = line.split("=", 1)[1].strip().strip("\"'")
     bind = bind or "172.31.100.1"

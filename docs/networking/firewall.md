@@ -20,16 +20,17 @@ implicitly accepted by firewalld.
 | `dhcp` | 67/udp | DHCP leases - served only while the comitup hotspot runs; also leases [Bluetooth PAN](../bluetooth-pan.md) clients. |
 | `dhcpv6-client` | 546/udp | DHCPv6 client. |
 | `dns` | 53/tcp+udp | DNS - answered only while the comitup onboarding hotspot is up (dnsmasq is not otherwise active). |
-| `aryaos-mesh-sa` | 6969/udp | TAK **Mesh SA** multicast - COTBridge egress/ingress and `aryaos-neighbord` on `239.2.3.1:6969`. |
-| `aryaos-node-red` | 1880/tcp | Node-RED low-code editor and dashboards (admin API is `adminAuth`-protected). |
+| `aryaos-mesh-sa` | 6969/udp | TAK **Mesh SA** multicast - COTBridge and GutCheck CoT discovery on `239.2.3.1:6969`. |
+| `aryaos-gutcheck-discovery` | 1900/udp | Identity-only GutCheck SSDP discovery on each local link. |
+| `aryaos-gutcheck` | 8181/tcp | Token-protected GutCheck health dashboard/API on trusted links. |
 | `aryaos-ais-catcher` | 8100/tcp | AIS-catcher live map / statistics dashboard. |
 | `aryaos-comitup` | 9080/tcp | Comitup captive Wi-Fi onboarding portal (listens only in hotspot mode). |
 
 !!! info "Custom `aryaos-*` service definitions"
-    The last four rows are AryaOS-specific firewalld *services* defined in
+    AryaOS-specific firewalld *services* are defined in
     `/etc/firewalld/services/aryaos-*.xml`
-    (`aryaos-mesh-sa`, `aryaos-node-red`, `aryaos-ais-catcher`,
-    `aryaos-comitup`). Bundling ports into named services keeps the zone
+    (`aryaos-mesh-sa`, `aryaos-gutcheck-discovery`, `aryaos-gutcheck`,
+    `aryaos-ais-catcher`, `aryaos-comitup`). Bundling ports into named services keeps the zone
     readable and lets you toggle a whole capability at once.
 
 !!! note "Some ports only answer sometimes"
@@ -62,7 +63,7 @@ For the canonical port/protocol reference across the whole system, see
 
 The AntSDR point-to-point link (`eth1`, `aryaos-antsdr.nmconnection`) is placed
 in firewalld's **`trusted`** zone rather than the default `AryaOS` zone, so the
-drone-detection sensor can reach the dronecot listener over that dedicated
+drone-detection sensor can reach the `dronecot-dji` listener over that dedicated
 cable without you poking a hole in the field-facing allowlist. This is a private
 sensor link, not a general network - treat the `trusted` zone as reserved for
 it.

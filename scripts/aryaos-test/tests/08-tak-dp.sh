@@ -48,14 +48,14 @@ else
 	skip "TAK Server enrollment not configured"
 fi
 
-if unit_active aryaos-neighbord; then
-	if sudo systemctl restart aryaos-neighbord.service && [[ -S /run/aryaos/tak-dp-import.sock ]]; then
+if unit_active gutcheck; then
+	if sudo systemctl restart gutcheck.service && [[ -S /run/aryaos/tak-dp-import.sock ]]; then
 		ok "neighbor restart preserves TAK DP import socket"
 	else
 		fail "neighbor restart removed TAK DP import socket"
 	fi
 else
-	skip "aryaos-neighbord inactive; socket preservation check skipped"
+	skip "gutcheck inactive; socket preservation check skipped"
 fi
 
 # The unauthenticated /cgi-bin/aryaos-tak-dp-upload endpoint was REMOVED on

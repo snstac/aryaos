@@ -28,39 +28,13 @@ export SHARED_FILES
 rsync -va "${SHARED_FILES}/dronecot/docker-uas-broker" "${ROOTFS_DIR}/usr/src/"
 rsync -va "${SHARED_FILES}/dronecot/docker-uas-sensor" "${ROOTFS_DIR}/usr/src/"
 
-# Script to reset wlan interfaces when restarting dronecot
-# FIXME: Add to DroneCOT deb package installer.
-install -v -m 755 "${SHARED_FILES}/dronecot/reset_wlan.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 755 "${SHARED_FILES}/dronecot/aryaos-dronecot-ready" "${ROOTFS_DIR}/usr/local/sbin/"
-mkdir -p "${ROOTFS_DIR}/etc/systemd/system/dronecot.service.d"
-install -v -m 0644 "${SHARED_FILES}/dronecot/execprestart.conf" "${ROOTFS_DIR}/etc/systemd/system/dronecot.service.d"
-install -v -m 0644 \
-	"${SHARED_FILES}/dronecot/antsdr-listener.conf" \
-	"${ROOTFS_DIR}/etc/systemd/system/dronecot.service.d/zz-antsdr-listener.conf"
-
-touch "${ROOTFS_DIR}/etc/default/dronecot"
-sed --follow-symlinks -i -E \
-	-e "/^#?FEED_URL=/d" \
-	-e "/^#?DJI_TCP_PORT=/d" \
-	-e "/^#?DJI_BIND_ADDRESS=/d" \
-	-e "/^#?DJI_SENSOR_NAME=/d" \
-	-e "/^#?SENSOR_KEEPALIVE_PERIOD=/d" \
-	"${ROOTFS_DIR}/etc/default/dronecot"
-cat >> "${ROOTFS_DIR}/etc/default/dronecot" <<'EOF'
-
-# AryaOS ANTSDR E200 scanner-push listener.
-DJI_TCP_PORT=52002
-DJI_BIND_ADDRESS=172.31.100.1
-DJI_SENSOR_NAME=ANTSDR
-SENSOR_KEEPALIVE_PERIOD=30
-EOF
-
-# Inherit site-wide config (COT_URL, PYTAK_TLS_*) from /etc/aryaos; the unit's own
-# EnvironmentFile=/etc/default/dronecot loads later, so per-service values override.
-if [[ -f "${ROOTFS_DIR}/lib/systemd/system/dronecot.service" ]]; then
-	grep -qF "EnvironmentFile=-/etc/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/lib/systemd/system/dronecot.service" || \
-		sed --follow-symlinks -i -E -e "/\[Service\]/a EnvironmentFile=-/etc/aryaos/aryaos-config.txt" "${ROOTFS_DIR}/lib/systemd/system/dronecot.service"
-fi
+# AryaOS names the DJI/AntSDR instance explicitly. The generic upstream unit is
+# masked in the chroot step so "dronecot" cannot silently mean DJI.
+install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/dronecot-dji.service" \
+	"${ROOTFS_DIR}/etc/systemd/system/dronecot-dji.service"
+install -v -m 0644 "${SHARED_FILES}/aryaos/dronecot-dji.default" \
+	"${ROOTFS_DIR}/etc/default/dronecot-dji"
 
 # DroneScout DS101/DS110: a SECOND dronecot instance reading MAVLink Remote ID
 # from a protocol-verified USB serial path. The ExecCondition helper keeps a

@@ -34,7 +34,7 @@ counts immediately before publication.
 | Image self-download | `aryaos-image-download` and Cockpit card/image verifier | Downloads matching release image; requires access to release source when fetching |
 | Updates/support/backup/reset/zeroize | operation docs, helpers, lifecycle HIL | Zeroize is best-effort on flash; backup no-secrets omits defined secrets |
 | Track recording and analysis | COTBridge recorder; `aryaos-tracks`; `aryaos-tracks-query` | Claim recording/query/export/purge only; browser replay remains roadmap |
-| Nearby-node discovery | `aryaos-cot-detail`; `aryaos-neighbord`; portal/admin docs | Mesh SA local discovery; not centralized fleet management |
+| Nearby-node discovery | `aryaos-cot-detail`; GutCheck CoT/DNS-SD/SSDP; portal/admin docs | Local-link discovery; not centralized fleet management or STANAG conformance |
 | Safe mode after short boots | `aryaos-safe-mode`; crash guard units; hardware docs/tests | Three short boots under configured threshold; keeps wired admin path available |
 | Media longevity | zram/fstrim/tmpfs configs; media docs/HIL | “Reduces write amplification,” never “prevents media failure” |
 | Firewall/fail2ban/SSH/TLS hardening | `docs/security.md`; firewalld assets; verifier/HIL | “Hardened”; never “unhackable,” FIPS validated, or STIG compliant |

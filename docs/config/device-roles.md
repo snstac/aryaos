@@ -20,7 +20,7 @@ Roles only toggle the **sensor** units on top of that core. This means a unit al
 | `multi` | All pipelines (default) | ADS-B + AIS + drones |
 | `air` | Aircraft only (ADS-B 1090/978) | `<decoder>`, `dump978-fa`, `adsbcot`, `gdlcot` |
 | `maritime` | Vessels only (AIS) | `ais-catcher`, `aiscot` |
-| `cuas` | Counter-UAS (drones) | `dronecot`, `sikw00fcot`, `sapientcot` |
+| `cuas` | Counter-UAS (drones) | `dronecot-dji`, `sikw00fcot`, `sapientcot` |
 | `relay` | CoT routing only | *(none)* |
 
 `<decoder>` is the 1090 MHz decoder chosen by [`ARYAOS_ADSB_DECODER`](./site-config.md#ads-b-radios): `readsb` (default) or `dump1090-fa`.
@@ -31,10 +31,10 @@ The exact unit sets, from `aryaos-role`:
 |-------|-------|
 | ADS-B (`air`, `multi`) | `readsb` **or** `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdlcot` |
 | AIS (`maritime`, `multi`) | `ais-catcher`, `aiscot` |
-| Drones / C-UAS (`cuas`, `multi`) | `dronecot`, `sikw00fcot`, `sapientcot` |
+| Drones / C-UAS (`cuas`, `multi`) | `dronecot-dji`, `sikw00fcot`, `sapientcot` |
 
 !!! note "Units missing from your image are skipped"
-    Applying a role enables the role's units and disables all other managed units. Missing optional units are skipped without error. The full managed set is: `readsb`, `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdlcot`, `ais-catcher`, `aiscot`, `dronecot`, `sikw00fcot`, `sapientcot`.
+    Applying a role enables the role's units and disables all other managed units. Missing optional units are skipped without error. The full managed set includes `readsb`, `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdlcot`, `ais-catcher`, `aiscot`, the explicit `dronecot-*` instances, `sikw00fcot`, and `sapientcot`.
 
     `sapientcot` bridges a [SAPIENT (BSI Flex 335)](https://github.com/snstac/sapientcot) C-UAS sensor/fusion network into TAK. Point `SAPIENT_HOST`/`SAPIENT_PORT` in `/etc/default/sapientcot` at your SAPIENT node. It retries while the node is unreachable.
 

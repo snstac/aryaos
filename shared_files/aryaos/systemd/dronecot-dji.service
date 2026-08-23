@@ -1,0 +1,23 @@
+[Unit]
+Description=DroneCOT DJI / AntSDR — DJI DroneID to TAK
+Documentation=https://github.com/snstac/dronecot
+Wants=network.target
+After=network.target local-fs.target cotbridge.service
+StartLimitIntervalSec=0
+
+[Service]
+User=dronecot
+ExecCondition=/usr/local/sbin/aryaos-dronecot-ready /etc/default/dronecot-dji
+ExecStart=/usr/bin/dronecot
+RuntimeDirectory=dronecot-dji
+SyslogIdentifier=dronecot-dji
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+EnvironmentFile=/etc/default/dronecot-dji
+Type=simple
+Restart=always
+RestartSec=20
+RestartPreventExitStatus=64
+Nice=-1
+
+[Install]
+WantedBy=multi-user.target

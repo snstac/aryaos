@@ -28,12 +28,12 @@ import glob, json, os, subprocess, time
 from pathlib import Path
 
 SERVICES = (
-    "cotbridge", "gpscot", "gdlcot", "lincot", "dronecot",
+    "cotbridge", "gpscot", "gdlcot", "lincot", "gutcheck", "dronecot-dji",
     "dronecot-wifi", "dronecot-ble", "dronecot-dronescout",
     "acarscot", "acarsdec", "readsb", "dump978-fa", "adsbcot",
     "gpsd", "ais-catcher", "aiscot", "aprscot", "sapientcot",
     "sikw00fcot", "sikw00fscan", "sikw00fsentinel", "gutcheck",
-    "aryaos-neighbord", "aryaos-bt-pan", "aryaos-gps-time-sync",
+    "aryaos-bt-pan", "aryaos-gps-time-sync",
     "firewalld", "cockpit.socket",
 )
 

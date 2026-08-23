@@ -3,7 +3,7 @@ Description=DroneCOT (DroneScout DS101/DS110) — MAVLink Remote ID over serial 
 Documentation=https://github.com/snstac/dronecot
 # A SECOND dronecot instance dedicated to a BlueMark DroneScout / DroneBeacon,
 # which emits detected Remote ID as MAVLink (OPEN_DRONE_ID_MESSAGE_PACK or
-# ADSB_VEHICLE) over USB CDC or UART. Runs alongside AntSDR/DJI dronecot.service;
+# ADSB_VEHICLE) over USB CDC or UART. Runs alongside AntSDR/DJI dronecot-dji.service;
 # both feed the same cotbridge hub. Off by default (opt-in for a DS101 laydown)
 # — enable with:
 #   sudo systemctl enable --now dronecot-dronescout

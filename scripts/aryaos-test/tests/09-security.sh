@@ -14,7 +14,7 @@ if command -v firewall-cmd >/dev/null 2>&1; then
 	if [[ "$(sudo -n firewall-cmd --state 2>/dev/null)" == "running" ]]; then
 		ok "firewalld running"
 		zone_services="$(sudo -n firewall-cmd --list-services 2>/dev/null || true)"
-		for svc in ssh https aryaos-mesh-sa; do
+		for svc in ssh https aryaos-mesh-sa aryaos-gutcheck-discovery; do
 			if grep -qw "${svc}" <<<"${zone_services}"; then
 				ok "firewall allows ${svc}"
 			else
@@ -38,6 +38,25 @@ if command -v firewall-cmd >/dev/null 2>&1; then
 	fi
 else
 	warn "firewalld not installed (pre-hardening image?)"
+fi
+
+# --- authorized-use notices ---
+for banner in /etc/issue.net /etc/issue /etc/motd; do
+	if grep -q 'AUTHORIZED USE ONLY' "${banner}" 2>/dev/null; then
+		ok "${banner} authorized-use notice present"
+	else
+		fail "${banner} authorized-use notice missing"
+	fi
+done
+if python3 -c 'from pathlib import Path; d=Path("/etc/issue.net").read_bytes(); raise SystemExit(not d or any(not line.endswith(b"\r\n") for line in d.splitlines(keepends=True)))'; then
+	ok "/etc/issue.net uses Windows-safe CRLF line endings"
+else
+	fail "/etc/issue.net does not use CRLF line endings"
+fi
+if grep -q 'Activity may be monitored, recorded, and audited' /var/www/html/index.html 2>/dev/null; then
+	ok "landing page authorized-use notice present"
+else
+	fail "landing page authorized-use notice missing"
 fi
 
 # --- fail2ban ---

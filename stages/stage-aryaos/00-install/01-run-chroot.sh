@@ -44,7 +44,8 @@ systemctl enable chrony.service
 # Picks a GNSS PPS (by name, not by device number) and hands it to chrony.
 systemctl enable aryaos-time-pps.service
 systemctl enable aryaos-tak-dp-importd.service
-systemctl enable aryaos-neighbord.service
+# GutCheck is installed later with the sensor package manifest; the AryaOS
+# overlay postinst enables it once the unit exists.
 # EMCON: re-applies WiFi/Bluetooth rfkill at boot when /etc/aryaos/emcon is set.
 systemctl enable aryaos-radio-silence.service
 # Safe mode: crash-loop guard (early), USB-off applier (late), boot-stable timer.

@@ -14,7 +14,7 @@ flowchart LR
     M --> K
     K -.-> U[aryaos-update]
     D -.-> S[aryaos-support-bundle]
-    M -.-> N[aryaos-neighbord]
+    M -.-> N[GutCheck discovery]
 ```
 
 - **Keep updated** - apply patches from the signed snstac repo with one click.

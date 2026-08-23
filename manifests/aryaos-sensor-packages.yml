@@ -20,6 +20,8 @@ sensor_apt_packages:
   - dronecot
   - sikw00fcot
   - lincot
+  # Tactical identity discovery (CoT, DNS-SD/mDNS, and SSDP) plus health API.
+  - gutcheck
   # aprscot imports aprslib.parsing. The deb used to not declare it, so aprscot
   # could not start at all (snstac/aprscot#19). Fixed and released: aprscot
   # 8.2.1 declares python3-aprslib, and it is in the apt repo. Kept explicit

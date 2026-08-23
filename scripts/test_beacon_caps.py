@@ -91,7 +91,7 @@ class SdrCapeTestCase(unittest.TestCase):
         self.assertIn("acars", sensor)
 
     def test_running_gateway_is_proof_capability_is_available(self):
-        caps = self._caps(active=["dji"], detected=[], active_units=["dronecot"])
+        caps = self._caps(active=["dji"], detected=[], active_units=["dronecot-dji"])
         self.assertEqual(caps["dji"]["active"], "true")
         self.assertEqual(caps["dji"]["available"], "true")
 

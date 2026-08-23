@@ -19,10 +19,29 @@ else
 fi
 
 VERSION="$(dpkg-query -W -f='${Version}' gutcheck 2>/dev/null || true)"
-if [[ -n "${VERSION}" ]] && dpkg --compare-versions "${VERSION}" ge 0.3.5; then
+if [[ -n "${VERSION}" ]] && dpkg --compare-versions "${VERSION}" ge 0.4.0; then
 	ok "gutcheck package ${VERSION}"
 else
-	fail "gutcheck package ${VERSION:-missing}, expected >= 0.3.5"
+	fail "gutcheck package ${VERSION:-missing}, expected >= 0.4.0"
+fi
+
+IDENTITY_JSON="$(curl -sS --connect-timeout 2 http://127.0.0.1:8181/.well-known/gutcheck 2>/dev/null || true)"
+if python3 -c '
+import json, sys
+doc = json.load(sys.stdin)
+assert doc["product"] == "AryaOS"
+assert doc["hostname"].startswith("aryaos-")
+assert "health" not in doc and "position" not in doc and "capabilities" not in doc
+' <<<"${IDENTITY_JSON}" 2>/dev/null; then
+	ok "GutCheck public discovery document is identity-only"
+else
+	fail "GutCheck public discovery document invalid"
+fi
+
+if [[ -r /run/gutcheck/neighbors.json ]]; then
+	ok "GutCheck neighbor cache present"
+else
+	fail "GutCheck neighbor cache missing"
 fi
 
 HEALTH_CODE="$(curl -sS --connect-timeout 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:8181/healthz 2>/dev/null || true)"

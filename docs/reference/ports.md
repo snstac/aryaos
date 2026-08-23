@@ -15,6 +15,7 @@ Every port, multicast group, and network address AryaOS uses, and what each is f
 | 4000 | UDP | GDL90 (`gdlcot`) | CoT-to-GDL90 output for ForeFlight / EFBs. Default destination port. |
 | 4349 | TCP | GPSCOT | Default GPSCOT network-GPS / NMEA fan-out port. |
 | 8100 | TCP | AIS-catcher web | AIS-catcher live map and statistics dashboard. |
+| 8181 | TCP | GutCheck | Token-protected health dashboard/API. The public identity document is proxied at `https://<host>/.well-known/gutcheck`. |
 | 9080 | TCP | Comitup portal | Captive Wi-Fi-onboarding web UI. Only listens while in hotspot mode. |
 | 9090 | TCP | Cockpit | The web admin surface (HTTPS). Also reachable via the 443 portal proxy at `/admin`. |
 | 28087 | UDP | COTBridge hub | Local CoT hub. Feeders write `udp+wo://127.0.0.1:28087`; COTBridge reads `udp+ro://127.0.0.1:28087`. **Localhost only.** |
@@ -26,7 +27,8 @@ Every port, multicast group, and network address AryaOS uses, and what each is f
 
 | Group | Port | Proto | Purpose |
 |---|---|---|---|
-| `239.2.3.1` | 6969 | UDP | **TAK Mesh SA** - COTBridge egress/ingress and `aryaos-neighbord` neighbor discovery. `udp+wo://239.2.3.1:6969`. |
+| `239.2.3.1` | 6969 | UDP | **TAK Mesh SA** - COTBridge egress/ingress and GutCheck rich neighbor discovery. `udp+wo://239.2.3.1:6969`. |
+| `239.255.255.250` | 1900 | UDP | GutCheck SSDP identity discovery; link-local TTL and identity-only metadata. |
 
 Multicast source fanout is controlled by `PYTAK_MULTICAST_LOCAL_ADDRS` in the
 site config (default `auto`). AryaOS sends once on every eligible active local

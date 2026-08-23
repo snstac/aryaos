@@ -1,7 +1,33 @@
-# Agent handoff - state as of 2026-08-16
+# Agent handoff - state as of 2026-08-21
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
+
+## 2026-08-21 GutCheck discovery and explicit DroneCOT DJI development tree
+
+- GutCheck 0.4.0 now owns AryaOS neighbor discovery: rich CoT plus
+  identity-only `_aryaos._tcp.local.` DNS-SD and SSDP. It writes the compatible
+  portal cache at `/run/gutcheck/neighbors.json`; the old root-running
+  `aryaos-neighbord` implementation is retired during overlay upgrades.
+- DHCP-less Ethernet discovery relies on the optional, default-enabled IPv4LL
+  fallback. CoT and SSDP transmit on every eligible active IPv4 interface.
+- Dev-device tooling has no static lab address or required SSH alias. It sends
+  GutCheck SSDP searches while listening for LINCOT CoT, expands the resulting
+  seeds through the GutCheck neighbor cache, and requires an explicit selector
+  when more than one device is present.
+- AryaOS overlay 2.2.0 replaces the ambiguous generic DJI service with
+  `dronecot-dji.service` and `/etc/default/dronecot-dji`. The upstream package,
+  executable, and user remain named `dronecot`; the upstream generic unit is
+  masked and has no alias. Upgrade migration preserves existing DJI settings
+  and enabled state.
+- The SSH pre-auth banner is now a full authorized-use notice installed with
+  CRLF line endings for Windows clients. Local console, MOTD, and the landing
+  page carry matching language; the support URL is `https://aryaos.org`.
+- Component release order before the next image build: GutCheck 0.4.0,
+  cockpit-dronecot 1.2.0, package-index refresh, then AryaOS 2.2.0. The overlay
+  deliberately depends on GutCheck >= 0.4.0, so an image cannot silently ship
+  the old discovery implementation. GutCheck's Makefile package targets are
+  version-specific so an existing `deb_dist/` cannot rebuild an older release.
 
 ## 2026-08-16 zeroize credential and target closure
 

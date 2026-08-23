@@ -10,7 +10,7 @@ Run aircraft, vessels, and drones on a single box. Select the **`multi`** role a
 |--------|---------------|-----------|
 | Air (ADS-B 1090 + UAT 978) | ADS-B decoder (`readsb`/`dump1090-fa`), `dump978-fa`, `adsbcot`, `gdlcot` | [Air - ADS-B & UAT](./air-adsb.md) |
 | Maritime (AIS) | `ais-catcher`, `aiscot` | [Maritime - AIS](./maritime-ais.md) |
-| Drones (C-UAS) | `dronecot`, `sikw00fcot` | [Counter-UAS](./counter-uas.md) |
+| Drones (C-UAS) | `dronecot-dji`, other `dronecot-*`, `sikw00fcot` | [Counter-UAS](./counter-uas.md) |
 | Position core (always on) | `cotbridge`, `lincot`, `gpscot`, `gpsd` | [Own position / GPS](./own-position-gps.md) |
 
 ## Turn on the multi role

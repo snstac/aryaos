@@ -40,13 +40,6 @@
     insertbefore: '^EnvironmentFile=/etc/default/aiscot'
   notify: Reload systemd
 
-- name: Add EnvironmentFile to dronecot.service
-  ansible.builtin.lineinfile:
-    path: /lib/systemd/system/dronecot.service
-    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
-    insertbefore: '^EnvironmentFile=/etc/default/dronecot'
-  notify: Reload systemd
-
 - name: Ensure sikw00fcot service override directory exists
   ansible.builtin.file:
     path: /etc/systemd/system/sikw00fcot.service.d
@@ -82,7 +75,7 @@
   loop:
     - adsbcot
     - aiscot
-    - dronecot
+    - dronecot-dji
     - sikw00fcot
     - lincot
     - aircot
@@ -95,7 +88,7 @@
   loop:
     - adsbcot
     - aiscot
-    - dronecot
+    - dronecot-dji
     - sikw00fcot
     - lincot
     - aircot

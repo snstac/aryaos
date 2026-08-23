@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>GutCheck discovery</short>
+  <description>GutCheck SSDP identity discovery on the local link.</description>
+  <port protocol="udp" port="1900"/>
+</service>

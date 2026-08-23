@@ -1,9 +1,9 @@
 # Local development device
 
 Use a dedicated AryaOS device on the local network to test repository changes
-before a full image build. Development tools discover devices from the LINCOT /
-`aryaos-neighbord` Mesh SA beacons; there is no fixed lab address or required
-SSH alias.
+before a full image build. Development tools discover devices from GutCheck
+SSDP responses and LINCOT CoT beacons; there is no fixed lab address or
+required SSH alias.
 
 ## Discover and connect
 
@@ -16,11 +16,12 @@ From the repository root:
 ./scripts/aryaos-dev-device ssh aryaos-e406
 ```
 
-Discovery listens on `239.2.3.1:6969` for 15 seconds, then expands direct seeds
-through `/cgi-bin/aryaos-neighbors`. Set `ARYAOS_DISCOVERY_TIMEOUT` to change the
-window or `ARYAOS_DISCOVERY_INTERFACE` to an interface name or local IPv4
-address. Discovery metadata is unauthenticated LAN data; SSH host-key checking
-remains the trust boundary. New keys are accepted, but changed keys are rejected.
+Discovery sends a GutCheck SSDP search and listens on `239.2.3.1:6969` for 15
+seconds, then expands direct seeds through `/cgi-bin/aryaos-neighbors`. Set
+`ARYAOS_DISCOVERY_TIMEOUT` to change the window or
+`ARYAOS_DISCOVERY_INTERFACE` to an interface name or local IPv4 address.
+Discovery metadata is unauthenticated LAN data; SSH host-key checking remains
+the trust boundary. New keys are accepted, but changed keys are rejected.
 
 With no selector, discovery succeeds only when exactly one device exists. Select
 by exact hostname, FQDN, machine UID, or IP with an argument or

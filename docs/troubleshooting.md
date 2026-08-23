@@ -17,7 +17,7 @@ Check, in order:
 
 1. **Is the TAK client on the right network?** Confirm the phone/laptop is joined to `AryaOS-xxxx`, not another Wi-Fi.
 2. **Is Mesh SA enabled in the TAK client?** In ATAK, enable the Mesh SA / multicast input.
-3. **Is the sensor running?** Open the **Sensor services** card. The relevant gateway (`adsbcot`, `aiscot`, `dronecot`) should be active.
+3. **Is the sensor running?** Open the **Sensor services** card. The relevant gateway (`adsbcot`, `aiscot`, or an explicit `dronecot-*` instance) should be active.
 4. **Is the right role selected?** The [device role](config/device-roles.md) must include your sensor - e.g. `air` or `multi` for aircraft. Set it in the **Device role** card.
 5. **Is the radio decoding?** For ADS-B, the aircraft feed lives at `/run/adsb/aircraft.json`; if it is empty, the SDR or antenna is the problem (see [SDR not detected](#sdr-not-detected)).
 

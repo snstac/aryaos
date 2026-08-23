@@ -3,9 +3,11 @@
 
 set -eu
 
-if [ -r /etc/default/dronecot ]; then
+config_file="${1:-/etc/default/dronecot-dji}"
+
+if [ -r "${config_file}" ]; then
 	# shellcheck disable=SC1091
-	. /etc/default/dronecot
+	. "${config_file}"
 fi
 
 if [ -z "${DJI_BIND_ADDRESS:-}" ]; then
@@ -16,5 +18,5 @@ if ip -4 addr show to "${DJI_BIND_ADDRESS}/32" 2>/dev/null | grep -q .; then
 	exit 0
 fi
 
-echo "dronecot bind address ${DJI_BIND_ADDRESS} is not present; skipping startup" >&2
+echo "dronecot-dji bind address ${DJI_BIND_ADDRESS} is not present; skipping startup" >&2
 exit 1

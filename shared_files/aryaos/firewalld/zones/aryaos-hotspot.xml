@@ -21,6 +21,7 @@ onto the wired ethernet regardless of net.ipv4.ip_forward (see public.xml).
   <service name="dhcpv6-client"/>
   <service name="dns"/>
   <service name="mdns"/>
+  <service name="aryaos-gutcheck-discovery"/>
   <service name="http"/>
   <service name="https"/>
   <service name="aryaos-comitup"/>

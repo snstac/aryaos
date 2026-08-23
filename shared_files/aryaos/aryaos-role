@@ -98,7 +98,7 @@ cap_units() {
 		# Decoder and gateway, same split as readsb/adsbcot: acarsdec
 		# demodulates VHF, acarscot turns its JSON into CoT.
 		acars)    echo "acarsdec acarscot" ;;
-		dji)      echo "dronecot" ;;
+		dji)      echo "dronecot-dji" ;;
 		wifi-rid) echo "dronecot-wifi" ;;
 		ble-rid)  echo "dronecot-ble" ;;
 		rid)      echo "dronecot-dronescout" ;;
@@ -138,7 +138,7 @@ role_caps() {
 
 all_managed_units() {
 	echo "readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot acarsdec acarscot \
-		dronecot dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot"
+		dronecot-dji dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot"
 }
 
 # Expand a capability list to the (deduplicated) union of its units.

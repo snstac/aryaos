@@ -40,16 +40,16 @@ else
 	warn "ANTSDR HTTP unavailable (code=${HTTP_CODE:-none})"
 fi
 
-if systemctl show dronecot -p ExecStartPre --value 2>/dev/null | grep -q .; then
-	fail "dronecot ExecStartPre still configured"
+if ! systemctl show dronecot-dji -p ExecCondition --value 2>/dev/null | grep -q 'aryaos-dronecot-ready'; then
+	fail "dronecot-dji bind-address condition missing"
 else
-	ok "dronecot ExecStartPre cleared"
+	ok "dronecot-dji bind-address condition installed"
 fi
 
 if ss -ltn "sport = :52002" | grep -q "${ANTSDR_HOST_IP}:52002"; then
-	ok "dronecot listening on ${ANTSDR_HOST_IP}:52002"
+	ok "dronecot-dji listening on ${ANTSDR_HOST_IP}:52002"
 else
-	fail "dronecot not listening on ${ANTSDR_HOST_IP}:52002"
+	fail "dronecot-dji not listening on ${ANTSDR_HOST_IP}:52002"
 fi
 
 ANTSDR_SESSION_OK=0

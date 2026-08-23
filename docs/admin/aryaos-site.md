@@ -161,7 +161,7 @@ On success the card reports the TAK target and that **COTBridge forwarding was u
 
 **What it does.** Shows the live systemd state (active / inactive / failed / not installed) of the site's sensor units, with a status dot per service.
 
-The set of services is `cotbridge adsbcot aiscot dronecot lincot readsb ais-catcher` by default, or whatever you set as `AOS_SERVICES` in the site config. This is a **read-only status list** - start, stop, enable, and restart individual services from each gateway's own [Cockpit page](./gateways.md), or restart them all with **Save & restart sensors**.
+The set of services is taken from `AOS_SERVICES` in the site config; the default includes `cotbridge`, `adsbcot`, `aiscot`, `dronecot-dji`, `lincot`, and `gutcheck`. This is a **read-only status list** - start, stop, enable, and restart individual services from each gateway's own [Cockpit page](./gateways.md), or restart them all with **Save & restart sensors**.
 
 ---
 
@@ -232,7 +232,7 @@ See [VPN (Tailscale)](../networking/vpn-tailscale.md).
 
 **What it does.** Lists other AryaOS units heard on the local Mesh SA network, so you can see and reach neighbors without a central server.
 
-Each AryaOS box beacons a structured `<__aryaos>` CoT detail through LINCOT; a background listener (`aryaos-neighbord`) caches those beacons. The table refreshes every 8 seconds and shows, per node:
+Each AryaOS box beacons a structured `<__aryaos>` CoT detail through LINCOT; GutCheck combines those beacons with DNS-SD and SSDP identity discovery and caches nearby nodes. The table refreshes every 8 seconds and shows, per node:
 
 | Column | Meaning |
 |--------|---------|

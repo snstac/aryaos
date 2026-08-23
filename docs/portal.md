@@ -36,7 +36,7 @@ consistent across OS-brand selection and remains available before login.
 
 ## Landing page features (current)
 
-- **Hero - TAK gateways:** `cotbridge`, `adsbcot`, `aiscot`, `lincot`, UAS, and `sikw00fcot` via `tak_gateways` in JSON; colored tiles (green / amber / red / gray) from `systemctl show`. The UAS tile aggregates every live UAS gateway (`dronecot`, Wi-Fi/BLE RID, DroneScout RID, and SAPIENT), so any active receiver is represented rather than only the legacy `dronecot.service`. The SENSORS count includes activated sensor gateways only; disabled capabilities and the always-on CoT/GNSS core are excluded.
+- **Hero - TAK gateways:** `cotbridge`, `adsbcot`, `aiscot`, `lincot`, UAS, and `sikw00fcot` via `tak_gateways` in JSON; colored tiles (green / amber / red / gray) from `systemctl show`. The UAS tile aggregates every live UAS gateway (`dronecot-dji`, Wi-Fi/BLE RID, DroneScout RID, and SAPIENT), so any active receiver is represented. The SENSORS count includes activated sensor gateways only; disabled capabilities and the always-on CoT/GNSS core are excluded.
 - **Hero - system health:** CPU temp, load (1/5/15), power/throttle pill from `system` in JSON (`vcgencmd` on Pi; `/proc` + thermal sysfs fallback). The lighttpd sandbox retains `PrivateDevices=yes` and receives only `/dev/vcio_gencmd`, the narrow firmware-command device required for temperature and throttle telemetry. If telemetry is unavailable, the UI says **UNKNOWN** rather than leaving the chip pending.
 - **Connection & status:** hostname, FQDN, primary IP, IPv4 block, uptime; grouped rows (`.aos-status-group--meta|net`) with left accent.
 - **GNSS:** gpsd snapshot - position, **MSL** (`alt_m`), **HAE** (`altHAE` > `alt_hae_m`), **CE/LE** (`eph` or √(epx²+epy²), `epv` > `le_m`), grid, sats, motion; status **pill** from fix quality.
@@ -62,11 +62,10 @@ producer. AryaOS adds a structured `<__aryaos>` detail element to that beacon vi
 `/usr/local/sbin/aryaos-cot-detail`. The detail carries hostname, admin URL, source IP,
 roles, service states, and coarse system health.
 
-`aryaos-neighbord.service` listens on the Mesh SA multicast group `239.2.3.1:6969`,
-parses CoT events containing `<detail><__aryaos>`, and writes a TTL cache to
-`/run/aryaos/neighbors.json`. If LINCOT is not producing a current self beacon
-because the box has no GNSS fix, `aryaos-neighbord` emits a low-rate status-only
-CoT beacon so the node still appears in other AryaOS dashboards. The landing page
+`gutcheck.service` listens on Mesh SA, DNS-SD/mDNS, and SSDP, then writes a TTL
+cache to `/run/gutcheck/neighbors.json`. If LINCOT is not producing a current
+self beacon, GutCheck emits a low-rate no-position CoT fallback so the node still
+appears without replacing a newer LINCOT position. The landing page
 reads the cache through `/cgi-bin/aryaos-neighbors` to show nearby AryaOS boxes and
 admin links.
 

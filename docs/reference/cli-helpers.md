@@ -93,7 +93,7 @@ sudo aryaos-role set air    # enable this role's units, disable the rest, persis
 | `multi` | All: ADS-B + UAT, AIS, drones |
 | `air` | ADS-B / UAT (`readsb` or `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdlcot`) |
 | `maritime` | AIS (`ais-catcher`, `aiscot`) |
-| `cuas` | Drones (`dronecot`, `sikw00fcot`) |
+| `cuas` | Drones (`dronecot-dji`, other `dronecot-*`, `sikw00fcot`) |
 | `relay` | CoT routing only - no sensors |
 
 The ADS-B decoder unit follows `ARYAOS_ADSB_DECODER` (`readsb` or `dump1090_fa`). Units missing from the image are skipped, not errors. See [Device roles](../config/device-roles.md).

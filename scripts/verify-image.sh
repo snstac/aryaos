@@ -145,7 +145,7 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.1.26
+require_pkg_version aryaos-overlay 2.2.0
 require_pkg_version cotbridge 1.1.0
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
@@ -181,11 +181,11 @@ require_path /etc/systemd/system/multi-user.target.wants/aryaos-time-pps.service
 # so a start limit is what makes the failure visible at all.
 require_path /etc/systemd/system/readsb.service.d/aryaos-startlimit.conf
 require_path /etc/systemd/system/adsbcot.service.d/aryaos-startlimit.conf
-require_path /usr/local/sbin/aryaos-neighbord
+forbid_path /usr/local/sbin/aryaos-neighbord
 require_path /usr/local/sbin/aryaos-ipv4ll
 require_path /usr/local/sbin/aryaos-multicast-links
 require_path /etc/systemd/system/aryaos-firstboot.service
-require_path /etc/systemd/system/aryaos-neighbord.service
+forbid_path /etc/systemd/system/aryaos-neighbord.service
 require_path /etc/systemd/system/aryaos-multicast-links.service
 require_path /etc/systemd/system/NetworkManager-wait-online.service.d/aryaos.conf
 require_path /etc/systemd/system/multi-user.target.wants/aryaos-multicast-links.service
@@ -209,6 +209,9 @@ require_grep '^EnvironmentFile=-/run/aryaos/multicast.env$' \
 require_grep '^EnvironmentFile=-/run/aryaos/multicast.env$' \
 	/etc/systemd/system/gdlcot.service.d/aryaos-multicast.conf \
 	"gdlcot consumes resolved multicast interfaces"
+require_grep '^EnvironmentFile=-/run/aryaos/multicast.env$' \
+	/etc/systemd/system/gutcheck.service.d/aryaos-health.conf \
+	"GutCheck consumes resolved multicast interfaces"
 require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to cotbridge"
 
 # Portal (stage-aryaos)
@@ -299,7 +302,7 @@ require_pkg cockpit-lincot
 require_pkg_version cockpit-lincot 1.1.3
 require_pkg cockpit-aiscatcher
 require_pkg cockpit-dronecot
-require_pkg_version cockpit-dronecot 1.1.3
+require_pkg_version cockpit-dronecot 1.2.0
 require_pkg cockpit-cotbridge
 require_pkg_version cockpit-cotbridge 1.2.2
 require_pkg cockpit-gpscot
@@ -319,9 +322,19 @@ require_pkg_version pytak 7.6.0
 require_pkg_version acarscot 0.1.1
 require_pkg acarsdec
 require_pkg_version dronecot 2.3.9
+require_pkg_version gutcheck 0.4.0
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
+require_unit dronecot-dji.service
+if [[ -L "${MNT}/etc/systemd/system/dronecot.service" ]] \
+	&& [[ "$(readlink "${MNT}/etc/systemd/system/dronecot.service")" == "/dev/null" ]]; then
+	ok "ambiguous generic dronecot.service is masked"
+else
+	fail "ambiguous generic dronecot.service is not masked"
+fi
+require_grep '^EnvironmentFile=/etc/default/dronecot-dji$' /etc/systemd/system/dronecot-dji.service "DJI service has an explicit config namespace"
+require_grep '^STATUS_APP=dronecot-dji$' /etc/default/dronecot-dji "DJI service has an isolated runtime status namespace"
 require_unit sikw00fcot.service
 require_unit acarscot.service
 require_grep '^StateDirectory=acarscot$' /usr/lib/systemd/system/acarscot.service "acarscot enrollment state survives reboot"
@@ -403,6 +416,17 @@ require_pkg unattended-upgrades
 require_pkg cockpit-packagekit
 require_path /etc/ssh/sshd_config.d/50-aryaos.conf
 require_grep '^PermitRootLogin no$' /etc/ssh/sshd_config.d/50-aryaos.conf "sshd: root login disabled"
+require_grep '^Banner /etc/issue.net$' /etc/ssh/sshd_config.d/50-aryaos.conf "sshd displays the pre-auth authorized-use notice"
+for _banner in /etc/issue.net /etc/issue /etc/motd; do
+	require_grep 'AUTHORIZED USE ONLY' "${_banner}" "${_banner} has the authorized-use notice"
+done
+if python3 -c 'import pathlib,sys; d=pathlib.Path(sys.argv[1]).read_bytes(); raise SystemExit(not d or any(not line.endswith(b"\r\n") for line in d.splitlines(keepends=True)))' "${MNT}/etc/issue.net"; then
+	ok "/etc/issue.net uses Windows-safe CRLF line endings"
+else
+	fail "/etc/issue.net does not use CRLF line endings"
+fi
+require_grep 'Activity may be monitored, recorded, and audited' /var/www/html/index.html "landing page has the persistent authorized-use notice"
+require_grep 'https://aryaos.org' /etc/motd "MOTD uses the current support URL"
 require_path /etc/sysctl.d/90-aryaos-hardening.conf
 require_path /etc/fail2ban/jail.d/aryaos.local
 require_path /etc/apt/apt.conf.d/20auto-upgrades
@@ -411,12 +435,15 @@ require_path /etc/firewalld/zones/public.xml
 require_path /etc/firewalld/services/aryaos-mesh-sa.xml
 require_grep 'aryaos-mesh-sa' /etc/firewalld/zones/public.xml "firewall zone allows Mesh SA"
 require_path /etc/firewalld/services/aryaos-gutcheck.xml
+require_path /etc/firewalld/services/aryaos-gutcheck-discovery.xml
 require_grep 'aryaos-gutcheck' /etc/firewalld/zones/public.xml "firewall zone allows token-gated Gutcheck on the LAN"
+require_grep 'aryaos-gutcheck-discovery' /etc/firewalld/zones/public.xml "firewall zone allows GutCheck SSDP discovery"
 require_path /etc/sudoers.d/aryaos-gutcheck-health
 require_grep '^Cmnd_Alias ARYAOS_GUTCHECK_HEALTH = /usr/local/sbin/aryaos-health --json$' /etc/sudoers.d/aryaos-gutcheck-health "Gutcheck health privilege names only the read-only collector"
 require_grep '^gutcheck ALL=\(root\) NOPASSWD: ARYAOS_GUTCHECK_HEALTH$' /etc/sudoers.d/aryaos-gutcheck-health "Gutcheck has only read-only health collector privilege"
 require_path /etc/systemd/system/gutcheck.service.d/aryaos-health.conf
 require_grep '^Environment="LOCAL_HEALTH_COMMAND=/usr/bin/sudo -n /usr/local/sbin/aryaos-health --json"$' /etc/systemd/system/gutcheck.service.d/aryaos-health.conf "Gutcheck uses the scoped AryaOS health collector"
+require_grep '^Environment="DISCOVERY_SERVICE_TYPE=_aryaos._tcp.local."$' /etc/systemd/system/gutcheck.service.d/aryaos-health.conf "GutCheck advertises AryaOS DNS-SD"
 require_grep 'UnitFileState' /usr/local/sbin/aryaos-health "gateway health records systemd enablement"
 require_grep 'state.*!=.*disabled' /usr/local/sbin/aryaos-health "disabled gateways do not degrade aggregate health"
 require_grep 'name="https"' /etc/firewalld/zones/public.xml "firewall zone allows HTTPS"
@@ -446,7 +473,7 @@ forbid_enabled() {
 	fi
 }
 for _u in readsb.service dump978-fa.service adsbcot.service aiscot.service \
-	dronecot.service sikw00fcot.service ais-catcher.service sapientcot.service \
+	dronecot.service dronecot-dji.service sikw00fcot.service ais-catcher.service sapientcot.service \
 	dronecot-wifi.service dronecot-ble.service dronecot-dronescout.service \
 	acarsdec.service acarscot.service; do
 	forbid_enabled "${_u}"
@@ -454,6 +481,7 @@ done
 require_grep '^ARYAOS_CAPABILITIES=""$' /etc/aryaos/aryaos-config.txt "no sensor capabilities enabled out of the box"
 # ...while the CoT core still runs unconditionally.
 require_path /etc/systemd/system/multi-user.target.wants/cotbridge.service
+require_path /etc/systemd/system/multi-user.target.wants/gutcheck.service
 
 # One-click updates (Cockpit -> AryaOS Site drives aryaos-update)
 require_path /usr/local/sbin/aryaos-update
@@ -600,11 +628,8 @@ if grep -qsE '<service name="aryaos-comitup"' "${MNT}/etc/firewalld/zones/public
 else
 	ok "comitup onboarding portal not exposed on the wired LAN"
 fi
-# aryaos-neighbord parses untrusted multicast CoT — it must reject DTD/entity
-# (billion-laughs) payloads before ElementTree parsing.
-require_grep '<!DOCTYPE' /usr/local/sbin/aryaos-neighbord "neighbord rejects DTD/entity CoT (billion-laughs guard)"
-# aryaos-neighbord parses untrusted network input as root — it must be sandboxed.
-require_grep '^NoNewPrivileges=yes' /etc/systemd/system/aryaos-neighbord.service "neighbord is systemd-sandboxed"
+# GutCheck parses untrusted multicast CoT as its unprivileged service user.
+require_grep '<!doctype' /usr/lib/python3/dist-packages/gutcheck/cot.py "GutCheck rejects DTD/entity CoT"
 
 # Onboarding hotspot zone: tight INPUT (assigned to wlan0 in AP mode by
 # comitup-callback). Must exist, must NOT expose ssh / Node-RED / mesh, and

@@ -192,7 +192,7 @@ class TakGatewayTestCase(unittest.TestCase):
 
     def test_uas_is_up_when_dronescout_instance_is_active(self):
         states = {
-            "dronecot": ("loaded", "inactive", "disabled"),
+            "dronecot-dji": ("loaded", "inactive", "disabled"),
             "dronecot-dronescout": ("loaded", "active", "enabled"),
         }
         with mock.patch.object(PORTAL, "run", side_effect=self.systemctl_run(states)):
@@ -200,7 +200,7 @@ class TakGatewayTestCase(unittest.TestCase):
                 "dronecot",
                 "UAS / Remote ID→TAK",
                 "UAS",
-                ("dronecot", "dronecot-wifi", "dronecot-ble", "dronecot-dronescout"),
+                ("dronecot-dji", "dronecot-wifi", "dronecot-ble", "dronecot-dronescout"),
             )
 
         self.assertEqual(item["state"], "up")

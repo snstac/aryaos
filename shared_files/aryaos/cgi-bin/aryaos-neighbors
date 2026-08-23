@@ -8,7 +8,7 @@ import os
 import time
 
 
-CACHE_PATH = os.environ.get("ARYAOS_NEIGHBOR_CACHE", "/run/aryaos/neighbors.json")
+CACHE_PATH = os.environ.get("ARYAOS_NEIGHBOR_CACHE", "/run/gutcheck/neighbors.json")
 
 
 def main() -> int:

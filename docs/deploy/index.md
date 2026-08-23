@@ -80,7 +80,7 @@ Each role maps to a set of sensor units, which in turn dictate the hardware you 
 | `multi` | ADS-B + UAT, AIS, and drone detection - all pipelines | 2x RTL-SDR (1090 + 978), AIS SDR, drone-detection SDR/receiver, GPS |
 | `air` | ADS-B decoder (`readsb`/`dump1090-fa`), `dump978-fa`, `adsbcot`, `gdlcot` | RTL-SDR + 1090 MHz antenna; optional 2nd SDR + 978 MHz antenna |
 | `maritime` | `ais-catcher`, `aiscot` | RTL-SDR + marine VHF antenna (or an online AIS feed, no SDR) |
-| `cuas` | `dronecot`, `sikw00fcot` | Remote ID receiver and/or DJI DroneID SDR (e.g. AntSDR) |
+| `cuas` | `dronecot-dji`, other `dronecot-*`, `sikw00fcot` | Remote ID receiver and/or DJI DroneID SDR (e.g. AntSDR) |
 | `relay` | none - CoT routing only | No sensors; just network (Wi-Fi/Ethernet/MANET) |
 
 !!! note "The core always runs"

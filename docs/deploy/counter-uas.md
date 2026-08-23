@@ -6,7 +6,7 @@ Detect and track drones for counter-UAS (C-UAS) awareness. Select the **`cuas`**
 
 AryaOS builds a C-UAS picture from two complementary detection sources:
 
-- **Remote ID / Open Drone ID** - the FAA-mandated broadcast that compliant drones emit over Wi-Fi/Bluetooth. Decoded by **`dronecot`** (on-board Wi-Fi/BLE, or a dedicated receiver - see below).
+- **Remote ID / Open Drone ID** - decoded by the explicit **`dronecot-wifi`**, **`dronecot-ble`**, or **`dronecot-dronescout`** instances.
 - **DJI DroneID** - DJI's proprietary telemetry, received over the air with an SDR (for example an **AntSDR**) and decoded by **DJICOT**.
 
 `sikw00fcot` additionally converts SiK-radio MAVLink drone telemetry to CoT when you have that link.
@@ -28,7 +28,7 @@ AryaOS builds a C-UAS picture from two complementary detection sources:
     2. In the **Device role** card, choose **C-UAS - drone detection**.
     3. Click **Apply role**.
 
-    AryaOS enables `dronecot` and `sikw00fcot`, and stops the air and maritime pipelines.
+    AryaOS enables `dronecot-dji` and `sikw00fcot`, and stops the air and maritime pipelines.
 
 === "Command line"
 
@@ -73,7 +73,7 @@ a [TAK Server](./connect-tak-server.md).
 
 ## Manage the AntSDR
 
-An **AntSDR E200** running the [alphafox02 DJI DroneID firmware](https://github.com/alphafox02/antsdr_dji_droneid) detects DJI OcuSync DroneID and **pushes it to `dronecot` over point-to-point Ethernet** (TCP `172.31.100.1:52002`). That Ethernet link is the data path; the AntSDR's **USB-serial is its Zynq config/recovery console, not a data feed**.
+An **AntSDR E200** running the [alphafox02 DJI DroneID firmware](https://github.com/alphafox02/antsdr_dji_droneid) detects DJI OcuSync DroneID and **pushes it to `dronecot-dji` over point-to-point Ethernet** (TCP `172.31.100.1:52002`). That Ethernet link is the data path; the AntSDR's **USB-serial is its Zynq config/recovery console, not a data feed**.
 
 - **Health status.** AryaOS polls the feed every 30 s (`aryaos-antsdr-health`) and, when an AntSDR is present, shows an **AntSDR (DJI DroneID)** card in Cockpit: green when both the feed socket and DroneCOT's TAK WebSocket are established, amber when either side is missing. A missing feed can be normal with no DJI drone in range; `tak_established: false` means TAK egress is degraded even if systemd still calls DroneCOT active. The card is hidden on boxes with no AntSDR. Check it manually with:
 
@@ -95,7 +95,7 @@ An **AntSDR E200** running the [alphafox02 DJI DroneID firmware](https://github.
 2. On the box:
 
     ```bash
-    systemctl status dronecot sikw00fcot
+    systemctl status dronecot-dji dronecot-dronescout dronecot-wifi dronecot-ble sikw00fcot
     ```
 
 3. Fly a Remote ID-compliant drone (or a known DJI aircraft) nearby and confirm the track - including, where broadcast, the operator/pilot position.

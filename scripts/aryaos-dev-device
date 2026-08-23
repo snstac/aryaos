@@ -11,6 +11,7 @@ import ipaddress
 import json
 import os
 from pathlib import Path
+import select
 import shutil
 import socket
 import ssl
@@ -21,11 +22,16 @@ import time
 from typing import Callable, Iterable
 import urllib.error
 import urllib.request
+import uuid
 import xml.etree.ElementTree as ET
 
 
 GROUP = "239.2.3.1"
 PORT = 6969
+SSDP_GROUP = "239.255.255.250"
+SSDP_PORT = 1900
+SSDP_ST = "urn:snstac-com:service:gutcheck:1"
+SSDP_MAX_DATAGRAM = 8192
 DEFAULT_TIMEOUT = 15.0
 DEFAULT_TTL = 240
 MAX_DATAGRAM = 65507
@@ -123,7 +129,9 @@ def parse_beacon(data: bytes, source_ip: str, now: int | None = None) -> dict | 
         return None
     host = _child(aryaos, "host")
     host_data = dict(host.attrib) if host is not None else {}
-    uid = str(root.attrib.get("uid") or "").strip()
+    # Newer AryaOS beacons carry the same opaque identity used by GutCheck
+    # DNS-SD/SSDP. Fall back to the CoT UID for older releases.
+    uid = str(host_data.get("discovery_id") or root.attrib.get("uid") or "").strip()
     hostname = str(host_data.get("name") or "").strip()
     if not uid and not hostname:
         return None
@@ -271,6 +279,113 @@ def multicast_scan(
         sock.close()
 
 
+def parse_ssdp_response(
+    data: bytes, source_ip: str, now: int | None = None
+) -> dict | None:
+    """Normalize one bounded GutCheck SSDP response from an untrusted link."""
+
+    if not data or len(data) > SSDP_MAX_DATAGRAM or b"\x00" in data:
+        return None
+    source = _valid_ipv4(source_ip)
+    if source is None:
+        return None
+    try:
+        lines = data.decode("iso-8859-1").replace("\r\n", "\n").split("\n")
+    except UnicodeDecodeError:
+        return None
+    if not lines or lines[0].strip() != "HTTP/1.1 200 OK":
+        return None
+    headers: dict[str, str] = {}
+    for line in lines[1:]:
+        if not line:
+            continue
+        if line[:1].isspace() or ":" not in line:
+            return None
+        key, value = line.split(":", 1)
+        key = key.strip().lower()
+        if not key or key in headers:
+            return None
+        headers[key] = value.strip()
+    if headers.get("st") != SSDP_ST:
+        return None
+    usn = headers.get("usn", "")
+    if not usn.startswith("uuid:"):
+        return None
+    try:
+        uid = str(uuid.UUID(usn[5:].split("::", 1)[0]))
+    except ValueError:
+        return None
+    hostname = headers.get("x-gutcheck-hostname", "") or source
+    observed = int(time.time()) if now is None else now
+    return {
+        "hostname": hostname,
+        "fqdn": headers.get("x-gutcheck-fqdn", ""),
+        "uid": uid,
+        "ip": source,
+        "capabilities": [],
+        "seen_at": observed,
+        "age_s": 0,
+        "source": "ssdp",
+    }
+
+
+def ssdp_scan(
+    timeout: float,
+    interface: str | None = None,
+    *,
+    clock: Callable[[], float] = time.monotonic,
+    now: Callable[[], int] = lambda: int(time.time()),
+) -> list[dict]:
+    """Actively search for GutCheck identity advertisements on every link."""
+
+    interfaces = discovery_interfaces(interface)
+    request = (
+        "M-SEARCH * HTTP/1.1\r\n"
+        f"HOST: {SSDP_GROUP}:{SSDP_PORT}\r\n"
+        'MAN: "ssdp:discover"\r\n'
+        "MX: 1\r\n"
+        f"ST: {SSDP_ST}\r\n\r\n"
+    ).encode("ascii")
+    sockets = []
+    for _name, address in interfaces:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        try:
+            sock.bind((address, 0))
+            sock.setsockopt(
+                socket.IPPROTO_IP,
+                socket.IP_MULTICAST_IF,
+                socket.inet_aton(address),
+            )
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+            sock.setblocking(False)
+            sock.sendto(request, (SSDP_GROUP, SSDP_PORT))
+            sockets.append(sock)
+        except OSError:
+            sock.close()
+    if not sockets:
+        return []
+    try:
+        deadline = clock() + timeout
+        nodes = []
+        while True:
+            remaining = deadline - clock()
+            if remaining <= 0:
+                break
+            ready, _, _ = select.select(sockets, [], [], min(remaining, 0.5))
+            for sock in ready:
+                try:
+                    data, source = sock.recvfrom(SSDP_MAX_DATAGRAM + 1)
+                except OSError:
+                    continue
+                node = parse_ssdp_response(data, source[0], now())
+                if node is not None:
+                    nodes.append(node)
+        return nodes
+    finally:
+        for sock in sockets:
+            sock.close()
+
+
 def fetch_neighbors(seed: dict, timeout: float = 3.0) -> list[dict]:
     context = ssl.create_default_context()
     context.check_hostname = False
@@ -306,13 +421,34 @@ def merge_nodes(nodes: Iterable[dict]) -> list[dict]:
     for node in nodes:
         key = _identity(node)
         old = merged.get(key)
-        rank = (int(node.get("seen_at") or 0), node.get("source") == "multicast")
+        rank = (
+            int(node.get("seen_at") or 0),
+            node.get("source") in {"multicast", "ssdp"},
+        )
         old_rank = (
             int(old.get("seen_at") or 0),
-            old.get("source") == "multicast",
+            old.get("source") in {"multicast", "ssdp"},
         ) if old else (-1, False)
-        if old is None or rank > old_rank:
+        if old is None:
             merged[key] = dict(node)
+            continue
+        preferred, secondary = (
+            (node, old) if rank > old_rank else (old, node)
+        )
+        combined = dict(secondary)
+        combined.update(preferred)
+        for field in ("hostname", "fqdn", "uid", "ip"):
+            if not combined.get(field):
+                combined[field] = secondary.get(field, "")
+        combined["capabilities"] = list(
+            dict.fromkeys(
+                [
+                    *(preferred.get("capabilities") or []),
+                    *(secondary.get("capabilities") or []),
+                ]
+            )
+        )
+        merged[key] = combined
     current = int(time.time())
     for node in merged.values():
         node["age_s"] = max(0, current - int(node.get("seen_at") or current))
@@ -320,7 +456,10 @@ def merge_nodes(nodes: Iterable[dict]) -> list[dict]:
 
 
 def discover(timeout: float, interface: str | None = None) -> list[dict]:
-    seeds = merge_nodes(multicast_scan(timeout, interface))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        cot_result = pool.submit(multicast_scan, timeout, interface)
+        ssdp_result = pool.submit(ssdp_scan, timeout, interface)
+        seeds = merge_nodes([*cot_result.result(), *ssdp_result.result()])
     expanded: list[dict] = list(seeds)
     if seeds:
         with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, len(seeds))) as pool:

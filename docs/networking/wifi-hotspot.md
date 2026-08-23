@@ -132,6 +132,27 @@ shell required.
     this (`minlength="8" maxlength="63"`); if you edit the file by hand, stay in
     range or comitup will refuse to bring up a protected AP.
 
+## Broadcom `vndr ie set error : -52`
+
+The kernel line below can appear while the Raspberry Pi `brcmfmac` radio moves
+between station and access-point modes:
+
+```text
+ieee80211 phy0: brcmf_vif_set_mgmt_ie: vndr ie set error : -52
+```
+
+`-52` is Linux `EBADE`. In this context it is a known brcmfmac firmware/driver
+management-frame vendor-IE cleanup failure, commonly logged when an AP is
+stopped or reconfigured. It does not mean an AryaOS application supplied a bad
+password or malformed network configuration. If the interface subsequently
+associates or the hotspot starts, treat the line as diagnostic noise. If Wi-Fi
+stays down, collect the surrounding `journalctl -k` and NetworkManager/comitup
+state; the error may then be one symptom of a failed mode transition.
+
+AryaOS does not carry a private kernel patch for this warning. The upstream
+brcmfmac fix clears saved vendor IEs when an AP interface stops; use a kernel
+containing that fix when it reaches the Raspberry Pi OS kernel stream.
+
 ## Related
 
 <div class="grid cards" markdown>

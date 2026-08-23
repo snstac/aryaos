@@ -140,6 +140,7 @@ nav:
       - Glossary: reference/glossary.md
       - CLI helpers: reference/cli-helpers.md
       - Ports & protocols: reference/ports.md
+      - GutCheck Discovery v1: reference/gutcheck-discovery.md
       - Specifications: specs.md
   - Build & develop:
       - Download or build: build.md

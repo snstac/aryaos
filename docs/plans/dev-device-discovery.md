@@ -9,8 +9,11 @@ discovery. Dev tooling will listen briefly for AryaOS multicast beacons, expand
 results through a discovered node's LINCOT-fed neighbor endpoint, and either
 resolve one unambiguous device or fail safely with a device list.
 
-Gutcheck will not be required. Explicit targets remain supported for CI,
-recovery, and networks that block multicast.
+GutCheck now owns the on-device neighbor cache and adds DNS-SD/SSDP discovery.
+The workstation CLI remains stdlib-only: it actively searches GutCheck over
+SSDP while listening for LINCOT CoT in parallel, then merges richer neighbor
+cache data from every seed. Explicit targets remain supported for CI, recovery,
+and networks that block multicast.
 
 ## Implementation changes
 
@@ -28,6 +31,8 @@ recovery, and networks that block multicast.
     input.
 
 - Implement discovery by:
+  - Sending a GutCheck SSDP `M-SEARCH` on each selected interface and accepting
+    bounded, unambiguous responses for the AryaOS service type.
   - Joining `239.2.3.1:6969` on each active, multicast-capable IPv4 interface.
   - Parsing only AryaOS `__aryaos` CoT details and rejecting DTD/entity
     declarations, malformed XML, oversized datagrams, invalid addresses, and
@@ -106,11 +111,11 @@ replaced.
 
 ## Assumptions
 
-- LINCOT multicast and `aryaos-neighbord` remain enabled by default on AryaOS.
+- LINCOT multicast and GutCheck discovery remain enabled by default on AryaOS.
 - The workstation and at least one AryaOS seed share a multicast-capable
   network; explicit targeting is the fallback otherwise.
-- A 15-second scan can miss an idle 61-second beacon cycle. This is an accepted
-  latency/reliability tradeoff, mitigated but not eliminated by expanding through
-  the seed's neighbor cache.
-- Gutcheck is intentionally outside this implementation because it is optional
-  and requires a preconfigured URL and bearer token.
+- A 15-second scan still listens for the complete window so LINCOT beacons and
+  multiple devices are not missed. GutCheck SSDP active search removes the
+  dependency on landing inside a periodic CoT beacon cycle.
+- GutCheck's public discovery metadata is identity-only and does not require a
+  bearer token; its health API remains authenticated.

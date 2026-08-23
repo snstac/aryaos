@@ -77,8 +77,10 @@ def validate(data: dict[str, Any]) -> tuple[list[str], list[str]]:
         )
         if not uas or not isinstance(uas.get("units"), list):
             errors.append("tak_gateways UAS member units missing")
-        elif "dronecot-dronescout" not in {unit.get("id") for unit in uas["units"]}:
-            errors.append("tak_gateways UAS missing DroneScout instance")
+        elif not {"dronecot-dji", "dronecot-dronescout"}.issubset(
+            {unit.get("id") for unit in uas["units"]}
+        ):
+            errors.append("tak_gateways UAS missing explicit DJI/DroneScout instances")
         else:
             ok_lines.append("tak_gateways UAS aggregates Remote ID instances")
 

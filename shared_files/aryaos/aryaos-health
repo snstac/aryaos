@@ -13,7 +13,7 @@ APPS = (
     "lincot",
     "adsbcot",
     "aiscot",
-    "dronecot",
+    "dronecot-dji",
     "dronecot-wifi",
     "dronecot-ble",
     "dronecot-dronescout",

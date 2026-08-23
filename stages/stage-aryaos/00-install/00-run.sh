@@ -47,6 +47,9 @@ fi
 install -v -m 0644 "${SHARED_FILES}/aryaos/motd" "${ROOTFS_DIR}/etc/motd"
 install -v -m 0644 "${SHARED_FILES}/aryaos/issue" "${ROOTFS_DIR}/etc/issue"
 install -v -m 0644 "${SHARED_FILES}/aryaos/issue.net" "${ROOTFS_DIR}/etc/issue.net"
+# OpenSSH banner text needs CRLF so Windows returns to column zero before its
+# password prompt. Source remains normal LF for repository tooling.
+sed -i 's/\r$//; s/$/\r/' "${ROOTFS_DIR}/etc/issue.net"
 install -v -m 0644 "${SHARED_FILES}/aryaos/aryaos-release" "${ROOTFS_DIR}/etc/aryaos-release"
 install -v -m 0644 "${SHARED_FILES}/aryaos/aryaos-version" "${ROOTFS_DIR}/etc/aryaos-version"
 install -v -m 0644 "${SHARED_FILES}/aryaos/README-aryaos.txt" "${ROOTFS_DIR}/"
@@ -65,14 +68,11 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-health" "${ROOTFS_DIR}/usr/loc
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-gps-time-sync" "${ROOTFS_DIR}/usr/local/sbin/aryaos-gps-time-sync"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-lincot-remarks" "${ROOTFS_DIR}/usr/local/sbin/aryaos-lincot-remarks"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-cot-detail" "${ROOTFS_DIR}/usr/local/sbin/aryaos-cot-detail"
-install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-neighbord" "${ROOTFS_DIR}/usr/local/sbin/aryaos-neighbord"
 install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-gps-time-sync.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-gps-time-sync.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-tak-dp-importd.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-tak-dp-importd.service"
-install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-neighbord.service" \
-	"${ROOTFS_DIR}/etc/systemd/system/aryaos-neighbord.service"
 
 ## Raspberry Pi: raise USB host current where firmware supports it (multi-SDR loads)
 ARYAOS_USB_FRAG="${SHARED_FILES}/aryaos/boot/firmware/aryaos-usb-power.fragment"
@@ -231,7 +231,7 @@ for unit in aryaos-crash-guard.service aryaos-safe-mode.service aryaos-boot-stab
 done
 # Safe-mode gate: sensor/SDR services must not start while /etc/aryaos/safe-mode
 # exists (kept in sync with aryaos-safe-mode MANAGED_UNITS / aryaos-role).
-for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot sikw00fcot sapientcot; do
+for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot-dji sikw00fcot sapientcot; do
 	install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/safe-mode.conf" \
 		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done

@@ -11,6 +11,7 @@ from pathlib import Path
 import socket
 import subprocess
 import unittest
+import uuid
 from unittest import mock
 
 
@@ -62,6 +63,59 @@ class BeaconParsingTestCase(unittest.TestCase):
             b"2099-01-01T00:00:00Z", b"2020-01-01T00:00:00Z"
         )
         self.assertIsNone(device.parse_beacon(expired, "192.0.2.10", now=2_000_000_000))
+
+    def test_prefers_cross_protocol_discovery_id(self):
+        payload = beacon().replace(
+            b'<host name="aryaos-a001"',
+            b'<host discovery_id="opaque-1" name="aryaos-a001"',
+        )
+        parsed = device.parse_beacon(payload, "192.0.2.10", now=100)
+        self.assertEqual(parsed["uid"], "opaque-1")
+
+
+class SsdpDiscoveryTestCase(unittest.TestCase):
+    def test_parses_gutcheck_response_and_rejects_ambiguous_input(self):
+        uid = str(uuid.uuid4())
+        response = (
+            "HTTP/1.1 200 OK\r\n"
+            f"ST: {device.SSDP_ST}\r\n"
+            f"USN: uuid:{uid}::{device.SSDP_ST}\r\n"
+            "X-GutCheck-Hostname: aryaos-a001\r\n"
+            "X-GutCheck-FQDN: aryaos-a001.local\r\n\r\n"
+        ).encode("ascii")
+        parsed = device.parse_ssdp_response(response, "169.254.10.4", now=100)
+        self.assertEqual(parsed["uid"], uid)
+        self.assertEqual(parsed["hostname"], "aryaos-a001")
+        self.assertEqual(parsed["ip"], "169.254.10.4")
+        self.assertEqual(parsed["source"], "ssdp")
+        self.assertIsNone(
+            device.parse_ssdp_response(
+                response.replace(b"ST:", b"ST: other\r\nST:", 1),
+                "169.254.10.4",
+            )
+        )
+
+    def test_discover_runs_cot_and_ssdp_in_parallel_then_expands(self):
+        direct = {
+            "hostname": "aryaos-a001",
+            "fqdn": "aryaos-a001.local",
+            "uid": "same",
+            "ip": "169.254.10.4",
+            "capabilities": [],
+            "seen_at": 100,
+            "age_s": 0,
+            "source": "ssdp",
+        }
+        rich = dict(direct, capabilities=["rid"], source="neighbor-cache")
+        with (
+            mock.patch.object(device, "multicast_scan", return_value=[]),
+            mock.patch.object(device, "ssdp_scan", return_value=[direct]),
+            mock.patch.object(device, "fetch_neighbors", return_value=[rich]),
+        ):
+            nodes = device.discover(0.1)
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0]["ip"], "169.254.10.4")
+        self.assertEqual(nodes[0]["capabilities"], ["rid"])
 
 
 class NeighborCacheTestCase(unittest.TestCase):
@@ -176,6 +230,30 @@ class InterfaceAndInventoryTestCase(unittest.TestCase):
             if call.args[:2] == (socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP)
         ]
         self.assertEqual(len(memberships), 2)
+
+    def test_ssdp_scan_searches_every_selected_interface(self):
+        sockets = [mock.MagicMock(), mock.MagicMock()]
+        with (
+            mock.patch.object(
+                device,
+                "discovery_interfaces",
+                return_value=[("eth0", "192.0.2.10"), ("wlan0", "10.0.0.2")],
+            ),
+            mock.patch.object(device.socket, "socket", side_effect=sockets),
+        ):
+            self.assertEqual(
+                device.ssdp_scan(
+                    0.5, clock=mock.Mock(side_effect=[0.0, 1.0])
+                ),
+                [],
+            )
+        for address, sock in zip(("192.0.2.10", "10.0.0.2"), sockets):
+            sock.bind.assert_called_once_with((address, 0))
+            sock.sendto.assert_called_once()
+            self.assertEqual(
+                sock.sendto.call_args.args[1],
+                (device.SSDP_GROUP, device.SSDP_PORT),
+            )
 
     def test_dynamic_inventory_explicit_target_is_clean_json(self):
         with mock.patch.dict(

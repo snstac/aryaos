@@ -10,7 +10,8 @@ Open any of them from Cockpit's left menu.
 |----------------|---------|-------------|-------|
 | adsbcot | `adsbcot` | `/etc/default/adsbcot` | ADS-B aircraft > CoT |
 | aiscot | `aiscot` | `/etc/default/aiscot` | AIS vessels > CoT |
-| dronecot | `dronecot` | `/etc/default/dronecot` | Remote ID drones > CoT |
+| DroneCOT DJI / AntSDR | `dronecot-dji` | `/etc/default/dronecot-dji` | DJI DroneID > CoT |
+| DroneCOT DroneScout | `dronecot-dronescout` | `/etc/default/dronecot-dronescout` | Open Drone ID > CoT |
 | aprscot | `aprscot` | `/etc/default/aprscot` | APRS (KISS TNC / APRS-IS) > CoT |
 | sapientcot | `sapientcot` | `/etc/default/sapientcot` | SAPIENT (BSI Flex 335) C-UAS / ISR > CoT |
 | lincot | `lincot` | `/etc/default/lincot` | This host's position/beacon > CoT |

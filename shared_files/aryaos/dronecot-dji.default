@@ -1,0 +1,7 @@
+# AryaOS DJI DroneID / AntSDR listener.
+# The AntSDR pushes decoded DJI DroneID to this address and port.
+DJI_TCP_PORT=52002
+DJI_BIND_ADDRESS=172.31.100.1
+DJI_SENSOR_NAME=ANTSDR
+SENSOR_KEEPALIVE_PERIOD=30
+STATUS_APP=dronecot-dji

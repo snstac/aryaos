@@ -16,13 +16,6 @@
 # limitations under the License.
 #
 
-# Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/dronecot.service if the line does not already exist
-- name: Add EnvironmentFile to dronecot.service
-  ansible.builtin.lineinfile:
-    path: /lib/systemd/system/dronecot.service
-    line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
-    insertbefore: '^EnvironmentFile=/etc/default/dronecot'
-
 # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/aiscot.service if the line does not already exist
 - name: Add EnvironmentFile to aiscot.service
   ansible.builtin.lineinfile:

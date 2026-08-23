@@ -44,7 +44,7 @@ Browsing to `https://aryaos-xxxx.local/` (no `/admin`) shows the **landing porta
 
 The portal polls a JSON status endpoint (`/cgi-bin/aryaos-portal-status`) every 8 seconds and shows:
 
-- **TAK gateway strip** - live up/down/degraded state of `cotbridge`, `adsbcot`, `aiscot`, `lincot`, `dronecot`, and `sikw00fcot`.
+- **TAK gateway strip** - live up/down/degraded state of `cotbridge`, `adsbcot`, `aiscot`, `lincot`, the DroneCOT family, and `sikw00fcot`.
 - **System health** - CPU temperature, load average, memory, and Raspberry Pi power/throttle state.
 - **Connection & status** - hostname, FQDN, primary IP, the full IPv4 address block, and uptime.
 - **GNSS** - the gpsd position fix: latitude/longitude, MSL and HAE altitude, CE/LE accuracy, Maidenhead grid, and satellites in view/used.

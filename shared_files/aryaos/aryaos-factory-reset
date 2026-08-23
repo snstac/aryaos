@@ -68,9 +68,12 @@ restore_default() {
 restore_default "${DEFAULTS}/aryaos-config.txt" /etc/aryaos/aryaos-config.txt 0644
 restore_default "${DEFAULTS}/cotbridge.ini"     /etc/cotbridge.ini             0644
 restore_default "${DEFAULTS}/gpsd.default"      /etc/default/gpsd              0644
+restore_default "${DEFAULTS}/dronecot-dji.default" /etc/default/dronecot-dji    0644
 for b in issue issue.net motd; do
 	restore_default "${DEFAULTS}/${b}" "/etc/${b}" 0644
 done
+# Preserve the SSH pre-auth Windows-terminal line-ending contract.
+sed -i 's/\r$//; s/$/\r/' /etc/issue.net
 
 # 2. Best-effort reset of per-gateway /etc/default via package reinstall (online only).
 if command -v apt-get >/dev/null 2>&1 && ping -c1 -W2 deb.debian.org >/dev/null 2>&1; then
