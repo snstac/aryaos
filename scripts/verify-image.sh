@@ -643,7 +643,7 @@ fi
 require_grep '(aryaos-hotspot|--change-interface)' /usr/local/sbin/comitup-callback.sh "comitup-callback assigns wlan0 to the hotspot zone"
 require_grep '^bind-dynamic$' /usr/share/comitup/dns/dns-hotspot.conf "WiFi hotspot DHCP coexists with Bluetooth PAN DHCP"
 require_grep '^bind-dynamic$' /usr/share/comitup/dns/dns-connected.conf "WiFi connecting DHCP coexists with Bluetooth PAN DHCP"
-require_grep 'dhcp6-change\|reapply' /etc/NetworkManager/dispatcher.d/99-aryaos-dispatcher "dispatcher accepts NetworkManager reapply events"
+require_grep 'dhcp4-change\|reapply' /etc/NetworkManager/dispatcher.d/99-aryaos-dispatcher "dispatcher accepts NetworkManager reapply events"
 # Bluetooth PAN (pan0) is the other onboarding radio — it must be confined to the
 # hotspot zone too (statically in the zone XML + at bridge-up in the bt-pan NAP).
 require_grep '<interface name="pan0"/>' /etc/firewalld/zones/aryaos-hotspot.xml "pan0 statically bound to hotspot zone"
@@ -705,8 +705,8 @@ fi
 # second hardcoded list here -- a second list would rot exactly the same way. A
 # /etc/default entry is ours if no package in the image claims it (our stage
 # scripts wrote it), or if the claiming package is one we install from the snstac
-# apt repo. Private Gutcheck is intentionally absent from that public manifest,
-# so its secret-bearing defaults also have an explicit check above.
+# apt repo. Secret-bearing configs are part of a full backup but intentionally
+# omitted by --no-secrets, so both path sets participate in this coverage check.
 backup_covers_gateway_configs() {
 	local script="${MNT}/usr/local/sbin/aryaos-config-backup"
 	if [[ ! -r "${script}" ]]; then
@@ -720,6 +720,10 @@ backup_covers_gateway_configs() {
 	# a first attempt at it silently extracted nothing and the check "passed" by
 	# doing nothing at all.
 	mapfile -t pats < <(sed -n "/^config_paths() {/,/^}/p" "${script}" \
+		| grep -E '^(etc|home|usr|var)/')
+	while IFS= read -r pat; do
+		pats+=("${pat}")
+	done < <(sed -n "/^secret_paths() {/,/^}/p" "${script}" \
 		| grep -E '^(etc|home|usr|var)/')
 	if [[ "${#pats[@]}" -eq 0 ]]; then
 		fail "could not read config_paths() out of aryaos-config-backup"

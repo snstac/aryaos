@@ -59,7 +59,8 @@ case "$1" in
     dji_config=/etc/default/dronecot-dji
     legacy_dji_config=/etc/default/dronecot
     legacy_dji_enabled=0
-    if command -v systemctl >/dev/null 2>&1 \
+    if [ -n "${2:-}" ] \
+      && command -v systemctl >/dev/null 2>&1 \
       && systemctl is-enabled --quiet dronecot.service 2>/dev/null; then
       legacy_dji_enabled=1
     fi
