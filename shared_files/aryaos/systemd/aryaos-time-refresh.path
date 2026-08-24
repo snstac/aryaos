@@ -1,0 +1,9 @@
+[Unit]
+Description=Refresh AryaOS tactical NTP peers when GutCheck neighbors change
+
+[Path]
+PathChanged=/run/gutcheck/neighbors.json
+Unit=aryaos-time-refresh.service
+
+[Install]
+WantedBy=multi-user.target

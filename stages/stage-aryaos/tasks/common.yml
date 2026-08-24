@@ -82,11 +82,14 @@
     dest: /usr/local/sbin/aryaos-health
     mode: "0755"
 
-- name: Upload GPS time sync helper
+- name: Upload resilient time and deferred TLS helpers
   ansible.builtin.copy:
-    src: "{{ shared_files }}/aryaos/aryaos-gps-time-sync"
-    dest: /usr/local/sbin/aryaos-gps-time-sync
+    src: "{{ shared_files }}/aryaos/{{ item }}"
+    dest: "/usr/local/sbin/{{ item }}"
     mode: "0755"
+  loop:
+    - aryaos-time-bootstrap
+    - aryaos-web-tls-init
 
 - name: Install TAK data package import daemon unit
   ansible.builtin.copy:
@@ -95,12 +98,27 @@
     mode: "0644"
   notify: Reload systemd
 
-- name: Install GPS time sync unit
+- name: Install resilient time systemd units
   ansible.builtin.copy:
-    src: "{{ shared_files }}/aryaos/systemd/aryaos-gps-time-sync.service"
-    dest: /etc/systemd/system/aryaos-gps-time-sync.service
+    src: "{{ shared_files }}/aryaos/systemd/{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
     mode: "0644"
+  loop:
+    - aryaos-time-floor.service
+    - aryaos-time-bootstrap.service
+    - aryaos-time-ready.target
+    - aryaos-time-refresh.service
+    - aryaos-time-refresh.path
+    - aryaos-time-refresh.timer
+    - aryaos-web-tls-init.service
   notify: Reload systemd
+
+- name: Install AryaOS chrony policy
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/chrony/aryaos.conf"
+    dest: /etc/chrony/conf.d/aryaos.conf
+    mode: "0644"
+  notify: Restart chrony
 
 - name: Enable and start TAK data package import daemon
   ansible.builtin.systemd:
@@ -179,8 +197,22 @@
     enabled: true
     daemon_reload: true
 
-- name: Enable GPS time sync at boot
+- name: Enable resilient time units at boot
   ansible.builtin.systemd:
-    name: aryaos-gps-time-sync.service
+    name: "{{ item }}"
     enabled: true
     daemon_reload: true
+  loop:
+    - aryaos-time-floor.service
+    - aryaos-time-bootstrap.service
+    - aryaos-time-ready.target
+    - aryaos-time-refresh.path
+    - aryaos-time-refresh.timer
+    - aryaos-web-tls-init.service
+
+- name: Disable legacy direct GPS clock writer
+  ansible.builtin.systemd:
+    name: aryaos-gps-time-sync.service
+    enabled: false
+    state: stopped
+  failed_when: false

@@ -68,7 +68,8 @@ install_file 0755 "${SHARED}/aryaos/aryaos-tak-dp-import" "/usr/local/sbin/aryao
 install_file 0755 "${SHARED}/aryaos/patch-cockpit-aryaos-dp" "/usr/local/sbin/patch-cockpit-aryaos-dp"
 install_file 0755 "${SHARED}/aryaos/aryaos-device-suffix.sh" "/usr/local/sbin/aryaos-device-suffix.sh"
 install_file 0755 "${SHARED}/aryaos/aryaos-firstboot.sh" "/usr/local/sbin/aryaos-firstboot.sh"
-install_file 0755 "${SHARED}/aryaos/aryaos-gps-time-sync" "/usr/local/sbin/aryaos-gps-time-sync"
+install_file 0755 "${SHARED}/aryaos/aryaos-time-bootstrap" "/usr/local/sbin/aryaos-time-bootstrap"
+install_file 0755 "${SHARED}/aryaos/aryaos-web-tls-init" "/usr/local/sbin/aryaos-web-tls-init"
 install_file 0755 "${SHARED}/aryaos/aryaos-lincot-remarks" "/usr/local/sbin/aryaos-lincot-remarks"
 install_file 0755 "${SHARED}/aryaos/aryaos-cot-detail" "/usr/local/sbin/aryaos-cot-detail"
 install_file 0755 "${SHARED}/aryaos/aryaos-health" "/usr/local/sbin/aryaos-health"
@@ -99,7 +100,9 @@ install_file 0755 "${SHARED}/aryaos/wifi-nuke.py" "/usr/local/sbin/wifi-nuke.py"
 install_file 0755 "${SHARED}/aryaos/get_position.sh" "/usr/local/bin/get_position.sh"
 
 install_file 0644 "${SHARED}/aryaos/aryaos-firstboot.service" "/etc/systemd/system/aryaos-firstboot.service"
-install_file 0644 "${SHARED}/aryaos/systemd/aryaos-gps-time-sync.service" "/etc/systemd/system/aryaos-gps-time-sync.service"
+for unit in aryaos-time-floor.service aryaos-time-bootstrap.service aryaos-time-ready.target aryaos-time-refresh.service aryaos-time-refresh.path aryaos-time-refresh.timer aryaos-web-tls-init.service; do
+	install_file 0644 "${SHARED}/aryaos/systemd/${unit}" "/etc/systemd/system/${unit}"
+done
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-tak-dp-importd.service" "/etc/systemd/system/aryaos-tak-dp-importd.service"
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-multicast-links.service" "/etc/systemd/system/aryaos-multicast-links.service"
 install_file 0644 "${SHARED}/aryaos/systemd/NetworkManager-wait-online.service.d/aryaos.conf" "/etc/systemd/system/NetworkManager-wait-online.service.d/aryaos.conf"
@@ -120,7 +123,7 @@ done
 for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot-dji sikw00fcot sapientcot; do
 	install_file 0644 "${SHARED}/aryaos/systemd/safe-mode.conf" "/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done
-for svc in adsbcot aiscot dronecot-dji sikw00fcot lincot aircot; do
+for svc in adsbcot aiscot gpscot acarscot aprscot sapientcot dronecot-dji dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot lincot aircot; do
 	install_file 0644 "${SHARED}/cotbridge/systemd/after-cotbridge.conf" "/etc/systemd/system/${svc}.service.d/after-cotbridge.conf"
 done
 install_file 0644 "${SHARED}/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf" "/etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf"

@@ -1,0 +1,21 @@
+#!/bin/bash
+# Mint the per-device portal certificate only after the boot clock attempt.
+
+set -euo pipefail
+
+MARKER="/etc/aryaos/.web-tls-regenerated"
+[[ -f "${MARKER}" ]] && exit 0
+command -v make-ssl-cert >/dev/null 2>&1 || exit 0
+
+make-ssl-cert generate-default-snakeoil --force-overwrite
+(
+	umask 077
+	install -d -m 0755 /etc/lighttpd/ssl
+	cat /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/private/ssl-cert-snakeoil.key \
+		>/etc/lighttpd/ssl/snakeoil-combined.pem.tmp
+	mv -f /etc/lighttpd/ssl/snakeoil-combined.pem.tmp /etc/lighttpd/ssl/snakeoil-combined.pem
+)
+chmod 0640 /etc/lighttpd/ssl/snakeoil-combined.pem
+chgrp ssl-cert /etc/lighttpd/ssl/snakeoil-combined.pem 2>/dev/null || true
+touch "${MARKER}"
+echo "Per-device web TLS certificate generated after the boot clock attempt."

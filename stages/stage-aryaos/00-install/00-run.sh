@@ -65,12 +65,15 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tak-dp-importd" "${ROOTFS_DIR}
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-tak-dp-import" "${ROOTFS_DIR}/usr/local/sbin/aryaos-tak-dp-import"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-site-output" "${ROOTFS_DIR}/usr/local/sbin/aryaos-site-output"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-health" "${ROOTFS_DIR}/usr/local/sbin/aryaos-health"
-install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-gps-time-sync" "${ROOTFS_DIR}/usr/local/sbin/aryaos-gps-time-sync"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-time-bootstrap" "${ROOTFS_DIR}/usr/local/sbin/aryaos-time-bootstrap"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-web-tls-init" "${ROOTFS_DIR}/usr/local/sbin/aryaos-web-tls-init"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-lincot-remarks" "${ROOTFS_DIR}/usr/local/sbin/aryaos-lincot-remarks"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-cot-detail" "${ROOTFS_DIR}/usr/local/sbin/aryaos-cot-detail"
 install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system"
-install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-gps-time-sync.service" \
-	"${ROOTFS_DIR}/etc/systemd/system/aryaos-gps-time-sync.service"
+for unit in aryaos-time-floor.service aryaos-time-bootstrap.service aryaos-time-ready.target aryaos-time-refresh.service aryaos-time-refresh.path aryaos-time-refresh.timer aryaos-web-tls-init.service; do
+	install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/${unit}" \
+		"${ROOTFS_DIR}/etc/systemd/system/${unit}"
+done
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-tak-dp-importd.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-tak-dp-importd.service"
 

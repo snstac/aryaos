@@ -194,8 +194,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
-        self.assertIn("require_pkg_version aryaos-overlay 2.2.0", verifier)
-        self.assertIn("require_package_version aryaos-overlay 2.2.0", hil)
+        self.assertIn("require_pkg_version aryaos-overlay 2.3.0", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.3.0", hil)
         self.assertIn("require_pkg_version cotbridge 1.1.0", verifier)
         self.assertIn("require_package_version cotbridge 1.1.0", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
@@ -252,6 +252,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn(
             "EnvironmentFile=-/run/aryaos/multicast.env", gutcheck_dropin
         )
+        self.assertIn('Environment="DISCOVERY_INTERVAL=10"', gutcheck_dropin)
         self.assertIn("gdlcot.service.d/aryaos-multicast.conf", builder)
         resolver_unit = (
             ROOT / "shared_files/aryaos/systemd/aryaos-multicast-links.service"
@@ -268,6 +269,51 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("ExecStart=/usr/bin/nm-online --quiet --timeout=60", wait_online)
         self.assertNotIn("--wait-for-startup", wait_online)
         self.assertIn("NetworkManager-wait-online.service.d/aryaos.conf", builder)
+
+    def test_resilient_time_bootstrap_is_packaged_and_bounded(self):
+        builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        config = (ROOT / "shared_files/aryaos/aryaos-config.txt").read_text()
+        chrony = (ROOT / "shared_files/aryaos/chrony/aryaos.conf").read_text()
+        helper = (ROOT / "shared_files/aryaos/aryaos-time-bootstrap").read_text()
+        cot_detail = (ROOT / "shared_files/aryaos/aryaos-cot-detail").read_text()
+        docs = (ROOT / "docs/config/site-config.md").read_text()
+        bootstrap = (
+            ROOT / "shared_files/aryaos/systemd/aryaos-time-bootstrap.service"
+        ).read_text()
+        feeder_gate = (
+            ROOT
+            / "shared_files/cotbridge/systemd/after-cotbridge.conf"
+        ).read_text()
+        tls_unit = (
+            ROOT / "shared_files/aryaos/systemd/aryaos-web-tls-init.service"
+        ).read_text()
+
+        for artifact in (
+            "aryaos-time-bootstrap",
+            "aryaos-time-floor.service",
+            "aryaos-time-bootstrap.service",
+            "aryaos-time-ready.target",
+            "aryaos-time-refresh.path",
+            "aryaos-time-refresh.timer",
+            "aryaos-web-tls-init.service",
+        ):
+            self.assertIn(artifact, builder)
+        self.assertIn("ARYAOS_TIME_PEER_MODE=validated", config)
+        self.assertIn("ARYAOS_TIME_BOOT_TIMEOUT=60", config)
+        self.assertIn("ARYAOS_TIME_PEER_MODE ARYAOS_TIME_BOOT_TIMEOUT", postinst)
+        self.assertIn('[ "${2:-}" != "$new_overlay_version" ]', postinst)
+        self.assertIn("sourcedir /run/chrony-aryaos/sources", chrony)
+        self.assertIn("local stratum 10 orphan", chrony)
+        self.assertIn("Before=aryaos-time-ready.target", bootstrap)
+        self.assertIn("TimeoutStartSec=315", bootstrap)
+        self.assertIn("aryaos-time-ready.target", feeder_gate)
+        self.assertNotIn("cotbridge.service.d/aryaos-time.conf", builder)
+        self.assertIn("aryaos-time-ready.target", tls_unit)
+        self.assertIn("/run/aryaos/time-status.json", cot_detail)
+        self.assertEqual(helper.count('[DATE, "-u", "--set"'), 1)
+        self.assertIn("CoT timestamps are never written directly", docs)
+        self.assertIn("cryptographically authenticated", docs)
 
     def test_dronescout_hil_survives_rotated_startup_heartbeat(self):
         hil = (
@@ -426,10 +472,16 @@ class ServiceDefaultsTestCase(unittest.TestCase):
     def test_overlay_orders_feeders_after_cotbridge(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
 
-        self.assertIn(
-            "for svc in adsbcot aiscot dronecot-dji sikw00fcot lincot aircot",
-            builder,
-        )
+        for service in (
+            "adsbcot",
+            "aiscot",
+            "gpscot",
+            "acarscot",
+            "dronecot-dronescout",
+            "sikw00fcot",
+            "lincot",
+        ):
+            self.assertIn(service, builder)
         self.assertIn(
             'after-cotbridge.conf" "/etc/systemd/system/${svc}.service.d/',
             builder,

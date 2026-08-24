@@ -51,7 +51,9 @@ for svc in adsbcot aiscot sikw00fcot lincot aircot; do
 	add_environment_file "${svc}" "/etc/default/${svc}"
 	install_after_cotbridge "${svc}"
 done
-install_after_cotbridge dronecot-dji
+for svc in gpscot acarscot aprscot sapientcot dronecot-dji dronecot-wifi dronecot-ble dronecot-dronescout; do
+	install_after_cotbridge "${svc}"
+done
 install -v -m 0644 \
 	/usr/src/cotbridge/systemd/sikw00fcot.service.d/aryaos-config.conf \
 	/etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf

@@ -4,7 +4,7 @@ Section: admin
 Priority: optional
 Architecture: all
 Maintainer: Sensors & Signals LLC <info@snstac.com>
-Depends: python3, python3-cryptography, pytak (>= 7.6.1), cotbridge (>= 1.1.0), gutcheck (>= 0.4.0), network-manager (>= 1.52), lighttpd, systemd, systemd-zram-generator, initramfs-tools, gpsd, cockpit, ssl-cert, fail2ban, python3-systemd, firewalld, unattended-upgrades
+Depends: python3, python3-cryptography, pytak (>= 7.6.1), cotbridge (>= 1.1.0), gutcheck (>= 0.4.2), network-manager (>= 1.52), chrony, lighttpd, systemd, systemd-zram-generator, initramfs-tools, gpsd, cockpit, ssl-cert, fail2ban, python3-systemd, firewalld, unattended-upgrades
 Recommends: gpsd-clients, python3-gps, bluez, cockpit-packagekit
 Description: AryaOS appliance overlay files
  AryaOS portal, Cockpit proxy integration, TAK connection import helpers,

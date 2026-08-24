@@ -76,7 +76,6 @@ def _nm_default(enabled: bool) -> str:
         "match-device=type:ethernet\n"
         f"ipv4.link-local={value}\n"
         "ipv4.required-timeout=0\n"
-        "ipv6.method=link-local\n"
     )
 
 

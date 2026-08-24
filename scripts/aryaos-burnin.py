@@ -33,7 +33,8 @@ SERVICES = (
     "acarscot", "acarsdec", "readsb", "dump978-fa", "adsbcot",
     "gpsd", "ais-catcher", "aiscot", "aprscot", "sapientcot",
     "sikw00fcot", "sikw00fscan", "sikw00fsentinel", "gutcheck",
-    "aryaos-bt-pan", "aryaos-gps-time-sync",
+    "aryaos-bt-pan", "aryaos-time-bootstrap", "aryaos-time-refresh",
+    "aryaos-web-tls-init", "aryaos-gps-time-sync",
     "firewalld", "cockpit.socket",
 )
 
@@ -103,6 +104,13 @@ def gateway_status():
             "write_errors": doc.get("write_errors"),
         }
     return result
+
+def time_status():
+    try:
+        doc = json.loads(read("/run/aryaos/time-status.json"))
+    except (TypeError, ValueError):
+        return {}
+    return doc if isinstance(doc, dict) else {}
 
 def networks():
     result = {}
@@ -222,6 +230,7 @@ print(json.dumps({
     "journal_warning_events_2m": journal_events,
     "journal_warning_tail": [event.get("message") for event in journal_events[-12:]],
     "services": services(), "gateway_status": gateway_status(),
+    "time_status": time_status(),
     "filesystem": filesystem_health(),
     "networks": networks(), "usb": usb.splitlines(), "health": health,
     "top_processes": top.splitlines()[1:13],

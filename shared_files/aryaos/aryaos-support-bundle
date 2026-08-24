@@ -72,7 +72,7 @@ if [[ -f "${SITE_CONFIG}" ]]; then
 	cfg_services="$(sed -n 's/^AOS_SERVICES=["'\'']\?\([^"'\'']*\)["'\'']\?$/\1/p' "${SITE_CONFIG}" | tail -1)"
 	[[ -n "${cfg_services}" ]] && AOS_SERVICES="${cfg_services}"
 fi
-ALL_UNITS="${AOS_SERVICES} gpscot sikw00fcot readsb dump978-fa ais-catcher gpsd nodered docker lighttpd cockpit.socket firewalld fail2ban comitup aryaos-firstboot aryaos-tak-dp-importd aryaos-bt-pan"
+ALL_UNITS="${AOS_SERVICES} gpscot sikw00fcot readsb dump978-fa ais-catcher gpsd nodered docker lighttpd cockpit.socket firewalld fail2ban comitup aryaos-firstboot aryaos-time-floor aryaos-time-bootstrap aryaos-time-refresh.timer aryaos-web-tls-init aryaos-tak-dp-importd aryaos-bt-pan"
 
 # --- system identity & resources ---
 SYS="${ROOT}/system.txt"
@@ -80,6 +80,8 @@ run "${SYS}" uname -a
 run "${SYS}" cat /etc/aryaos-release /etc/aryaos-version /etc/os-release
 run "${SYS}" uptime
 run "${SYS}" date -u
+command -v chronyc >/dev/null 2>&1 && run "${SYS}" chronyc -n tracking
+command -v chronyc >/dev/null 2>&1 && run "${SYS}" chronyc -n sources -v
 run "${SYS}" free -h
 run "${SYS}" df -h
 [[ -x /usr/local/sbin/get_throttled.sh ]] && run "${SYS}" /usr/local/sbin/get_throttled.sh
@@ -128,6 +130,8 @@ if [[ -f /run/adsb/aircraft.json ]]; then
 	head -c 16384 /run/adsb/aircraft.json > "${ROOT}/adsb-aircraft.json" 2>/dev/null || true
 fi
 [[ -f /run/aryaos/neighbors.json ]] && cp /run/aryaos/neighbors.json "${ROOT}/neighbors.json"
+[[ -f /run/aryaos/time-status.json ]] && cp /run/aryaos/time-status.json "${ROOT}/time-status.json"
+[[ -f /run/aryaos/time-peers.json ]] && cp /run/aryaos/time-peers.json "${ROOT}/time-peers.json"
 if command -v gpspipe >/dev/null 2>&1; then
 	timeout 5 gpspipe -w -n 5 > "${ROOT}/gpsd.json" 2>&1 || true
 fi

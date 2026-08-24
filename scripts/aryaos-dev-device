@@ -137,7 +137,16 @@ def parse_beacon(data: bytes, source_ip: str, now: int | None = None) -> dict | 
         return None
     observed = int(time.time()) if now is None else now
     stale = _cot_time(str(root.attrib.get("stale") or ""))
-    if stale is not None and stale < observed:
+    # A directly observed GutCheck presence beacon is current by virtue of
+    # arriving now. DHCP-less MANET nodes may have no GNSS, NTP, or RTC, so
+    # their CoT wall clock can be far outside our local stale window. Retain
+    # strict stale handling for ordinary LINCOT/TAK traffic, which can be
+    # replayed by bridges and stores.
+    live_presence = (
+        host_data.get("seen_source") == "gutcheck"
+        and bool(host_data.get("discovery_id"))
+    )
+    if stale is not None and stale < observed and not live_presence:
         return None
     caps = _child(aryaos, "capabilities")
     cap_items = [dict(item.attrib) for item in caps] if caps is not None else []
@@ -201,6 +210,42 @@ def parse_neighbors(payload: object, now: int | None = None) -> list[dict]:
 def _interface_ipv4() -> list[tuple[str, str]]:
     """Enumerate UP, multicast-capable IPv4 interfaces without extra packages."""
 
+    ip_command = shutil.which("ip")
+    if ip_command:
+        result = subprocess.run(
+            [ip_command, "-j", "-4", "address", "show", "up"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            try:
+                links = json.loads(result.stdout)
+            except (json.JSONDecodeError, TypeError):
+                links = None
+            if isinstance(links, list):
+                found = []
+                seen = set()
+                for link in links:
+                    if not isinstance(link, dict):
+                        continue
+                    flags = set(link.get("flags") or [])
+                    name = str(link.get("ifname") or "")
+                    if not name or not {"UP", "MULTICAST"}.issubset(flags):
+                        continue
+                    for info in link.get("addr_info") or []:
+                        if not isinstance(info, dict) or info.get("family") != "inet":
+                            continue
+                        address = _valid_ipv4(info.get("local"))
+                        item = (name, address) if address else None
+                        if item and item not in seen:
+                            found.append(item)
+                            seen.add(item)
+                return found
+
+    # Portable fallback for minimal systems without iproute2. The ioctl can
+    # expose only one primary address per interface, so prefer ip(8) above on
+    # multi-address DHCP + IPv4LL MANET links.
     found = []
     probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:

@@ -1,0 +1,13 @@
+[Unit]
+Description=AryaOS: mint the per-device web certificate after clock acquisition
+After=aryaos-firstboot.service aryaos-time-ready.target
+Wants=aryaos-firstboot.service aryaos-time-ready.target
+Before=lighttpd.service cockpit.socket
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/aryaos-web-tls-init
+
+[Install]
+WantedBy=multi-user.target

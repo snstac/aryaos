@@ -145,7 +145,7 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.2.0
+require_pkg_version aryaos-overlay 2.3.0
 require_pkg_version cotbridge 1.1.0
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
@@ -162,6 +162,24 @@ forbid_grep '^ARYAOS_PRODUCT=' /etc/aryaos/aryaos-config.txt "no product line ba
 require_path /usr/local/sbin/aryaos-time-pps
 require_path /etc/systemd/system/aryaos-time-pps.service
 require_path /etc/udev/rules.d/99-aryaos-pps.rules
+require_path /usr/local/sbin/aryaos-time-bootstrap
+require_path /etc/systemd/system/aryaos-time-floor.service
+require_path /etc/systemd/system/aryaos-time-bootstrap.service
+require_path /etc/systemd/system/aryaos-time-ready.target
+require_path /etc/systemd/system/aryaos-time-refresh.service
+require_path /etc/systemd/system/aryaos-time-refresh.path
+require_path /etc/systemd/system/aryaos-time-refresh.timer
+require_path /etc/systemd/system/multi-user.target.wants/aryaos-time-floor.service
+require_path /etc/systemd/system/multi-user.target.wants/aryaos-time-ready.target
+require_path /etc/systemd/system/multi-user.target.wants/aryaos-time-refresh.path
+require_path /etc/systemd/system/timers.target.wants/aryaos-time-refresh.timer
+forbid_path /etc/systemd/system/multi-user.target.wants/aryaos-gps-time-sync.service
+require_grep '^ARYAOS_TIME_PEER_MODE=validated$' /etc/aryaos/aryaos-config.txt \
+	"validated tactical NTP peer fallback is enabled"
+require_grep '^ARYAOS_TIME_BOOT_TIMEOUT=60$' /etc/aryaos/aryaos-config.txt \
+	"clock acquisition has a bounded boot deadline"
+require_grep 'aryaos-time-ready.target' /etc/systemd/system/adsbcot.service.d/after-cotbridge.conf \
+	"downstream CoT feeders wait for bounded clock acquisition"
 # Without this line the helper writes a refclock into /run that chrony never
 # reads, and the PPS discipline silently does nothing -- which is exactly how
 # this feature failed twice already. The /run path is deliberate: a refclock
@@ -169,6 +187,10 @@ require_path /etc/udev/rules.d/99-aryaos-pps.rules
 # persist across a reboot.
 require_grep '^confdir /run/chrony-aryaos$' /etc/chrony/conf.d/aryaos.conf \
 	"chrony reads the ephemeral PPS refclock dir"
+require_grep '^sourcedir /run/chrony-aryaos/sources$' /etc/chrony/conf.d/aryaos.conf \
+	"chrony reads qualified ephemeral tactical NTP peers"
+require_grep '^local stratum 10 orphan$' /etc/chrony/conf.d/aryaos.conf \
+	"isolated local clock cannot outvote a real time source"
 # The helper must WRITE to /run. It still mentions the /etc path deliberately, to
 # migrate it away on boxes from an older build, so assert the write target rather
 # than the absence of the string.
@@ -194,8 +216,8 @@ require_grep '^ipv4.link-local=3$' /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.c
 	"ordinary Ethernet keeps a DHCP-compatible IPv4LL backup"
 require_grep '^ipv4.required-timeout=0$' /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf \
 	"IPv4 DHCP does not delay a usable link-local connection"
-require_grep '^ipv6.method=link-local$' /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf \
-	"Ethernet has a successful address family while optional DHCP continues"
+forbid_grep '^ipv6.method=' /etc/NetworkManager/conf.d/90-aryaos-ipv4ll.conf \
+	"connection defaults contain only NetworkManager-supported IPv4LL keys"
 require_grep '^ExecStart=/usr/bin/nm-online --quiet --timeout=60$' \
 	/etc/systemd/system/NetworkManager-wait-online.service.d/aryaos.conf \
 	"network-online accepts any usable AryaOS link while optional DHCP continues"
@@ -322,7 +344,7 @@ require_pkg_version pytak 7.6.0
 require_pkg_version acarscot 0.1.1
 require_pkg acarsdec
 require_pkg_version dronecot 2.3.9
-require_pkg_version gutcheck 0.4.0
+require_pkg_version gutcheck 0.4.2
 require_unit adsbcot.service
 require_unit aiscot.service
 require_unit dronecot.service
@@ -444,13 +466,22 @@ require_grep '^gutcheck ALL=\(root\) NOPASSWD: ARYAOS_GUTCHECK_HEALTH$' /etc/sud
 require_path /etc/systemd/system/gutcheck.service.d/aryaos-health.conf
 require_grep '^Environment="LOCAL_HEALTH_COMMAND=/usr/bin/sudo -n /usr/local/sbin/aryaos-health --json"$' /etc/systemd/system/gutcheck.service.d/aryaos-health.conf "Gutcheck uses the scoped AryaOS health collector"
 require_grep '^Environment="DISCOVERY_SERVICE_TYPE=_aryaos._tcp.local."$' /etc/systemd/system/gutcheck.service.d/aryaos-health.conf "GutCheck advertises AryaOS DNS-SD"
+require_grep '^Environment="DISCOVERY_INTERVAL=10"$' /etc/systemd/system/gutcheck.service.d/aryaos-health.conf "GutCheck Mesh SA discovery fits the dev scan window"
 require_grep 'UnitFileState' /usr/local/sbin/aryaos-health "gateway health records systemd enablement"
 require_grep 'state.*!=.*disabled' /usr/local/sbin/aryaos-health "disabled gateways do not degrade aggregate health"
 require_grep 'name="https"' /etc/firewalld/zones/public.xml "firewall zone allows HTTPS"
 require_path /etc/systemd/system/multi-user.target.wants/firewalld.service
 require_path /etc/systemd/system/multi-user.target.wants/fail2ban.service
 require_grep 'zone=trusted' /etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection "AntSDR link in trusted firewall zone"
-require_grep 'web-tls-regenerated' /usr/local/sbin/aryaos-firstboot.sh "firstboot mints per-device web TLS cert"
+require_path /usr/local/sbin/aryaos-web-tls-init
+require_path /etc/systemd/system/aryaos-web-tls-init.service
+require_path /etc/systemd/system/multi-user.target.wants/aryaos-web-tls-init.service
+require_grep 'web-tls-regenerated' /usr/local/sbin/aryaos-web-tls-init \
+	"deferred helper mints the per-device web TLS cert"
+require_grep 'aryaos-time-ready.target' /etc/systemd/system/aryaos-web-tls-init.service \
+	"web TLS certificate waits for bounded clock acquisition"
+forbid_grep 'make-ssl-cert generate-default-snakeoil' /usr/local/sbin/aryaos-firstboot.sh \
+	"firstboot no longer mints a certificate before clock acquisition"
 
 # Sensors OFF by default: capability drives what runs. The sensor debs enable
 # themselves in postinst, so this regresses the moment a package is added or

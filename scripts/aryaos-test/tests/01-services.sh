@@ -53,10 +53,30 @@ for svc in "${CORE_SERVICES[@]}"; do
 	fi
 done
 
-if unit_loaded aryaos-gps-time-sync && systemctl is-enabled --quiet aryaos-gps-time-sync.service 2>/dev/null; then
-	ok "aryaos-gps-time-sync installed and enabled"
+for unit in aryaos-time-floor.service aryaos-time-bootstrap.service \
+	aryaos-time-ready.target aryaos-time-refresh.path aryaos-time-refresh.timer \
+	aryaos-web-tls-init.service; do
+	if systemctl show "${unit}" -p LoadState --value 2>/dev/null | grep -qx loaded \
+		&& systemctl is-enabled --quiet "${unit}" 2>/dev/null; then
+		ok "${unit} installed and enabled"
+	else
+		fail "${unit} not installed/enabled"
+	fi
+done
+if [[ "$(systemctl show aryaos-time-bootstrap.service -p Result --value 2>/dev/null || true)" == "success" ]]; then
+	ok "bounded boot clock attempt completed successfully"
 else
-	fail "aryaos-gps-time-sync not installed/enabled"
+	fail "bounded boot clock attempt did not complete successfully"
+fi
+if systemctl is-enabled --quiet aryaos-gps-time-sync.service 2>/dev/null; then
+	fail "legacy direct GPS clock writer is still enabled"
+else
+	ok "legacy direct GPS clock writer disabled"
+fi
+if [[ -r /run/aryaos/time-status.json ]]; then
+	ok "clock quality status is published"
+else
+	fail "clock quality status is missing"
 fi
 
 if test_profile uas; then

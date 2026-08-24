@@ -90,7 +90,8 @@ case "$1" in
     if [ -f "$aryaos_config" ] && [ -f "$aryaos_defaults" ]; then
       for key in ARYAOS_COT_OUTPUT_URL ARYAOS_ADSB_1090_SOURCE \
         ARYAOS_ADSB_1090_DEVICE ARYAOS_UAT_978_DEVICE \
-        PYTAK_MULTICAST_LOCAL_ADDRS ARYAOS_IPV4LL_FALLBACK; do
+        PYTAK_MULTICAST_LOCAL_ADDRS ARYAOS_IPV4LL_FALLBACK \
+        ARYAOS_TIME_PEER_MODE ARYAOS_TIME_BOOT_TIMEOUT; do
         if ! grep -q "^${key}=" "$aryaos_config"; then
           default_line="$(grep "^${key}=" "$aryaos_defaults" | tail -n 1)"
           [ -n "$default_line" ] && printf '\n%s\n' "$default_line" >> "$aryaos_config"
@@ -181,7 +182,8 @@ case "$1" in
       systemctl mask dronecot.service 2>/dev/null || true
       rm -f /etc/systemd/system/aryaos-neighbord.service /usr/local/sbin/aryaos-neighbord
       systemctl daemon-reload || true
-      systemctl enable aryaos-firstboot.service aryaos-gps-time-sync.service aryaos-tak-dp-importd.service aryaos-multicast-links.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service gutcheck.service 2>/dev/null || true
+      systemctl disable --now aryaos-gps-time-sync.service 2>/dev/null || true
+      systemctl enable aryaos-firstboot.service aryaos-time-floor.service aryaos-time-bootstrap.service aryaos-time-ready.target aryaos-time-refresh.path aryaos-time-refresh.timer aryaos-web-tls-init.service aryaos-tak-dp-importd.service aryaos-multicast-links.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service gutcheck.service 2>/dev/null || true
       if [ "$legacy_dji_enabled" = 1 ]; then
         systemctl enable dronecot-dji.service 2>/dev/null || true
       fi
@@ -191,6 +193,13 @@ case "$1" in
       # the client-only systemd-timesyncd.
       systemctl disable --now systemd-timesyncd.service 2>/dev/null || true
       systemctl enable chrony.service 2>/dev/null || true
+      # Load a newly installed orphan/sourcedir policy before cotbridge pulls
+      # in the bounded clock gate below. A same-version reinstall is already
+      # running this policy and must not needlessly drop a healthy GNSS source.
+      new_overlay_version="$(cat /etc/aryaos-version 2>/dev/null || true)"
+      if [ -z "${2:-}" ] || [ "${2:-}" != "$new_overlay_version" ]; then
+        systemctl restart chrony.service 2>/dev/null || true
+      fi
       # Hardening: activate sysctl/sshd/fail2ban/firewalld config shipped by
       # this package (no-ops in image-build chroots where nothing is running).
       systemctl enable firewalld.service fail2ban.service 2>/dev/null || true
@@ -216,7 +225,7 @@ case "$1" in
       # aryaos-serial-assign already resumed gpsd with the detected device.
       # Restarting the socket/service pair again races the tty open path.
       systemctl try-restart cockpit.socket 2>/dev/null || true
-      systemctl start aryaos-gps-time-sync.service 2>/dev/null || true
+      systemctl start aryaos-time-refresh.path aryaos-time-refresh.timer aryaos-web-tls-init.service 2>/dev/null || true
     fi
 
     if [ -x /usr/local/sbin/patch-cockpit-aryaos-dp ]; then

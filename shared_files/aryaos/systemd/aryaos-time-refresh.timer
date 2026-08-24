@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodically refresh AryaOS tactical NTP peers and clock status
+
+[Timer]
+OnBootSec=90s
+OnUnitActiveSec=30s
+AccuracySec=5s
+Unit=aryaos-time-refresh.service
+
+[Install]
+WantedBy=timers.target

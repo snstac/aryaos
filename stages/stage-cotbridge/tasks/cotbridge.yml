@@ -75,7 +75,14 @@
   loop:
     - adsbcot
     - aiscot
+    - gpscot
+    - acarscot
+    - aprscot
+    - sapientcot
     - dronecot-dji
+    - dronecot-wifi
+    - dronecot-ble
+    - dronecot-dronescout
     - sikw00fcot
     - lincot
     - aircot
@@ -88,7 +95,14 @@
   loop:
     - adsbcot
     - aiscot
+    - gpscot
+    - acarscot
+    - aprscot
+    - sapientcot
     - dronecot-dji
+    - dronecot-wifi
+    - dronecot-ble
+    - dronecot-dronescout
     - sikw00fcot
     - lincot
     - aircot

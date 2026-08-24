@@ -19,10 +19,10 @@ else
 fi
 
 VERSION="$(dpkg-query -W -f='${Version}' gutcheck 2>/dev/null || true)"
-if [[ -n "${VERSION}" ]] && dpkg --compare-versions "${VERSION}" ge 0.4.0; then
+if [[ -n "${VERSION}" ]] && dpkg --compare-versions "${VERSION}" ge 0.4.2; then
 	ok "gutcheck package ${VERSION}"
 else
-	fail "gutcheck package ${VERSION:-missing}, expected >= 0.4.0"
+	fail "gutcheck package ${VERSION:-missing}, expected >= 0.4.2"
 fi
 
 IDENTITY_JSON="$(curl -sS --connect-timeout 2 http://127.0.0.1:8181/.well-known/gutcheck 2>/dev/null || true)"

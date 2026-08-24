@@ -53,6 +53,33 @@ See [Radios & SDRs](./radios-sdr.md) for the serial conventions and decoder-swit
 See [DHCP-less Ethernet and MANET fallback](../networking/manet-ipv4ll.md)
 for IPv4LL behavior, multicast fanout, and operational checks.
 
+## Time synchronization
+
+At boot, AryaOS restores a saved last-known-good clock floor, then gives normal
+Chrony sources (configured/DHCP/internet NTP and GNSS/PPS) the first opportunity
+to synchronize. If none succeeds, GutCheck may identify a fresh, directly
+connected AryaOS peer advertising a synchronized stratum 1-4 clock. AryaOS then
+corroborates that claim with a standard NTP exchange and adds the peer to Chrony
+as an ephemeral source. CoT timestamps are never written directly to the system
+clock.
+
+The gate is best effort: time-sensitive CoT and certificate startup waits up to
+60 seconds by default, then continues in a visibly degraded state rather than
+blocking the appliance. Runtime state is published in
+`/run/aryaos/time-status.json` and in the GutCheck `<time>` detail.
+
+| Key | Default | Meaning |
+|-----|---------|---------|
+| `ARYAOS_TIME_PEER_MODE` | `validated` | Allow qualified, directly connected GutCheck peers as fallback Chrony NTP sources. Set to `off` to disable only tactical peer fallback. |
+| `ARYAOS_TIME_BOOT_TIMEOUT` | `60` | Maximum boot-time clock acquisition wait in seconds (accepted range 10-300). |
+
+!!! warning "MANET peer trust"
+    A peer is checked for freshness, route locality, advertised clock quality,
+    and a corresponding NTP response, but same-MANET NTP is not
+    cryptographically authenticated. Treat this as tactical availability and
+    spoofing resistance, not identity proof. Disable peer fallback on networks
+    where every time source must be authenticated.
+
 ## Bluetooth PAN
 
 AryaOS acts as a Bluetooth Network Access Point (NAP) so a paired phone can reach AryaOS services over Bluetooth. It serves DHCP on the PAN link; **no NAT or forwarding** is enabled. See [Bluetooth PAN](../bluetooth-pan.md).

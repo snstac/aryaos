@@ -439,6 +439,30 @@ def _time_state() -> dict:
     # the selected source AND the measured RMS backs it up.
     state["tdoa_ready"] = str(bool(locked and rms_ok)).lower()
 
+    # The bootstrap helper owns the policy decision that cannot be inferred
+    # from chronyc alone: whether this clock is using a qualified tactical
+    # peer, merely holding a saved floor, or proceeding degraded after the
+    # bounded boot wait.  Carry that decision in GutCheck/CoT so peers can
+    # qualify this node without treating a beacon timestamp as a time source.
+    try:
+        with open("/run/aryaos/time-status.json", encoding="utf-8") as handle:
+            bootstrap = json.load(handle)
+    except (OSError, json.JSONDecodeError, TypeError):
+        bootstrap = {}
+    if isinstance(bootstrap, dict):
+        for key in (
+            "state",
+            "source",
+            "last_good",
+            "peer_uid",
+            "peer_host",
+            "peer_ip",
+            "reason",
+        ):
+            value = bootstrap.get(key)
+            if value not in (None, ""):
+                state[key] = str(value).lower() if isinstance(value, bool) else str(value)
+
     return {k: v for k, v in state.items() if v != ""}
 
 

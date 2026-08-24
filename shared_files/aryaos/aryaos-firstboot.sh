@@ -102,28 +102,6 @@ if [[ -d /etc/aryaos/tls ]]; then
 	[[ -f /etc/aryaos/tls/client.key ]] && chmod 0640 /etc/aryaos/tls/client.key 2>/dev/null || true
 fi
 
-# Every published image shares the build-time snakeoil TLS key pair. Mint a
-# per-device key/cert for the web portal + Cockpit HTTPS proxy on first boot
-# (after the hostname is personalized, so the CN matches aryaos-xxxx).
-TLS_REGEN_MARKER="/etc/aryaos/.web-tls-regenerated"
-if [[ ! -f "$TLS_REGEN_MARKER" ]] && command -v make-ssl-cert >/dev/null 2>&1; then
-	if make-ssl-cert generate-default-snakeoil --force-overwrite; then
-		(
-			umask 077
-			install -d -m 0755 /etc/lighttpd/ssl
-			cat /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/private/ssl-cert-snakeoil.key \
-				>/etc/lighttpd/ssl/snakeoil-combined.pem.tmp
-			mv -f /etc/lighttpd/ssl/snakeoil-combined.pem.tmp /etc/lighttpd/ssl/snakeoil-combined.pem
-		)
-		chmod 0640 /etc/lighttpd/ssl/snakeoil-combined.pem
-		chgrp ssl-cert /etc/lighttpd/ssl/snakeoil-combined.pem 2>/dev/null || true
-		systemctl try-restart lighttpd.service 2>/dev/null || true
-		touch "$TLS_REGEN_MARKER"
-		echo "Per-device web TLS certificate generated."
-		CHANGED=1
-	fi
-fi
-
 # Images ship with a published default password — force a change at first login.
 # Skipped on lab builds (ARYAOS_LAB_ACCESS=1: /etc/sudoers.d/aryaos-lab) and on
 # hosts that already trust the aryaos-dev-lab key (images built before the gate).

@@ -36,7 +36,10 @@ systemctl enable lighttpd
 # via the static apt-daily timers; no enable needed.
 systemctl enable firewalld
 systemctl enable fail2ban
-systemctl enable aryaos-gps-time-sync.service
+systemctl disable aryaos-gps-time-sync.service 2>/dev/null || true
+systemctl enable aryaos-time-floor.service aryaos-time-bootstrap.service \
+	aryaos-time-ready.target aryaos-time-refresh.path aryaos-time-refresh.timer \
+	aryaos-web-tls-init.service
 # Time service: chrony (GPS-disciplined + serves the local network) instead of the
 # client-only systemd-timesyncd.
 systemctl disable systemd-timesyncd.service 2>/dev/null || true

@@ -64,6 +64,22 @@ class BeaconParsingTestCase(unittest.TestCase):
         )
         self.assertIsNone(device.parse_beacon(expired, "192.0.2.10", now=2_000_000_000))
 
+    def test_accepts_live_gutcheck_presence_from_unsynchronized_node(self):
+        expired = beacon().replace(
+            b"2099-01-01T00:00:00Z", b"2020-01-01T00:00:00Z"
+        ).replace(
+            b'<host name="aryaos-a001"',
+            b'<host discovery_id="opaque-1" seen_source="gutcheck" name="aryaos-a001"',
+        )
+        parsed = device.parse_beacon(expired, "10.185.70.124", now=2_000_000_000)
+        self.assertEqual(parsed["uid"], "opaque-1")
+        self.assertEqual(parsed["ip"], "10.185.70.124")
+
+        untrusted_shape = expired.replace(b'seen_source="gutcheck"', b'seen_source="lincot"')
+        self.assertIsNone(
+            device.parse_beacon(untrusted_shape, "10.185.70.124", now=2_000_000_000)
+        )
+
     def test_prefers_cross_protocol_discovery_id(self):
         payload = beacon().replace(
             b'<host name="aryaos-a001"',
@@ -201,6 +217,42 @@ class SelectionTestCase(unittest.TestCase):
 
 
 class InterfaceAndInventoryTestCase(unittest.TestCase):
+    def test_interface_enumeration_keeps_every_ipv4_on_one_link(self):
+        links = [
+            {
+                "ifname": "eth0",
+                "flags": ["UP", "MULTICAST", "LOWER_UP"],
+                "addr_info": [
+                    {"family": "inet", "local": "169.254.10.4"},
+                    {"family": "inet", "local": "192.0.2.10"},
+                    {"family": "inet", "local": "10.20.30.40"},
+                    {"family": "inet6", "local": "fe80::1"},
+                ],
+            },
+            {
+                "ifname": "eth1",
+                "flags": ["UP"],
+                "addr_info": [{"family": "inet", "local": "198.51.100.2"}],
+            },
+        ]
+        result = subprocess.CompletedProcess([], 0, json.dumps(links), "")
+        with (
+            mock.patch.object(device.shutil, "which", return_value="/usr/sbin/ip"),
+            mock.patch.object(device.subprocess, "run", return_value=result) as run,
+        ):
+            self.assertEqual(
+                device._interface_ipv4(),
+                [
+                    ("eth0", "169.254.10.4"),
+                    ("eth0", "192.0.2.10"),
+                    ("eth0", "10.20.30.40"),
+                ],
+            )
+        self.assertEqual(
+            run.call_args.args[0],
+            ["/usr/sbin/ip", "-j", "-4", "address", "show", "up"],
+        )
+
     def test_interface_filtering(self):
         with mock.patch.object(
             device, "_interface_ipv4", return_value=[("eth0", "192.0.2.10"), ("wlan0", "10.0.0.2")]

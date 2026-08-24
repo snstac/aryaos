@@ -1,0 +1,514 @@
+#!/usr/bin/python3
+"""AryaOS boot-time clock convergence and tactical NTP peer management."""
+
+from __future__ import annotations
+
+import argparse
+import fcntl
+import ipaddress
+import json
+import os
+import socket
+import struct
+import subprocess
+import tempfile
+import time
+from pathlib import Path
+
+
+CHRONYC = "/usr/bin/chronyc"
+DATE = "/usr/bin/date"
+IP = "/usr/sbin/ip"
+TIMEDATECTL = "/usr/bin/timedatectl"
+NEIGHBORS = Path("/run/gutcheck/neighbors.json")
+RUNTIME_DIR = Path("/run/aryaos")
+CHRONY_SOURCE_DIR = Path("/run/chrony-aryaos/sources")
+CHRONY_SOURCE_FILE = CHRONY_SOURCE_DIR / "gutcheck.sources"
+PEER_STATE = RUNTIME_DIR / "time-peers.json"
+TIME_STATUS = RUNTIME_DIR / "time-status.json"
+STEP_MARKER = RUNTIME_DIR / "time-step-attempted"
+FLOOR_MARKER = RUNTIME_DIR / "time-floor-restored"
+LOCK_FILE = RUNTIME_DIR / "time-bootstrap.lock"
+LAST_GOOD = Path("/var/lib/aryaos/time/last-good.json")
+NTP_EPOCH = 2_208_988_800
+MIN_VALID_UNIX = 1_704_067_200  # 2024-01-01
+MAX_VALID_UNIX = 4_102_444_800  # 2100-01-01
+
+
+def _run(argv: list[str], timeout: float = 4.0) -> subprocess.CompletedProcess:
+    try:
+        return subprocess.run(
+            argv,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return subprocess.CompletedProcess(argv, 127, "", "")
+
+
+def _atomic_write(path: Path, payload: str, mode: int = 0o644) -> bool:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    previous = ""
+    try:
+        previous = path.read_text(encoding="utf-8")
+    except OSError:
+        pass
+    if previous == payload:
+        return False
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent, text=True)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write(payload)
+        os.chmod(tmp_name, mode)
+        os.replace(tmp_name, path)
+    finally:
+        try:
+            os.unlink(tmp_name)
+        except FileNotFoundError:
+            pass
+    return True
+
+
+def _load_json(path: Path) -> dict:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def _int_setting(name: str, default: int, minimum: int, maximum: int) -> int:
+    try:
+        value = int(os.environ.get(name, str(default)))
+    except ValueError:
+        return default
+    return min(maximum, max(minimum, value))
+
+
+def _peer_mode() -> str:
+    value = os.environ.get("ARYAOS_TIME_PEER_MODE", "validated").strip().lower()
+    return value if value in {"validated", "off"} else "validated"
+
+
+def _chrony_tracking() -> dict[str, str]:
+    result = _run([CHRONYC, "-n", "tracking"])
+    info: dict[str, str] = {}
+    if result.returncode != 0:
+        return info
+    for line in result.stdout.splitlines():
+        key, separator, value = line.partition(":")
+        if separator:
+            info[key.strip().lower()] = value.strip()
+    return info
+
+
+def _selected_source() -> tuple[str, str]:
+    result = _run([CHRONYC, "-n", "sources"])
+    if result.returncode != 0:
+        return "", ""
+    for line in result.stdout.splitlines():
+        if len(line) > 2 and line[1:2] == "*" and line[0] in "^=#":
+            fields = line.split()
+            if len(fields) >= 2:
+                return line[0], fields[1]
+    return "", ""
+
+
+def _ntp_synchronized() -> bool:
+    result = _run([TIMEDATECTL, "show", "-p", "NTPSynchronized", "--value"])
+    return result.returncode == 0 and result.stdout.strip().lower() == "yes"
+
+
+def _managed_peers() -> list[dict]:
+    peers = _load_json(PEER_STATE).get("peers", [])
+    return [item for item in peers if isinstance(item, dict)] if isinstance(peers, list) else []
+
+
+def _tracking_quality() -> dict:
+    tracking = _chrony_tracking()
+    mode, source = _selected_source()
+    try:
+        stratum = int(tracking.get("stratum", "0"))
+    except ValueError:
+        stratum = 0
+    leap = tracking.get("leap status", "").lower()
+    managed = {str(item.get("ip") or "") for item in _managed_peers()}
+    synchronized = bool(
+        _ntp_synchronized()
+        and mode
+        and source
+        and leap == "normal"
+        and 1 <= stratum <= 8
+    )
+    if mode == "#" and source.upper().startswith("PPS"):
+        source_kind = "gnss_pps"
+    elif mode == "#":
+        source_kind = "gnss"
+    elif source in managed:
+        source_kind = "peer_ntp"
+    elif synchronized:
+        source_kind = "ntp"
+    elif stratum >= 10 or "7F7F0101" in tracking.get("reference id", ""):
+        source_kind = "local"
+    else:
+        source_kind = "none"
+    return {
+        "synchronized": synchronized,
+        "source": source,
+        "source_mode": mode,
+        "source_kind": source_kind,
+        "stratum": stratum,
+        "leap": leap or "unknown",
+        "tracking": tracking,
+    }
+
+
+def _last_good_epoch() -> float | None:
+    value = _load_json(LAST_GOOD).get("epoch")
+    try:
+        epoch = float(value)
+    except (TypeError, ValueError):
+        return None
+    return epoch if MIN_VALID_UNIX <= epoch <= MAX_VALID_UNIX else None
+
+
+def restore_floor() -> int:
+    epoch = _last_good_epoch()
+    if epoch is None:
+        print("aryaos-time-bootstrap: no valid last-good clock floor")
+        return 0
+    if time.time() + 1.0 >= epoch:
+        print("aryaos-time-bootstrap: system clock is newer than the last-good floor")
+        return 0
+    result = _run([DATE, "-u", "--set", f"@{epoch:.6f}"], timeout=10.0)
+    if result.returncode != 0:
+        print("aryaos-time-bootstrap: could not restore last-good clock floor")
+        return 1
+    RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    FLOOR_MARKER.touch(mode=0o644, exist_ok=True)
+    print(f"aryaos-time-bootstrap: restored clock floor to {epoch:.3f}")
+    return 0
+
+
+def save_last_good(quality: dict | None = None) -> bool:
+    quality = quality or _tracking_quality()
+    if not quality.get("synchronized"):
+        return False
+    now = time.time()
+    if not MIN_VALID_UNIX <= now <= MAX_VALID_UNIX:
+        return False
+    previous = _load_json(LAST_GOOD)
+    try:
+        previous_epoch = float(previous.get("epoch") or 0)
+    except (TypeError, ValueError):
+        previous_epoch = 0
+    if now - previous_epoch < 3600 and previous.get("source") == quality.get("source_kind"):
+        return False
+    payload = {
+        "schema": 1,
+        "epoch": round(now, 3),
+        "source": quality.get("source_kind"),
+        "reference": quality.get("source"),
+        "stratum": quality.get("stratum"),
+    }
+    return _atomic_write(LAST_GOOD, json.dumps(payload, sort_keys=True) + "\n", 0o644)
+
+
+def _local_addresses() -> set[str]:
+    result = _run([IP, "-j", "-4", "address", "show"])
+    if result.returncode != 0:
+        return set()
+    try:
+        links = json.loads(result.stdout)
+    except (json.JSONDecodeError, TypeError):
+        return set()
+    addresses = set()
+    for link in links if isinstance(links, list) else []:
+        for info in link.get("addr_info", []) if isinstance(link, dict) else []:
+            if isinstance(info, dict) and info.get("family") == "inet" and info.get("local"):
+                addresses.add(str(info["local"]))
+    return addresses
+
+
+def _direct_route(address: str) -> bool:
+    result = _run([IP, "-j", "route", "get", address])
+    if result.returncode != 0:
+        return False
+    try:
+        routes = json.loads(result.stdout)
+    except (json.JSONDecodeError, TypeError):
+        return False
+    if not isinstance(routes, list) or not routes or not isinstance(routes[0], dict):
+        return False
+    route = routes[0]
+    return bool(route.get("dev") not in (None, "lo") and not route.get("gateway"))
+
+
+def _candidate_items() -> list[dict]:
+    if _peer_mode() == "off":
+        return []
+    document = _load_json(NEIGHBORS)
+    items = document.get("items", [])
+    if not isinstance(items, list):
+        return []
+    local = _local_addresses()
+    max_age = _int_setting("ARYAOS_TIME_PEER_MAX_AGE", 30, 10, 300)
+    max_stratum = _int_setting("ARYAOS_TIME_PEER_MAX_STRATUM", 4, 1, 8)
+    candidates = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        host = item.get("host") if isinstance(item.get("host"), dict) else {}
+        clock = item.get("time") if isinstance(item.get("time"), dict) else {}
+        system = item.get("system") if isinstance(item.get("system"), dict) else {}
+        address = str(host.get("ip") or item.get("source_ip") or "")
+        try:
+            parsed = ipaddress.ip_address(address)
+            age = int(item.get("age_s"))
+            stratum = int(clock.get("stratum"))
+        except (ValueError, TypeError):
+            continue
+        peer_epoch = None
+        if system.get("timestamp") not in (None, ""):
+            try:
+                peer_epoch = float(system["timestamp"])
+            except (ValueError, TypeError):
+                continue
+        if (
+            parsed.version != 4
+            or parsed.is_loopback
+            or parsed.is_multicast
+            or parsed.is_unspecified
+            or address in local
+            or not 0 <= age <= max_age
+            or clock.get("synced") != "yes"
+            or str(clock.get("leap") or "").lower() != "normal"
+            # Never build a timing loop. A node disciplined by a tactical
+            # peer may serve ordinary clients, but it is not an independent
+            # root for another AryaOS peer's fallback decision.
+            or str(clock.get("source") or "").lower() == "peer_ntp"
+            or not 1 <= stratum <= max_stratum
+            or (
+                peer_epoch is not None
+                and not MIN_VALID_UNIX <= peer_epoch <= MAX_VALID_UNIX
+            )
+            or not _direct_route(address)
+        ):
+            continue
+        candidates.append(
+            {
+                "uid": str(item.get("uid") or ""),
+                "host": str(host.get("name") or host.get("fqdn") or address),
+                "ip": address,
+                "age_s": age,
+                "stratum": stratum,
+                **({"peer_epoch": peer_epoch} if peer_epoch is not None else {}),
+            }
+        )
+    candidates.sort(key=lambda item: (item["stratum"], item["age_s"], item["uid"], item["ip"]))
+    return candidates
+
+
+def _parse_ntp_response(
+    response: bytes,
+    sender_ip: str,
+    nonce: bytes,
+    candidate: dict,
+    rtt: float,
+    timeout: float,
+) -> dict | None:
+    """Corroborate advertised GutCheck clock quality with an NTP response."""
+    if len(response) < 48 or sender_ip != candidate["ip"] or response[24:32] != nonce:
+        return None
+    leap = response[0] >> 6
+    mode = response[0] & 0x07
+    stratum = response[1]
+    max_stratum = _int_setting("ARYAOS_TIME_PEER_MAX_STRATUM", 4, 1, 8)
+    seconds, fraction = struct.unpack("!II", response[40:48])
+    peer_time = seconds - NTP_EPOCH + fraction / 2**32
+    if (
+        leap == 3
+        or mode != 4
+        or not 1 <= stratum <= max_stratum
+        or not MIN_VALID_UNIX <= peer_time <= MAX_VALID_UNIX
+        or (
+            candidate.get("peer_epoch") is not None
+            and abs(peer_time - candidate["peer_epoch"]) > 120
+        )
+        or rtt > timeout
+    ):
+        return None
+    return {**candidate, "ntp_stratum": stratum, "rtt_s": round(rtt, 4)}
+
+
+def _query_ntp(candidate: dict, timeout: float = 2.5) -> dict | None:
+    nonce = os.urandom(8)
+    request = bytearray(48)
+    request[0] = (4 << 3) | 3
+    request[40:48] = nonce
+    started = time.monotonic()
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.settimeout(timeout)
+    try:
+        sock.sendto(request, (candidate["ip"], 123))
+        response, sender = sock.recvfrom(512)
+    except OSError:
+        return None
+    finally:
+        sock.close()
+    return _parse_ntp_response(
+        response,
+        sender[0],
+        nonce,
+        candidate,
+        time.monotonic() - started,
+        timeout,
+    )
+
+
+def _write_peer_sources(peers: list[dict]) -> bool:
+    CHRONY_SOURCE_DIR.mkdir(parents=True, exist_ok=True)
+    lines = [f"server {item['ip']} iburst minpoll 4 maxpoll 6" for item in peers]
+    changed = _atomic_write(CHRONY_SOURCE_FILE, "\n".join(lines) + ("\n" if lines else ""))
+    state = {"schema": 1, "updated_at": int(time.time()), "peers": peers}
+    _atomic_write(PEER_STATE, json.dumps(state, separators=(",", ":"), sort_keys=True) + "\n")
+    if changed:
+        _run([CHRONYC, "reload", "sources"])
+        if peers:
+            _run([CHRONYC, "burst", "4/4"])
+    return changed
+
+
+def refresh_peers() -> list[dict]:
+    quality = _tracking_quality()
+    if quality["synchronized"] and quality["source_kind"] != "peer_ntp":
+        _write_peer_sources([])
+        save_last_good(quality)
+        write_status(quality)
+        return []
+    accepted = []
+    for candidate in _candidate_items():
+        verified = _query_ntp(candidate)
+        if verified:
+            accepted.append(verified)
+        if len(accepted) >= 3:
+            break
+    _write_peer_sources(accepted)
+    write_status(_tracking_quality(), reason="no-qualified-source" if not accepted else "")
+    return accepted
+
+
+def _offset_seconds(tracking: dict[str, str]) -> str:
+    value = tracking.get("system time", "").split(" ", 1)[0].lstrip("+")
+    try:
+        float(value)
+    except ValueError:
+        return ""
+    return value
+
+
+def build_status(quality: dict | None = None, *, reason: str = "") -> dict:
+    quality = quality or _tracking_quality()
+    last_good = _last_good_epoch()
+    peers = _managed_peers()
+    selected_peer = next(
+        (item for item in peers if item.get("ip") == quality.get("source")), {}
+    )
+    if quality.get("synchronized"):
+        state = "synchronized"
+    elif last_good is not None:
+        state = "holdover"
+    else:
+        state = "degraded"
+    payload = {
+        "schema": 1,
+        "state": state,
+        "source": quality.get("source_kind"),
+        "reference": quality.get("source"),
+        "synchronized": bool(quality.get("synchronized")),
+        "stratum": quality.get("stratum"),
+        "leap": quality.get("leap"),
+        "offset_s": _offset_seconds(quality.get("tracking", {})),
+        "last_good": int(last_good) if last_good is not None else None,
+        "peer_uid": selected_peer.get("uid"),
+        "peer_host": selected_peer.get("host"),
+        "peer_ip": selected_peer.get("ip"),
+        "reason": reason,
+    }
+    payload = {key: value for key, value in payload.items() if value not in (None, "")}
+    return payload
+
+
+def write_status(quality: dict | None = None, *, reason: str = "") -> dict:
+    payload = build_status(quality, reason=reason)
+    _atomic_write(TIME_STATUS, json.dumps(payload, separators=(",", ":"), sort_keys=True) + "\n")
+    return payload
+
+
+def wait_for_time() -> int:
+    timeout = _int_setting("ARYAOS_TIME_BOOT_TIMEOUT", 60, 10, 300)
+    direct_grace = min(15, max(5, timeout // 2))
+    started = time.monotonic()
+    deadline = started + timeout
+    _run([CHRONYC, "online"])
+    _run([CHRONYC, "burst", "4/4"])
+    while time.monotonic() < deadline:
+        quality = _tracking_quality()
+        if quality["synchronized"]:
+            save_last_good(quality)
+            write_status(quality)
+            print(f"aryaos-time-bootstrap: synchronized from {quality['source_kind']} {quality['source']}")
+            return 0
+        if time.monotonic() - started >= direct_grace:
+            refresh_peers()
+            quality = _tracking_quality()
+            if quality.get("source") and quality.get("source_kind") not in {"none", "local"} and not STEP_MARKER.exists():
+                _run([CHRONYC, "makestep"])
+                STEP_MARKER.touch(mode=0o644, exist_ok=True)
+        time.sleep(2)
+    quality = _tracking_quality()
+    write_status(quality, reason="boot-timeout")
+    print("aryaos-time-bootstrap: no trustworthy clock source before boot deadline; continuing degraded")
+    return 0
+
+
+def refresh() -> int:
+    peers = refresh_peers()
+    quality = _tracking_quality()
+    if quality["synchronized"]:
+        save_last_good(quality)
+        write_status(quality)
+    elif peers and quality.get("source") and not STEP_MARKER.exists():
+        _run([CHRONYC, "makestep"])
+        STEP_MARKER.touch(mode=0o644, exist_ok=True)
+    print(f"aryaos-time-bootstrap: {len(peers)} qualified tactical NTP peer(s)")
+    return 0
+
+
+def _with_lock(callback) -> int:
+    RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    with LOCK_FILE.open("a+", encoding="utf-8") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        return callback()
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=("restore", "wait", "refresh", "save", "status"))
+    args = parser.parse_args()
+    if args.command == "restore":
+        return _with_lock(restore_floor)
+    if args.command == "wait":
+        return _with_lock(wait_for_time)
+    if args.command == "refresh":
+        return _with_lock(refresh)
+    if args.command == "save":
+        return _with_lock(lambda: (save_last_good(), write_status(), 0)[-1])
+    print(json.dumps(_load_json(TIME_STATUS) or build_status(), sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -27,6 +27,11 @@
         name: gpsd
         state: started
 
+- name: Restart chrony
+  ansible.builtin.service:
+    name: chrony
+    state: restarted
+
 - name: Reload systemd and restart lighttpd
   ansible.builtin.systemd:
     name: lighttpd

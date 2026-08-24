@@ -41,6 +41,14 @@ PYTAK_MULTICAST_LOCAL_ADDR=10.41.0.1
 # only when DHCP supplies no IPv4 address. Control with: aryaos-ipv4ll enable|disable
 ARYAOS_IPV4LL_FALLBACK=1
 
+# Boot-time clock acquisition. "validated" permits directly connected AryaOS
+# peers that GutCheck reports as fresh, synchronised stratum 1-4 sources; NTP
+# performs the actual time transfer. "off" keeps GNSS and ordinary NTP enabled
+# but disables tactical peer fallback. The boot gate is best-effort and always
+# releases time-sensitive services after the configured timeout.
+ARYAOS_TIME_PEER_MODE=validated
+ARYAOS_TIME_BOOT_TIMEOUT=60
+
 # DEPRECATED: Legacy setting.
 WIFI_AP_IP=10.41.0.1
 

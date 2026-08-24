@@ -35,7 +35,7 @@ class IPv4LLTestCase(unittest.TestCase):
         self.assertIn("ipv4.link-local=3", ipv4ll._nm_default(True))
         self.assertIn("ipv4.link-local=2", ipv4ll._nm_default(False))
         self.assertIn("ipv4.required-timeout=0", ipv4ll._nm_default(True))
-        self.assertIn("ipv6.method=link-local", ipv4ll._nm_default(True))
+        self.assertNotIn("ipv6.method", ipv4ll._nm_default(True))
         self.assertIn("match-device=type:ethernet", ipv4ll._nm_default(True))
 
     def test_setting_preserves_unknown_site_configuration(self):

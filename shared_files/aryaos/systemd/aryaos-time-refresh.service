@@ -1,0 +1,9 @@
+[Unit]
+Description=AryaOS: refresh tactical NTP peers and clock status
+After=NetworkManager.service chrony.service gutcheck.service
+Wants=chrony.service gutcheck.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+ExecStart=/usr/local/sbin/aryaos-time-bootstrap refresh

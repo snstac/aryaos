@@ -1,0 +1,14 @@
+[Unit]
+Description=AryaOS: acquire a trustworthy clock before time-sensitive services
+After=NetworkManager.service aryaos-multicast-links.service chrony.service gpsd.service gutcheck.service
+Wants=NetworkManager.service aryaos-multicast-links.service chrony.service gpsd.service gutcheck.service
+Before=aryaos-time-ready.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/aryaos/aryaos-config.txt
+ExecStart=/usr/local/sbin/aryaos-time-bootstrap wait
+TimeoutStartSec=315
+
+[Install]
+WantedBy=aryaos-time-ready.target

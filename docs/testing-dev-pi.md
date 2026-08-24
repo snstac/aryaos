@@ -84,8 +84,9 @@ path generated data during the sampled window. A counter reset is not by
 itself an automatic service crash: correlate it with systemd `NRestarts`, the
 journal event cursor, and the sudo audit record to distinguish a controlled
 package or operator restart from an unexplained failure. Completed systemd
-oneshots and the run-to-completion GPS time synchronization helper are not
-reported as service drops.
+completed systemd oneshots are not reported as service drops. Samples also
+carry the resilient clock decision from `/run/aryaos/time-status.json`, making
+peer-NTP, holdover, and degraded operation visible in the raw burn-in record.
 
 The release acceptance gate also rejects probe failures, service drops or
 restart growth, reboots, USB inventory changes, filesystem alerts, throttling,

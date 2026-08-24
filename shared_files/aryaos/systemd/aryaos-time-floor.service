@@ -1,0 +1,13 @@
+[Unit]
+Description=AryaOS: restore the trusted last-known-good clock floor
+DefaultDependencies=no
+After=local-fs.target
+Before=chrony.service gpsd.service aryaos-firstboot.service
+Wants=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/aryaos-time-bootstrap restore
+
+[Install]
+WantedBy=multi-user.target
