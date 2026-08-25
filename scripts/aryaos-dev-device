@@ -96,7 +96,9 @@ def _capabilities(value: object) -> list[str]:
         if isinstance(item, str):
             name = item
         elif isinstance(item, dict):
-            name = str(item.get("name") or item.get("id") or "")
+            # AryaOS CoT detail and GutCheck's public neighbor schema use
+            # ``key``; retain the older name/id spellings for compatibility.
+            name = str(item.get("key") or item.get("name") or item.get("id") or "")
         else:
             continue
         if name and name not in names:

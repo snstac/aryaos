@@ -15,8 +15,15 @@ sensor_apt_packages:
   - cotbridge
   - gpscot
   - adsbcot
+  # Install the decoder and admin plugin on every appliance; capability
+  # selection controls whether they run. A UAS-only box must still be able to
+  # adopt an ADS-B receiver later without being reprovisioned.
+  - readsb
+  - cockpit-adsbcot
   - aiscot
   - cockpit-aiscot
+  - cockpit-aprscot
+  - cockpit-sapientcot
   - dronecot
   - sikw00fcot
   - lincot
@@ -41,4 +48,3 @@ sensor_apt_packages:
   - cockpit-gpscot
   # cockpit-aryaos — the "AryaOS Site" page: site-wide COT_URL + TAK TLS certs.
   - cockpit-aryaos
-# cockpit-adsbcot is installed by stage-adsbcot (same apt repo).

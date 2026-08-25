@@ -59,6 +59,11 @@ class ProtocolDetectionTestCase(unittest.TestCase):
             self.assertTrue(scanner.probe_adsbee("/dev/ttyACM0"))
         write.assert_called_once_with(42, b"AT+BIAS_TEE_ENABLE?\r\n")
 
+    def test_antsdr_peer_is_next_address_on_point_to_point_link(self):
+        self.assertEqual(scanner._antsdr_peer("172.31.100.1"), "172.31.100.2")
+        self.assertEqual(scanner._antsdr_peer("192.168.1.9"), "192.168.1.10")
+        self.assertEqual(scanner._antsdr_peer("not-an-address"), "")
+
     def test_generic_pico_ok_reply_is_not_adsbee(self):
         with mock.patch.object(scanner.os.path, "exists", return_value=True), mock.patch.object(
             scanner, "_run", return_value=""

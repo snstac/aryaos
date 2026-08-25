@@ -64,6 +64,12 @@
     dest: /usr/local/sbin/aryaos-import-tak-dp
     mode: "0755"
 
+- name: Upload authenticated TAK import frontend
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-tak-dp-import"
+    dest: /usr/local/sbin/aryaos-tak-dp-import
+    mode: "0755"
+
 - name: Upload TAK data package import daemon
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/aryaos-tak-dp-importd"
@@ -81,6 +87,43 @@
     src: "{{ shared_files }}/aryaos/aryaos-health"
     dest: /usr/local/sbin/aryaos-health
     mode: "0755"
+
+- name: Upload AryaOS CoT identity and remarks helpers
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/{{ item }}"
+    dest: "/usr/local/sbin/{{ item }}"
+    mode: "0755"
+  loop:
+    - aryaos-cot-detail
+    - aryaos-lincot-remarks
+
+- name: Ensure GutCheck systemd drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/gutcheck.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install AryaOS GutCheck health and tactical discovery integration
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/systemd/gutcheck.service.d/aryaos-health.conf"
+    dest: /etc/systemd/system/gutcheck.service.d/aryaos-health.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart GutCheck
+
+- name: Install scoped GutCheck health collector sudo policy
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/aryaos-gutcheck-health.sudoers"
+    dest: /etc/sudoers.d/aryaos-gutcheck-health
+    owner: root
+    group: root
+    mode: "0440"
+  notify: Restart GutCheck
 
 - name: Upload resilient time and deferred TLS helpers
   ansible.builtin.copy:
@@ -133,6 +176,15 @@
     system: true
     state: present
 
+- name: Ensure appliance service drop-in directories exist
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - gpsd.socket.d
+    - bluetooth.service.d
+
 - name: Install gpsd.socket drop-in (0660 root:gpsd; default unit is 0600 root-only)
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/systemd/gpsd.socket.d/socket-group.conf"
@@ -183,13 +235,6 @@
     groups: video
     append: true
   notify: Restart lighttpd
-
-- name: Ensure lincot can read Raspberry Pi throttle state
-  ansible.builtin.user:
-    name: lincot
-    groups: video
-    append: true
-  notify: Restart lincot
 
 - name: Enable gpsd at boot
   ansible.builtin.systemd:

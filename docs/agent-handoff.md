@@ -1,7 +1,46 @@
-# Agent handoff - state as of 2026-08-21
+# Agent handoff - state as of 2026-08-25
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
+
+## 2026-08-25 existing-host provisioning and DragonOS conversion
+
+- The Ansible path now provisions a complete AryaOS appliance on an existing
+  Debian 13 host instead of relying on pi-gen stages to have already populated
+  the root filesystem. It installs the current signed sensor stack and Cockpit
+  plugins, builds and installs the local `aryaos-overlay`, carries the portal,
+  hardening, GutCheck, COT detail, time bootstrap, and authenticated TAK import
+  integration, and handles current Debian Docker and Node-RED installation.
+  These changes advance the appliance overlay to 2.3.1; existing active
+  Node-RED flows are retained during an in-place conversion.
+- Existing operator networking is preserved. A configured `eth1` profile wins
+  over the packaged AntSDR fallback, which now has autoconnect priority `-100`.
+  AntSDR health and HIL derive the peer from the configured DJI bind address,
+  supporting both the AryaOS `.1/.2` link and an existing `.9/.10` `/30`. The
+  capability scanner uses that derived peer and dev discovery accepts GutCheck
+  capability dictionaries that identify entries with `key`.
+- Existing-host DroneCOT provisioning now has image-stage parity: explicit DJI,
+  Wi-Fi, BLE, and DroneScout units and defaults, serial readiness and udev
+  rules, the AntSDR health timer, and the generic ambiguous `dronecot.service`
+  mask. Sensor users retain the supplementary device-access groups they need.
+  ADSBCOT always receives `file:///run/adsb/aircraft.json`, even on a node whose
+  active role does not enable ADS-B.
+- A generic DragonOS Pi 5 was converted in place and personalized as
+  `aryaos-9a9a`. Its `dragon` account, home directory, SDR tools, Tailscale
+  state, and operator NetworkManager profiles were preserved. A root-only
+  pre-conversion backup remains under `/var/backups`; the old install-media
+  swapfile was moved into that backup and the live appliance uses only 4 GiB
+  RAM-backed zram. The node advertises `dji` and `rid` through GutCheck, runs
+  both the AntSDR DJI and DroneScout paths, and acquired a stratum-2 clock from
+  an AryaOS MANET peer after reboot.
+- Closing validation found zero failed units. The integration suite passed all
+  modules (the Node-RED dependency check now uses privileged read access to its
+  deliberately private runtime tree), 39 focused unit tests passed, Ansible
+  syntax validation passed, and a five-minute burn-in completed 10/10 probes
+  with no restarts, throttling, filesystem alerts, or failed units; peak CPU
+  temperature was 45.2 C. TAK enrollment was attempted without persisting the
+  enrollment URL, but the server rejected the supplied one-time token; a fresh
+  server-issued token is still required.
 
 ## 2026-08-21 GutCheck discovery and explicit DroneCOT DJI development tree
 

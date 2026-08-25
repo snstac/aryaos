@@ -49,6 +49,7 @@ wget
 whiptail
 libelf-dev
 rfkill
+rsync
 linux-headers-generic 
 dkms 
 git 

@@ -22,11 +22,31 @@
     update_cache: true
     cache_valid_time: 3600
 
+- name: Check whether the generic kernel headers are available
+  ansible.builtin.command:
+    cmd: apt-cache madison linux-headers-generic
+  register: aryaos_generic_headers
+  changed_when: false
+  check_mode: false
+  when: ansible_os_family == 'Debian'
+
+- name: Build the available base package list
+  ansible.builtin.set_fact:
+    aryaos_base_packages: >-
+      {{
+        (lookup('file', '../00-install/00-packages').splitlines()
+          | map('trim')
+          | reject('equalto', '')
+          | reject('equalto', 'linux-headers-generic')
+          | list)
+        + (['linux-headers-generic'] if (aryaos_generic_headers.stdout | trim | length > 0) else [])
+      }}
+  when: ansible_os_family == 'Debian'
+
 - name: Install base packages.
   ansible.builtin.package:
-    name: "{{ item }}"
+    name: "{{ aryaos_base_packages }}"
     state: present
-  loop: "{{ lookup('file', '../00-install/00-packages').split('\n') }}"
   tags:
     - packages
   when: ansible_os_family == 'Debian'

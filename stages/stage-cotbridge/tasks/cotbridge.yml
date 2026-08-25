@@ -60,12 +60,18 @@
     insertbefore: '^EnvironmentFile=/etc/default/lincot'
   notify: Reload systemd
 
+- name: Check for legacy aircot.service
+  ansible.builtin.stat:
+    path: /lib/systemd/system/aircot.service
+  register: aryaos_cotbridge_aircot_service
+
 - name: Add EnvironmentFile to aircot.service
   ansible.builtin.lineinfile:
     path: /lib/systemd/system/aircot.service
     line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
     insertbefore: '^EnvironmentFile=/etc/default/aircot'
   notify: Reload systemd
+  when: aryaos_cotbridge_aircot_service.stat.exists
 
 - name: Feeder units start after COTBridge
   ansible.builtin.file:
@@ -107,6 +113,14 @@
     - lincot
     - aircot
   notify: Reload systemd
+
+- name: Grant DroneCOT access to USB serial receivers
+  ansible.builtin.user:
+    name: dronecot
+    groups:
+      - dialout
+      - plugdev
+    append: true
 
 - name: Enable and start COTBridge
   ansible.builtin.systemd:

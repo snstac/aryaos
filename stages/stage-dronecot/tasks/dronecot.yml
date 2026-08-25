@@ -41,6 +41,97 @@
     dest: /etc/default/dronecot-dji
     mode: "0644"
 
+- name: Ensure the AryaOS service helper directory exists
+  ansible.builtin.file:
+    path: /usr/local/libexec/aryaos
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install explicit Remote ID DroneCOT units and defaults
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - src: systemd/dronecot-dronescout.service
+      dest: /etc/systemd/system/dronecot-dronescout.service
+    - src: dronecot-dronescout.default
+      dest: /etc/default/dronecot-dronescout
+    - src: systemd/dronecot-wifi.service
+      dest: /etc/systemd/system/dronecot-wifi.service
+    - src: dronecot-wifi.default
+      dest: /etc/default/dronecot-wifi
+    - src: systemd/dronecot-ble.service
+      dest: /etc/systemd/system/dronecot-ble.service
+    - src: dronecot-ble.default
+      dest: /etc/default/dronecot-ble
+  notify: Reload systemd
+
+- name: Install DroneCOT transport helpers
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - src: dronecot-serial-ready
+      dest: /usr/local/libexec/aryaos/dronecot-serial-ready
+    - src: aryaos-wifi-monitor
+      dest: /usr/local/sbin/aryaos-wifi-monitor
+
+- name: Install DroneScout and AntSDR udev rules
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/udev/{{ item }}"
+    dest: "/etc/udev/rules.d/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - 99-aryaos-dronescout.rules
+    - 99-aryaos-antsdr-console.rules
+
+- name: Install AntSDR health helpers and units
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - src: aryaos-antsdr-console
+      dest: /usr/local/sbin/aryaos-antsdr-console
+      mode: "0755"
+    - src: aryaos-antsdr-health
+      dest: /usr/local/sbin/aryaos-antsdr-health
+      mode: "0755"
+    - src: systemd/aryaos-antsdr-health.service
+      dest: /etc/systemd/system/aryaos-antsdr-health.service
+      mode: "0644"
+    - src: systemd/aryaos-antsdr-health.timer
+      dest: /etc/systemd/system/aryaos-antsdr-health.timer
+      mode: "0644"
+  notify: Reload systemd
+
+- name: Reload udev rules for attached DroneScout and AntSDR devices
+  ansible.builtin.command: udevadm control --reload-rules
+  changed_when: false
+
+- name: Retrigger attached tty devices after installing AryaOS rules
+  ansible.builtin.command: udevadm trigger --subsystem-match=tty
+  changed_when: false
+
+- name: Enable AntSDR health monitoring
+  ansible.builtin.systemd:
+    name: aryaos-antsdr-health.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
 - name: Disable the ambiguous upstream generic DroneCOT unit
   ansible.builtin.systemd:
     name: dronecot.service

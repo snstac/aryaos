@@ -55,7 +55,7 @@ else
 	ok "dhbridge absent (private package)"
 fi
 
-require_package_version aryaos-overlay 2.3.0
+require_package_version aryaos-overlay 2.3.1
 require_package_version cotbridge 1.1.0
 
 if [[ -d /var/www/html/calfire_airbases ]]; then

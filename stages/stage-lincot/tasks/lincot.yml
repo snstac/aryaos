@@ -18,6 +18,13 @@
     mode: "0644"
   notify: Restart Lincot
 
+- name: Allow LINCOT to read Raspberry Pi throttle state
+  ansible.builtin.user:
+    name: lincot
+    groups: video
+    append: true
+  notify: Restart Lincot
+
 - name: Enable and start LINCOT
   ansible.builtin.systemd:
     name: lincot.service

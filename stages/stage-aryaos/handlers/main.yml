@@ -9,27 +9,31 @@
   ansible.builtin.systemd:
     daemon_reload: true
 
-- name: Restart gpsd
-  block:
-    - name: Reload systemd (gpsd.socket drop-in, etc.)
-      ansible.builtin.systemd:
-        daemon_reload: true
-    - name: Stop gpsd before recreating control socket
-      ansible.builtin.service:
-        name: gpsd
-        state: stopped
-    - name: Recreate /run/gpsd.sock with SocketMode/SocketGroup from drop-in
-      ansible.builtin.service:
-        name: gpsd.socket
-        state: restarted
-    - name: Start gpsd again
-      ansible.builtin.service:
-        name: gpsd
-        state: started
+- name: Reload systemd for gpsd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  listen: Restart gpsd
+
+- name: Restart gpsd socket
+  ansible.builtin.service:
+    name: gpsd.socket
+    state: restarted
+  listen: Restart gpsd
+
+- name: Restart gpsd service
+  ansible.builtin.service:
+    name: gpsd
+    state: restarted
+  listen: Restart gpsd
 
 - name: Restart chrony
   ansible.builtin.service:
     name: chrony
+    state: restarted
+
+- name: Restart GutCheck
+  ansible.builtin.service:
+    name: gutcheck
     state: restarted
 
 - name: Reload systemd and restart lighttpd

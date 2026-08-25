@@ -146,7 +146,7 @@ class NeighborCacheTestCase(unittest.TestCase):
                     "age_s": 100,
                     "source_ip": "192.0.2.20",
                     "host": {"name": "aryaos-fresh", "fqdn": "aryaos-fresh.local"},
-                    "capabilities": [{"name": "adsb"}],
+                    "capabilities": [{"key": "adsb"}],
                 },
                 {
                     "uid": "old",

@@ -16,7 +16,10 @@
 #
 
 - name: Portal
-  ansible.builtin.copy:
-    src: "{{ shared_files }}/aryaos/html"
-    dest: /var/www
-    mode: "0755"
+  ansible.posix.synchronize:
+    src: "{{ shared_files }}/aryaos/html/"
+    dest: /var/www/html/
+    archive: true
+    delete: false
+    rsync_opts:
+      - "--chmod=D0755,F0755"

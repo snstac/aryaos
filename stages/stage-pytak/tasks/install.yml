@@ -29,11 +29,55 @@
     mode: "0644"
   when: ansible_os_family == "Debian"
 
+- name: Prefer signed snstac builds over distro packages
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/99-snstac-repo.pref
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      Package: *
+      Pin: release o=snstac
+      Pin-Priority: 995
+  when: ansible_os_family == "Debian"
+
 - name: Install sensor stack from snstac apt repository
   ansible.builtin.apt:
     name: "{{ sensor_apt_packages }}"
-    state: present
+    state: latest
     update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Build the current AryaOS appliance overlay on the controller
+  ansible.builtin.command: ./scripts/build-aryaos-overlay-deb.sh
+  args:
+    chdir: "{{ playbook_dir }}"
+  environment:
+    ARYAOS_DEB_OUT_DIR: "{{ playbook_dir }}/deploy/debs"
+  delegate_to: localhost
+  become: false
+  register: aryaos_overlay_build
+  changed_when: false
+  when: ansible_os_family == "Debian"
+
+- name: Record the built AryaOS overlay path
+  ansible.builtin.set_fact:
+    aryaos_overlay_deb: "{{ aryaos_overlay_build.stdout_lines | last }}"
+  when: ansible_os_family == "Debian"
+
+- name: Upload the current AryaOS appliance overlay
+  ansible.builtin.copy:
+    src: "{{ aryaos_overlay_deb }}"
+    dest: /var/tmp/aryaos-overlay.deb
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_os_family == "Debian"
+
+- name: Install the current AryaOS appliance overlay
+  ansible.builtin.apt:
+    deb: /var/tmp/aryaos-overlay.deb
+    state: present
   when: ansible_os_family == "Debian"
 
 - name: Upload cockpit-aryaos data package UI patch

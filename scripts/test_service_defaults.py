@@ -194,8 +194,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
-        self.assertIn("require_pkg_version aryaos-overlay 2.3.0", verifier)
-        self.assertIn("require_package_version aryaos-overlay 2.3.0", hil)
+        self.assertIn("require_pkg_version aryaos-overlay 2.3.1", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.3.1", hil)
         self.assertIn("require_pkg_version cotbridge 1.1.0", verifier)
         self.assertIn("require_package_version cotbridge 1.1.0", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)

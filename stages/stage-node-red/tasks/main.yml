@@ -15,12 +15,15 @@
 # limitations under the License.
 #
 
-- name: Download Node-RED linux installer (upstream release)
+- name: Download pinned Node-RED linux installer
   ansible.builtin.get_url:
-    url: https://github.com/node-red/linux-installers/releases/latest/download/update-nodejs-and-nodered-deb
+    url: https://api.github.com/repos/node-red/linux-installers/releases/assets/432002327
     dest: /usr/src/update-nodejs-and-nodered-deb
     mode: "0755"
     force: true
+    checksum: sha256:ccea2dc0c21046182fdac9101e1578793f83b00479e9688f283ced8ce2db5093
+    headers:
+      Accept: application/octet-stream
 
 - name: Create node-red user
   ansible.builtin.user:
@@ -33,9 +36,15 @@
 - name: Run Node-RED linux installer
   ansible.builtin.command:
     cmd: /bin/bash /usr/src/update-nodejs-and-nodered-deb --confirm-install --nodered-user=node-red --confirm-root --skip-pi --no-init
-    creates: /home/node-red/.node-red
-  become: true
-  become_user: node-red
+    creates: /usr/bin/node-red
+
+- name: Ensure Node-RED configuration directory exists
+  ansible.builtin.file:
+    path: /home/node-red/.node-red
+    state: directory
+    owner: node-red
+    group: node-red
+    mode: "0750"
 
 - name: Copy settings.js
   ansible.builtin.copy:
@@ -77,13 +86,14 @@
     group: node-red
     mode: "0640"
 
-- name: Copy aryaos_flows.json to flows.json
+- name: Initialize Node-RED with empty flows when absent
   ansible.builtin.copy:
-    src: "{{ shared_files }}/node-red/aryaos_flows.json"
     dest: /home/node-red/.node-red/flows.json
+    content: "[]\n"
     owner: node-red
     group: node-red
     mode: "0640"
+    force: false
 
 - name: Install Node-RED Nodes
   ansible.builtin.command:
@@ -93,11 +103,16 @@
   become: true
   become_user: node-red
 
-- name: Set ownership of /var/www/html/index.html to node-red
+- name: Ensure Node-RED service override directory exists
   ansible.builtin.file:
-    name: /var/www/html/index.html
-    owner: node-red
-    group: node-red
+    path: /etc/systemd/system/nodered.service.d
+    state: directory
+    mode: "0755"
+
+- name: Install hardened Node-RED service override
+  ansible.builtin.copy:
+    src: "{{ shared_files }}/aryaos/systemd/nodered.service.d/aryaos.conf"
+    dest: /etc/systemd/system/nodered.service.d/aryaos.conf
     mode: "0644"
 
 - name: Set ownership of /var/www/html/recorder to node-red
@@ -107,11 +122,11 @@
     group: node-red
     mode: "0755"
 
-- name: Set ownership of /var/www/html to node-red
+- name: Keep the portal root-owned and readable
   ansible.builtin.file:
     name: /var/www/html
-    owner: node-red
-    group: node-red
+    owner: root
+    group: root
     mode: "0755"
 
 - name: Enable node-red service

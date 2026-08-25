@@ -28,11 +28,20 @@
     state: directory
     mode: "0755"
 
-- name: Install ANTSDR static Ethernet connection
+- name: Check for an existing eth1 connection profile
+  ansible.builtin.command: nmcli -t -f connection.interface-name connection show
+  register: aryaos_existing_nm_interfaces
+  changed_when: false
+  failed_when: false
+
+- name: Install ANTSDR static Ethernet connection when eth1 is unconfigured
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/NetworkManager/system-connections/aryaos-antsdr.nmconnection"
     dest: /etc/NetworkManager/system-connections/aryaos-antsdr.nmconnection
     mode: "0600"
+  when: >-
+    aryaos_force_antsdr_connection | default(false) | bool
+    or 'eth1' not in aryaos_existing_nm_interfaces.stdout_lines
 
 - name: Ensure NetworkManager drop-in directory exists
   ansible.builtin.file:

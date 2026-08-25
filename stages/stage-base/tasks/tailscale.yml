@@ -18,7 +18,7 @@
 
 - name: Upload Tailscale install script
   ansible.builtin.copy:
-    src: "${SHARED_FILES}/base/install_tailscale.sh"
+    src: "{{ shared_files }}/base/install_tailscale.sh"
     dest: /usr/src
     mode: "0755"
 

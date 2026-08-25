@@ -37,6 +37,7 @@ import signal
 import subprocess
 import sys
 import glob
+import ipaddress
 import selectors
 import shlex
 import termios
@@ -434,6 +435,14 @@ def _same_serial_device(left, right):
         return left == right
 
 
+def _antsdr_peer(bind):
+    """Return the next address on a point-to-point AntSDR link."""
+    try:
+        return str(ipaddress.ip_address(bind) + 1)
+    except ValueError:
+        return ""
+
+
 def probe_antsdr():
     """Is an AntSDR present on the point-to-point link?"""
     bind = ""
@@ -441,7 +450,9 @@ def probe_antsdr():
         if line.startswith("DJI_BIND_ADDRESS="):
             bind = line.split("=", 1)[1].strip().strip("\"'")
     bind = bind or "172.31.100.1"
-    peer = bind.rsplit(".", 1)[0] + ".2"
+    peer = _antsdr_peer(bind)
+    if not peer:
+        return None
     neigh = _run(["/usr/sbin/ip", "neigh", "show", peer], timeout=3)
     if re.search(r"REACHABLE|STALE|DELAY|PROBE", neigh):
         return peer

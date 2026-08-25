@@ -16,6 +16,18 @@
 # limitations under the License.
 #
 
+- name: Install AryaOS appliance packages
+  ansible.builtin.apt:
+    name: >-
+      {{
+        lookup('file', '../00-install/00-packages').splitlines()
+        | map('trim')
+        | reject('equalto', '')
+        | list
+      }}
+    state: present
+    update_cache: true
+
 - name: Include portal
   ansible.builtin.include_tasks: portal.yml
 
@@ -36,4 +48,3 @@
 
 - name: Include first-boot identity tasks
   ansible.builtin.include_tasks: firstboot.yml
-

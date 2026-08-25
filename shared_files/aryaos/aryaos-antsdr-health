@@ -15,8 +15,8 @@
 #   aryaos-antsdr-health --quiet    # no syslog line (for tight Cockpit polling)
 #
 # Config (optional, via /etc/default/dronecot-dji): DJI_BIND_ADDRESS (Pi side),
-# DJI_TCP_PORT (feed port). The AntSDR peer is derived as the .2 host on the Pi's
-# point-to-point /24 unless ANTSDR_IP is set in /etc/default/aryaos-antsdr.
+# DJI_TCP_PORT (feed port). The AntSDR peer is derived as the next IPv4 address
+# on the point-to-point link unless ANTSDR_IP is set in /etc/default/aryaos-antsdr.
 #
 # Copyright Sensors & Signals LLC https://www.snstac.com/
 # SPDX-License-Identifier: Apache-2.0
@@ -32,15 +32,25 @@ BIND="172.31.100.1"
 [[ -n "${DJI_TCP_PORT:-}" ]] && PORT="${DJI_TCP_PORT}"
 [[ -n "${DJI_BIND_ADDRESS:-}" ]] && BIND="${DJI_BIND_ADDRESS}"
 
-# AntSDR peer: explicit override, then a live feed peer, then the .2 host of the
-# Pi's point-to-point /24 link net.
+# AntSDR peer: explicit override, then a live feed peer, then the next IPv4
+# address after the Pi's bind address (works for both .1/.2 and /30 .9/.10).
+next_ipv4_address() {
+	local address="$1" last
+	if [[ "${address}" =~ ^([0-9]{1,3}\.){3}([0-9]{1,3})$ ]]; then
+		last="${BASH_REMATCH[2]}"
+		if (( last < 255 )); then
+			printf '%s.%d\n' "${address%.*}" "$((last + 1))"
+		fi
+	fi
+}
+
 ANTSDR_IP="${ANTSDR_IP:-}"
 [[ -r /etc/default/aryaos-antsdr ]] && . <(grep -E '^ANTSDR_IP=' /etc/default/aryaos-antsdr 2>/dev/null | sed 's/^/export /') 2>/dev/null || true
 if [[ -z "${ANTSDR_IP}" ]]; then
 	peer="$(ss -tnH state established "( sport = :${PORT} )" 2>/dev/null | awk 'NR == 1 {print $4}')"
 	ANTSDR_IP="${peer%:*}"
 	ANTSDR_IP="${ANTSDR_IP#[}"; ANTSDR_IP="${ANTSDR_IP%]}"
-	[[ -n "${ANTSDR_IP}" ]] || ANTSDR_IP="${BIND%.*}.2"
+	[[ -n "${ANTSDR_IP}" ]] || ANTSDR_IP="$(next_ipv4_address "${BIND}")"
 fi
 
 quiet=0; want_json=0
@@ -163,7 +173,7 @@ if [[ "${quiet}" != 1 && "${status}" != "${prev}" ]]; then
 				logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} reachable but NO DroneID feed on :${PORT} (idle if no DJI drone, or firmware stalled)" 2>/dev/null || true
 			fi
 			;;
-		down)     logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} not present on the link (${BIND%.*}.0/24) — expected if this box has no AntSDR" 2>/dev/null || true;;
+		down)     logger -t aryaos-antsdr-health "AntSDR ${ANTSDR_IP} not present on the point-to-point link from ${BIND} — expected if this box has no AntSDR" 2>/dev/null || true;;
 	esac
 fi
 

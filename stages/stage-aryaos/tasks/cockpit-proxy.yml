@@ -47,6 +47,24 @@
     path: /etc/lighttpd/conf-available/10-setenv.conf
   register: lt_setenv_snippet
 
+- name: Install fallback mod_openssl snippet
+  ansible.builtin.copy:
+    content: |
+      # Managed by AryaOS for distributions without 10-openssl.conf.
+      server.modules += ( "mod_openssl" )
+    dest: /etc/lighttpd/conf-available/09-aryaos-openssl-module.conf
+    mode: "0644"
+  when: not lt_openssl_snippet.stat.exists
+  notify: Restart lighttpd
+
+- name: Enable fallback mod_openssl snippet
+  ansible.builtin.file:
+    src: /etc/lighttpd/conf-available/09-aryaos-openssl-module.conf
+    dest: /etc/lighttpd/conf-enabled/09-aryaos-openssl-module.conf
+    state: link
+  when: not lt_openssl_snippet.stat.exists
+  notify: Restart lighttpd
+
 - name: Enable lighttpd openssl snippet
   ansible.builtin.file:
     src: /etc/lighttpd/conf-available/10-openssl.conf
@@ -165,15 +183,6 @@
     mode: "0755"
   notify: Restart lighttpd
 
-- name: Install TAK data package upload CGI helper
-  ansible.builtin.copy:
-    src: "{{ shared_files }}/aryaos/cgi-bin/aryaos-tak-dp-upload"
-    dest: /usr/lib/cgi-bin/aryaos-tak-dp-upload
-    owner: root
-    group: root
-    mode: "0755"
-  notify: Restart lighttpd
-
 - name: Upload lighttpd Cockpit HTTPS / proxy config
   ansible.builtin.copy:
     src: "{{ shared_files }}/aryaos/95-aryaos-cockpit-https.conf"
@@ -235,7 +244,7 @@
 
 - name: HTTP serves HTTPS heads-up page
   ansible.builtin.uri:
-    url: http://localhost/
+    url: http://127.0.0.1/
     follow_redirects: none
     status_code: 200
   register: http_heads_up
@@ -246,7 +255,7 @@
 
 - name: HTTP /admin redirects to HTTPS Cockpit
   ansible.builtin.uri:
-    url: http://localhost/admin
+    url: http://127.0.0.1/admin
     follow_redirects: none
     status_code: [301, 302, 307, 308]
   register: http_admin_to_https
@@ -257,19 +266,22 @@
 
 - name: HTTPS root serves portal (not Cockpit)
   ansible.builtin.uri:
-    url: https://localhost/
+    url: https://127.0.0.1/
     validate_certs: false
     return_content: true
     status_code: [200]
   register: portal_landing
   retries: 8
   delay: 4
-  until: portal_landing.status | int == 200 and ('Welcome to AryaOS' in portal_landing.content)
+  until: >-
+    portal_landing.status | int == 200
+    and ('ARYAOS' in portal_landing.content)
+    and ('AUTHORIZED USE ONLY' in portal_landing.content)
   when: ansible_virtualization_type != 'docker'
 
 - name: HTTPS portal status CGI returns JSON
   ansible.builtin.uri:
-    url: https://localhost/cgi-bin/aryaos-portal-status
+    url: https://127.0.0.1/cgi-bin/aryaos-portal-status
     validate_certs: false
     return_content: true
     status_code: [200]

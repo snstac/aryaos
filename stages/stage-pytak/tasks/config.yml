@@ -16,6 +16,18 @@
 # limitations under the License.
 #
 
+# The upstream adsbcot package has historically shipped an aiscot-derived
+# defaults file with FEED_URL commented out. Configure the appliance's stable
+# decoder JSON path here as well as in stage-adsbcot so an existing-host install
+# receives a complete baseline even when no ADS-B hardware role is selected.
+- name: Configure ADSBCOT decoder feed
+  ansible.builtin.lineinfile:
+    path: /etc/default/adsbcot
+    regexp: '^#?\s*FEED_URL='
+    line: 'FEED_URL=file:///run/adsb/aircraft.json'
+    create: true
+    mode: "0644"
+
 # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/aiscot.service if the line does not already exist
 - name: Add EnvironmentFile to aiscot.service
   ansible.builtin.lineinfile:
@@ -49,9 +61,15 @@
     dest: /etc/systemd/system/sikw00fcot.service.d/aryaos-config.conf
     mode: "0644"
 
+- name: Check for legacy aircot.service
+  ansible.builtin.stat:
+    path: /lib/systemd/system/aircot.service
+  register: aryaos_aircot_service
+
 # Add the line EnvironmentFile=/etc/aryaos/aryaos-config.txt to /lib/systemd/system/aircot.service if the line does not already exist
 - name: Add EnvironmentFile to aircot.service
   ansible.builtin.lineinfile:
     path: /lib/systemd/system/aircot.service
     line: 'EnvironmentFile=/etc/aryaos/aryaos-config.txt'
     insertbefore: '^EnvironmentFile=/etc/default/aircot'
+  when: aryaos_aircot_service.stat.exists

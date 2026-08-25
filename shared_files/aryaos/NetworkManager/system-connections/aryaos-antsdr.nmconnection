@@ -3,6 +3,10 @@ id=AryaOS ANTSDR
 type=ethernet
 interface-name=eth1
 autoconnect=true
+# A pre-existing operator/site profile for eth1 must win during an in-place
+# conversion. This low-priority stock fallback remains the only candidate on a
+# fresh image, but cannot replace a deliberately configured sensor link.
+autoconnect-priority=-100
 # Dedicated point-to-point sensor link: keep firewalld out of the way so the
 # AntSDR can reach the dronecot listener (172.31.100.1:52002).
 zone=trusted

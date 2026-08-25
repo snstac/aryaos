@@ -12,19 +12,37 @@ if ! test_profile uas; then
 	exit 0
 fi
 
-ANTSDR_HOST_IP="${ARYAOS_ANTSDR_HOST_IP:-172.31.100.1}"
-ANTSDR_DEVICE_IP="${ARYAOS_ANTSDR_DEVICE_IP:-172.31.100.2}"
+ANTSDR_HOST_IP="${ARYAOS_ANTSDR_HOST_IP:-}"
+ANTSDR_DEVICE_IP="${ARYAOS_ANTSDR_DEVICE_IP:-}"
 
-if ip -4 addr show eth1 2>/dev/null | grep -q "${ANTSDR_HOST_IP}/24"; then
-	ok "ANTSDR host address ${ANTSDR_HOST_IP}/24 on eth1"
-else
-	fail "ANTSDR host address ${ANTSDR_HOST_IP}/24 missing on eth1"
+if [[ -z "${ANTSDR_HOST_IP}" && -r /etc/default/dronecot-dji ]]; then
+	ANTSDR_HOST_IP="$(sed -n 's/^DJI_BIND_ADDRESS=//p' /etc/default/dronecot-dji | tail -1)"
+fi
+ANTSDR_HOST_IP="${ANTSDR_HOST_IP:-172.31.100.1}"
+
+if [[ -z "${ANTSDR_DEVICE_IP}" && -x /usr/local/sbin/aryaos-antsdr-health ]]; then
+	ANTSDR_DEVICE_IP="$(sudo -n /usr/local/sbin/aryaos-antsdr-health --quiet --json 2>/dev/null | python3 -c '
+import json, sys
+try:
+    print(json.load(sys.stdin).get("antsdr_ip", ""))
+except (json.JSONDecodeError, OSError):
+    pass
+' 2>/dev/null || true)"
+fi
+if [[ -z "${ANTSDR_DEVICE_IP}" ]]; then
+	ANTSDR_DEVICE_IP="$(python3 -c '
+import ipaddress, sys
+try:
+    print(ipaddress.ip_address(sys.argv[1]) + 1)
+except ValueError:
+    pass
+' "${ANTSDR_HOST_IP}")"
 fi
 
-if ip -4 addr show eth1 2>/dev/null | grep -q '192.168.1.9/24'; then
-	ok "ANTSDR stock fallback host address 192.168.1.9/24 on eth1"
+if ip -4 -o addr show eth1 2>/dev/null | awk '{print $4}' | grep -qE "^${ANTSDR_HOST_IP//./\\.}/[0-9]+$"; then
+	ok "ANTSDR host address ${ANTSDR_HOST_IP} on eth1"
 else
-	warn "ANTSDR stock fallback host address 192.168.1.9/24 missing"
+	fail "ANTSDR host address ${ANTSDR_HOST_IP} missing on eth1"
 fi
 
 if ping -c 2 -W 1 "${ANTSDR_DEVICE_IP}" >/dev/null 2>&1; then

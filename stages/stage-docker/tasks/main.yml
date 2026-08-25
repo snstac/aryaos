@@ -17,34 +17,49 @@
 #
 
 
-- name: Add Docker GPG apt Key
-  ansible.builtin.apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    state: present
+- name: Ensure the apt keyring directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
 
-- name: Add Docker Repository
+- name: Install the Docker repository signing key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    owner: root
+    group: root
+    mode: "0644"
+    force: true
+
+- name: Add Docker repository
   ansible.builtin.apt_repository:
-    repo: deb https://download.docker.com/linux/debian bookworm stable
+    repo: >-
+      deb [signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/debian
+      {{ ansible_distribution_release }} stable
+    filename: docker
     state: present
 
 - name: Update apt cache for Docker
   ansible.builtin.apt:
     update_cache: true
 
-- name: Install Docker packages.
-  ansible.builtin.package:
-    name: "{{ item }}"
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name: "{{ lookup('file', '../01-install/00-packages').splitlines() }}"
     state: present
-  loop: "{{ lookup('file', '../01-install/00-packages').split('\n') }}"
   tags:
     - packages
 
-- name: Add node-red to docker group
+- name: Add service and operator users to the docker group
   ansible.builtin.user:
-    name: node-red
+    name: "{{ item }}"
     groups: docker
-
-- name: Add ansible to docker group
-  ansible.builtin.user:
-    name: ansible
-    groups: docker
+    append: true
+  loop:
+    - node-red
+    - "{{ aryaos_operator_user | default(ansible_user | default('')) }}"
+  when: item | length > 0 and item != 'root'
