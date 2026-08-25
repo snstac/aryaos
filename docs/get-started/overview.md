@@ -1,11 +1,10 @@
 # What is AryaOS?
 
-AryaOS is a Linux operating system that turns a small, inexpensive computer into
-a **situational-awareness gateway** for [TAK](../reference/glossary.md#tak). It
-ingests data from radios and sensors, converts it to
-[Cursor on Target (CoT)](../reference/glossary.md#cot) - the native language of
-ATAK, WinTAK, iTAK, and TAK Server - and delivers it to the operators who need
-it, whether they are standing next to the box or across a wide-area network.
+AryaOS is a Linux operating system that turns a small, inexpensive computer into a
+**situational-awareness gateway** for [TAK](../reference/glossary.md#tak). It ingests data from
+radios and sensors and converts it to [Cursor on Target (CoT)](../reference/glossary.md#cot).
+CoT is the native language of ATAK, WinTAK, iTAK, and TAK Server. AryaOS then delivers it to local
+or remote operators.
 
 Everything is pre-installed and pre-wired. You flash a card, power it on, and
 manage the whole system from a browser.
@@ -22,14 +21,14 @@ sees live tracks in native TAK formats:
 - **Drones** from [Remote ID](../reference/glossary.md#remote-id) and DJI DroneID.
 - **Own position** from an onboard GPS, shared to the whole team.
 
-A single AryaOS box can run one of these missions or all of them at once, and can
-relay the combined picture to a TAK Server for the wider force.
+A single AryaOS box can run one mission or all of them at once. It can relay the combined picture
+to a TAK Server.
 
 !!! example "Proven in the field"
-    In its original **AirTAK** configuration - an AryaOS box and an ADS-B antenna
-    in a backpack, powered by a USB battery, paired to a phone over Wi-Fi with no
-    internet - operators have tracked aircraft at ranges past 50 miles. AryaOS is
-    in daily use for wildland fire, security, and search-and-rescue.
+    The original **AirTAK** configuration puts an AryaOS box and ADS-B antenna in a backpack.
+    A USB battery powers the box, and a phone connects over Wi-Fi without internet access.
+    Operators have tracked aircraft at ranges past 50 miles. Teams use AryaOS for wildland fire,
+    security, and search and rescue.
 
 ## How it works
 
@@ -67,8 +66,8 @@ flowchart LR
 ```
 
 Each gateway is a small [PyTAK](../reference/glossary.md#pytak) program. Because
-they all share one framework, they behave consistently: the same TLS settings,
-the same URL schemes, the same site-wide configuration file. See the full
+They all share one framework, they behave consistently: the same TLS settings,
+The same URL schemes, the same site-wide configuration file. See the full
 [software suite](../reference/software-suite.md).
 
 ## Managed from the browser

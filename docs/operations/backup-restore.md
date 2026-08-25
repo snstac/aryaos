@@ -1,10 +1,9 @@
 # Back up & restore configuration
 
-An AryaOS box holds a lot of hard-won state: your site config, the sensor
-role, cotbridge lanes, TAK client certificates, saved Wi-Fi networks, and the
-Node-RED flows. The `aryaos-config-backup` helper packs all of it into one
-restorable tarball - so you can snapshot a working unit before a change, or
-migrate a whole configuration onto a replacement box in minutes.
+An AryaOS box holds a lot of hard-won state. Your site config, the sensor role, cotbridge lanes, TAK
+client certificates, saved Wi-Fi networks, and the Node-RED flows. The `aryaos-config-backup` helper
+packs all of it into one restorable tarball. So you can snapshot a working unit before a change.
+Alternatively, migrate a whole configuration onto a replacement box in minutes.
 
 ## Make a backup
 
@@ -12,7 +11,7 @@ migrate a whole configuration onto a replacement box in minutes.
 
     1. Open **Cockpit > AryaOS Site > Backup & restore**.
     2. Click **Create backup**. AryaOS packs the config set into a tarball on
-       the box and lists it under existing backups.
+       The box and lists it under existing backups.
     3. Download it to your machine to keep a copy off the unit.
 
 === "From the shell"
@@ -43,9 +42,8 @@ configuration set. Missing paths are skipped, not errors.
 | **Gateway and decoder defaults** | `/etc/default/{acarsdec,adsbcot,aiscot,dronecot,lincot,gpscot,gdlcot,sikw00fcot,cotbridge,gpsd}` and the `/etc/{adsbcot,aiscot,dronecot,lincot}` config trees. |
 | **Secrets** *(full backup only)* | `/etc/NetworkManager/system-connections` (Wi-Fi PSKs), `/etc/default/gutcheck` (web token and runtime settings), Node-RED `settings.js` and `flows_cred.json`, and the TLS key material inside the config trees above. |
 
-Every archive carries a `MANIFEST.txt` recording when it was made, the
-hostname, the AryaOS version, whether secrets were included, and the exact list
-of paths captured. That manifest is also how a restore validates the file is a
+Every archive carries a `MANIFEST.txt` with its time, hostname, AryaOS version,
+secret status, and captured paths. A restore uses this manifest to validate a
 genuine AryaOS backup.
 
 !!! danger "A full backup contains private keys and Wi-Fi passwords"
@@ -57,11 +55,9 @@ genuine AryaOS backup.
     copy it off the box it is your responsibility - **store full backups
     securely.**
 
-    For a copy you can safely share (attach to a ticket, hand to a teammate,
-    template across a fleet), use **`--no-secrets`**: it omits the TLS key
-    material (`--exclude=etc/.../tls`) and the network, Gutcheck, and Node-RED
-    secret files, so the archive carries the *shape* of your config without any
-    credentials.
+    Use **`--no-secrets`** for a shareable copy. It omits TLS keys and the
+    network, GutCheck, and Node-RED secret files. The archive keeps the
+    configuration structure without credentials.
 
 ## Where backups land
 
@@ -90,12 +86,11 @@ Backups are written to **`/var/lib/aryaos/backups/`** as
 
     Restore prompts for confirmation before it overwrites current config (the
     Cockpit card, which already confirmed with you, passes `--service` to skip
-    the prompt).
+    The prompt).
 
-The restore validates the archive, unpacks it in place preserving
-permissions and ownership, runs `systemctl daemon-reload`, and does a
-`try-restart` of the CoT fleet (`cotbridge`, `gpscot`, `aiscot`, `lincot`,
-`adsbcot`, `dronecot`) plus `lighttpd`.
+The restore validates the archive, unpacks it in place preserving permissions. Ownership, runs
+`systemctl daemon-reload`, and does a `try-restart` of the CoT fleet (`cotbridge`, `gpscot`,
+`aiscot`, `lincot`, `adsbcot`, `dronecot`) plus `lighttpd`.
 
 !!! warning "Restore is additive"
     Restore *overlays* the backed-up files onto the device - it brings back
@@ -115,7 +110,7 @@ permissions and ownership, runs `systemctl daemon-reload`, and does a
 
 ## Migrating to a replacement box
 
-Backups are the fast path when hardware fails or you're swapping a fielded unit:
+Backups are the fast path when hardware fails or you are swapping a fielded unit:
 
 1. On the **old box** (or from your last saved backup), make a **full** backup
    and download it - you want the TAK certs and Wi-Fi PSKs, so *do not* use
@@ -128,10 +123,9 @@ Backups are the fast path when hardware fails or you're swapping a fielded unit:
    connection, lanes, and saved networks in place.
 
 !!! tip "The replacement keeps its own identity"
-    A restore lays your *configuration* over the new box, but the new unit keeps
-    its own machine-id-derived [`DEVICE_SUFFIX`](../reference/glossary.md#device_suffix),
-    hostname, and per-device web TLS certificate from its own first boot. You're
-    migrating config, not cloning identity.
+    A restore puts your *configuration* on the new device. The device keeps its
+    own [`DEVICE_SUFFIX`](../reference/glossary.md#device_suffix), hostname, and
+    web TLS certificate. You migrate configuration, not identity.
 
 ## Related
 

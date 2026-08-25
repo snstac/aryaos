@@ -1,6 +1,6 @@
 # Vessels via AIS
 
-Put ships and boats on your Common Operating Picture (COP). Attach an SDR and a marine VHF antenna (or point AryaOS at an online feed), select the **`maritime`** role, and AIS traffic appears in ATAK/WinTAK/iTAK as native Cursor on Target (CoT) tracks.
+Put ships and boats on your Common Operating Picture (COP). Attach an SDR and a marine VHF antenna (or point AryaOS at an online feed), select the **`maritime`** role. AIS traffic appears in ATAK/WinTAK/iTAK as native Cursor on Target (CoT) tracks.
 
 Vessels broadcast **AIS (Automatic Identification System)** on two marine VHF channels near **161.975 / 162.025 MHz**. AryaOS receives AIS with **AIS-catcher**, then `aiscot` converts each vessel report to CoT.
 
@@ -17,11 +17,11 @@ Vessels broadcast **AIS (Automatic Identification System)** on two marine VHF ch
     | Coax / mount | Height and a clear view of the water drive range. |
 
     !!! tip "VHF antenna matters"
-        AIS is line-of-sight at VHF. Reception is dominated by antenna height and quality - an elevated marine VHF antenna is the single biggest range improvement. Keep the AIS antenna separated from 1090/978 MHz antennas on multi-sensor boxes to limit desense.
+        AIS is line-of-sight at VHF. Reception is dominated by antenna height and quality. An elevated marine VHF antenna is the single biggest range improvement. Keep the AIS antenna separated from 1090/978 MHz antennas on multi-sensor boxes to limit desense.
 
 === "Online feed"
 
-    If the box has internet, AIS-catcher can pull from an online AIS source instead of (or in addition to) local RF - useful when you have no antenna or want wide-area coverage. No SDR is required in this mode. Configure the AIS-catcher input from the AIS-catcher plugin in Cockpit.
+    If the box has internet, AIS-catcher can pull from an online AIS source instead of (or in addition to) local RF. Useful when you have no antenna or want wide-area coverage. No SDR is required in this mode. Configure the AIS-catcher input from the AIS-catcher plugin in Cockpit.
 
 ## Turn on the maritime role
 
@@ -54,12 +54,12 @@ flowchart LR
 AIS-catcher exposes a local web UI and JSON on **port 8100** (allowed through the firewall by default), and `aiscot` reads its output and emits CoT to the COTBridge hub at `udp+wo://127.0.0.1:28087`.
 
 AryaOS explicitly disables AIS-catcher's internet community feed. RF observations
-stay on the box and on outputs you configure; sharing to a public aggregation
+stay on the box and on outputs you configure. sharing to a public aggregation
 service is never enabled implicitly.
 
 ## Verify tracks
 
-1. Connect your EUD to the AryaOS hotspot (`AryaOS-xxxx`) or the same network; open your TAK client. Vessels appear automatically via Mesh SA.
+1. Connect your EUD to the AryaOS hotspot (`AryaOS-xxxx`) or the same network. open your TAK client. Vessels appear automatically via Mesh SA.
 2. On the box:
 
     ```bash

@@ -1,10 +1,8 @@
 # Support bundles
 
-When a fielded unit misbehaves, generate a **support bundle**: one redacted
-tarball with everything a troubleshooter needs - system state, service status,
-recent logs, network and firewall state, and sensor configs - with passwords,
-tokens, and enrollment credentials stripped out. Attach it to a field report
-instead of describing the problem over the radio.
+When a fielded unit has a problem, generate a **support bundle**. The redacted tarball contains
+system state, service status, recent logs, network state, firewall state, and sensor configuration.
+AryaOS removes passwords, tokens, and enrollment credentials. Attach the bundle to a field report.
 
 ## Generate a bundle
 
@@ -61,7 +59,7 @@ This is the part to be sure of before you send a bundle to anyone.
       material) is copied into the bundle at all.
 
 In short: the bundle carries the *shape* of your configuration - which services
-run, how they're wired, what's failing - without the credentials that would let
+run, how they are wired, and what fails. It excludes credentials that can let
 someone impersonate the unit or its TAK connection.
 
 !!! tip "Sanity-check with your eyes"
@@ -83,13 +81,13 @@ Bundles are written to **`/var/lib/aryaos/support/`** as
   automatically each time you generate a new one.
 - The most recent bundle's path and size are recorded in
   `/var/lib/aryaos/support-bundle.json`, which is how the Cockpit card offers
-  the **Download** button.
+  The **Download** button.
 
 !!! note "Download over an admin channel"
     The Cockpit **Download** button pulls the file over your existing
     authenticated Cockpit session. If you copy a bundle off the box by hand
     (`scp`, etc.), do it over SSH or the [VPN](../networking/vpn-tailscale.md) -
-    the file is redacted, but it still describes your deployment.
+    The file is redacted, but it still describes your deployment.
 
 ## Attaching to a field report
 

@@ -1,7 +1,7 @@
 # Quickstart
 
 Get from a blank microSD card to live tracks on a phone in about 15 minutes. This
-walkthrough uses the default **Aircraft (ADS-B)** setup; the same first steps
+guide uses the default **Aircraft (ADS-B)** setup. The same first steps
 apply to every mission.
 
 !!! tip "What you need"
@@ -13,11 +13,10 @@ apply to every mission.
 
 ## 1. Flash the card
 
-The short way, on **Windows or Linux**, is
-[**AryaOS Imager**](https://github.com/snstac/aryaos-imager/releases) - a
-single-purpose build of Raspberry Pi Imager that offers only AryaOS and
-downloads the image itself, so there is nothing to find and no wrong operating
-system to pick by accident.
+The short way, on **Windows or Linux**, is [**AryaOS
+Imager**](https://github.com/snstac/aryaos-imager/releases) - a single-purpose build of Raspberry Pi
+Imager that offers only AryaOS. It downloads the image and removes the risk of selecting the wrong
+operating system.
 
 1. Install [AryaOS Imager](https://github.com/snstac/aryaos-imager/releases).
 2. Insert the microSD card, open the imager, and choose
@@ -57,9 +56,9 @@ set your password.
        self-signed certificate warning - the cert is unique to your device).
 
     !!! note
-        If `aryaos-xxxx.local` does not resolve on your phone, browse to the
-        gateway's IP address instead - the hotspot hands out addresses on
-        `10.41.0.0/24` with the box at `10.41.0.1`.
+        If `aryaos-xxxx.local` does not resolve, browse to the gateway IP
+        address. The hotspot uses `10.41.0.0/24`, with the gateway at
+        `10.41.0.1`.
 
 === "Computer (Wi-Fi or Ethernet)"
 
@@ -91,10 +90,10 @@ CoT stream AryaOS broadcasts by default.
 
 - In the AryaOS web console, open **AryaOS Site > Sensor services** and confirm
   `adsbcot` and `readsb` are **active**.
-- On the TAK map, aircraft icons should appear within a minute if any are in range
+- On the TAK map, aircraft icons will appear within a minute if aircraft are in range
   of your antenna. A local ADS-B map is also served on the box (tar1090).
 
-!!! success "You're live"
+!!! success "You are live"
     You now have a standalone ADS-B-to-TAK gateway. No internet was required.
 
 ## Where to next

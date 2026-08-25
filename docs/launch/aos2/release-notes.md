@@ -15,7 +15,7 @@ than every intermediate development image.
 - Added GDLCOT output for ForeFlight and other GDL90 electronic flight bags.
 - Routed local CoT through COTBridge with structured lanes, shared TLS, data
   package import, and `tak://` enrollment.
-- Replaced Node-RED system configuration with an authenticated Cockpit console;
+- Replaced Node-RED system configuration with an authenticated Cockpit console.
   retained Node-RED as optional, unprivileged automation behind HTTPS.
 - Added fleet discovery, normalized gateway health, resilient transport
   reconnects, support bundles, updates, backup/restore, factory reset, and
@@ -32,19 +32,19 @@ than every intermediate development image.
   from the Bookworm-based v1 image to AOS2.
 - Local gateways now send to COTBridge's private bus. Configure external Mesh SA
   or TAK Server destinations in the `site-output` lane rather than independently
-  on every feeder.
+  On every feeder.
 - Tailscale replaces ZeroTier.
 - Cockpit replaces Node-RED as the administration surface. Default Node-RED
-  flows are empty; legacy flows remain available for manual import.
+  flows are empty. legacy flows remain available for manual import.
 - Bundled CloudTAK is removed.
 - Private dhbridge and kraktak components are removed from public images.
-- Current runtime and package names are COTBridge, GPSCOT, and GDLCOT; legacy
+- Current runtime and package names are COTBridge, GPSCOT, and GDLCOT. legacy
   service aliases are not retained.
 
 ## Security notes
 
 - Release images contain no lab SSH key or passwordless lab sudo grant and force
-  the bootstrap password to change at first login.
+  The bootstrap password to change at first login.
 - Zeroize now replaces and expires the `pi` password, locks other interactive
   local accounts and root, removes authorized SSH keys and shell histories,
   removes the active site and COTBridge target, and restores packaged defaults.

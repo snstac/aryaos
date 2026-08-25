@@ -1,6 +1,6 @@
 # Device roles
 
-A **device role** selects which sensor pipelines run on an AryaOS unit - aircraft, vessels, drones, all of them, or none. Roles are runtime-selectable and persisted, so you can repurpose a box in the field without re-flashing. Set the role from the [Device role](../admin/aryaos-site.md#device-role) card or with the `aryaos-role` CLI helper.
+A **device role** selects which sensor pipelines run on an AryaOS unit. Aircraft, vessels, drones, all of them, or none. Roles are runtime-selectable and persisted. Thus, you can repurpose a box in the field without re-flashing. Set the role from the [Device role](../admin/aryaos-site.md#device-role) card or with the `aryaos-role` CLI helper.
 
 ## The CoT core is always on
 
@@ -52,7 +52,7 @@ Applying a role does three things, in order:
 Because the units are *disabled*, the role sticks across reboots.
 
 === "Web console"
-    On the [AryaOS Site page](../admin/aryaos-site.md#device-role), choose a role from the **Role** drop-down. The card previews the exact units that will be enabled ("Sensor services for this role: ..."). Press **Apply role** and confirm - services outside the role are stopped and disabled.
+    On the [AryaOS Site page](../admin/aryaos-site.md#device-role), choose a role from the **Role** drop-down. The card previews the exact units that will be enabled ("Sensor services for this role. ..."). Press **Apply role** and confirm. Services outside the role are stopped and disabled.
 
 === "CLI"
     ```bash
@@ -65,7 +65,7 @@ Because the units are *disabled*, the role sticks across reboots.
     The helper prints each `enable`/`disable` action it takes. See [CLI helpers](../reference/cli-helpers.md).
 
 !!! warning "Applying a role disables other sensors"
-    Switching to `air` stops and disables the AIS and drone units; switching to `relay` stops **all** sensor units. This is intentional - pick the role that matches the mission. The CoT core keeps running regardless.
+    Switching to `air` stops and disables the AIS and drone units. Switching to `relay` stops **all** sensor units. This is intentional. Pick the role that matches the mission. The CoT core keeps running regardless.
 
 ## Capability discovery
 
@@ -100,7 +100,7 @@ Auto-apply is deliberately conservative, because enabling the wrong thing is
 worse than enabling nothing:
 
 - **Contended radios.** One SDR cannot serve ADS-B *and* AIS at once, so only
-  the higher-priority capability (`adsb`) is auto-enabled; the other is reported
+  The higher-priority capability (`adsb`) is auto-enabled. The other is reported
   as available with the reason it was held back.
 - **Generic serial adapters.** DroneScout receivers can appear as generic
   ESP32-S3 USB CDC (`303a:1001`) or behind a generic USB-UART bridge such as a
@@ -117,7 +117,7 @@ worse than enabling nothing:
   read-only ADSBee bias-tee query and requires the device-specific response.
   `discover --apply` then selects readsb's `modesbeast` serial input and does not
   start the independent 978 MHz decoder.
-- **SAPIENT.** A network sensor with no local hardware signature; never
+- **SAPIENT.** A network sensor with no local hardware signature. Never
   auto-detected.
 
 ### Beacons advertise availability
@@ -130,7 +130,7 @@ off, or a service running that nobody declared.
 ## Persistence and precedence
 
 - The current role lives in `ARYAOS_ROLE` in the site config. When unset, the effective role is `multi`.
-- Editing `ARYAOS_ROLE` by hand does **not** change which units run - the enable/disable actions happen when you *apply* a role. Always apply through the card or `aryaos-role set` so systemd state and the config key stay in sync.
+- Editing `ARYAOS_ROLE` by hand does **not** change which units run. The enable/disable actions happen when you *apply* a role. Always apply through the card or `aryaos-role set` so systemd state and the config key stay in sync.
 
 ## See also
 

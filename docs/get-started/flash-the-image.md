@@ -1,6 +1,6 @@
 # Flash the image
 
-Write the AryaOS image to a microSD card, then boot your Raspberry Pi from it. The quickest route is **AryaOS Imager**, which downloads the image for you; Raspberry Pi Imager and balenaEtcher also work if you already have them.
+Write the AryaOS image to a microSD card, then boot your Raspberry Pi from it. The quickest route is **AryaOS Imager**. This downloads the image for you. Raspberry Pi Imager and balenaEtcher also work if you already have them.
 
 !!! danger "Flashing erases the card"
     Writing an image overwrites everything on the target microSD card. Double-check the drive you select before you start.
@@ -23,14 +23,14 @@ Write the AryaOS image to a microSD card, then boot your Raspberry Pi from it. T
 
 Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads `.img.xz` directly - you do not need to decompress it first.
 
-!!! info "Every release is signed and bill-of-materials'd"
-    Each image build attaches an SPDX and CycloneDX software bill of materials (SBOM) to its GitHub Release, and all AryaOS packages install from the [signed apt repository](https://snstac.github.io/packages). See [SBOM & supply chain](../operations/sbom.md).
+!!! info "Every release has signatures and bills of materials"
+    Each image build attaches an SPDX and CycloneDX software bill of materials (SBOM) to its GitHub Release. All AryaOS packages install from the [signed apt repository](https://snstac.github.io/packages). See [SBOM & supply chain](../operations/sbom.md).
 
 ## Flash the card
 
 === "AryaOS Imager"
 
-    [AryaOS Imager](https://github.com/snstac/aryaos-imager/releases) is a single-purpose build of Raspberry Pi Imager that offers **only AryaOS**. It downloads the image for you, so there is no file to find and no way to pick the wrong operating system.
+    [AryaOS Imager](https://github.com/snstac/aryaos-imager/releases) is a single-purpose build of Raspberry Pi Imager that offers **only AryaOS**. It downloads the image for you. Thus, there is no file to find and no way to pick the wrong operating system.
 
     | Platform | Download |
     |---|---|
@@ -47,9 +47,9 @@ Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads 
     !!! warning "Windows shows a SmartScreen warning, and you cannot yet checksum the fix"
         The installer is not code-signed, so Windows displays *"Windows protected your PC"*. Click **More info > Run anyway**.
 
-        Releases publish a `SHA256SUMS.txt`, but as of `v1.0.0` it covers **only the Linux binary** - the Windows installer, the portable `.exe` and the callback relay have no published checksum. So on Windows there is currently no way to verify the download, and the "run anyway" step is a genuine trust decision. Prefer the Linux build where you have the choice, and re-check `SHA256SUMS.txt` on newer releases.
+        Releases publish a `SHA256SUMS.txt`, but as of `v1.0.0` it covers **only the Linux binary**. The Windows installer, the portable `.exe` and the callback relay have no published checksum. So on Windows there is currently no way to verify the download. The "run anyway" step is a genuine trust decision. Prefer the Linux build where you have the choice, and re-check `SHA256SUMS.txt` on newer releases.
 
-    The image itself is a separate matter and *is* verifiable: every AryaOS release publishes an SBOM and an uncompressed-image SHA, and the imager verifies what it wrote after writing it.
+    The image itself is a separate matter and *is* verifiable. Every AryaOS release publishes an SBOM and an uncompressed-image SHA. The imager verifies what it wrote after writing it.
 
     There is no OS-customization step to skip: AryaOS configures itself on [first boot](first-boot.md), so the imager deliberately leaves those settings alone.
 
@@ -65,7 +65,7 @@ Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads 
     6. Click **Next**, confirm, and wait for the write and verify steps to finish.
 
     !!! warning "Skip the OS customization prompt"
-        If Imager offers to apply hostname, Wi-Fi, or user settings, choose **No** / skip it. AryaOS personalizes its own hostname and hotspot on [first boot](first-boot.md); pre-seeding those settings can conflict.
+        If Imager offers to apply hostname, Wi-Fi, or user settings, choose **No** / skip it. AryaOS personalizes its own hostname and hotspot on [first boot](first-boot.md). pre-seeding those settings can conflict.
 
 === "balenaEtcher"
 
@@ -92,7 +92,7 @@ Downloaded by hand, the image is a compressed `.img.xz`. Every tool below reads 
 Within a few seconds the AryaOS device flashes its green and red LEDs as it starts up.
 
 !!! note "First boot takes about 120 seconds"
-    A brand-new AryaOS device spends roughly two minutes on its first boot resizing the filesystem, choosing a unique identity, and generating its own web certificate. This only happens once. See [First boot & first login](first-boot.md) for exactly what happens and how to connect.
+    A brand-new AryaOS device spends roughly two minutes on its first boot resizing the filesystem, choosing a unique identity. Generating its own web certificate. This only happens once. See [First boot & first login](first-boot.md) for exactly what happens and how to connect.
 
 ## Next step
 

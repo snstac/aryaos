@@ -1,6 +1,8 @@
 # Radios & SDRs
 
-AryaOS uses software-defined radio (SDR) dongles to receive ADS-B (1090 MHz) and UAT (978 MHz) aircraft signals, and over-the-air AIS for vessels. Because a unit often has more than one dongle, AryaOS tells them apart by a stable **EEPROM serial** rather than USB port order. This page covers the serial convention, re-serializing a dongle, and choosing the 1090 MHz decoder.
+AryaOS uses software-defined radio (SDR) dongles to receive aircraft signals and over-the-air AIS.
+A unit can have multiple dongles. AryaOS identifies each dongle by its stable **EEPROM serial**, not
+its USB port. This page covers serials, reassignment, and selection of the 1090 MHz decoder.
 
 ## The serial convention
 
@@ -14,14 +16,16 @@ AryaOS selects dongles by a serial string written to each dongle's EEPROM:
 The UAT serial is the value of [`ARYAOS_UAT_978_DEVICE`](./site-config.md#ads-b-radios) in the site config (default `stx:978:0`).
 
 !!! warning "The 1090 and UAT serials must differ"
-    A 1090 MHz dongle and a 978 MHz dongle cannot share a serial. Pre-assembled AryaOS units ship with this factory pairing already written; Nooelec NESDR Nano 3 "978" sticks come pre-programmed as `stx:978:0`. If you build your own device or replace a dongle, write distinct serials before both bands will work.
+    A 1090 MHz dongle and a 978 MHz dongle cannot share a serial. Pre-assembled AryaOS units ship with this factory pairing already written. Nooelec NESDR Nano 3 "978" sticks come pre-programmed as `stx:978:0`. If you build your own device or replace a dongle, write distinct serials before both bands will work.
 
 ## Enumerate and re-serialize dongles
 
 You can list dongles and write new serials from the web console or the CLI.
 
 === "Radios card (recommended)"
-    On the [AryaOS Site page](../admin/aryaos-site.md#radios-rtl-sdr), the **Radios (RTL-SDR)** card lists each detected dongle with its index, device string, and current serial. Type a new serial into the **New serial** field for a dongle and press **Write**; confirm the prompt. Use the refresh (↻) icon to rescan.
+    On the [AryaOS Site page](../admin/aryaos-site.md#radios-rtl-sdr), the **Radios (RTL-SDR)** card
+    lists each dongle's index, device string, and current serial. Enter a new serial in the
+    **New serial** field and press **Write**. Confirm the prompt. Use the refresh icon to rescan.
 
     Serials must be **1-32 characters** from `A-Z a-z 0-9 : . _ -`.
 
@@ -66,26 +70,31 @@ Selecting the decoder is a two-part operation today:
 
 ## Multi-SDR setups
 
-A common AryaOS build carries two dongles - one at `stx:1090:0` for ADS-B and one at `stx:978:0` for UAT - plus optionally an AIS receiver. The serial pairing is what lets `readsb`/`dump1090-fa` and `dump978-fa` each claim the correct hardware regardless of USB order. When you add or swap a dongle:
+A common AryaOS build carries one ADS-B dongle and one UAT dongle. It can also use an AIS receiver.
+Serial assignment lets each decoder claim the correct hardware regardless of USB order.
+When you add or replace a dongle:
 
 1. `aryaos-sdr list` (or the Radios card) to find its current serial and index.
 2. Write the band-appropriate serial (`stx:1090:0` or `stx:978:0`), keeping the two bands distinct.
 3. Replug or reboot, then rescan.
 
-The [landing portal](../portal.md) and the portal's **Radios / RF** panel show a live inventory of Wi-Fi, Bluetooth, and USB SDR hardware plus decoder service state, which is handy for confirming a dongle is seen.
+The landing portal's **Radios / RF** panel lists Wi-Fi, Bluetooth, USB SDR hardware, and decoder
+service state. Use it to confirm that AryaOS detects a dongle.
 
 ## Gain, PPM, and other tuning
 
-Fine-tuning such as gain and frequency correction (PPM) is **not** exposed in the Radios card today - that card manages serials only. These live in the decoder's own config file:
+Fine-tuning such as gain and frequency correction (PPM) is **not** exposed in the Radios card today. That card manages serials only. These live in the decoder's own config file:
 
 - **readsb** - `/etc/default/readsb` (`RECEIVER_OPTIONS`, `DECODER_OPTIONS`)
 - **dump1090-fa** - `/etc/default/dump1090-fa`
 - **dump978-fa** - `/etc/default/dump978-fa`
 
-Edit them with Cockpit's file editor or over SSH, then `sudo systemctl restart <decoder>`. Because `readsb` is `apt-mark hold` on the image, updates will not silently overwrite a tuned decoder.
+Edit them with Cockpit's file editor or over SSH. Then run `sudo systemctl restart <decoder>`.
+The image holds `readsb`, so updates do not silently replace a tuned decoder.
 
 !!! note "On current images"
-    Serial management is in the Radios card; gain/PPM and SoapySDR/HackRF/Airspy backends are configured in the decoder's `/etc/default/<decoder>` file. See the [ADS-B deployment guide](../deploy/air-adsb.md) for antenna and receiver guidance.
+    Serial management is in the Radios card. Configure gain, PPM, and SDR backends in the decoder's
+    `/etc/default/<decoder>` file. See the [ADS-B deployment guide](../deploy/air-adsb.md).
 
 ## See also
 
@@ -102,23 +111,23 @@ At boot, **`aryaos-serial-assign`** probes each USB-serial device and classifies
   **SiRF binary** frames, written to `gpsd` (`/etc/default/gpsd` `DEVICES`).
 - **AIS** if it emits checksum-valid `!AIVDM`/`!AIVDO` NMEA, written to
   `ais-catcher` (`SERIAL_PORT`).
-- A **dAISy with no vessels in range is silent**; when AIS is intended and it's the only
-  non-GPS serial left, it's assigned by **elimination** at 38400 baud.
+- A **dAISy with no vessels in range is silent**. When AIS is intended and it is the only
+  non-GPS serial left, it is assigned by **elimination** at 38400 baud.
 
 It writes stable `by-id` paths and runs before `gpsd`/`ais-catcher`, so a laydown survives
 swapping the GPS puck or dAISy for a different make. Re-run by hand with
 `sudo aryaos-serial-assign`. To pin a device manually instead, set `DEVICES`/`SERIAL_PORT`
 yourself and disable `aryaos-serial-assign.service`.
 
-A generic PL2303 adapter may front either a GPS or a DroneScout DS110. Once
+A generic PL2303 adapter can front either a GPS or a DroneScout DS110. Once
 valid GPS output assigns that adapter to gpsd, Remote ID discovery excludes it
-from DS110 probing so it cannot change the live GPS baud or report a false RID
-candidate.
+from DS110 probing. Thus, discovery cannot change the GPS baud or report a
+false Remote ID candidate.
 
 ## Re-tasking an SDR
 
 An SDR is just a wideband receiver - the same radio can decode ADS-B, UAT, AIS,
-or APRS depending on how it's tuned. **Re-task** it to a different job on the fly,
+or APRS depending on how it is tuned. **Re-task** it to a different job on the fly,
 without a re-serialize or replug:
 
 ```bash
@@ -133,14 +142,14 @@ sudo aryaos-sdr task 1 off          # idle the SDR
 !!! info "Any SDR, not just RTL-SDR (DragonEgg)"
     `aryaos-sdr` enumerates and tasks **any SoapySDR device** - RTL-SDR, **Airspy**,
     HackRF, LimeSDR - via `SoapySDRUtil`, not only RTL dongles. `list` reports each
-    device's **driver** and **serial**; tasking builds the right decoder invocation
+    device's **driver** and **serial**. Tasking builds the right decoder invocation
     (native `rtlsdr`, or `--device-type soapysdr driver=<drv>` for the rest).
-    Current coverage: **ADS-B** and **AIS** work on any SDR; **UAT** and **APRS**
-    are RTL-SDR only for now (UAT needs `dump978-fa`; APRS needs an FM demod -
+    Current coverage: **ADS-B** and **AIS** work on any SDR. **UAT** and **APRS**
+    are RTL-SDR only for now (UAT needs `dump978-fa`. APRS needs an FM demod -
     `rx_tools` for non-RTL is a roadmap item).
 
-- **`ais`** runs `ais-catcher` on the tasked SDR (`aryaos-ais-sdr` for any device;
-  the serial dAISy path is untouched) and feeds the same `aiscot > cotbridge > TAK`
+- **`ais`** runs `ais-catcher` on the tasked SDR (`aryaos-ais-sdr` for any device.
+  The serial dAISy path is untouched) and feeds the same `aiscot > cotbridge > TAK`
   chain. It needs a **VHF marine antenna** to hear vessels.
 - **`aprs`** decodes 1200-baud packet **APRS on 144.39 MHz** (North America):
   `rtl_fm` > **Dire Wolf** (`aryaos-direwolf@N`, KISS TNC on `:8001`, receive-only)

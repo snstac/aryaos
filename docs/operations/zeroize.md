@@ -1,13 +1,11 @@
 # Zeroize (secure sanitize)
 
-**Zeroize** removes and overwrites every secret, credential, key, log, recorded
-track, and identity on the box, then TRIMs and overwrites free space and
-reboots to a clean first-boot state. It's the control you reach for when a unit
-is being **decommissioned** or is at risk of **capture** - when what matters is
-that nothing sensitive can be recovered from it, not that it stays configured.
+**Zeroize** removes secrets, credentials, keys, logs, recorded tracks, and device identity.
+It then issues TRIM, overwrites free space, and reboots to a clean first-boot state.
+Use it when you decommission a unit or when a unit is at risk of capture.
 
-The box is **not bricked.** After a zeroize it reboots into a clean first-boot
-state and is fully usable again - it just has no more operator secrets on it.
+The device is **not bricked.** After zeroize, it reboots into a clean first-boot
+state. The device remains usable, but it contains no operator secrets.
 The prior `pi` password and every SSH authorized key stop working. AryaOS
 restores the published bootstrap password and expires it, so the next local or
 SSH login must replace it before administering the unit.
@@ -15,8 +13,8 @@ SSH login must replace it before administering the unit.
 !!! danger "Flash-media limitation - read this before you rely on zeroize"
     On flash media (microSD, eMMC, NVMe) **wear-leveling means overwriting a
     file or free space does *not* guarantee the prior contents are
-    unrecoverable.** The controller may have written your data elsewhere, and
-    the old physical blocks can persist beyond software's reach.
+    unrecoverable.** The controller can have written your data elsewhere, and
+    Old physical blocks can persist beyond the reach of software.
 
     Zeroize removes secrets, shreds their current blocks, issues TRIM, and
     overwrites free space as a **best effort** - nothing more. It is honest
@@ -25,8 +23,8 @@ SSH login must replace it before administering the unit.
     **For a hard guarantee, you need one of:**
 
     - **Full-disk encryption with key destruction (crypto-erase)** - if the data
-      was only ever written encrypted, destroying the key makes it unrecoverable
-      regardless of where the controller put the ciphertext. *(Full-disk
+      was only ever written in encrypted form, erase the key. The data becomes
+      unrecoverable, regardless of where the controller put the ciphertext. *(Full-disk
       encryption is on the AryaOS roadmap as the stronger sanitization path.)*
     - **Physical destruction of the media** - the only unconditional guarantee.
 
@@ -44,9 +42,9 @@ zero - multi-pass is pointless on flash), then removes it. In order, it wipes:
 | **TLS / TAK key material** | `/etc/aryaos/tls`, `/etc/cotbridge/tls`, the per-gateway `tls` trees, the snakeoil key, and `/etc/lighttpd/ssl`. |
 | **SSH host keys** | Wiped, then **regenerated** (`ssh-keygen -A`) so SSH still works after the reboot. |
 | **VPN state** | `tailscale logout`, then `/var/lib/tailscale` wiped. |
-| **Node-RED credentials** | `flows_cred.json` wiped; admin password reset to a **random, unrecorded** value (rotate it from the web console after reboot). |
+| **Node-RED credentials** | `flows_cred.json` wiped. admin password reset to a **random, unrecorded** value (rotate it from the web console after reboot). |
 | **Recorded tracks & local files** | `/var/www/html/recorder` (recorded CoT), `/var/lib/aryaos/backups`, `/var/lib/aryaos/support`, and the state JSON files. |
-| **Saved networks** | `/etc/NetworkManager/system-connections` and the comitup hotspot password - **wiped by default** (they hold PSKs); `--keep-network` preserves them. |
+| **Saved networks** | `/etc/NetworkManager/system-connections` and the comitup hotspot password - **wiped by default** (they hold PSKs). `--keep-network` preserves them. |
 | **Site configuration** | Shreds the operator copies of `aryaos-config.txt` and `cotbridge.ini`, then restores both packaged defaults. This removes secrets and the prior TAK Server hostname. |
 | **Login credentials & shell history** | Replaces and expires the `pi` password, locks root and other interactive local accounts, removes every SSH authorized key and lab-only sudo grant, and wipes root/per-user `.bash_history`. |
 | **Logs** | Rotates and vacuums journald (already RAM-volatile), then shreds anything on disk under `/var/log`. |
@@ -61,7 +59,7 @@ reboots into a clean first-boot state.
     Use the published AryaOS bootstrap password and immediately choose a new
     password when prompted. Any password or SSH key that worked before the
     zeroize is intentionally invalid. A lab image also loses its lab key and
-    passwordless-sudo exception; zeroize returns it to the release access
+    passwordless-sudo exception. Zeroize returns it to the release access
     posture.
 
 ## How to run it
@@ -72,7 +70,7 @@ reboots into a clean first-boot state.
     2. The card requires you to **type a confirmation phrase** - this is
        destructive and irreversible, so there is no single-click path.
     3. Confirm. The card runs the wipe (`--service`), overwrites free space, and
-       the box reboots clean.
+       The box reboots clean.
 
 === "From the shell"
 
@@ -93,15 +91,15 @@ reboots into a clean first-boot state.
     | Flag | Effect |
     | --- | --- |
     | *(none)* | Wipe everything, **including** saved networks, then reboot. |
-    | `--keep-network` | Preserve saved Wi-Fi/NetworkManager connections (they contain PSKs - only for a box you're keeping on your own network). |
+    | `--keep-network` | Preserve saved Wi-Fi/NetworkManager connections (they contain PSKs - only for a box you are keeping on your own network). |
     | `--service` | Non-interactive (used by the Cockpit card, which required the confirmation phrase). |
-    | `--no-reboot` | Do the wipe but don't reboot - for testing. |
+    | `--no-reboot` | Do the wipe but do not reboot - for testing. |
 
 ## Zeroize vs. factory reset
 
 Zeroize is the secure counterpart to a [factory reset](./factory-reset.md).
 Factory reset restores config to defaults for **re-use** and keeps the network
-by default; zeroize **destroys** everything for **decommission** and wipes the
+by default. Zeroize **destroys** everything for **decommission** and wipes the
 network by default. If the box will leave your control, use zeroize. See the
 [comparison table](./factory-reset.md#factory-reset-vs-zeroize).
 

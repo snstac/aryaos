@@ -147,7 +147,7 @@ function importDataPackage() {
             refreshServices();
             refreshTakEnrollmentStatus();
         })
-        .catch((ex) => setStatus(el, "Import failed: " + (ex.message || ex), false));
+        .catch((ex) => setStatus(el, "Package import failed. Examine the package and try again. Detail: " + (ex.message || ex), false));
 }
 
 function importEnrollmentUrl() {
@@ -184,7 +184,7 @@ function importEnrollmentUrl() {
             refreshServices();
             refreshTakEnrollmentStatus();
         })
-        .catch((ex) => setStatus(el, "Enrollment failed: " + (ex.message || ex), false));
+        .catch((ex) => setStatus(el, "Enrollment failed. Examine the URL and try again. Detail: " + (ex.message || ex), false));
 }
 
 """
@@ -253,7 +253,8 @@ function renderNeighbors(payload) {
 
     if (!payload || payload.ok === false) {
         summary.textContent = "Neighbor cache unavailable.";
-        setStatus(status, payload && payload.error ? payload.error : "Could not load neighbors.", false);
+        const detail = payload && payload.error ? " Detail: " + payload.error : "";
+        setStatus(status, "Neighbor request failed. Refresh the list." + detail, false);
         return;
     }
 

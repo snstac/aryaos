@@ -9,7 +9,7 @@ Default link behavior:
 - AryaOS creates `pan0` at `10.44.0.1/24`.
 - Paired clients receive DHCP leases from `10.44.0.20` to `10.44.0.60`.
 - No IP forwarding, NAT, or internet egress is enabled.
-- Phones should reach local services at `10.44.0.1`, for example Cockpit on
+- Phones can reach local services at `10.44.0.1`, for example Cockpit on
   `https://10.44.0.1:9090/`.
 
 Configuration lives in `/etc/aryaos/aryaos-config.txt`:
@@ -28,7 +28,6 @@ The systemd service is `aryaos-bt-pan.service`. It keeps the BlueZ
 `NetworkServer1` registration alive and runs a foreground `dnsmasq` DHCP server
 bound only to the PAN bridge.
 
-Pair the phone with AryaOS over Bluetooth, then select the paired AryaOS device
-as a Bluetooth network/PAN device on the phone if the phone OS exposes that
-option. Android support varies by vendor. iOS is generally less flexible for
-arbitrary Bluetooth PAN client use.
+Pair the phone with AryaOS over Bluetooth. Then select the paired AryaOS device as a Bluetooth
+network/PAN device on the phone if the phone OS exposes that option. Android support varies by
+vendor. iOS is generally less flexible for arbitrary Bluetooth PAN client use.

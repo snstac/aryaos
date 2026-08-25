@@ -19,7 +19,7 @@ GutCheck combines three complementary transports:
 
 DNS-SD and SSDP publish identity and service URLs only. They do not expose
 position, health, capabilities, or credentials. Rich status remains on CoT and
-the token-protected GutCheck API.
+The token-protected GutCheck API.
 
 ```mermaid
 flowchart LR
@@ -48,12 +48,12 @@ See [DHCP-less MANET fallback](../networking/manet-ipv4ll.md).
 
 ## Cache and portal
 
-GutCheck writes `/run/gutcheck/neighbors.json` atomically with mode `0644`.
-Entries expire after 240 seconds. The `aryaos-neighbors` CGI preserves the
-existing portal JSON contract, so the **Nearby AryaOS nodes** card continues to
-show hostname, roles, health, position, last-seen age, and an admin link.
+GutCheck writes `/run/gutcheck/neighbors.json` atomically with mode `0644`. Entries expire after 240
+seconds. The `aryaos-neighbors` CGI preserves the existing portal JSON contract. Thus, the **Nearby
+AryaOS nodes** card continues to show hostname, roles, health, position, last-seen age, and an admin
+link.
 
-The discovery service is `gutcheck.service`; the retired
+The discovery service is `gutcheck.service`. The retired
 `aryaos-neighbord.service` is stopped and removed during an AryaOS overlay
 upgrade.
 

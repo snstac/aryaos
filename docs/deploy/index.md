@@ -1,12 +1,15 @@
 # Choose a deployment
 
-One AryaOS image runs every mission. You pick a **device role** in the web console, and AryaOS turns on exactly the sensor pipelines that role needs - no reflashing, no reconfiguring.
+One AryaOS image runs every mission. You pick a **device role** in the web console. AryaOS turns on exactly the sensor pipelines that role needs - no reflashing, no reconfiguring.
 
 ## The mission-based model
 
-AryaOS is an all-in-one situational-awareness gateway: it decodes sensors at the edge and delivers a single Common Operating Picture (COP) to any TAK client (ATAK, WinTAK, iTAK) over Cursor on Target (CoT). Rather than shipping a different image per mission, every AryaOS device runs the **same** software and you select what it does at runtime.
+AryaOS is an all-in-one situational-awareness gateway. It decodes sensors at the edge and delivers
+a Common Operating Picture (COP) to ATAK, WinTAK, and iTAK over Cursor on Target (CoT).
+Every AryaOS device runs the **same** software. You select its mission at runtime.
 
-The core CoT plumbing - the COTBridge hub, LINCOT host beacon, GPSCOT network GPS, and `gpsd` - always runs. The **role** you choose toggles which *sensor* pipelines run on top of it. Change your mind in the field and switch roles in seconds.
+The core services always run: the COTBridge hub, LINCOT host beacon, GPSCOT network GPS, and
+`gpsd`. The selected **role** controls the sensor pipelines. You can switch roles in the field.
 
 !!! info "Where the role lives"
     The role is stored as `ARYAOS_ROLE` in the site config (`/etc/aryaos/aryaos-config.txt`) and applied by the `aryaos-role` helper. You set it from the **Device role** card in **Cockpit > AryaOS Site**. See [Device roles](../config/device-roles.md) for the full reference.
@@ -78,13 +81,13 @@ Each role maps to a set of sensor units, which in turn dictate the hardware you 
 | Role | Sensor pipelines enabled | Typical hardware |
 |------|--------------------------|------------------|
 | `multi` | ADS-B + UAT, AIS, and drone detection - all pipelines | 2x RTL-SDR (1090 + 978), AIS SDR, drone-detection SDR/receiver, GPS |
-| `air` | ADS-B decoder (`readsb`/`dump1090-fa`), `dump978-fa`, `adsbcot`, `gdlcot` | RTL-SDR + 1090 MHz antenna; optional 2nd SDR + 978 MHz antenna |
+| `air` | ADS-B decoder (`readsb`/`dump1090-fa`), `dump978-fa`, `adsbcot`, `gdlcot` | RTL-SDR + 1090 MHz antenna. optional 2nd SDR + 978 MHz antenna |
 | `maritime` | `ais-catcher`, `aiscot` | RTL-SDR + marine VHF antenna (or an online AIS feed, no SDR) |
 | `cuas` | `dronecot-dji`, other `dronecot-*`, `sikw00fcot` | Remote ID receiver and/or DJI DroneID SDR (e.g. AntSDR) |
-| `relay` | none - CoT routing only | No sensors; just network (Wi-Fi/Ethernet/MANET) |
+| `relay` | none - CoT routing only | No sensors. just network (Wi-Fi/Ethernet/MANET) |
 
 !!! note "The core always runs"
-    Regardless of role, `cotbridge`, `lincot`, `gpscot`, and `gpsd` stay running - so a `relay` box still beacons its own position and forwards CoT, and every role can share GPS with a connected EUD.
+    Regardless of role, `cotbridge`, `lincot`, `gpscot`, and `gpsd` stay running. So a `relay` box still beacons its own position and forwards CoT. Every role can share GPS with a connected EUD.
 
 The `air` role also enables `gdlcot`, which lets [ForeFlight and other EFB apps](./foreflight-gdl90.md) display the air picture over GDL90.
 
@@ -104,7 +107,7 @@ flowchart LR
     O -.->|or: TLS| S[TAK Server]
 ```
 
-Local feeders publish CoT to the COTBridge hub on `udp+wo://127.0.0.1:28087`. COTBridge owns egress: its site-wide output multicasts to the **Mesh SA** group `udp+wo://239.2.3.1:6969` by default (which your EUD picks up automatically) and can instead point at a [TAK Server](./connect-tak-server.md). Advanced COTBridge lanes remain available for specialized routing.
+Local feeders publish CoT to the COTBridge hub on `udp+wo://127.0.0.1:28087`. COTBridge owns egress. Its site-wide output multicasts to the **Mesh SA** group `udp+wo://239.2.3.1:6969` by default (which your EUD picks up automatically) and can instead point at a [TAK Server](./connect-tak-server.md). Advanced COTBridge lanes remain available for specialized routing.
 
 ## Next steps
 

@@ -1,22 +1,22 @@
 # Factory reset
 
-A **factory reset** returns a box to its just-flashed, pre-first-boot state
-without re-flashing the media. It's the clean-slate button: hand a unit to a
-new operator, recover from a botched configuration, or repurpose a box for a
-different mission - all without touching the OS or reinstalling packages.
+A **factory reset** returns a box to its just-flashed, pre-first-boot state without re-flashing the
+media. It is the clean-slate button: hand a unit to a new operator, recover from a botched
+configuration. Alternatively, repurpose a box for a different mission. All without touching the OS
+or reinstalling packages.
 
 !!! info "This is not a secure wipe"
-    Factory reset restores config and clears identity; it does **not** securely
+    Factory reset restores config and clears identity. It does **not** securely
     erase anything from the media. To sanitize a box for decommission or before
-    it leaves your control, use **[Zeroize](./zeroize.md)** instead.
+    It leaves your control, use **[Zeroize](./zeroize.md)** instead.
 
-## What it does - and doesn't
+## What it does - and does not
 
 === "What it clears"
 
     - **Site config** - restores `/etc/aryaos/aryaos-config.txt` and
       `/etc/cotbridge.ini` from the packaged defaults in
-      `/usr/share/aryaos/defaults`; resets `issue`, `issue.net`, and `motd`.
+      `/usr/share/aryaos/defaults`. It resets `issue`, `issue.net`, and `motd`.
     - **Per-gateway `/etc/default/<svc>`** - reinstalled to package defaults
       **when online** (via `apt-get --reinstall`). Offline, these are left as-is
       - reset again online to restore them. If the best-effort reinstall fails
@@ -45,7 +45,7 @@ different mission - all without touching the OS or reinstalling packages.
       re-flashed.
     - **The network connection, by default** - saved Wi-Fi/NetworkManager
       connections and the onboarding hotspot password are **preserved** unless
-      you pass `--wipe-network`, so a remote box isn't stranded off the network
+      You pass `--wipe-network`, so a remote box is not stranded off the network
       after a reset. (The AntSDR point-to-point link is always kept.)
 
 After the reset the box **reboots into first-boot setup**, exactly like a
@@ -56,12 +56,12 @@ transports are applied before their services start.
 ## When to use it
 
 - Re-issuing a unit to a new operator or a new mission.
-- Recovering from a configuration you can't unwind by hand.
+- Recovering from a configuration you cannot unwind by hand.
 - Clearing a lab/test box back to a known baseline.
 
 !!! warning "Back up first"
     A factory reset overwrites your site config and deletes uploaded TAK
-    certs. If there's any chance you'll want the current setup again - or want
+    certs. If there's any chance you will want the current setup again - or want
     to move it to a replacement box - make a
     [backup](./backup-restore.md) first.
 
@@ -94,9 +94,9 @@ transports are applied before their services start.
     | *(none)* | Reset config + identity, **keep** the network, prompt, then reboot. |
     | `--wipe-network` | Also remove saved Wi-Fi/NetworkManager connections and the hotspot password (box reverts to open onboarding). |
     | `--service` | Non-interactive (used by the Cockpit card, which already confirmed). |
-    | `--no-reboot` | Do the reset but don't reboot - for testing. |
+    | `--no-reboot` | Do the reset but do not reboot - for testing. |
 
-## Factory reset vs. zeroize
+## Factory reset vs. Zeroize
 
 Both return the box to a clean first-boot state, but they answer different
 questions:
@@ -106,11 +106,11 @@ questions:
 | **Goal** | Clean slate for re-use | Secure sanitize for decommission/capture |
 | **Config & identity** | Restored to defaults / cleared | Destroyed |
 | **Certs & keys** | Uploaded TAK certs deleted | All key material shredded + overwritten |
-| **Logs / tracks / history** | Not specifically wiped | Shredded; free space overwritten + TRIMmed |
+| **Logs / tracks / history** | Not specifically wiped | Shredded. free space overwritten + TRIMmed |
 | **Network** | **Kept** by default | **Wiped** by default (`--keep-network` to keep) |
 | **Secure erase?** | **No** | Best-effort (see the flash-media caveat) |
 
-If the box is going somewhere you don't control, use
+If the box is going somewhere you do not control, use
 **[Zeroize](./zeroize.md)**, not factory reset.
 
 ## Related

@@ -5,10 +5,10 @@ Short answers to the questions we hear most, each linking to the page with the f
 ## Getting started
 
 ??? question "Do I need internet to use AryaOS?"
-    No. AryaOS is designed for disconnected operation - no LTE, no Wi-Fi backhaul. Pair a TAK device to the onboarding hotspot and you see live tracks over local Mesh SA with nothing else connected. Internet is only needed to reach a remote TAK Server or to fetch updates. See [Disconnected / backpack ops](../deploy/offline-backpack.md).
+    No. AryaOS is designed for disconnected operation. No LTE, no Wi-Fi backhaul. Pair a TAK device to the onboarding hotspot and you see live tracks over local Mesh SA with nothing else connected. Internet is only needed to reach a remote TAK Server or to fetch updates. See [Disconnected / backpack ops](../deploy/offline-backpack.md).
 
 ??? question "Which Raspberry Pi do I need?"
-    A Raspberry Pi 3, 4, or 5 (`arm64`), with a 16 GB+ microSD card (32 GB recommended). The Pi 4 is the common field build; the Pi 5 has the most headroom. See [Hardware & requirements](../get-started/hardware.md).
+    A Raspberry Pi 3, 4, or 5 (`arm64`), with a 16 GB+ microSD card (32 GB recommended). The Pi 4 is the common field build. The Pi 5 has the most headroom. See [Hardware & requirements](../get-started/hardware.md).
 
 ??? question "Is amd64 (Intel) supported?"
     Not as an image yet - AryaOS images are `arm64` only today ([#129](https://github.com/snstac/aryaos/issues/129)). But the full gateway suite already installs on any Debian host, including `amd64`, from the [signed apt repository](https://snstac.github.io/packages).
@@ -19,7 +19,7 @@ Short answers to the questions we hear most, each linking to the page with the f
 ## First boot & login
 
 ??? question "What is the default password?"
-    AryaOS images ship with a publicly known default password for user `pi`. On release images it **expires at first login**, so you must set a new one immediately. See [First boot & first login](../get-started/first-boot.md).
+    AryaOS images ship with a publicly known default password for user `pi`. On release images it **expires at first login**. Thus, you must set a new one immediately. See [First boot & first login](../get-started/first-boot.md).
 
 ??? question "How do I connect to a new device?"
     Wait ~120 seconds for first boot, join the Wi-Fi network `AryaOS-xxxx`, and open `https://aryaos-xxxx.local` (or `10.41.0.1`). See [First boot & first login](../get-started/first-boot.md).
@@ -30,7 +30,7 @@ Short answers to the questions we hear most, each linking to the page with the f
 ## Using it
 
 ??? question "How do I see aircraft/vessels/drones in TAK?"
-    Pick your sensor's mission page - [Aircraft (ADS-B)](../deploy/air-adsb.md), [Maritime (AIS)](../deploy/maritime-ais.md), or [Counter-UAS (drones)](../deploy/counter-uas.md) - attach the right radio and antenna, set the [device role](../config/device-roles.md), and the tracks flow to TAK over Mesh SA. If nothing shows up, see [Troubleshooting](../troubleshooting.md).
+    Pick your sensor's mission page - [Aircraft (ADS-B)](../deploy/air-adsb.md), [Maritime (AIS)](../deploy/maritime-ais.md), or [Counter-UAS (drones)](../deploy/counter-uas.md). Attach the right radio and antenna, set the [device role](../config/device-roles.md). The tracks flow to TAK over Mesh SA. If nothing shows up, see [Troubleshooting](../troubleshooting.md).
 
 ??? question "How do I connect AryaOS to a TAK Server?"
     Import your TAK connection **data package** or a `tak://` **enrollment link** from the TAK connection card in **Cockpit > AryaOS Site**. AryaOS installs the certificates and adds a COTBridge egress lane to the server. See [Connect to a TAK Server](../deploy/connect-tak-server.md).
@@ -62,7 +62,7 @@ Short answers to the questions we hear most, each linking to the page with the f
     Join it to Tailscale from **Cockpit > AryaOS Site > VPN**. See [VPN (Tailscale)](../networking/vpn-tailscale.md).
 
 ??? question "Can I connect over Bluetooth instead of Wi-Fi?"
-    Yes. AryaOS runs a Bluetooth PAN (`10.44.0.1/24`); pair a phone and reach AryaOS services over the PAN link. See [Bluetooth PAN](../bluetooth-pan.md).
+    Yes. AryaOS runs a Bluetooth PAN (`10.44.0.1/24`). pair a phone and reach AryaOS services over the PAN link. See [Bluetooth PAN](../bluetooth-pan.md).
 
 ## See also
 

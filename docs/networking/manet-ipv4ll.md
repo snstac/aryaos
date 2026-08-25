@@ -1,7 +1,7 @@
 # DHCP-less Ethernet and MANET fallback
 
 AryaOS can remain reachable and publish Mesh SA when Ethernet has carrier but
-the attached MANET has no DHCP server. The optional **MANET fallback (IPv4LL)**
+The attached MANET has no DHCP server. The optional **MANET fallback (IPv4LL)**
 feature uses NetworkManager's RFC 3927 link-local mode alongside DHCP:
 
 - DHCP remains enabled and supplies the normal routed address when available.
@@ -11,7 +11,7 @@ feature uses NetworkManager's RFC 3927 link-local mode alongside DHCP:
   for multicast output on that interface, avoiding duplicate Mesh SA events.
 - Ethernet also keeps IPv6 link-local enabled. This gives NetworkManager a
   completed address family immediately, so DHCP can continue in the background
-  without disconnect/retry cycles; it does not create routed IPv6 connectivity.
+  without disconnect/retry cycles. It does not create routed IPv6 connectivity.
 - No routing, NAT, or bridge is created between Ethernet, Wi-Fi, and Bluetooth.
 
 The feature is enabled by default. Control it in **Cockpit > AryaOS Site >
@@ -28,7 +28,7 @@ not reconnect them. The new state applies when Ethernet next activates or the
 device reboots, preventing a web or SSH management session from being dropped.
 Static-address profiles and the dedicated AntSDR link are never changed.
 Profiles without an operator-selected firewall zone are assigned to `public`,
-the normal AryaOS wired-LAN zone, so SSH, HTTPS, and Mesh SA remain reachable
+The normal AryaOS wired-LAN zone, so SSH, HTTPS, and Mesh SA remain reachable
 over IPv4LL.
 
 ## Discover and use a DHCP-less device
@@ -40,10 +40,10 @@ normal wired-LAN firewall policy.
 
 AryaOS resolves all active physical Ethernet and Wi-Fi addresses, plus `pan0`,
 into `/run/aryaos/multicast.env`. COTBridge then sends each Mesh SA event once
-on every resolved link. Container bridges, VPNs, tunnels, and trusted sensor
+On every resolved link. Container bridges, VPNs, tunnels, and trusted sensor
 links are excluded. NetworkManager's dispatcher refreshes the list and restarts
 multicast consumers whenever a link gains or loses an address, including after
-a link assigns IPv4LL. The resolver's idempotent oneshot has no systemd start
+A link assigns IPv4LL. The resolver's idempotent oneshot has no systemd start
 limit because one NetworkManager transition can legitimately emit several
 dispatcher events. Losing one link does not stop the remaining outputs.
 

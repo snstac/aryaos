@@ -1,10 +1,8 @@
 # FIPS & STIG roadmap
 
-This is a **roadmap**, not a compliance claim. AryaOS is not currently STIG-
-certified or FIPS-validated. This page maps the [existing security
-posture](../security.md) onto the two compliance regimes, states honestly what
-is and isn't achievable on the Debian base, and lays out a phased path for
-programs that need a formal posture (RMF / ATO).
+This is a **roadmap**, not a compliance claim. AryaOS is not STIG-certified or FIPS-validated.
+This page maps the [existing security posture](../security.md) to both compliance regimes.
+It explains the limits of the Debian base and proposes phases for programs that need RMF or ATO.
 
 Two different things are often conflated:
 
@@ -23,10 +21,10 @@ families (all in both dev and release images):
 | STIG family | AryaOS control | Where |
 |---|---|---|
 | AC (Access Control) | root SSH off, `MaxAuthTries 4`, sudo logged, no NOPASSWD on release | `sshd/50-aryaos.conf`, `aryaos.sudoers` |
-| IA (Identification & Auth) | default password force-expired first boot; per-device SSH + web TLS keys | `aryaos-firstboot.sh` |
+| IA (Identification & Auth) | default password force-expired first boot. per-device SSH + web TLS keys | `aryaos-firstboot.sh` |
 | SC (System & Comms) | firewalld allowlist, loopback-only cockpit-ws + TLS termination, sysctl network hardening | `firewalld/`, `sysctl/90-aryaos-hardening.conf` |
-| SI (System Integrity) | automatic Debian security updates; signed apt repo | `apt/52unattended-upgrades-aryaos` |
-| CM (Configuration Mgmt) | image content asserted every build; reproducible pi-gen | `scripts/verify-image.sh` |
+| SI (System Integrity) | automatic Debian security updates. signed apt repo | `apt/52unattended-upgrades-aryaos` |
+| CM (Configuration Mgmt) | image content asserted every build. reproducible pi-gen | `scripts/verify-image.sh` |
 | MP (Media Protection) | factory-reset + zeroize (shred/TRIM/overwrite) | `aryaos-zeroize` |
 | AU (Audit) | sudo I/O logging, capped journald | partial - see gaps |
 
@@ -37,12 +35,12 @@ Likely findings on a first scan, and the AryaOS disposition:
 - **AU (audit)**: no `auditd` / audit rules shipped. *Fix* (Phase 1).
 - **SI (file integrity)**: no AIDE baseline. *Fix* (Phase 1).
 - **IA (password quality)**: no `pam_pwquality` / lockout policy beyond fail2ban. *Fix* (Phase 1).
-- **CM (mount options)**: `/tmp`, `/var/tmp`, `/dev/shm` lack `nodev,nosuid,noexec`; unused kernel modules (cramfs, usb-storage, etc.) not blacklisted. *Fix* (Phase 1).
-- **AC (session)**: no shell idle timeout (`TMOUT`); no login-attempt lockout via `pam_faillock`. *Fix* (Phase 1).
+- **CM (mount options)**: `/tmp`, `/var/tmp`, `/dev/shm` lack `nodev,nosuid,noexec`. unused kernel modules (cramfs, usb-storage, etc.) not blacklisted. *Fix* (Phase 1).
+- **AC (session)**: no shell idle timeout (`TMOUT`). No login-attempt lockout via `pam_faillock`. *Fix* (Phase 1).
 - **Waivered by the appliance model** (documented exceptions, not silent):
-  - **Password SSH auth stays enabled** - field operators may carry no keys; mitigated by first-boot expiry + `fail2ban` + `MaxAuthTries`. (SRG-OS SSH-key-only requirement.)
+  - **Password SSH auth stays enabled** - field operators can carry no keys. mitigated by first-boot expiry + `fail2ban` + `MaxAuthTries`. (SRG-OS SSH-key-only requirement.)
   - **comitup AP / Bluetooth PAN onboarding** - attack surface, mitigated by EMCON (`aryaos-radio`) + firewall zone isolation.
-  - **No FDE by default** - zeroize is best-effort on flash; FDE + crypto-erase is on the roadmap.
+  - **No FDE by default** - zeroize is best-effort on flash. FDE + crypto-erase is on the roadmap.
   - **Headless** - GUI/screen-lock STIGs are N/A.
 
 ---
@@ -76,9 +74,8 @@ pam_pwquality/faillock, mount options, module blacklist, `TMOUT`) as
 hardening drop-ins, each asserted by `verify-image.sh`. Target a documented CIS
 score and publish the report + tailoring with each release.
 
-**Phase 3 - surface.** A Cockpit > *Compliance* card showing the last scan
-score, top open findings, and the waiver list - so an operator/assessor sees
-posture without a shell.
+**Phase 3 - surface.** Add a Cockpit > *Compliance* card. The card shows the
+last scan score, important open findings, and the waiver list.
 
 ---
 
@@ -105,18 +102,17 @@ procurement decision - not a config change.
    - Deliverable: a **crypto inventory** table covering each component, library,
      algorithm, and key size maintained in this repo.
 2. **OpenSSL 3 FIPS provider.** Build and activate the OpenSSL FIPS provider
-   module. Gets the *architecture* right; a genuine certificate still requires a
+   module. This establishes the required architecture. A genuine certificate still requires a
    validated build.
 3. **Validated modules via re-base.** **Ubuntu Pro FIPS** ships NIST-validated
    OpenSSL, kernel crypto, libgcrypt, and StrongSwan for `arm64`. This is the
    realistic path to an actual 140-3 posture, at the cost of re-basing AryaOS
    (or a FIPS build variant) off Ubuntu and an Ubuntu Pro subscription.
 4. **Targeted commercial module (wolfSSL FIPS).** For a narrow validated crypto
-   boundary (e.g. the TAK TLS path) without a full re-base.
+   boundary, such as the TAK TLS path, without a full re-base.
 
-**Recommendation:** do (1) now - it is real hardening with no re-base - and hold
-(3) behind an actual ATO requirement, since re-basing the whole image is a large
-program decision.
+**Recommendation:** complete option 1 now because it adds hardening without a re-base.
+Start option 3 only when a real ATO requirement justifies the large re-base effort.
 
 ---
 
@@ -124,7 +120,7 @@ program decision.
 
 Land **Phase-1 measurement**: the `oscap` scan in the test harness + a starter
 tailoring file, and the sshd/TLS FIPS-cipher pinning from FIPS option (1). Both
-are non-destructive, immediately useful, and turn "we should think about
-FIPS/STIG" into a scored baseline we can drive down release over release.
+are non-destructive and immediately useful. They turn an unmeasured FIPS/STIG
+concern into a scored baseline that we can improve with each release.
 
 See also: [Security posture](../security.md) · [Zeroize](../operations/zeroize.md).

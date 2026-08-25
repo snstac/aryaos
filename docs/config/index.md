@@ -1,6 +1,6 @@
 # Configuration model
 
-AryaOS has a simple, layered configuration model: a **single site file** sets defaults for the whole device, and each sensor service can **override** those defaults locally. Understanding this one rule tells you where every setting lives and which surface to edit.
+AryaOS has a simple, layered configuration model. A **single site file** sets defaults for the whole device. Each sensor service can **override** those defaults locally. Understanding this one rule tells you where every setting lives and which surface to edit.
 
 ## The inheritance model
 
@@ -19,7 +19,7 @@ flowchart TD
   ct --> cotbridge[cotbridge service]
 ```
 
-Each gateway's systemd unit loads the **site config first**, then its own **`/etc/default/<svc>`** file. Because the per-service file is read second, **a value set per-service wins**; anything left unset falls through to the site default.
+Each gateway's systemd unit loads the **site config first**, then its own **`/etc/default/<svc>`** file. Because the per-service file is read second, **a value set per-service wins**. Anything left unset falls through to the site default.
 
 !!! example "One place sets the CoT hub for everyone"
     The site config sets `COT_URL=udp+wo://127.0.0.1:28087`. Every feeder inherits it and sends [Cursor on Target (CoT)](../reference/glossary.md) to the COTBridge hub without per-service configuration. This is the AryaOS routing invariant: **feeders > cotbridge > Mesh SA / TAK Server**.
@@ -36,13 +36,14 @@ Each gateway's systemd unit loads the **site config first**, then its own **`/et
 
 ## Edit in the UI, not the files
 
-Everything above can be edited in the web console - you should not need SSH or a text editor for normal configuration. As a rule:
+You can edit all these values in the web console. You do not need SSH or a text editor for normal configuration.
 
 - **Site-wide behavior** (TAK destination, decoder, role, radios, TLS) > [AryaOS Site page](../admin/aryaos-site.md).
 - **Where CoT goes upstream** (mesh, TAK Server, fan-out) > [COTBridge lane editor](../admin/cotbridge-lanes.md).
 - **One service's own knobs** > that [gateway's page](../admin/gateways.md).
 
-Each editor writes the underlying file for you, preserving comments and any keys it does not manage. If you *do* edit a file directly (over SSH or with Cockpit's file editor), restart the affected units afterward - for example `sudo systemctl restart cotbridge adsbcot aiscot lincot`.
+Each editor writes the file and preserves comments and unmanaged keys. If you edit a file directly,
+restart the affected units. For example, run `sudo systemctl restart cotbridge adsbcot aiscot lincot`.
 
 ## The three configuration references
 

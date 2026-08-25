@@ -2,7 +2,7 @@
 
 Run an AryaOS box purely as a Cursor on Target (CoT) router. Select the **`relay`** role and the device stops all sensors, dedicating itself to moving CoT between networks and TAK Servers through the **COTBridge** hub.
 
-Use a relay when you need to *carry the picture*, not *make* it: bridge a Mesh SA group to a TAK Server, join two networks, or place a forwarding node at the edge of a MANET.
+Use a relay when you need to *carry the picture*, not *make* it. Bridge a Mesh SA group to a TAK Server, join two networks, or place a forwarding node at the edge of a MANET.
 
 ## What COTBridge is
 
@@ -82,7 +82,7 @@ For a pure relay you typically change the **ingress** to a network source rather
     2. In the **Device role** card, choose **Relay - CoT routing only**.
     3. Click **Apply role**.
 
-    All sensor units are stopped; COTBridge (and the position core) keep running.
+    All sensor units are stopped. COTBridge (and the position core) keep running.
 
 === "Command line"
 
@@ -91,7 +91,7 @@ For a pure relay you typically change the **ingress** to a network source rather
     ```
 
 !!! note "A relay still beacons itself"
-    The `relay` role only disables *sensors*. `cotbridge`, `lincot`, `gpscot`, and `gpsd` stay running, so the relay node still routes CoT **and** reports its own position to the map. See [Own position / GPS](./own-position-gps.md).
+    The `relay` role only disables *sensors*. `cotbridge`, `lincot`, `gpscot`. `gpsd` stay running. Thus, the relay node still routes CoT **and** reports its own position to the map. See [Own position / GPS](./own-position-gps.md).
 
 ## When to use a relay
 

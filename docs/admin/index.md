@@ -1,9 +1,10 @@
 # The web console
 
-AryaOS is administered entirely from a web browser. There is no need to open an SSH session for normal setup and operation: everything a field operator or TAK admin needs - TAK destinations, sensor roles, radios, updates, VPN, and support bundles - lives in a point-and-click console served by the device itself.
+Use a web browser to administer AryaOS. Normal setup and operation do not require SSH.
+The console controls TAK destinations, sensor roles, radios, updates, VPN, and support bundles.
 
 !!! tip "No SSH required"
-    AryaOS follows a **no-SSH philosophy**: the console covers day-to-day administration so you can field, configure, and troubleshoot a unit from a phone or laptop without a terminal. SSH remains available on the image for advanced recovery, but you should not need it for anything on the pages that follow.
+    The console supports daily administration from a phone or laptop. SSH remains available for advanced recovery. You do not need it for the tasks that follow.
 
 ## How to reach it
 
@@ -27,18 +28,18 @@ Replace `xxxx` with your device's four-character suffix. The same hex characters
     If the unit is joined to your Tailscale tailnet, use its tailnet name or IP. See [VPN (Tailscale)](../networking/vpn-tailscale.md).
 
 !!! warning "Self-signed certificate"
-    Each AryaOS unit generates its own per-device web TLS certificate at first boot, so your browser will warn that the connection is not trusted the first time you connect. This is expected. Confirm the exception to continue. The certificate protects the session between your browser and *this* device.
+    Each AryaOS unit generates its own per-device web TLS certificate at first boot. Thus, your browser will warn that the connection is not trusted the first time you connect. This is expected. Confirm the exception to continue. The certificate protects the session between your browser and *this* device.
 
 ### Logging in
 
 Log in as the **`pi`** user with the device password.
 
 !!! danger "The default password expires at first login"
-    Release images ship with a well-known default `pi` password that is **expired at first login** - you will be forced to set a new one. Choose a strong password and record it: there is no password-recovery feature. See [Security posture](../security.md).
+    Release images ship with a well-known default `pi` password that is **expired at first login**. You will be forced to set a new one. Choose a strong password and record it. There is no password-recovery feature. See [Security posture](../security.md).
 
 ## The landing portal
 
-Browsing to `https://aryaos-xxxx.local/` (no `/admin`) shows the **landing portal** - a lightweight, read-only status page served by `lighttpd`, independent of Cockpit and Node-RED. It is the fastest way to confirm a unit is healthy before you dig into administration.
+Browsing to `https://aryaos-xxxx.local/` shows the **landing portal**. This lightweight status page runs independently of Cockpit and Node-RED. It is the fastest way to confirm a unit is healthy before you dig into administration.
 
 ![The AryaOS landing portal - TAK gateway status, connection and GNSS panels, radios, nearby nodes, and links to the on-device docs](../media/screenshots/portal-landing.png)
 
@@ -50,7 +51,8 @@ The portal polls a JSON status endpoint (`/cgi-bin/aryaos-portal-status`) every 
 - **GNSS** - the gpsd position fix: latitude/longitude, MSL and HAE altitude, CE/LE accuracy, Maidenhead grid, and satellites in view/used.
 - **Radios / RF** - an inventory of Wi-Fi, Bluetooth, and USB SDR hardware plus decoder service state.
 
-The portal is for reading; all **writes** happen in Cockpit (and, for Wi-Fi onboarding, Comitup). See [HTTPS landing portal](../portal.md) for the full status schema.
+The portal is read-only. All changes happen in Cockpit or, for Wi-Fi onboarding, Comitup.
+See [HTTPS landing portal](../portal.md) for the full status schema.
 
 ## Map of the admin surfaces
 
@@ -58,7 +60,7 @@ Cockpit's left-hand menu lists standard system pages (Overview, Logs, Storage, N
 
 <div class="grid cards" markdown>
 
-- :material-tune-vertical: **AryaOS Site** - The flagship page. TAK destination, site-wide TLS, TAK Server enrollment, device role, radios, updates, VPN, support bundles, and more, all writing the shared [site configuration](../config/site-config.md). [Open the reference](./aryaos-site.md)
+- :material-tune-vertical: **AryaOS Site** - The flagship page. TAK destination, site-wide TLS, TAK Server enrollment, device role, radios, updates, VPN, support bundles. More, all writing the shared [site configuration](../config/site-config.md). [Open the reference](./aryaos-site.md)
 
 - :material-transit-connection-variant: **COTBridge lane editor** - The CoT router. Define the ingress/egress lanes that carry Cursor on Target (CoT) from local feeders out to Mesh SA and TAK Servers. [Edit lanes](./cotbridge-lanes.md)
 
@@ -70,7 +72,7 @@ Cockpit's left-hand menu lists standard system pages (Overview, Logs, Storage, N
 
 ### Where each thing is configured
 
-If you are not sure which surface owns a setting, start with the [configuration model](../config/index.md), which explains the inheritance from the site config down to each `/etc/default/<svc>` file.
+If you are not sure which surface owns a setting, start with the [configuration model](../config/index.md). This explains the inheritance from the site config down to each `/etc/default/<svc>` file.
 
 <div class="grid cards" markdown>
 

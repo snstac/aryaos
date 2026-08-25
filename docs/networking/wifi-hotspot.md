@@ -1,10 +1,10 @@
 # Wi-Fi & onboarding hotspot
 
 Every AryaOS unit gets on the network without a keyboard or screen: when it can
-see a Wi-Fi network it already knows, it joins it; when it can't, it broadcasts
+See a Wi-Fi network it already knows, it joins it. When it cannot, it broadcasts
 its own **onboarding hotspot** so you can walk up with a phone or laptop and
 tell it where to connect. This page covers how that works, how to join a box to
-an existing Wi-Fi, and how to protect the hotspot with a password.
+An existing Wi-Fi, and how to protect the hotspot with a password.
 
 ## How it works
 
@@ -30,14 +30,14 @@ stateDiagram-v2
 - **`HOTSPOT`** - no known network is in range, so the box broadcasts its own
   access point named **`AryaOS-xxxx`** (the `xxxx` is the per-device suffix set
   at first boot, matching the hostname `aryaos-xxxx`). Connect to that AP and
-  the onboarding portal appears so you can hand the box a network.
+  The onboarding portal appears so you can hand the box a network.
 
-!!! info "Where the suffix comes from"
-    `aryaos-firstboot.sh` derives a 4-hex `DEVICE_SUFFIX` from the machine-ID/MAC
-    at first boot and uses it for the hostname (`aryaos-xxxx`) and the hotspot
-    SSID (`AryaOS-xxxx`). Comitup fills the `<nnn>` token in `ap_name` from its
-    own persistent instance number, so the exact SSID is printed on the box's
-    label - trust the label.
+!!! info "Where the suffix comes from" `aryaos-firstboot.sh` derives a 4-hex `DEVICE_SUFFIX` during
+                                      first boot. It uses the suffix for the hostname and hotspot
+                                      SSID. Comitup
+                                      fills the `<nnn>` token in `ap_name` from its own persistent
+                                      instance number. Thus, the exact SSID is printed on the box's
+                                      label - trust the label.
 
 ## Configuration
 
@@ -64,8 +64,8 @@ example, a base-camp router or a vehicle hotspot).
 
 1. Power on the AryaOS unit somewhere it *cannot* already see a known network.
    It will come up in `HOTSPOT` mode and broadcast `AryaOS-xxxx`.
-2. On a phone or laptop, join the `AryaOS-xxxx` Wi-Fi network. If a hotspot
-   password has been set, you will be prompted for it.
+2. On a phone or laptop, join the `AryaOS-xxxx` Wi-Fi network. If the hotspot
+   has a password, the device prompts you for it.
 3. Open the onboarding portal on port **`9080`** at the hotspot's gateway
    address (most devices pop it up automatically as a captive portal).
 4. Choose the target Wi-Fi network from the list, enter its password, and
@@ -81,7 +81,7 @@ example, a base-camp router or a vehicle hotspot).
 
 !!! note "No known Wi-Fi, no hotspot? Use Bluetooth."
     If Wi-Fi is unavailable or you are working from a backpack, you can reach
-    the same admin surface over a [Bluetooth PAN](../bluetooth-pan.md) link
+    The same admin surface over a [Bluetooth PAN](../bluetooth-pan.md) link
     (`pan0` at `10.44.0.1`, Cockpit on `https://10.44.0.1:9090/`).
 
 ## The onboarding portal
@@ -89,12 +89,12 @@ example, a base-camp router or a vehicle hotspot).
 The onboarding portal is comitup's own web UI, served on **TCP `9080`** only
 while the box is in `HOTSPOT` mode. It lets you scan for networks and submit
 Wi-Fi credentials. The firewall opens `9080` through the `aryaos-comitup`
-service (see [Firewall](firewall.md)); comitup itself stops listening once the
+service (see [Firewall](firewall.md)). comitup itself stops listening once the
 box has joined a network.
 
-Because it accepts credentials, treat the onboarding portal like any other
-admin surface - do onboarding somewhere you control, and keep the hotspot
-password set (below) so a stranger can't reach the portal in the first place.
+Because it accepts credentials, treat the onboarding portal like any other admin surface. Do
+onboarding somewhere you control. Keep the hotspot password set (below) so a stranger cannot reach
+The portal in the first place.
 
 ## Set a hotspot password
 
@@ -129,7 +129,7 @@ shell required.
 
 !!! danger "Passwords under 8 or over 63 characters are rejected"
     WPA2 pre-shared keys must be 8-63 characters. The Cockpit field enforces
-    this (`minlength="8" maxlength="63"`); if you edit the file by hand, stay in
+    This (`minlength="8" maxlength="63"`). If you edit the file by hand, stay in
     range or comitup will refuse to bring up a protected AP.
 
 ## Broadcom `vndr ie set error : -52`
@@ -147,10 +147,10 @@ stopped or reconfigured. It does not mean an AryaOS application supplied a bad
 password or malformed network configuration. If the interface subsequently
 associates or the hotspot starts, treat the line as diagnostic noise. If Wi-Fi
 stays down, collect the surrounding `journalctl -k` and NetworkManager/comitup
-state; the error may then be one symptom of a failed mode transition.
+state. The error can then be one symptom of a failed mode transition.
 
 AryaOS does not carry a private kernel patch for this warning. The upstream
-brcmfmac fix clears saved vendor IEs when an AP interface stops; use a kernel
+brcmfmac fix clears saved vendor IEs when an AP interface stops. Use a kernel
 containing that fix when it reaches the Raspberry Pi OS kernel stream.
 
 ## Related

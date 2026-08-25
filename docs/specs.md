@@ -10,7 +10,7 @@ The technical specifications of AryaOS: operating system, supported hardware, pr
 | Architecture | `arm64` (Intel/amd64 planned - [#129](https://github.com/snstac/aryaos/issues/129)) |
 | Image builder | pi-gen (Docker) |
 | Package source | [Signed snstac apt repository](https://snstac.github.io/packages) |
-| Updates | Debian-security unattended-upgrades; one-click full-upgrade via [`aryaos-update`](reference/cli-helpers.md#aryaos-update) |
+| Updates | Debian-security unattended-upgrades. one-click full-upgrade via [`aryaos-update`](reference/cli-helpers.md#aryaos-update) |
 | SBOM | SPDX + CycloneDX attached to every GitHub Release |
 
 ## Supported hardware
@@ -19,7 +19,7 @@ The technical specifications of AryaOS: operating system, supported hardware, pr
 |---|---|
 | Single-board computer | Raspberry Pi 3, 4, 5 (`arm64`) |
 | Storage | microSD, 16 GB minimum, 32 GB recommended |
-| Radios | RTL-SDR (RTL2832U) for ADS-B / UAT / AIS; AntSDR for drones |
+| Radios | RTL-SDR (RTL2832U) for ADS-B / UAT / AIS. AntSDR for drones |
 | GPS | Any `gpsd`-compatible USB GNSS receiver |
 | Networking | Wi-Fi hotspot (comitup), Ethernet, Bluetooth PAN, Tailscale VPN |
 
@@ -72,7 +72,7 @@ Works with all TAK products: **ATAK, WinTAK, iTAK, TAKX, and TAK Server**. Devic
 
 ## Security posture
 
-Per-device web TLS, hardened `sshd` (no root, `MaxAuthTries 4`), `fail2ban`, sysctl hardening, `firewalld` allowlist, Debian-security unattended-upgrades, and JSON-logged sudo. The default `pi` password expires at first login on release images. Full detail: [Security posture](security.md).
+Per-device web TLS, hardened `sshd` (no root, `MaxAuthTries 4`), `fail2ban`, sysctl hardening, `firewalld` allowlist, Debian-security unattended-upgrades. JSON-logged sudo. The default `pi` password expires at first login on release images. Full detail: [Security posture](security.md).
 
 ## See also
 

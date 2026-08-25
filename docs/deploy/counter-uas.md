@@ -1,6 +1,6 @@
 # Drones (Counter-UAS)
 
-Detect and track drones for counter-UAS (C-UAS) awareness. Select the **`cuas`** role, attach a Remote ID receiver and/or a DJI DroneID SDR, and drones appear in ATAK/WinTAK/iTAK as native Cursor on Target (CoT) tracks - often complete with the operator's location.
+Detect and track drones for counter-UAS (C-UAS) awareness. Select the **`cuas`** role, attach a Remote ID receiver and/or a DJI DroneID SDR. Drones appear in ATAK/WinTAK/iTAK as native Cursor on Target (CoT) tracks - often complete with the operator's location.
 
 ![AryaOS UAS screenshot](../media/uas_screenshot.png){ width="640" }
 
@@ -12,10 +12,10 @@ AryaOS builds a C-UAS picture from two complementary detection sources:
 `sikw00fcot` additionally converts SiK-radio MAVLink drone telemetry to CoT when you have that link.
 
 !!! info "Dedicated Remote ID receiver: DroneScout DS110"
-    A **BlueMark DroneScout DS110 / DroneBeacon** - a standards-based Remote ID receiver - plugs in over USB serial and emits detected Remote ID as **MAVLink** (`OPEN_DRONE_ID_MESSAGE_PACK` or `ADSB_VEHICLE`). Depending on the receiver or cable it may appear as USB CDC or a generic USB-UART bridge. Run `sudo aryaos-role discover --apply`: AryaOS requires checksum-valid Remote-ID MAVLink before selecting the stable `/dev/serial/by-id/...` path for **`dronecot-dronescout`**. A missing receiver cleanly skips the service instead of restart-looping. The dedicated instance also reverses the LF-to-CRLF expansion seen in some ESP USB firmware before pymavlink validates the frames. It runs alongside the AntSDR/DJI source for a multi-source Remote ID picture. *(The ESP32-S3 path is live-verified against a DroneScout DS110.)*
+    A **BlueMark DroneScout DS110 / DroneBeacon** - a standards-based Remote ID receiver. Plugs in over USB serial and emits detected Remote ID as **MAVLink** (`OPEN_DRONE_ID_MESSAGE_PACK` or `ADSB_VEHICLE`). Depending on the receiver or cable it can appear as USB CDC or a generic USB-UART bridge. Run `sudo aryaos-role discover --apply`. AryaOS requires checksum-valid Remote-ID MAVLink before selecting the stable `/dev/serial/by-id/...` path for **`dronecot-dronescout`**. A missing receiver cleanly skips the service instead of restart-looping. The dedicated instance also reverses the LF-to-CRLF expansion seen in some ESP USB firmware before pymavlink validates the frames. It runs alongside the AntSDR/DJI source for a multi-source Remote ID picture. *(The ESP32-S3 path is live-verified against a DroneScout DS110.)*
 
 !!! info "Wi-Fi Remote ID: monitor-mode adapter"
-    dronecot decodes Open Drone ID **directly off the air over Wi-Fi** (ASTM F3411 Beacon vendor IE *and* Wi-Fi Alliance NAN) using a **monitor-mode** USB adapter - an Atheros **AR9271 (`ath9k_htc`)** or Realtek **8821CU** works well. AryaOS ships an opt-in instance, **`dronecot-wifi`** (`FEED_URL=wifi://wlan1`, channel-hopping 1/6/11); enable it on a box with an external adapter: `sudo systemctl enable --now dronecot-wifi`. Use `wireless://wlan1` to run Wi-Fi + BLE together. *(Live-verified 2026-07-24: an AR9271 decoded a BlueMark DroneBeacon Wi-Fi squawk - the same aircraft the DS110 decoded over serial.)* `wlan0` is the on-board AP radio - always use the external adapter.
+    dronecot decodes Open Drone ID **directly off the air over Wi-Fi** (ASTM F3411 Beacon vendor IE *and* Wi-Fi Alliance NAN) using a **monitor-mode** USB adapter. An Atheros **AR9271 (`ath9k_htc`)** or Realtek **8821CU** works well. AryaOS ships an opt-in instance, **`dronecot-wifi`** (`FEED_URL=wifi://wlan1`, channel-hopping 1/6/11). Enable it on a box with an external adapter. `sudo systemctl enable --now dronecot-wifi`. Use `wireless://wlan1` to run Wi-Fi + BLE together. *(Live-verified 2026-07-24. An AR9271 decoded a BlueMark DroneBeacon Wi-Fi squawk. The same aircraft the DS110 decoded over serial.)* `wlan0` is the on-board AP radio - always use the external adapter.
 
 !!! tip "Default standalone setup"
     Power the device and connect a TAK EUD (ATAK, WinTAK, or iTAK) to its Wi-Fi hotspot. Drone tracks require no additional configuration. Reboot the gateway if the receiver was attached after startup.
@@ -54,7 +54,7 @@ An AirTAK C-UAS can run in one of three connectivity modes:
 
 ### Joining an existing network
 
-To put AirTAK on your own Wi-Fi (which disables its hotspot), or to use Ethernet, follow the onboarding steps in [Offline backpack](./offline-backpack.md#onboarding-wi-fi) and the [Networking](../networking/wifi-hotspot.md) pages, then reach the console at `https://aryaos.local` or the device's DHCP address.
+To use your own Wi-Fi or Ethernet, follow the [onboarding steps](./offline-backpack.md#onboarding-wi-fi). Then open the console through mDNS or the device's DHCP address.
 
 ## How it flows
 
@@ -67,15 +67,15 @@ flowchart LR
     H -->|Mesh SA 239.2.3.1:6969| E[ATAK / WinTAK / iTAK]
 ```
 
-Each detector emits CoT to the COTBridge hub at `udp+wo://127.0.0.1:28087`;
+Each detector emits CoT to the COTBridge hub at `udp+wo://127.0.0.1:28087`.
 COTBridge sends the unified stream through the site-wide output to Mesh SA or
 a [TAK Server](./connect-tak-server.md).
 
 ## Manage the AntSDR
 
-An **AntSDR E200** running the [alphafox02 DJI DroneID firmware](https://github.com/alphafox02/antsdr_dji_droneid) detects DJI OcuSync DroneID and **pushes it to `dronecot-dji` over point-to-point Ethernet** (TCP `172.31.100.1:52002`). That Ethernet link is the data path; the AntSDR's **USB-serial is its Zynq config/recovery console, not a data feed**.
+An **AntSDR E200** running the [alphafox02 DJI DroneID firmware](https://github.com/alphafox02/antsdr_dji_droneid) detects DJI OcuSync DroneID and **pushes it to `dronecot-dji` over point-to-point Ethernet** (TCP `172.31.100.1:52002`). That Ethernet link is the data path. The AntSDR's **USB-serial is its Zynq config/recovery console, not a data feed**.
 
-- **Health status.** AryaOS polls the feed every 30 s (`aryaos-antsdr-health`) and, when an AntSDR is present, shows an **AntSDR (DJI DroneID)** card in Cockpit: green when both the feed socket and DroneCOT's TAK WebSocket are established, amber when either side is missing. A missing feed can be normal with no DJI drone in range; `tak_established: false` means TAK egress is degraded even if systemd still calls DroneCOT active. The card is hidden on boxes with no AntSDR. Check it manually with:
+- **Health status.** AryaOS polls the feed every 30 seconds with `aryaos-antsdr-health`. Cockpit shows an **AntSDR (DJI DroneID)** card when an AntSDR is present. Green means both connections work. Amber means a connection is missing. `tak_established: false` means TAK egress is degraded. The card is hidden when no AntSDR is present. Check it manually with:
 
     ```bash
     aryaos-antsdr-health --json
@@ -101,11 +101,14 @@ An **AntSDR E200** running the [alphafox02 DJI DroneID firmware](https://github.
 3. Fly a Remote ID-compliant drone (or a known DJI aircraft) nearby and confirm the track - including, where broadcast, the operator/pilot position.
 
 !!! note "Remote ID track fields"
-    Remote ID broadcasts typically include the drone's position, altitude, and the operator's ground location, letting you map both the aircraft and its pilot. DJI DroneID similarly carries home/operator coordinates.
+    Remote ID broadcasts typically include the drone's position, altitude, and operator location.
+    You can map both the aircraft and its pilot. DJI DroneID also carries home or operator coordinates.
 
 ## Connecting an EUD
 
-AirTAK C-UAS is tested with iTAK, WinTAK, and ATAK. By default, local feeders send to COTBridge on the gateway, which multicasts CoT to the Mesh SA group `239.2.3.1:6969`. Add upstream TAK Server destinations as COTBridge lanes. See [Connect a TAK Server](./connect-tak-server.md).
+AirTAK C-UAS is tested with iTAK, WinTAK, and ATAK. By default, local feeders send to COTBridge on
+the gateway. COTBridge multicasts CoT to `239.2.3.1:6969`. Add TAK Server destinations as COTBridge
+lanes. See [Connect a TAK Server](./connect-tak-server.md).
 
 ## Related
 

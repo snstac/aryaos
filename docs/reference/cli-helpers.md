@@ -1,6 +1,6 @@
 # CLI helpers
 
-AryaOS installs a small set of `aryaos-*` helper commands in `/usr/local/sbin`. These are the same actions the [AryaOS Site](../admin/aryaos-site.md) web cards run - so **SSH is optional**. Reach for the shell when you are already on the console, scripting a fleet, or want to see raw output.
+AryaOS installs a small set of `aryaos-*` helper commands in `/usr/local/sbin`. These are the same actions the [AryaOS Site](../admin/aryaos-site.md) web cards run. So **SSH is optional**. Reach for the shell when you are already on the console, scripting a fleet, or want to see raw output.
 
 !!! tip "Every command has a web-console equivalent"
     You never have to touch the shell. Each helper below is backed by a card in **Cockpit > AryaOS Site**. See [AryaOS Site page](../admin/aryaos-site.md).
@@ -33,7 +33,7 @@ aryaos-update status        # report last check/apply + reboot-required (JSON, n
 ```
 
 - `apply` runs a `full-upgrade` then an `autoremove --purge`, preserving locally edited config files (never prompts on a dpkg conffile).
-- State is written to `/var/lib/aryaos/update-check.json` and `update-apply.json`; `status` reports the installed AryaOS version and whether a reboot is required.
+- State is written to `/var/lib/aryaos/update-check.json` and `update-apply.json`. `status` reports the installed AryaOS version and whether a reboot is required.
 
 !!! note "The web card survives a closed browser"
     In Cockpit, `apply` runs under `aryaos-update.service`, so an upgrade continues even if you close the browser tab. See [Updates](../operations/updates.md).
@@ -62,7 +62,7 @@ echo 'a-strong-password' | sudo aryaos-set-nodered-password
 - Minimum length **8** characters. The password is bcrypt-hashed with Node-RED's own bundled `bcryptjs`, written into `settings.js`, and Node-RED is restarted.
 
 !!! danger "Rotate this before fielding a unit"
-    AryaOS ships Node-RED with a publicly known default admin password, and the Node-RED editor can run arbitrary code as the `node-red` user. See [Node-RED dashboard](../node-red.md) and [Security posture](../security.md).
+    AryaOS ships Node-RED with a publicly known default admin password. The Node-RED editor can run arbitrary code as the `node-red` user. See [Node-RED dashboard](../node-red.md) and [Security posture](../security.md).
 
 ## aryaos-sdr {#aryaos-sdr}
 
@@ -81,7 +81,7 @@ See [Radios & SDRs](../config/radios-sdr.md).
 
 ## aryaos-role {#aryaos-role}
 
-Switches which sensor pipelines run at runtime. The CoT core (`cotbridge`, `lincot`, `gpscot`, `gpsd`) always runs; the role only toggles sensor units. The choice is persisted as `ARYAOS_ROLE` in the site config.
+Switches which sensor pipelines run at runtime. The CoT core (`cotbridge`, `lincot`, `gpscot`, `gpsd`) always runs. The role only toggles sensor units. The choice is persisted as `ARYAOS_ROLE` in the site config.
 
 ```bash
 aryaos-role list            # JSON: available roles, their units, and the current role (no root)
@@ -108,12 +108,12 @@ sudo aryaos-import-tak-dp --enrollment-url-file /path/to/tak-url.txt
 ```
 
 - Extracts the client and CA certificates, installs them under `/etc/aryaos/tls` (group `tak-certs`, keys `0640`), and points the COTBridge `lane:site-output` egress at the server, then restarts COTBridge.
-- Supports `ssl`/`tls`/`tcp` connect strings; a `tak://com.atakmap.app/enroll` enrollment URL is resolved to a data package via PyTAK before import.
+- Supports `ssl`/`tls`/`tcp` connect strings. A `tak://com.atakmap.app/enroll` enrollment URL is resolved to a data package via PyTAK before import.
 - Prints a JSON result describing the destination. This is the same import the **TAK connection** card runs. See [Connect to a TAK Server](../deploy/connect-tak-server.md).
 
 ## aryaos-config-backup {#aryaos-config-backup}
 
-Backs up and restores the full AryaOS configuration set - site config, cotbridge lanes, gateway `/etc/default` files, saved networks, TAK certs, the Gutcheck web token, and Node-RED credentials - as a single tarball.
+Backs up and restores the full AryaOS configuration set. Site config, cotbridge lanes, gateway `/etc/default` files, saved networks, TAK certs, the Gutcheck web token, and Node-RED credentials - as a single tarball.
 
 ```bash
 sudo aryaos-config-backup backup                 # full backup (includes secrets)
@@ -123,15 +123,17 @@ sudo aryaos-config-backup restore FILE --service # restore without prompting (Co
 aryaos-config-backup list                         # list existing backups (JSON)
 ```
 
-- Archives land in `/var/lib/aryaos/backups/` as `aryaos-config_<hostname>_<timestamp>.tar.gz`, mode **`0600`** (dir `0700`). Keeps the **five newest**; records the latest in `/var/lib/aryaos/config-backup.json`.
-- `restore` validates the archive by its `MANIFEST.txt`, unpacks in place preserving perms, then `try-restart`s the CoT fleet and `lighttpd`; recommends a reboot.
+- Archives land in `/var/lib/aryaos/backups/` as `aryaos-config_<hostname>_<timestamp>.tar.gz`, mode **`0600`** (dir `0700`). Keeps the **five newest**. Records the latest in `/var/lib/aryaos/config-backup.json`.
+- `restore` validates the archive by its `MANIFEST.txt`, unpacks in place preserving perms, then `try-restart`s the CoT fleet and `lighttpd`. Recommends a reboot.
 
 !!! danger "A full backup contains private keys and Wi-Fi PSKs"
-    The default `backup` includes TAK client certs, TLS keys, NetworkManager PSKs, the Gutcheck web token, and Node-RED credentials - store it securely. Use `--no-secrets` for a shareable, config-only archive. Same action as the **Backup & restore** card. See [Back up & restore](../operations/backup-restore.md).
+    The default `backup` includes TAK certificates, TLS keys, NetworkManager PSKs, the GutCheck
+    token, and Node-RED credentials. Store it securely. Use `--no-secrets` for a shareable archive.
+    This is the same action as the **Backup & restore** card. See [Back up & restore](../operations/backup-restore.md).
 
 ## aryaos-factory-reset {#aryaos-factory-reset}
 
-Returns the box to its just-flashed, pre-first-boot state **without re-flashing**: restores AryaOS config from `/usr/share/aryaos/defaults`, deletes uploaded TAK certs, clears device identity (so `aryaos-firstboot` re-runs and picks a new suffix/hostname), re-expires the login password, then reboots. Keeps the OS, packages, and - by default - the network.
+Returns the box to its just-flashed, pre-first-boot state **without re-flashing**. Restores AryaOS config from `/usr/share/aryaos/defaults`, deletes uploaded TAK certs, clears device identity (so `aryaos-firstboot` re-runs and picks a new suffix/hostname), re-expires the login password, then reboots. Keeps the OS, packages, and - by default - the network.
 
 ```bash
 sudo aryaos-factory-reset                  # keep network; type the hostname to confirm; reboot
@@ -141,13 +143,17 @@ sudo aryaos-factory-reset --no-reboot      # reset but don't reboot (testing)
 ```
 
 - **Not a secure erase** - it restores/clears config but does not sanitize the media. For decommission use [`aryaos-zeroize`](#aryaos-zeroize).
-- Per-gateway `/etc/default/<svc>` files are reset via `apt-get --reinstall` **only when online**; offline they're left as-is.
+- Per-gateway `/etc/default/<svc>` files are reset via `apt-get --reinstall` **only when online**. Offline they are left as-is.
 - Sensor services are stopped, hardware autodetection is re-armed, and safe-mode/crash-counter state is cleared so the intentional reboot returns with attached hardware freshly detected.
 - Same action as the **Factory reset** card. See [Factory reset](../operations/factory-reset.md).
 
 ## aryaos-zeroize {#aryaos-zeroize}
 
-**Best-effort** sanitization for decommission or capture: shreds and overwrites every key, credential, log, recorded track, and identity; restores the default site and COTBridge targets; replaces and expires the `pi` password; removes authorized keys and lab privilege; overwrites free space; TRIMs; then reboots to a clean first-boot state. The published bootstrap password starts the mandatory first-login password change; prior passwords and SSH keys no longer work.
+**Best-effort** sanitization for decommission or capture. It removes keys, credentials, logs,
+recorded tracks, and device identity. It restores the default site and COTBridge targets.
+It also replaces and expires the `pi` password, removes authorized keys, overwrites free space,
+and issues TRIM. The device then reboots to a clean first-boot state. Prior passwords and SSH keys
+no longer work.
 
 ```bash
 sudo aryaos-zeroize                  # wipe everything incl. saved networks; type "ERASE <hostname>" to confirm; reboot
@@ -157,11 +163,14 @@ sudo aryaos-zeroize --no-reboot      # wipe but don't reboot (testing)
 ```
 
 !!! danger "Flash-media limitation"
-    On flash (microSD/eMMC/NVMe), wear-leveling means overwrite + TRIM are **best-effort, not a guarantee** that prior contents are unrecoverable. For a hard guarantee use full-disk encryption + crypto-erase (roadmap) or physically destroy the media. Same action as the **Zeroize** card, which requires a typed confirmation phrase. See [Zeroize](../operations/zeroize.md).
+    On flash (microSD/eMMC/NVMe), wear-leveling means overwrite + TRIM are **best-effort, not a guarantee** that prior contents are unrecoverable. For a hard guarantee use full-disk encryption + crypto-erase (roadmap) or physically destroy the media. Same action as the **Zeroize** card. This requires a typed confirmation phrase. See [Zeroize](../operations/zeroize.md).
 
 ## aryaos-firstboot.sh {#aryaos-firstboot}
 
-Runs once automatically via `aryaos-firstboot.service` on the first boot - you should not need to invoke it by hand. It derives [`DEVICE_SUFFIX`](glossary.md#device_suffix), sets the hostname `aryaos-xxxx`, names the hotspot `AryaOS-xxxx`, regenerates the per-device web TLS certificate, and (on release images) expires the default `pi` password. See [First boot & first login](../get-started/first-boot.md).
+Runs automatically through `aryaos-firstboot.service` during the first boot. It derives
+[`DEVICE_SUFFIX`](glossary.md#device_suffix), sets the hostname, names the hotspot, and regenerates
+the web certificate. On release images, it also expires the default `pi` password.
+See [First boot & first login](../get-started/first-boot.md).
 
 ## See also
 

@@ -8,7 +8,7 @@ boots with **empty flows** and is **not the admin surface** (that's Cockpit).
 
 Node-RED binds **loopback only** and is served behind the box's HTTPS reverse
 proxy - the flow editor is at **`https://<host>/nr/`** (accept the self-signed
-cert). It is **not** reachable on `:1880` over the LAN; the public firewall zone
+cert). It is **not** reachable on `:1880` over the LAN. The public firewall zone
 no longer opens the Node-RED port, so the editor (which can run code on the
 device) is not exposed as walk-up attack surface. For remote access, reach
 `/nr/` over the [VPN](networking/vpn-tailscale.md).
@@ -46,7 +46,7 @@ visualization and custom automation only. Configure the system here instead:
   `sudo` rules (see `/etc/sudoers.d/aryaos`).
 - Node-RED owns only its own configuration, not the AryaOS TLS material.
 - Flows are provisioned at build time from
-  [`shared_files/node-red/`](https://github.com/snstac/aryaos/tree/main/shared_files/node-red);
+  [`shared_files/node-red/`](https://github.com/snstac/aryaos/tree/main/shared_files/node-red).
   Node-RED loads `flows.json` on restart: `sudo systemctl restart nodered`.
 
 See the [security posture](security.md) for the full picture.

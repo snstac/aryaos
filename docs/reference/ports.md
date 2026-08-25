@@ -1,16 +1,16 @@
 # Ports & protocols
 
-Every port, multicast group, and network address AryaOS uses, and what each is for. Use this when configuring a firewall, troubleshooting connectivity, or reaching a service directly.
+Every port, multicast group, and network address AryaOS uses. What each is for. Use this when configuring a firewall, troubleshooting connectivity, or reaching a service directly.
 
 !!! info "Most services are localhost or firewalled by default"
-    AryaOS runs a `firewalld` default-zone allowlist. Ports below that face the network (Cockpit, the portal, Node-RED, AIS-catcher, Mesh SA, comitup, SSH) are opened by explicit firewalld services; the rest bind to `127.0.0.1`. Manage the allowlist in **Cockpit > Networking > Firewall**. See [Firewall](../networking/firewall.md).
+    AryaOS runs a `firewalld` default-zone allowlist. Ports below that face the network (Cockpit, the portal, Node-RED, AIS-catcher, Mesh SA, comitup, SSH) are opened by explicit firewalld services. The rest bind to `127.0.0.1`. Manage the allowlist in **Cockpit > Networking > Firewall**. See [Firewall](../networking/firewall.md).
 
 ## Listening ports
 
 | Port | Proto | Service | Purpose |
 |---|---|---|---|
 | 22 | TCP | SSH (`sshd`) | Optional remote shell. Hardened: no root login, `MaxAuthTries 4`, `fail2ban`. |
-| 443 | TCP | Portal / proxy (`lighttpd`) | HTTPS portal; proxies `/admin` to Cockpit. Per-device TLS certificate. |
+| 443 | TCP | Portal / proxy (`lighttpd`) | HTTPS portal. Proxies `/admin` to Cockpit. Uses a per-device TLS certificate. |
 | 1880 | TCP | Node-RED | Low-code editor and dashboards. Admin API is password-protected via `adminAuth`. |
 | 4000 | UDP | GDL90 (`gdlcot`) | CoT-to-GDL90 output for ForeFlight / EFBs. Default destination port. |
 | 4349 | TCP | GPSCOT | Default GPSCOT network-GPS / NMEA fan-out port. |
@@ -18,7 +18,7 @@ Every port, multicast group, and network address AryaOS uses, and what each is f
 | 8181 | TCP | GutCheck | Token-protected health dashboard/API. The public identity document is proxied at `https://<host>/.well-known/gutcheck`. |
 | 9080 | TCP | Comitup portal | Captive Wi-Fi-onboarding web UI. Only listens while in hotspot mode. |
 | 9090 | TCP | Cockpit | The web admin surface (HTTPS). Also reachable via the 443 portal proxy at `/admin`. |
-| 28087 | UDP | COTBridge hub | Local CoT hub. Feeders write `udp+wo://127.0.0.1:28087`; COTBridge reads `udp+ro://127.0.0.1:28087`. **Localhost only.** |
+| 28087 | UDP | COTBridge hub | Local CoT hub. Feeders write `udp+wo://127.0.0.1:28087`. COTBridge reads `udp+ro://127.0.0.1:28087`. **Localhost only.** |
 
 !!! note "Standard infrastructure ports"
     AryaOS also uses the usual system services allowed by firewalld: mDNS (5353/udp, for `aryaos-xxxx.local`), DHCP, and DNS on the hotspot and PAN interfaces.
@@ -28,7 +28,7 @@ Every port, multicast group, and network address AryaOS uses, and what each is f
 | Group | Port | Proto | Purpose |
 |---|---|---|---|
 | `239.2.3.1` | 6969 | UDP | **TAK Mesh SA** - COTBridge egress/ingress and GutCheck rich neighbor discovery. `udp+wo://239.2.3.1:6969`. |
-| `239.255.255.250` | 1900 | UDP | GutCheck SSDP identity discovery; link-local TTL and identity-only metadata. |
+| `239.255.255.250` | 1900 | UDP | GutCheck SSDP identity discovery. link-local TTL and identity-only metadata. |
 
 Multicast source fanout is controlled by `PYTAK_MULTICAST_LOCAL_ADDRS` in the
 site config (default `auto`). AryaOS sends once on every eligible active local
@@ -39,7 +39,7 @@ link. See [DHCP-less MANET fallback](../networking/manet-ipv4ll.md),
 
 | Interface | Address | Purpose |
 |---|---|---|
-| Wi-Fi hotspot (`wlan0`) | `10.41.0.1/24` | Onboarding/AP network `AryaOS-xxxx`. Phones and laptops get DHCP here; this is the default multicast bind address. |
+| Wi-Fi hotspot (`wlan0`) | `10.41.0.1/24` | Onboarding/AP network `AryaOS-xxxx`. Phones and laptops get DHCP here. This is the default multicast bind address. |
 | Bluetooth PAN (`pan0`) | `10.44.0.1/24` | Local Bluetooth NAP. AryaOS serves DHCP (`10.44.0.20`-`10.44.0.60`) to paired phones. **No NAT or forwarding** - for reaching AryaOS services over Bluetooth. |
 | DHCP-less Ethernet | `169.254.x.x/16` | Optional RFC 3927 fallback used only when DHCP supplies no IPv4 address. |
 

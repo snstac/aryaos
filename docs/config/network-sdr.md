@@ -3,15 +3,15 @@
 AryaOS can serve an onboard SDR **raw over the network** so a remote operator can
 tune and demodulate it from a desktop client (SDR++, SDRangel, GQRX, SDR#,
 `dump1090`, ...) instead of decoding it on the box. A dongle can only do one job at
-a time, so sharing a dongle **stops its decoder** first.
+A time, so sharing a dongle **stops its decoder** first.
 
 !!! danger "Raw SDR sharing is unauthenticated - opt-in only"
     Both servers below give any client that can reach the port **full control of
-    the dongle** (tuning + raw IQ). They are **off by default**, and the firewall
+    The dongle** (tuning + raw IQ). They are **off by default**, and the firewall
     does **not** open their ports on any zone. Enable a share only on a **trusted
     or VPN** network - open the firewall service deliberately, or bind the server
     to your [VPN](../networking/vpn-tailscale.md) address (`AOS_RTLTCP_BIND` /
-    `AOS_SOAPY_BIND` / `AOS_SPYSERVER_BIND`). Turn it back off when you're done.
+    `AOS_SOAPY_BIND` / `AOS_SPYSERVER_BIND`). Turn it back off when you are done.
 
 ## Servers
 
@@ -21,13 +21,17 @@ a time, so sharing a dongle **stops its decoder** first.
 | **SoapyRemote** | any SoapySDR device (RTL / LimeSDR / Airspy / HackRF) | `driver=remote,remote=<host>` (SDR++, SDRangel) | `55132` |
 | **SpyServer** | RTL-SDR (per dongle) | `spyserver://<host>:<port>` (SDR#, SDRangel, SDR++) | `5555 + index` |
 
-!!! note "SpyServer is an optional proprietary component"
-    The Airspy `spyserver` binary is not in Debian; AryaOS fetches it at **build
-    time** from airspy.com. If the builder was offline the mode is unavailable and
-    `aryaos-sdr share N spyserver` reports so (check `share-status` >
-    `"spyserver_available"`). SpyServer streams a *compressed, decimated* slice -
-    lighter on the network than `rtl_tcp`'s raw IQ, and it never advertises the box
-    in the public SpyServer directory (`list_in_directory = 0`).
+!!! note "SpyServer is an optional proprietary component" The Airspy `spyserver` binary is not in
+                                                         Debian. AryaOS fetches it at **build time**
+                                                         from airspy.com. If the builder was offline
+                                                         The mode is unavailable and `aryaos-sdr
+                                                         share N spyserver` reports so (check
+                                                         `share-status` > `"spyserver_available"`).
+                                                         SpyServer streams a *compressed, decimated*
+                                                         slice - lighter on the network than
+                                                         `rtl_tcp`'s raw IQ. It never advertises the
+                                                         box in the public SpyServer directory
+                                                         (`list_in_directory = 0`).
 
 ## Sharing a dongle
 

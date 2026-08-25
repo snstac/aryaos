@@ -2,11 +2,9 @@
 
 # AryaOS - the situational awareness operating system for TAK
 
-AryaOS turns an inexpensive single-board computer into a turn-key sensor gateway. It listens to
-the radio traffic around it - aircraft, vessels, drones, radios - and puts what it hears onto any
-[TAK](https://www.aryaos.org/reference/glossary/#tak) device as
-[Cursor on Target](https://www.aryaos.org/reference/glossary/#cot): ATAK, WinTAK, iTAK, TAKX, or a
-TAK Server.
+AryaOS turns an inexpensive single-board computer into a turn-key sensor gateway. It receives
+local aircraft, vessel, drone, and radio traffic. It sends that traffic to TAK as
+[Cursor on Target](https://www.aryaos.org/reference/glossary/#cot).
 
 No cloud. No subscription. No command line. Flash a card, boot the box, connect a phone -
 everything else is configured from a touch-friendly web console.
@@ -17,9 +15,9 @@ everything else is configured from a touch-friendly web console.
 
 AryaOS 2 turns the original AirTAK sensor image into a self-configuring,
 multi-sensor, fleet-ready edge platform. It adds hardware discovery, mission
-roles, resilient COTBridge routing, one-step TAK enrollment, a complete HTTPS
-field console, disconnected networking, lifecycle tools, appliance hardening,
-SBOMs, and hardware-tested release gates.
+roles, resilient COTBridge routing, and one-step TAK enrollment. It also adds an
+HTTPS field console, disconnected networking, lifecycle tools, appliance
+hardening, SBOMs, and hardware-tested release gates.
 
 Stable **v2.1.19** is available for Raspberry Pi 3, 4, and 5 arm64 systems.
 AryaOS 1 devices require a fresh flash.
@@ -45,13 +43,12 @@ AryaOS 1 devices require a fresh flash.
 ## What it can hear
 
 Capabilities are named after the signal, not after a product - `adsb`, `ais`,
-`wifi-rid`, `ble-rid`, `rid`, `dji`, `sik`, `sapient`, `acars`. They are exactly the names
-you type, the names the box reports, and the names on the map.
+`wifi-rid`, `ble-rid`, `rid`, `dji`, `sik`, `sapient`, `acars`. These names appear in commands,
+device reports, and maps.
 
 Each capability is a receiver AryaOS turns into TAK tracks. The image ships with every sensor
-**switched off**; on first boot the box works out what is actually plugged in and enables what it
-finds, then reports anything it could do but did not turn on - so you always know what the hardware
-is capable of.
+**switched off**. On first boot, the device finds attached hardware and enables
+supported sensors. It also reports supported sensors that remain disabled.
 
 | Capability | Enable with | What appears on the map | Hardware needed |
 |------------|-------------|-------------------------|-----------------|
@@ -70,8 +67,8 @@ Two things are **not** capabilities, because they are not optional receivers:
 **APRS** (an RTL-SDR plus Dire Wolf, configured on its own). Both are documented
 under configuration.
 
-Mix them freely: one box can run an air picture and a drone picture at once, and tells you when two
-capabilities want the same radio.
+Mix them freely. One device can run air and drone pictures at the same time.
+AryaOS reports radio conflicts.
 
 ## Why teams choose it
 
@@ -85,7 +82,7 @@ capabilities want the same radio.
 * **No terminal required.** Network, radios, TAK certificates, VPN, updates, and diagnostics all
   live in the browser.
 * **Open-source foundation.** AryaOS and its PyTAK gateway suite are licensed
-  under Apache 2.0; optional specialist integrations identify their own terms.
+  under Apache 2.0. Optional specialist integrations identify their own terms.
 * **Inexpensive, low SWaP-C hardware.** Built for Arm (arm64) single-board computers such as the
   Raspberry Pi 4 and 5. Intel/amd64 support is planned
   ([#129](https://github.com/snstac/aryaos/issues/129)) - the full gateway suite already installs on
@@ -143,14 +140,18 @@ This work is funded by the [Colorado Center of Excellence for Advanced Technolog
 
 # License & Copyright
 
+<!-- simple-english: off -->
+
 Copyright [Sensors & Signals LLC](https://www.snstac.com)
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+Licensed under the Apache License, Version 2.0 (the "License").
+You can not use this file except in compliance with the License.
+You can obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+<!-- simple-english: on -->

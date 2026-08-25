@@ -1,8 +1,8 @@
 # Connect a TAK Server
 
-Forward the AryaOS picture upstream. Import an ATAK connection **data package** or paste a **`tak://` enrollment URL** in the web console, and AryaOS provisions the certificates and points the COTBridge site output at your TAK Server - no shell required.
+Forward the AryaOS picture upstream. Import an ATAK connection **data package** or paste a **`tak://` enrollment URL** in the web console. AryaOS provisions the certificates and points the COTBridge site output at your TAK Server - no shell required.
 
-By default AryaOS multicasts to **Mesh SA** (`udp+wo://239.2.3.1:6969`), which nearby EUDs pick up automatically. Connecting a TAK Server changes the primary site output to the persistent TLS URL returned by the connection package or enrollment flow.
+By default AryaOS multicasts to **Mesh SA** (`udp+wo://239.2.3.1:6969`). This nearby EUDs pick up automatically. Connecting a TAK Server changes the primary site output to the persistent TLS URL returned by the connection package or enrollment flow.
 
 ## Two ways to connect
 
@@ -10,7 +10,7 @@ Both live on the **TAK connection** card in **Cockpit > AryaOS Site**. AryaOS in
 
 === "Import a data package"
 
-    Use the same `.zip` / `.dpk` connection package you'd load into ATAK/iTAK.
+    Use the same `.zip` or `.dpk` connection package that you load into ATAK or iTAK.
 
     1. Open **Cockpit > AryaOS Site** > **TAK connection**.
     2. Under **Connection package (.zip / .dpk)**, choose your package file.
@@ -31,7 +31,7 @@ Both live on the **TAK connection** card in **Cockpit > AryaOS Site**. AryaOS in
 
     3. Click **Enroll**.
 
-    AryaOS performs the enrollment, provisions the client cert under `/etc/aryaos/tls`, and updates COTBridge forwarding. On success the card reports *"Enrolled &lt;host&gt;; COTBridge forwarding updated."*
+    AryaOS performs the enrollment, provisions the client cert under `/etc/aryaos/tls`, and updates COTBridge forwarding. On success the card reports *"Enrolled &lt;host&gt; COTBridge forwarding updated."*
 
 !!! tip "Check the status line"
     The **TAK connection** card shows whether enrollment is **configured** or **not configured**. Use **Refresh status** after importing to confirm.
@@ -93,7 +93,10 @@ See [COTBridge lanes](../admin/cotbridge-lanes.md) for the complete lane editor 
 | Auth | None | Client certificate |
 | Use when | Local team, disconnected ops | Enterprise COP, wide-area sharing |
 
-The AryaOS Site page manages one primary output. When both destinations are required, keep `site-output` pointed at Mesh SA and add an advanced `mesh-to-takserver` lane that reads the Mesh SA multicast group and writes to the server. Do not give two lanes the same local UDP ingress; the lane editor rejects that bind conflict.
+The AryaOS Site page manages one primary output. When both destinations are required, keep
+`site-output` pointed at Mesh SA. Add an advanced `mesh-to-takserver` lane that reads the Mesh SA
+multicast group and writes to the server. Do not give two lanes the same local UDP ingress. The lane
+editor rejects that bind conflict.
 
 ## Related
 

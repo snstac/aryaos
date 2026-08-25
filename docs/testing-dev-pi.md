@@ -40,7 +40,7 @@ This runs `sync-to-dev-pi.sh` and `sync-portal-review.sh`, then the same test ru
 
 Use the capability profile only when it adds hardware-specific checks. The
 default profile already follows `ARYAOS_CAPABILITIES` for ADSBee and DroneScout
-nodes; the `uas` profile additionally requires AntSDR Ethernet and is therefore
+nodes. The `uas` profile additionally requires AntSDR Ethernet and is therefore
 wrong for an ADSBee plus DS110 box.
 
 ```bash
@@ -64,7 +64,7 @@ ARYAOS_SSH=pi@192.168.0.149 ARYAOS_EXPECT_CAPABILITIES="acars" \
 ```
 
 For an unattended fleet soak, first populate the dedicated known-hosts file,
-then run the sampler. Raw JSONL is the source of truth; regenerate summaries
+then run the sampler. Raw JSONL is the source of truth. Regenerate summaries
 from it when analysis changes.
 
 ```bash
@@ -75,23 +75,21 @@ ssh-keyscan -H 192.168.0.44 192.168.0.45 192.168.0.149 192.168.0.199 \
   --duration-hours 8 --interval 60 --enforce-acceptance
 ```
 
-The generated `summary.json` reports service state counts, automatic restart
-ranges, boot IDs, filesystem alerts, and per-gateway `gateway_activity`.
-Gateway activity includes observed samples, total counter growth, counter
-resets, the last counters, and the range of CoT write errors. Positive receive
-and emit growth with a zero write-error range proves that the live hardware
-path generated data during the sampled window. A counter reset is not by
-itself an automatic service crash: correlate it with systemd `NRestarts`, the
-journal event cursor, and the sudo audit record to distinguish a controlled
-package or operator restart from an unexplained failure. Completed systemd
-completed systemd oneshots are not reported as service drops. Samples also
-carry the resilient clock decision from `/run/aryaos/time-status.json`, making
-peer-NTP, holdover, and degraded operation visible in the raw burn-in record.
+The generated `summary.json` reports service state counts, automatic restart ranges, boot IDs,
+filesystem alerts, and per-gateway `gateway_activity`. Gateway activity includes observed samples,
+total counter growth, counter resets, the last counters, and the range of CoT write errors. Positive
+receive and emit growth with a zero write-error range proves that the live hardware path generated
+data during the sampled window. A counter reset is not by itself an automatic service crash.
+Correlate it with systemd `NRestarts`, the journal event cursor. The sudo audit record to
+distinguish a controlled package or operator restart from an unexplained failure. Completed systemd
+completed systemd oneshots are not reported as service drops. Samples also carry the resilient clock
+decision from `/run/aryaos/time-status.json`. The raw burn-in record shows peer NTP, holdover, and
+degraded operation.
 
-The release acceptance gate also rejects probe failures, service drops or
-restart growth, reboots, USB inventory changes, filesystem alerts, throttling,
-gateway write errors, network error growth, temperatures at or above 80 C,
-disk use at or above 85%, and memory growth above five percentage points.
+The release gate rejects probe failures, service drops, restart growth,
+reboots, USB changes, filesystem alerts, throttling, and gateway write errors.
+It also rejects network errors, excessive temperatures, high disk use, and
+excessive memory growth.
 
 When sampler analysis changes after a long run, keep the raw JSONL and
 regenerate the summary from it:
@@ -105,11 +103,10 @@ python3 scripts/aryaos-burnin.py \
 
 ## Lifecycle HIL
 
-The controller-side lifecycle runner creates both backup forms, verifies a
-restore sentinel, encrypts full backups while they are off-device, optionally
-tests enrollment through stdin, scans a generated support bundle for the exact
-credential, restores the prior TAK state, and can factory-reset one designated
-lab box with networking retained:
+The lifecycle runner creates both backup forms and verifies a restore sentinel.
+It encrypts off-device full backups and can test enrollment through stdin. It
+scans support bundles for credentials and restores the prior TAK state. It can
+factory-reset one designated lab device while retaining its network:
 
 ```bash
 # Paste the one-time URL when prompted by `read -s`; it is not echoed.
@@ -132,11 +129,10 @@ Same order as [dev-pi.md](dev-pi.md) and [scripts/sync-to-dev-pi.sh](https://git
 2. Repo dev key **`shared_files/aryaos/ssh/aryaos-dev-lab`**
 3. **`ARYAOS_DEV_DEVICE_PASSWORD`** or gitignored **`scripts/.dev-pi-creds.local`** with **`sshpass`**
 
-Release images intentionally omit the lab key and passwordless-sudo grant. If
-password authentication is selected, the runner sends the password to
-`sudo -S -v` over SSH stdin (never in argv) and verifies that the resulting
-global timestamp supports the suite's existing `sudo -n` checks. An explicitly
-exported `ARYAOS_DEV_DEVICE_PASSWORD` takes precedence over the fallback credentials
+Release images intentionally omit the lab key and passwordless-sudo grant. If password
+authentication is selected, the runner sends the password to `sudo -S -v` over SSH stdin (never in
+argv). Verifies that the resulting global timestamp supports the suite's existing `sudo -n` checks.
+An explicitly exported `ARYAOS_DEV_DEVICE_PASSWORD` takes precedence over the fallback credentials
 file.
 
 ## Layout
@@ -165,7 +161,7 @@ scripts/aryaos-test/
     15-lifecycle.sh    # installed helpers, backup inventory/modes, redaction guard
 ```
 
-Expectations live in **`expectations.yml`**; update that file when image defaults change.
+Expectations live in **`expectations.yml`**. Update that file when image defaults change.
 
 ## Tiers
 
@@ -186,8 +182,8 @@ Expectations live in **`expectations.yml`**; update that file when image default
 - `/run/adsb/aircraft.json` exists and is valid JSON
 - Portal CGI returns HTTP 200 JSON with required keys and gateway IDs
 - Sudo I/O audit history is bounded to 128 sessions and `/var/log` is below 95%
-- Install media has a valid manufacturer identity; the boot command line is
-  printable and names the mounted root PARTUUID; model-specific kernel and
+- Install media has a valid manufacturer identity. The boot command line is
+  printable and names the mounted root PARTUUID. model-specific kernel and
   initramfs files are present and plausibly sized
 - When the AIS capability is enabled: AIS-catcher/AISCOT are stable, the
   receiver uses a present by-id path distinct from GPS, local ports are open,
@@ -215,7 +211,7 @@ FAIL adsbcot FEED_URL
 passed=18 failed=1 warned=3 skipped=2
 ```
 
-The runner exits **1** if any module reports failures; **0** if only warnings/skips.
+The runner exits **1** if any module reports failures. **0** if only warnings/skips.
 
 ## Related docs
 

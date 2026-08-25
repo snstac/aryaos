@@ -8,7 +8,7 @@ You can also fetch recent images from **GitHub Actions**:
 
 1. Open the repository **Actions** tab and select **Pi-gen image**.
 2. Open a completed run (push to `main` or **workflow_dispatch**).
-3. Download the workflow **artifact** (this workflow uses **30-day** artifact retention; artifacts accrue toward Actions storage quotas).
+3. Download the workflow **artifact**. The workflow keeps artifacts for 30 days, and they use Actions storage.
 
 For flash instructions, see [Installing AryaOS](get-started/flash-the-image.md).
 
@@ -28,14 +28,14 @@ Use this checklist when building an **arm64** Raspberry Pi OS-based image on you
 1. Clone this repository.
 2. **`make pi-gen`** - clones upstream [pi-gen](https://github.com/RPi-Distro/pi-gen) **`arm64`** into `./pi-gen/` (gitignored).
 3. Choose one build path:
-   - **Docker (preferred):** `make build-docker` - runs `./pi-gen/build-docker.sh -c <repo>/config.docker`, repo mounted read-only at `/aryaos`. Outputs land under **`.aryaos-pigen-deploy/`** at the repo root (and may also appear under `pi-gen/deploy/`).
+   - **Docker (preferred):** `make build-docker` - runs `./pi-gen/build-docker.sh -c <repo>/config.docker`, repo mounted read-only at `/aryaos`. Outputs land under **`.aryaos-pigen-deploy/`** at the repo root (and can also appear under `pi-gen/deploy/`).
    - **Native:** `make build` - runs `sudo ./build.sh`, which invokes pi-gen with **`config`** (expects `./pi-gen`).
 4. After a successful base exists, use **`make skip`** / **`make unskip`** to skip or restore pi-gen **`stage0`-`stage2`** while iterating on AryaOS-only stages (see Makefile).
-5. Optional **apt cache for Docker builds:** `make apt-cacher-up`, then `ARYAOS_APT_CACHE=1 make build-docker` (see Makefile targets **`apt-cacher-*`**; compose file **`docker-compose.apt-cacher.yml`** at repo root).
+5. Optional **apt cache for Docker builds:** run `make apt-cacher-up`, then run `ARYAOS_APT_CACHE=1 make build-docker`. See the `apt-cacher-*` Makefile targets and `docker-compose.apt-cacher.yml`.
 6. Optional **logged Docker build:** `./scripts/agent-build-docker.sh` mirrors output to `build-YYYYMMDD-HHMMSS.log`.
 7. **Lab vs release builds:** by default images carry **no lab access** and **expire the default `pi` password at first login**. For a lab image (aryaos-dev-lab SSH key + passwordless sudo for `pi`, no password expiry) build with **`ARYAOS_LAB_ACCESS=1 make build-docker`** (or `sudo ARYAOS_LAB_ACCESS=1 ./build.sh` native). See `shared_files/aryaos/ssh/README.md`.
-8. **Verify a built image:** `sudo scripts/verify-image.sh [--lab] <image>.img|.img.xz|.zip` loop-mounts the image and asserts key files, packages, units - and that release images ship no lab access. CI runs this on every `main` build before publishing a release.
-9. **Build the AryaOS overlay package only:** `make package-overlay` writes `deploy/debs/aryaos-overlay_<version>_all.deb`, containing the portal, Cockpit proxy integration, TAK data package/enrollment helpers, first-boot identity scripts, gpsd defaults, dispatcher hooks, and related systemd/lighttpd configuration.
+8. **Verify a built image:** `sudo scripts/verify-image.sh [--lab] <image>.img|.img.xz|.zip` checks files, packages, units, and lab access. CI runs this on every `main` build before publishing a release.
+9. **Build the AryaOS overlay package only:** `make package-overlay` writes the overlay package. The package contains the portal, Cockpit integration, TAK helpers, identity scripts, defaults, hooks, and service configuration.
 10. Lightweight validation without an image: **`make ansible-syntax`** (requires Ansible / `ansible-galaxy` per Makefile).
 
 ### Cleanup / retry
@@ -45,7 +45,9 @@ Use this checklist when building an **arm64** Raspberry Pi OS-based image on you
 
 ### CI vs local
 
-Pull requests run Ansible syntax checks and path sanity checks only; **full images** build on **`ubuntu-24.04-arm`** when merging to `main` or via **workflow_dispatch**. See [`.github/workflows/pi-gen.yml`](https://github.com/snstac/aryaos/blob/main/.github/workflows/pi-gen.yml).
+Pull requests run Ansible syntax and path checks only. **Full images** build on
+**`ubuntu-24.04-arm`** after a merge to `main` or a manual workflow. See the
+[pi-gen workflow](https://github.com/snstac/aryaos/blob/main/.github/workflows/pi-gen.yml).
 
 ---
 
@@ -53,7 +55,7 @@ Pull requests run Ansible syntax checks and path sanity checks only; **full imag
 
 The build environment for AryaOS is based on [pi-gen](https://github.com/RPi-Distro/pi-gen). The build produces a Raspberry Pi OS image, compatible with [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
 
-Any SD card larger than 16 GB should suffice to get started; 32 GB is recommended.
+Any SD card larger than 16 GB can get started. A 32 GB card is better for repeated builds.
 
 The AryaOS build procedure is inspired by @deltazero's [kiosk.pi](https://medium.com/@deltazero/making-kioskpi-custom-raspberry-pi-os-image-using-pi-gen-99aac2cd8cb6).
 
@@ -67,7 +69,7 @@ To build initially:
 2. Run `make pi-gen` to clone the upstream `arm64` branch of pi-gen into `./pi-gen/` (ignored by git).
 3. Run `make build` to create an image (uses `sudo` on the host for pi-gen).
 
-Docker alternative (no host `sudo` for debootstrap): `make build-docker` runs `./pi-gen/build-docker.sh` with the repo mounted at `/aryaos` and [config.docker](https://github.com/snstac/aryaos/blob/main/config.docker). It **bind-mounts** `.aryaos-pigen-work` and `.aryaos-pigen-deploy` at the **repo root** (writable even if `pi-gen/` is root-owned) so **retries** reuse finished stages: `docker rm -f pigen_work` then `make build-docker` again. **`NUM_CORES`** defaults to `nproc` for faster package installs. **`make build-docker-clean`** deletes those caches (large) plus stray containers. Images end up in `.aryaos-pigen-deploy/`; the script also unpacks into `pi-gen/deploy/`.
+Docker alternative (no host `sudo` for debootstrap): `make build-docker` runs `./pi-gen/build-docker.sh` with the repo mounted at `/aryaos` and [config.docker](https://github.com/snstac/aryaos/blob/main/config.docker). It **bind-mounts** `.aryaos-pigen-work` and `.aryaos-pigen-deploy` at the **repo root** (writable even if `pi-gen/` is root-owned) so **retries** reuse finished stages. `docker rm -f pigen_work` then `make build-docker` again. **`NUM_CORES`** defaults to `nproc` for faster package installs. **`make build-docker-clean`** deletes those caches (large) plus stray containers. Images end up in `.aryaos-pigen-deploy/`. The script also unpacks into `pi-gen/deploy/`.
 
 To iterate on AryaOS-only stages without rebuilding the base OS:
 
@@ -75,7 +77,7 @@ To iterate on AryaOS-only stages without rebuilding the base OS:
 2. Run `make skip` to add `SKIP` markers for `stage0`-`stage2`.
 3. Run `make build` again.
 
-The `make build` step invokes `sudo` and may prompt for a password.
+The `make build` step invokes `sudo` and can prompt for a password.
 
 To refresh the embedded pi-gen clone after `make pi-gen`, run `cd pi-gen && git pull origin arm64` so your toolchain stays aligned with [upstream pi-gen](https://github.com/RPi-Distro/pi-gen).
 
@@ -83,14 +85,21 @@ To refresh the embedded pi-gen clone after `make pi-gen`, run `cd pi-gen && git 
 
 The workflow `.github/workflows/pi-gen.yml`:
 
-1. **Pull requests** - Runs Ansible collection install, `ansible-playbook --syntax-check`, checks that key paths (`config`, `manifests/aryaos-sensor-packages.yml`, custom stages) exist, validates that exactly **one stage carries `EXPORT_IMAGE`** and is **last in every `STAGE_LIST`**, and HEAD-checks pinned download URLs (catches upstream release renames before they break a 6-hour `main` build). No image is built (GitHub-hosted `ubuntu-latest`).
-2. **Push to `main` or `workflow_dispatch`** - Builds a **dev image by default** (`ARYAOS_LAB_ACCESS=1`: aryaos-dev-lab SSH key + passwordless sudo for `pi`, no first-boot password expiry) tagged `v<ts>-<sha>-dev` and published as a **prerelease** - grab it from Releases, burn, and test. For a **release image** (no lab access, password expiry enforced) run the workflow manually with the **`release`** input checked; it tags without the `-dev` suffix as a normal release. `verify-image.sh` checks whichever flavor was built (`--lab` for dev). Builds the full pi-gen image on GitHub's hosted **`ubuntu-24.04-arm`** runner (native **aarch64**) via [usimd/pi-gen-action](https://github.com/usimd/pi-gen-action) (`compression: xz`). No QEMU/`binfmt_misc` emulation step - debootstrap/chroot run natively. Before **`pi-gen-action`**, the workflow frees disk (`dotnet`, Android NDK, hosted toolcache, etc.) because default runner images are tight on space. After a successful build, the workflow uploads the image as a **workflow artifact** (30-day retention), then runs **`scripts/verify-image.sh`** (loop-mounts the image; asserts key files/packages/units and that no lab access ships) - a verification failure keeps the artifact but **blocks the release**. On success it creates an annotated tag `v<UTC-datetime>-<12-char-sha>`, pushes it, and publishes a **GitHub Release** with the image attached (`generate_release_notes`). Builds for the same repo are serialized (`concurrency`, no cancel-in-progress).
+1. **Pull requests** - Runs Ansible collection install, `ansible-playbook --syntax-check`, checks that key paths (`config`, `manifests/aryaos-sensor-packages.yml`, custom stages) exist, validates that exactly **one stage carries `EXPORT_IMAGE`** and is **last in every `STAGE_LIST`**. HEAD-checks pinned download URLs (catches upstream release renames before they break a 6-hour `main` build). No image is built (GitHub-hosted `ubuntu-latest`).
+2. **Push to `main` or `workflow_dispatch`** - Builds a **dev image** by default. The image contains
+   lab access and uses a `v<ts>-<sha>-dev` prerelease tag. Select the **`release`** input for a field
+   image without lab access. The workflow builds natively on GitHub's **`ubuntu-24.04-arm`** runner
+   with [usimd/pi-gen-action](https://github.com/usimd/pi-gen-action). It frees disk space before the
+   build and uploads a 30-day workflow artifact. `scripts/verify-image.sh` checks the image before
+   publication. A failed check keeps the artifact but blocks the release. A successful check creates
+   a version tag and GitHub Release. The workflow serializes builds for this repository.
 
 **Hosted arm64 notes**
 
 - **Public repos** can use **`ubuntu-24.04-arm`** at no extra charge for standard Actions minutes (subject to GitHub policies/limits).
-- **`usimd/pi-gen-action`** mounts **stage directories** into the pi-gen Docker container, but not the whole repo. This workflow passes **`docker-opts`** so **`shared_files/`**, **`manifests/`**, **`scripts/`**, **`packaging/`**, the canonical **`docs/brand/`** assets, and the checkout **`pi-gen-src/`** appear at the same **`${{ github.workspace }}` paths** inside the container (needed for `../../../shared_files`, overlay package construction, **`REPO_ROOT`/manifests**, and **`stage-patch`** edits under **`pi-gen-src`**).
-- If disk pressure persists on hosted runners, consider enabling **`increase-runner-disk-size`** on **`pi-gen-action`** or trimming stages; pi-gen **work/** trees are large.
+- **`usimd/pi-gen-action`** mounts stage directories, not the whole repository. The workflow uses
+  `docker-opts` to mount required source directories and `pi-gen-src/` at their workspace paths.
+- If disk pressure persists on hosted runners, consider enabling **`increase-runner-disk-size`** on **`pi-gen-action`** or trimming stages. pi-gen **work/** trees are large.
 
 ### SBOMs
 
@@ -111,13 +120,13 @@ The workflow no longer triggers on `push` of version tags (that avoided rebuildi
 
 ### Hosting limits
 
-- **GitHub Releases**: each asset must be **under 2 GiB**. If your `.img.xz` is larger, use a stronger xz level in the workflow (trades CPU/time), split the file (`split -b 1900M your.img.xz chunk_`) and upload the parts as separate assets with reassembly instructions, or store the blob in **S3** (or similar) and link it from the release notes.
-- **Actions artifacts**: convenient for testing builds from `main` or manual runs; they count against Actions storage quotas and expire (this workflow uses 30 days).
+- **GitHub Releases**: each asset must be **under 2 GiB**. If an image is larger, use a stronger xz level or split the file. You can also store the image in **S3** and link it from the release notes.
+- **Actions artifacts**: convenient for testing builds from `main` or manual runs. They count against Actions storage quotas and expire (this workflow uses 30 days).
 
 ### Faster local builds (beefy machine)
 
 - Prefer upstream **`pi-gen/build-docker.sh`** with **bind mounts or named volumes** for `work/` and `deploy/` so repeated runs reuse downloads where pi-gen allows.
-- **Apt cache (Docker builds):** run `make apt-cacher-up` once (starts **`apt-cacher-ng`** via `docker-compose.apt-cacher.yml` at the repo root; cache lives in the Docker volume `aryaos_apt_cacher_cache`). Then build with **`ARYAOS_APT_CACHE=1 make build-docker`**. The Makefile passes **`APT_PROXY`** into the pi-gen container (`Acquire::http::Proxy`, same as upstream pi-gen) using **`host.docker.internal`** + Docker's **`host-gateway`**. Check the cache with **`make apt-cacher-ping`**; tail logs with **`make apt-cacher-logs`**. Stop with **`make apt-cacher-down`** (volume is kept until you remove it with `docker volume rm`).
+- **Apt cache (Docker builds):** run `make apt-cacher-up` once (starts **`apt-cacher-ng`** via `docker-compose.apt-cacher.yml` at the repo root. Cache lives in the Docker volume `aryaos_apt_cacher_cache`). Then build with **`ARYAOS_APT_CACHE=1 make build-docker`**. The Makefile passes **`APT_PROXY`** into the pi-gen container (`Acquire::http::Proxy`, same as upstream pi-gen) using **`host.docker.internal`** + Docker's **`host-gateway`**. Check the cache with **`make apt-cacher-ping`**. Tail logs with **`make apt-cacher-logs`**. Stop with **`make apt-cacher-down`** (volume is kept until you remove it with `docker volume rm`).
 - **Native `make build`:** set **`APT_PROXY`** in [`config`](config/index.md) (commented example) to your proxy URL, e.g. `http://127.0.0.1:3142` when `apt-cacher-ng` publishes that port on the host.
 - Export **`NUM_CORES`** to match your CPU so pi-gen can parallelize package operations.
 - Use **`make skip`** / **`make unskip`** when iterating only on AryaOS stages after a full base image exists.
@@ -128,8 +137,8 @@ When Actions hit timeouts, disk limits, or the 2 GiB release cap:
 
 1. Launch **Ubuntu 22.04/24.04** on **EC2 Spot** (e.g. compute-optimized 4xlarge class) with a large **gp3** volume (256-512 GB) for Docker and pi-gen work dirs.
 2. Install Docker, clone this repo, `make pi-gen`, then `sudo ./build.sh` or run `pi-gen`'s Docker build script from the `pi-gen` tree.
-3. Copy the artifact from `pi-gen/deploy/` to **S3** (`aws s3 cp ...`; add a lifecycle rule to expire old objects). Optionally front it with **CloudFront** if download traffic grows.
-4. For GitHub distribution, either upload a file **smaller than 2 GiB** with **`gh release upload`** using a token on the instance, or publish an **S3 HTTPS URL** / `latest.json` pointer in the release notes.
+3. Copy the artifact from `pi-gen/deploy/` to **S3** (`aws s3 cp ...`. Add a lifecycle rule to expire old objects). Optionally front it with **CloudFront** if download traffic grows.
+4. For GitHub distribution, upload a file **smaller than 2 GiB** with **`gh release upload`**. Alternatively, publish an S3 URL or `latest.json` pointer.
 
 ## Deploy with Ansible (existing host)
 
@@ -153,15 +162,19 @@ Example: sensor stack on a generic Debian/Ubuntu host (e.g. Dragon-style image) 
 ansible-playbook -i inventory.yml -e 'aryaos_profile=generic' site.yml
 ```
 
-Hardware-specific roles (ADS-B, AIS) are tagged `hardware`; skip them if the host has no relevant SDR:
+Hardware-specific roles (ADS-B, AIS) are tagged `hardware`. Skip them if the host has no relevant SDR:
 
 ```bash
 ansible-playbook -i inventory.yml -e 'aryaos_profile=generic' site.yml --skip-tags hardware
 ```
 
-The PyTAK sensor stack installs from the signed [snstac apt repository](https://snstac.github.io/packages) (built by [snstac/packages](https://github.com/snstac/packages) from each product's latest GitHub Release). The package list is defined once in `manifests/aryaos-sensor-packages.yml` for both image builds and Ansible; the repo's trust anchor (`snstac.gpg` + `snstac.sources`) is vendored at `shared_files/aryaos/snstac-packages/`.
+The PyTAK sensor stack installs from the signed [snstac apt repository](https://snstac.github.io/packages) (built by [snstac/packages](https://github.com/snstac/packages) from each product's latest GitHub Release). The package list is defined once in `manifests/aryaos-sensor-packages.yml` for both image builds and Ansible. The repo's trust anchor (`snstac.gpg` + `snstac.sources`) is vendored at `shared_files/aryaos/snstac-packages/`.
 
-AryaOS-owned appliance files are also buildable as a local Debian package with `make package-overlay`. During pi-gen, `stage-aryaos/00-install` builds that package into the target rootfs and installs it with apt so the running image records the overlay as `aryaos-overlay` in dpkg. The legacy direct-copy path remains in the stage for now as a fallback while the overlay package is being hardened.
+AryaOS-owned appliance files are also buildable as a local Debian package with `make
+package-overlay`. During pi-gen, `stage-aryaos/00-install` builds that package into the target
+rootfs. Installs it with apt so the running image records the overlay as `aryaos-overlay` in dpkg.
+The legacy direct-copy path remains in the stage for now as a fallback while the overlay package is
+being hardened.
 
 ### Check playbook syntax
 
@@ -175,7 +188,7 @@ When you need something close to AryaOS (e.g. **Cockpit + cockpit-adsbcot + adsb
 
 ### Incremental image builds (reminder)
 
-Reuse **`.aryaos-pigen-work`** / **`.aryaos-pigen-deploy`**, **`make skip`** after the base exists, **`ARYAOS_APT_CACHE=1`**, and **`NUM_CORES`** - see [AGENTS.md](https://github.com/snstac/aryaos/blob/main/AGENTS.md) and the **Manual build checklist** above. Avoid **`make build-docker-clean`** unless you need a cold rebuild.
+Reuse **`.aryaos-pigen-work`** / **`.aryaos-pigen-deploy`**, **`make skip`** after the base exists, **`ARYAOS_APT_CACHE=1`**. **`NUM_CORES`**. See [AGENTS.md](https://github.com/snstac/aryaos/blob/main/AGENTS.md) and the **Manual build checklist** above. Avoid **`make build-docker-clean`** unless you need a cold rebuild.
 
 ### Ansible against a running Debian/arm64 host
 
@@ -191,8 +204,8 @@ ansible-playbook -i inventory.yml site.yml \
 ```
 
 - Add **`aryaos`** (or other tags from [`site.yml`](https://github.com/snstac/aryaos/blob/main/site.yml)) when you need portal/lighttpd/Cockpit proxy behaviour (e.g. **`UrlRoot=/admin`**).
-- **`stage-adsbcot`** may assume **Pi-oriented `.deb` artifacts** (e.g. vendored **arm64** readsb) or hardware; an **amd64** laptop often needs different packages or vars - prefer **arm64** for parity with shipped images.
-- **readsb SDR backends:** pi-gen rebuilds readsb with **RTL-SDR**, **SoapySDR** (Airspy), and **HackRF** via [`shared_files/adsbcot/readsb-install.sh`](https://github.com/snstac/aryaos/blob/main/shared_files/adsbcot/readsb-install.sh); `04-adsbcot/01-run-chroot.sh` fails the stage if `readsb --help` lacks any of those. See [Radios & SDRs](config/radios-sdr.md#choosing-the-1090-mhz-decoder).
+- **`stage-adsbcot`** can assume **Pi-oriented `.deb` artifacts** (e.g. vendored **arm64** readsb) or hardware. An **amd64** laptop often needs different packages or vars - prefer **arm64** for parity with shipped images.
+- **readsb SDR backends:** pi-gen rebuilds readsb with **RTL-SDR**, **SoapySDR** (Airspy), and **HackRF** via [`shared_files/adsbcot/readsb-install.sh`](https://github.com/snstac/aryaos/blob/main/shared_files/adsbcot/readsb-install.sh). `04-adsbcot/01-run-chroot.sh` fails the stage if `readsb --help` lacks any of those. See [Radios & SDRs](config/radios-sdr.md#choosing-the-1090-mhz-decoder).
 
 See commented **`dev_arm64`** stubs in [`inventory.yml`](https://github.com/snstac/aryaos/blob/main/inventory.yml).
 
@@ -222,7 +235,7 @@ After deploy: `systemctl status cotbridge readsb adsbcot`, confirm `/run/adsb/ai
 
 ### Loop-mount / `nspawn` / `chroot` (advanced)
 
-You can **loop-mount** a built **`.img`**, then **`systemd-nspawn`** or **`chroot`** into the rootfs for package inspection or quick commands. This is **not** a full firmware/kernel/network test and may behave differently than hardware.
+You can **loop-mount** a built **`.img`**, then **`systemd-nspawn`** or **`chroot`** into the rootfs for package inspection or quick commands. This is **not** a full firmware/kernel/network test and can behave differently than hardware.
 
 ### QEMU system arm64
 
@@ -230,4 +243,4 @@ Boot a generic **Debian arm64** cloud image or your produced image under **QEMU*
 
 ### cockpit-adsbcot UI-only iteration
 
-Upstream [**cockpit-adsbcot**](https://github.com/snstac/cockpit-adsbcot) documents **`make devel-install`**, which symlinks the built bundle into **`~/.local/share/cockpit/`** on a machine that already runs Cockpit - fastest for **frontend** changes. It does **not** reproduce AryaOS **lighttpd** termination or **`UrlRoot=/admin`** by itself; validate that stack via Ansible or a real image.
+Upstream [**cockpit-adsbcot**](https://github.com/snstac/cockpit-adsbcot) documents **`make devel-install`**, which symlinks the built bundle into **`~/.local/share/cockpit/`** on a machine that already runs Cockpit. Fastest for **frontend** changes. It does **not** reproduce AryaOS **lighttpd** termination or **`UrlRoot=/admin`** by itself. Validate that stack via Ansible or a real image.

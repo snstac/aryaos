@@ -144,7 +144,7 @@ def resolve_server_expected_hostname(host, port):
             with context.wrap_socket(raw, server_hostname=host) as stream:
                 certificate = stream.getpeercert()
     except (OSError, ssl.SSLError) as exc:
-        fail(f"Could not validate TAK streaming certificate: {exc}")
+        fail(f"TAK streaming certificate validation failed: {exc}. Examine the certificate and try again.")
     return select_expected_hostname(host, certificate)
 
 
@@ -210,7 +210,7 @@ def load_client_p12(blob, password):
     try:
         key, cert, cas = pkcs12.load_key_and_certificates(blob, password.encode() if password else None)
     except Exception as exc:
-        fail(f"Could not open client certificate bundle: {exc}")
+        fail(f"The client certificate bundle did not open: {exc}. Examine the bundle and try again.")
     if key is None or cert is None:
         fail("Client PKCS#12 does not contain a certificate and private key")
     return key, cert, list(cas or [])
@@ -220,7 +220,7 @@ def load_ca_p12(blob, password):
     try:
         _, cert, cas = pkcs12.load_key_and_certificates(blob, password.encode() if password else None)
     except Exception as exc:
-        fail(f"Could not open CA trust bundle: {exc}")
+        fail(f"The CA trust bundle did not open: {exc}. Examine the bundle and try again.")
     certs = []
     if cert is not None:
         certs.append(cert)
@@ -419,7 +419,7 @@ def main(argv):
         try:
             enrollment_url = Path(argv[2]).read_text(encoding="utf-8").strip()
         except OSError as exc:
-            fail(f"Could not read enrollment URL: {exc}")
+            fail(f"The enrollment URL read failed: {exc}. Examine the URL file and try again.")
         print(json.dumps(import_enrollment_url(enrollment_url), sort_keys=True))
         return
     if len(argv) != 2:

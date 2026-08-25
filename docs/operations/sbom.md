@@ -1,10 +1,8 @@
 # SBOM & supply chain
 
-Every AryaOS image build emits a **Software Bill of Materials (SBOM)** - a
-machine-readable inventory of everything installed in the image - in both SPDX
-and CycloneDX formats, attached to the GitHub Release. This page explains what
-an SBOM is, why it matters for government deployments, and how to fetch and read
-one.
+Every AryaOS image build emits a **Software Bill of Materials (SBOM)**. This machine-readable
+inventory lists the software installed in the image. Each GitHub Release includes SPDX and
+CycloneDX files. This page explains their purpose, contents, and use.
 
 ## What an SBOM is
 
@@ -18,8 +16,8 @@ what version?"* in seconds instead of guessing.
     AryaOS is funded by the Colorado Center of Excellence and the USDA Forest
     Service and is deployed on wildland fire and other public-safety missions.
     US federal guidance (Executive Order 14028 and the NTIA minimum elements)
-    directs agencies to obtain SBOMs for the software they field. Shipping an
-    An SBOM is required in that context and provides a useful software inventory
+    directs agencies to obtain SBOMs for the software they field. An SBOM is required in that
+    context and provides a useful software inventory
     for every deployment.
 
 ## What each build produces
@@ -81,12 +79,12 @@ grype sbom:aryaos.cdx.json
     # writes out/aryaos.spdx.json and out/aryaos.cdx.json
     ```
 
-    It loop-mounts the image read-only and runs syft over the rootfs - set
-    `SYFT_BIN` to point at a specific syft binary if it isn't on `PATH`.
+    It loop-mounts the image read-only and runs syft over the rootfs. Set `SYFT_BIN` to point at a
+    specific syft binary if it is not on `PATH`.
 
 ## The trust anchor
 
-An SBOM tells you *what* is installed; the signed apt repository tells you it
+An SBOM tells you *what* is installed. The signed apt repository tells you it
 came from a source you trust. AryaOS installs every package - at build time and
 during [updates](updates.md) - from the **GPG-signed snstac apt repository**,
 [`https://snstac.github.io/packages`](https://snstac.github.io/packages). A unit

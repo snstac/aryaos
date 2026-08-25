@@ -52,7 +52,7 @@ Status terms:
 
 | Capability | Status | AryaOS 1.0 | AryaOS 2 | Why it matters |
 |---|---|---|---|---|
-| Sensors off by default | Changed | Installed sensor services could start without matching hardware | Optional receivers remain disabled until declared or detected | Missing hardware does not make the appliance look broken |
+| Sensors off by default | Changed | Installed sensor services can start without matching hardware | Optional receivers remain disabled until declared or detected | Missing hardware does not make the appliance look broken |
 | Mission roles | New | Fixed image/service layout | Air, maritime, C-UAS, multi-sensor, and relay roles | Repurpose a box without reflashing it |
 | Capability model | New | Product/stage-oriented setup | Signal names report active, enabled, and available state | Operators see what a box can do and what it is doing |
 | Radio contention | New | Manual avoidance | Discovery reports when one receiver is claimed by competing jobs | Prevent decoders from fighting over a device |
@@ -74,7 +74,7 @@ experimental.
 
 | Capability | Status | AryaOS 1.0 | AryaOS 2 | Why it matters |
 |---|---|---|---|---|
-| CoT architecture | Changed | Gateways generally targeted Mesh SA directly | Feeders write to a private COTBridge bus; lanes own external egress | Configure routing once for the whole site |
+| CoT architecture | Changed | Gateways generally targeted Mesh SA directly | Feeders write to a private COTBridge bus. Lanes own external egress | Configure routing once for the whole site |
 | Multiple routes | New | Per-service destinations | Structured ingress/egress lanes for Mesh SA, TAK Server, and other networks | Send one local picture to several consumers |
 | Lane editor | New | Raw configuration | Validated Cockpit editor plus advanced raw INI escape hatch | Catch bad URLs, UDP directions, and bind conflicts before save |
 | TAK data-package import | New | Manual certificate/config work | Authenticated `.zip`/`.dpk` import provisions TLS and the output lane | Connect the appliance, not every daemon |
@@ -111,12 +111,12 @@ experimental.
 | Configuration restore | New | Manual rebuild | Validated additive restore with web TLS reconciliation | Recover configuration without leaving the portal offline |
 | Factory reset | New | Reflash | Restore packaged defaults, identity, radio discovery, and first-boot behavior | Return a box to service without new media |
 | Zeroize | New | Reflash/manual deletion | Remove operational targets, credentials, keys, histories, recordings, and local accounts before clean bootstrap | Decommission or recover a potentially captured node |
-| Power safe mode | New | Repeated brownouts could crash-loop | After repeated short boots, cut USB power and withhold sensors while keeping admin access | Diagnose a weak supply instead of losing the box |
+| Power safe mode | New | Repeated brownouts can crash-loop | After repeated short boots, cut USB power and withhold sensors while keeping admin access | Diagnose a weak supply instead of losing the box |
 | Media longevity | New | Conventional swap/log behavior | zram swap, RAM-backed volatile logs, fstrim, and bounded audit logging | Reduce write amplification on SD/NVMe media |
 | Firewall | New | No appliance-wide allowlist | Enabled firewalld services and zones with explicit inbound exposure | Minimize the network surface |
 | SSH defenses | Improved | SSH enabled | No root login, bounded auth attempts, fail2ban, and first-login expiry | Safer field bootstrap and remote access |
 | Web TLS | Improved | Shared/generated certificate behavior | Unique key and certificate generated per device | Avoid shipping one web private key across the fleet |
-| Service privilege | Improved | Node-RED and helpers had broad ownership/access | Node-RED unprivileged; TAK keys protected by a dedicated group; parsers sandboxed | Limit the result of a service compromise |
+| Service privilege | Improved | Node-RED and helpers had broad ownership/access | Node-RED unprivileged. TAK keys protected by a dedicated group. Parsers sandboxed | Limit the result of a service compromise |
 | Security updates | New | Manual | Daily Debian security updates without surprise appliance-stack upgrades or reboot | Patch the base while preserving operator control |
 | Image verification | New | Build success was the primary gate | Mounted-image assertions for packages, services, files, permissions, versions, and release security mode | Test what is actually flashed |
 | Hardware HIL | New | Ad hoc field tests | Strict per-role integration suite plus lifecycle and burn-in gates | Exercise the complete appliance on real receivers |
@@ -128,16 +128,16 @@ forensic erasure, crypto-erase, FIPS validation, or STIG compliance.
 
 | Change | Status | AryaOS 1.0 | AryaOS 2 consequence |
 |---|---|---|---|
-| Upgrade path | Changed | Existing v1 install | Fresh flash required; no supported in-place upgrade |
-| Base distribution | Changed | Debian Bookworm | Debian Trixie; do not mix package sets across the boundary |
+| Upgrade path | Changed | Existing v1 install | Fresh flash required. No supported in-place upgrade |
+| Base distribution | Changed | Debian Bookworm | Debian Trixie. Do not mix package sets across the boundary |
 | External CoT destination | Changed | Set destinations on individual gateways | Keep feeders on the private bus and configure COTBridge `site-output` |
 | Remote VPN | Changed | ZeroTier | Re-enroll the device in Tailscale if remote access is needed |
-| System configuration | Changed | Node-RED and service files | Use Cockpit for routine configuration; import custom Node-RED flows separately |
+| System configuration | Changed | Node-RED and service files | Use Cockpit for routine configuration. Import custom Node-RED flows separately |
 | Bundled CloudTAK | Removed | Appeared during the v1-era development line | Connect to an existing TAK Server or use Mesh SA |
-| dhbridge and kraktak | Removed | Private components appeared in development builds | Not part of the public image; Bluetooth PAN remains |
-| amd64 image | Unchanged limitation | Not a supported image | Still planned; the downloadable AOS2 image is arm64 |
-| Unified browser COP | Not shipped | Separate sensor views | AOS2 fuses data into TAK; a native all-sensor browser map remains roadmap |
-| Track replay UI | Not shipped | Legacy helpers | Recording/query/export ship; an integrated browser replay workflow remains roadmap |
+| dhbridge and kraktak | Removed | Private components appeared in development builds | Not part of the public image. Bluetooth PAN remains |
+| amd64 image | Unchanged limitation | Not a supported image | Still planned. The downloadable AOS2 image is arm64 |
+| Unified browser COP | Not shipped | Separate sensor views | AOS2 fuses data into TAK. A native all-sensor browser map remains roadmap |
+| Track replay UI | Not shipped | Legacy helpers | Recording/query/export ship. An integrated browser replay workflow remains roadmap |
 
 ## Product configurations
 
@@ -151,4 +151,4 @@ The launch uses these names as examples, not as separate AOS2 editions:
 | **DragonEgg** | LimeSDR, ACARS, broad SoapySDR analysis, and GNSS |
 
 The exact receiver, antenna, power, and regulatory requirements still depend on
-the mission and jurisdiction. See [Hardware and requirements](../../get-started/hardware.md).
+The mission and jurisdiction. See [Hardware and requirements](../../get-started/hardware.md).

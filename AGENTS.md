@@ -5,10 +5,27 @@
 
 Short procedural notes for automated assistants running or watching pi-gen builds in this repo. Human-oriented detail lives in [docs/build.md](docs/build.md).
 
+## Technical writing
+
+Use the pragmatic Simple English rules in
+[`docs/reference/writing-style.md`](docs/reference/writing-style.md) for active
+technical documentation and AryaOS-owned operator text.
+
+- Classify text as procedural or descriptive before you write it.
+- Use no more than 20 words in a procedural sentence.
+- Use no more than 25 words in a descriptive sentence.
+- Use active voice and simple tenses.
+- Put one instruction in each sentence.
+- Put a condition before its command.
+- Use `can`, `will`, and `must`. Do not use ambiguous modal verbs.
+- Preserve code, commands, identifiers, paths, product names, and quoted errors.
+- Preserve technical facts and machine-readable interfaces.
+- Run `python3 -m unittest scripts.test_docs_style -v` after text changes.
+
 ## Prerequisites
 
 - **Docker** daemon running (`docker ps` works).
-- **Disk**: pi-gen `work/` and deploy output can consume hundreds of gigabytes; leave ample free space.
+- **Disk**: pi-gen `work/` and deploy output can consume hundreds of gigabytes. Leave ample free space.
 - **Working directory**: repository root (where `Makefile` and `config.docker` live).
 - **Optional**: `NUM_CORES` exported before build to tune parallelism inside the container (defaults to `nproc` via the Makefile).
 
@@ -18,14 +35,14 @@ Use this for unattended builds: it avoids interactive host **sudo** used by `mak
 
 ### Optional apt cache (faster rebuilds)
 
-1. **`make apt-cacher-up`** — starts **`apt-cacher-ng`** ([`docker-compose.apt-cacher.yml`](docker-compose.apt-cacher.yml)); cache persists in Docker volume **`aryaos_apt_cacher_cache`**.
-2. **`ARYAOS_APT_CACHE=1 make build-docker`** — passes **`APT_PROXY`** into pi-gen (same mechanism as upstream **`APT_PROXY`** / stage0 `51cache`). **`make apt-cacher-ping`** checks the cache from the host on **`127.0.0.1:${ARYAOS_APT_CACHER_PORT:-3142}`**.
+1. **`make apt-cacher-up`** - starts **`apt-cacher-ng`** ([`docker-compose.apt-cacher.yml`](docker-compose.apt-cacher.yml)). Cache persists in Docker volume **`aryaos_apt_cacher_cache`**.
+2. **`ARYAOS_APT_CACHE=1 make build-docker`** - passes **`APT_PROXY`** into pi-gen (same mechanism as upstream **`APT_PROXY`** / stage0 `51cache`). **`make apt-cacher-ping`** checks the cache from the host on **`127.0.0.1:${ARYAOS_APT_CACHER_PORT:-3142}`**.
 
-- **Config**: [config.docker](config.docker) — repo bind-mounted read-only at **`/aryaos`**, matching the Makefile’s `PIGEN_DOCKER_OPTS`.
-- **Caches / output** (gitignored): **`.aryaos-pigen-work/`** → `/pi-gen/work`, **`.aryaos-pigen-deploy/`** → `/pi-gen/deploy`.
-- **Upstream tree**: First build ensures **`./pi-gen`** exists (Makefile `pi-gen` target clones when needed); later builds reuse the directory.
+- **Config**: [config.docker](config.docker) - repo bind-mounted read-only at **`/aryaos`**, matching the Makefile's `PIGEN_DOCKER_OPTS`.
+- **Caches / output** (gitignored): **`.aryaos-pigen-work/`** -> `/pi-gen/work`, **`.aryaos-pigen-deploy/`** -> `/pi-gen/deploy`.
+- **Upstream tree**: First build ensures **`./pi-gen`** exists (Makefile `pi-gen` target clones when needed). Later builds reuse the directory.
 
-Do **not** default to **`make build`** / **`./build.sh`** unless the user asks: those invoke **`sudo`** and may block on a password.
+Do **not** default to **`make build`** / **`./build.sh`** unless the user asks: those invoke **`sudo`** and can block on a password.
 
 ### Logged build (recommended for monitoring after the fact)
 
@@ -35,17 +52,18 @@ From repo root:
 ./scripts/agent-build-docker.sh
 ```
 
-This runs `make build-docker`, mirrors stdout/stderr to **`build-YYYYMMDD-HHMMSS.log`** at the repo root, and exits with the same status as `make`. Prefer this when you need to re-read output with editor tools after the command finishes.
+This runs `make build-docker` and mirrors output to **`build-YYYYMMDD-HHMMSS.log`** at the repo root.
+It exits with the same status as `make`. Use the log to review output after the command finishes.
 
 ## Faster iteration
 
-After a full base image exists, **`make skip`** adds `SKIP` markers for pi-gen `stage0`–`stage2`; **`make unskip`** removes them. Use only when the user wants shorter loops while editing AryaOS stages.
+After a full base image exists, **`make skip`** adds `SKIP` markers for pi-gen `stage0`-`stage2`. **`make unskip`** removes them. Use only when the user wants shorter loops while editing AryaOS stages.
 
 ## Monitoring checklist
 
-1. **Terminal**: `make build-docker` / `agent-build-docker.sh` runs for a long time; use a terminal session with enough timeout or run in the background and poll.
-2. **Docker**: **`docker ps`**; **`docker logs`** on pi-gen containers (e.g. **`pigen_work`**, **`pigen_work_cont`** — see **`make build-docker-clean`**).
-3. **Disk progress**: Activity under **`.aryaos-pigen-work/`**; finished artifacts under **`.aryaos-pigen-deploy/`** (e.g. `*.img`, archives). The Docker script may also unpack under **`pi-gen/deploy/`** (see docs).
+1. **Terminal**: `make build-docker` / `agent-build-docker.sh` runs for a long time. Use a terminal session with enough timeout or run in the background and poll.
+2. **Docker**: **`docker ps`**. **`docker logs`** on pi-gen containers (e.g. **`pigen_work`**, **`pigen_work_cont`** - see **`make build-docker-clean`**).
+3. **Disk progress**: Activity under **`.aryaos-pigen-work/`**. Finished artifacts under **`.aryaos-pigen-deploy/`** (e.g. `*.img`, archives). The Docker script can also unpack under **`pi-gen/deploy/`** (see docs).
 4. **Logs**: Tail the timestamped **`build-*.log`** if using the wrapper.
 
 ## Failure signals
@@ -60,7 +78,10 @@ After a full base image exists, **`make skip`** adds `SKIP` markers for pi-gen `
 
 ## CI (optional)
 
-GitHub Actions: [`.github/workflows/pi-gen.yml`](.github/workflows/pi-gen.yml). PRs run Ansible syntax checks on **`ubuntu-latest`**. Full image builds run on GitHub-hosted **`ubuntu-24.04-arm`** (native aarch64; **`usimd/pi-gen-action@v1`**) with a disk cleanup step before pi-gen. On each successful **`main`** build (or **`workflow_dispatch`**), the workflow pushes an auto-generated **`v<UTC-datetime>-<sha>`** tag and publishes a **Release** with the image plus an Actions artifact. Monitor with **`gh run list`**, **`gh run watch <run-id>`**, or the Actions UI — separate from local Docker builds.
+GitHub Actions uses [`.github/workflows/pi-gen.yml`](.github/workflows/pi-gen.yml). Pull requests run Ansible syntax checks on **`ubuntu-latest`**.
+Full image builds use the native aarch64 **`ubuntu-24.04-arm`** runner and **`usimd/pi-gen-action@v1`**.
+A cleanup step frees disk space before pi-gen. Each successful **`main`** build or manual workflow creates a version tag and release.
+The release contains the image, and the workflow stores an Actions artifact. Monitor it with `gh` or the Actions UI.
 
 ## Lightweight validation (no full image)
 
@@ -72,10 +93,10 @@ Use LINCOT-based discovery: **`./scripts/aryaos-dev-device list`**, then
 **`./scripts/sync-to-dev-pi.sh`** or **`./scripts/sync-portal-review.sh`**. Set
 **`ARYAOS_DEV_DEVICE=<hostname-or-uid>`** when multiple devices are visible, or
 **`ARYAOS_SSH=pi@<address>`** when multicast is unavailable. Prefer the lab SSH
-key documented in [`docs/dev-pi.md`](docs/dev-pi.md); never commit credentials.
+key documented in [`docs/dev-pi.md`](docs/dev-pi.md). Never commit credentials.
 
 After portal sync or a new flash, run **`make test-dev-device`** or
-**`./scripts/aryaos-test/run.sh`** — see [docs/testing-dev-pi.md](docs/testing-dev-pi.md).
+**`./scripts/aryaos-test/run.sh`** - see [docs/testing-dev-pi.md](docs/testing-dev-pi.md).
 
 ## HTTPS landing portal
 

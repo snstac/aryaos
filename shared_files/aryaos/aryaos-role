@@ -207,7 +207,7 @@ apply_units() {
 		if [[ " ${wanted} " == *" ${unit} "* ]]; then
 			echo "enable  ${unit}"
 			systemctl enable --now "${unit}" >/dev/null 2>&1 || \
-				echo "aryaos-role: warning: could not start ${unit}" >&2
+				echo "aryaos-role: warning: ${unit} did not start. Examine its systemd journal." >&2
 		else
 			echo "disable ${unit}"
 			systemctl disable --now "${unit}" >/dev/null 2>&1 || true

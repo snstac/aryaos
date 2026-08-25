@@ -187,7 +187,7 @@ share_sdr() {
 			echo "UNAUTHENTICATED — open the firewall (aryaos-soapyremote) or set AOS_SOAPY_BIND to a VPN address." ;;
 		spyserver)
 			if [[ ! -x /usr/bin/spyserver ]]; then
-				echo "aryaos-sdr: SpyServer is not installed on this image (build could not fetch the Airspy binary)." >&2
+				echo "aryaos-sdr: SpyServer is not installed. The image build did not fetch the Airspy binary. Install SpyServer and try again." >&2
 				exit 1
 			fi
 			# rtl_tcp on the same dongle would fight for it; SpyServer takes over.

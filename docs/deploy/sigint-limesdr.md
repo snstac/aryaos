@@ -4,8 +4,8 @@ The **dragonegg** laydown is AryaOS + a **LimeSDR Mini** + GPS: a wideband
 (10&nbsp;MHz-3.5&nbsp;GHz) software-defined radio on the edge for spectrum monitoring and
 signal-collection tasks, with the box's own position on the map.
 
-AryaOS ships the driver and access layer for the LimeSDR; the collection/analysis application
-you point at it is deployment-specific.
+AryaOS ships the driver and access layer for the LimeSDR. The collection/analysis application
+You point at it is deployment-specific.
 
 ## What one LimeSDR can receive
 
@@ -32,7 +32,7 @@ alternatives, not a simultaneous list.
     else, and expect to swap it when you change bands.
 
     Because the box **cannot see what antenna is attached**, SDR capabilities are
-    never auto-enabled - see [Device roles](../config/device-roles.md).
+    Never auto-enabled - see [Device roles](../config/device-roles.md).
 
 ## What's on the image
 
@@ -55,8 +55,8 @@ sudo LimeUtil --update                # one-time gateware/firmware update
 
 !!! warning "Power"
     The LimeSDR Mini is a **heavy, bursty USB draw**. With GPS and a Pi&nbsp;5 this is one of
-    the highest-draw laydowns - use a proper **5V/5A (27&nbsp;W)** supply (or a true PoE+
-    802.3at source). On a marginal supply the box can brown out; AryaOS will flag under-voltage
+    The highest-draw laydowns - use a proper **5V/5A (27&nbsp;W)** supply (or a true PoE+
+    802.3at source). On a marginal supply the box can brown out. AryaOS will flag under-voltage
     (power-health) and, if it crash-loops, drop into
     [safe mode](../get-started/hardware.md#safe-mode).
 
@@ -71,13 +71,13 @@ directly:
 AIS-catcher -gu DEVICE driver=lime ANTENNA LNAW GAIN LNA=30 -s 1536000 -v
 ```
 
-Note the syntax: `SOAPYSDR:` in `AIS-catcher -h` is a section heading, not part of the
-argument, and passing `-d SOAPYSDR` sends it looking for a device with the literal serial
-`SOAPYSDR` instead of using the one you selected.
+Note the syntax: `SOAPYSDR:` in `AIS-catcher -h` is a section heading, not part of the argument.
+Passing `-d SOAPYSDR` sends it looking for a device with the literal serial `SOAPYSDR` instead of
+using the one you selected.
 
 Earlier builds were compiled **without** SoapySDR (`readelf -d` showed zero `libSoapySDR`
 entries), so the Lime was invisible to them no matter how it was configured - `-l` listed only
-the GPS.
+The GPS.
 
 ### As the ADS-B 1090 front-end
 
@@ -85,11 +85,11 @@ the GPS.
 sudo scripts/readsb-use-lime.sh          # driver=lime, gain 40
 ```
 
-This sets `readsb` to `--device-type soapysdr --soapy-device driver=lime` and restarts it.
-CoT then flows through `adsbcot` > COTBridge as usual. Two `readsb` bugs that made this path
-useless are fixed from **3.16.15-4** onward: `--gain` was applied ten times too large on the
-SoapySDR path, and a block was filled with a single `readStream()` call, which returns at most
-the driver's stream MTU - 2040 samples on a Lime against a 65536-sample buffer.
+This sets `readsb` to `--device-type soapysdr --soapy-device driver=lime` and restarts it. CoT then
+flows through `adsbcot` > COTBridge as usual. Two `readsb` bugs that made this path useless are
+fixed from **3.16.15-4** onward: `--gain` was applied ten times too large on the SoapySDR path. A
+block was filled with a single `readStream()` call. This returns at most the driver's stream MTU.
+2040 samples on a Lime against a 65536-sample buffer.
 
 !!! success "The antenna decides this, not the SDR"
     With both fixes and an **outdoor antenna**, a LimeSDR Mini v2 decodes ADS-B properly.
@@ -103,15 +103,15 @@ the driver's stream MTU - 2040 samples on a Lime against a 65536-sample buffer.
     positions at all**. Nothing changed but the antenna.
 
     So budget for the antenna and its feedline before reaching for anything else. An inline
-    1090&nbsp;MHz filtered LNA may still help at a site with strong out-of-band transmitters
-    nearby, but it is **not** required, and it will not rescue a receiver that cannot hear the
-    band in the first place.
+    1090&nbsp;MHz filtered LNA can still help at a site with strong out-of-band transmitters nearby.
+    But it is **not** required. It will not rescue a receiver that cannot hear the band in the first
+    place.
 
-    An RTL-SDR remains a reasonable choice for a dedicated ADS-B box - it is cheaper and its
-    front end is already tuned for 1090 - but "the Lime cannot do ADS-B" is not true.
+    An RTL-SDR remains a reasonable choice for a dedicated ADS-B box. It is cheaper. Its front end
+    is already tuned for 1090 - but "the Lime cannot do ADS-B" is not true.
 
 !!! note "USB stability"
-    The FT601 bridge has been observed dropping off the bus under sustained streaming -
+    The FT601 bridge sometimes drops off the bus under sustained streaming.
     repeated `reset SuperSpeed USB device` messages, then a fallback to high-speed, then a full
     disconnect requiring a reboot or re-plug to recover. If a capture stops without explanation,
     check `lsusb` and `dmesg` before suspecting the decoder. A powered hub is worth trying.
@@ -127,7 +127,7 @@ sudo aryaos-role caps <existing caps> acars
 
 That enables two units - `acarsdec` demodulates VHF, `acarscot` turns its JSON
 into CoT - mirroring the `readsb`/`adsbcot` split. Frequencies live in
-`/etc/default/acarsdec`; the defaults are the common US channels.
+`/etc/default/acarsdec`. The defaults are the common US channels.
 
 **ARINC-622 is decoded** from `acarsdec 4.6-snstac2` onward, via
 [libacars](https://github.com/snstac/libacars): FANS-1/A **ADS-C** and **CPDLC**,
@@ -163,19 +163,18 @@ sudoedit /etc/default/acarscot
 sudo chmod 0600 /etc/default/acarscot
 ```
 
-PyTAK resolves that URL to WSS and caches the issued client certificate below
-the service account's home. ACARSCOT `0.1.1` and newer create persistent state
-under `/var/lib/acarscot`; no local systemd drop-in is required. PyTAK `7.4.3`
-and newer retry an unavailable TAK endpoint in the same process with bounded,
-jittered exponential backoff. A server outage therefore leaves the unit active
-instead of driving a systemd restart storm, and extracted certificate PEMs are
-removed after every connection attempt instead of accumulating in tmpfs.
+PyTAK resolves that URL to WSS and caches the issued client certificate below the service account's
+home. ACARSCOT `0.1.1` and newer create persistent state under `/var/lib/acarscot`. No local systemd
+drop-in is required. PyTAK `7.4.3` and newer retry an unavailable TAK endpoint in the same process
+with bounded, jittered exponential backoff. A server outage therefore leaves the unit active instead
+of driving a systemd restart storm. Extracted certificate PEMs are removed after every connection
+attempt instead of accumulating in tmpfs.
 
-Run `sudo systemctl restart acarscot`. `systemctl is-active acarscot` should
-remain `active` even while the server is unavailable; the journal will show the
-next retry delay. Once reachable, it should show a resolved
+Run `sudo systemctl restart acarscot`. `systemctl is-active acarscot` must
+remain `active` even while the server is unavailable. The journal will show the
+next retry delay. Once reachable, it must show a resolved
 `wss://.../takproto/1` destination plus both `WSTXWorker` and `WSRXWorker`.
-Keep the enrollment URL and cached certificate files private; do not put either
+Keep the enrollment URL and cached certificate files private. Do not put either
 in a support bundle or source control.
 
 ### Audio-band decoders (APRS, pagers)
@@ -195,9 +194,9 @@ aryaos-sdr-fm --freq 152.0075M | multimon-ng -t raw -a POCSAG1200 -
 aryaos-sdr-fm --freq 162.400M | aplay -f S16_LE -r 48000 -c 1
 ```
 
-`--mode am` handles aviation voice and other AM signals; it is **experimental**,
+`--mode am` handles aviation voice and other AM signals. It is **experimental**,
 with a documented level-settling caveat. De-emphasis is off by default because
-it distorts AFSK tone balance - use it only when a human is listening.
+It distorts AFSK tone balance - use it only when a human is listening.
 
 Tune the output level against the decoder, not by ear: `direwolf` prints
 `audio level = N` per packet and wants roughly 50.
@@ -215,7 +214,7 @@ SoapySDRServer --bind          # serves the local SDRs over the network
     `SoapySDRServer` is **not** started automatically - it opens the SDR to the network
     unauthenticated. Start it manually only when needed, and **bind it to the Tailscale/VPN
     interface, not the open LAN** (see [Firewall](../networking/firewall.md) and
-    [VPN](../networking/vpn-tailscale.md)). Stop it when you're done.
+    [VPN](../networking/vpn-tailscale.md)). Stop it when you are done.
 
 ### Band occupancy survey
 
@@ -236,11 +235,12 @@ sudo aryaos-spectrum-survey --bands fmbcast,adsb1090 --json
 It reports **measurements, never identifications**. A band being busy does not tell you what
 is transmitting, and the tool will not guess - the band names are operator context only.
 
-Each band is classified as `bursty`, `continuous`, both, or neither, because those need
-different tests: a packetised emitter shows up as excursions above the band's noise floor,
-while a steady carrier *is* the floor and has to be found in the frequency domain instead.
+Each band is classified as `bursty`, `continuous`, both. Alternatively, neither. This is because
+those need different tests. A packetised emitter shows up as excursions above the band's noise
+floor. At the same time, a steady carrier *is* the floor. Has to be found in the frequency domain
+instead.
 
-!!! warning "`occupied` is a convenience flag; the number is the measurement"
+!!! warning "`occupied` is a convenience flag. The number is the measurement"
     The `OCCUPIED` threshold is 0.5% of samples more than 20&nbsp;dB above the band's own
     median. That is tuned for continuously busy bands and it **under-reports short bursts**.
 
@@ -254,12 +254,12 @@ while a steady carrier *is* the floor and has to be found in the frequency domai
 !!! note "dBFS is not dBm"
     All levels are relative to the receiver's own full scale, not absolute power. The same
     signal moved the reported floor from −31.9 to −13.4&nbsp;dBFS purely by changing gain.
-    Comparing two bands in one sweep is meaningful; comparing to another receiver, or to a
+    Comparing two bands in one sweep is meaningful. comparing to another receiver, or to a
     published dBm figure, is not.
 
 Pass `--zmeta` to emit [ZMeta](https://github.com/JTC-byte/zmeta-spec) `OBSERVATION_EVENT`
 records (newline-delimited JSON) instead of the table, for feeding a metadata bus rather than
-a human.
+A human.
 
 ### Local capture / analysis
 

@@ -1,6 +1,6 @@
 # Multi-sensor: one COP, every sensor
 
-Run aircraft, vessels, and drones on a single box. Select the **`multi`** role and AryaOS fuses ADS-B/UAT, AIS, and drone detection into one Common Operating Picture (COP) delivered to ATAK/WinTAK/iTAK.
+Run aircraft, vessels, and drones on a single box. Select the **`multi`** role and AryaOS fuses ADS-B/UAT, AIS. Drone detection into one Common Operating Picture (COP) delivered to ATAK/WinTAK/iTAK.
 
 `multi` is the default role. It enables **all** sensor pipelines at once - nothing is turned off.
 
@@ -29,7 +29,7 @@ Run aircraft, vessels, and drones on a single box. Select the **`multi`** role a
 
 ## Fusing into one COP
 
-Every feeder - air, maritime, drone, and position - publishes CoT to the **same** COTBridge hub on `udp+wo://127.0.0.1:28087`. COTBridge merges them and forwards a single stream through the site-wide output to Mesh SA or a [TAK Server](./connect-tak-server.md), so your EUD sees one unified picture.
+Every feeder publishes CoT to the **same** COTBridge hub on `udp+wo://127.0.0.1:28087`. COTBridge merges the feeds and forwards one stream. Your EUD receives one unified picture through Mesh SA or a [TAK Server](./connect-tak-server.md).
 
 ```mermaid
 flowchart LR
@@ -61,11 +61,11 @@ To actually *see* all three domains at once you need the radios for each:
 
 Running every pipeline is the heaviest configuration AryaOS supports.
 
-- **Compute.** Multiple SDR decoders (`readsb`/`dump978-fa`/`ais-catcher`) plus DroneID demod are CPU-bound. A Raspberry Pi 4 or 5 is recommended for a full `multi` build; a Pi 3 can struggle with all radios active.
+- **Compute.** Multiple SDR decoders (`readsb`/`dump978-fa`/`ais-catcher`) plus DroneID demod are CPU-bound. A Raspberry Pi 4 or 5 is recommended for a full `multi` build. A Pi 3 can struggle with all radios active.
 - **USB & power.** Several SDRs on one USB bus draw significant current - use a supply and cabling rated for the load, especially on battery in the field.
-- **RF isolation.** Keep the 1090/978 MHz, marine VHF, and DroneID antennas spaced apart to reduce mutual desense; add band filters (e.g. a 1090 SAW filter) where interference is high.
+- **RF isolation.** Keep the 1090/978 MHz, marine VHF, and DroneID antennas spaced apart to reduce mutual desense. Add band filters (e.g. A 1090 SAW filter) where interference is high.
 
-!!! tip "Scale down when you don't need everything"
+!!! tip "Scale down when you do not need everything"
     If a mission only needs one domain, switch to the focused role (`air`, `maritime`, or `cuas`) to free CPU and USB bandwidth. Roles switch at runtime - no reflash.
 
 ## Related

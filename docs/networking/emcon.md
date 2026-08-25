@@ -5,7 +5,7 @@ onboarding hotspot, and any Wi-Fi client link) and **Bluetooth** (the PAN
 onboarding path). For low-probability-of-intercept / low-probability-of-detection
 (**LPI/LPD**) operation you often want to silence them - or just turn off the
 Wi-Fi hotspot once a unit is fielded on ethernet. The `aryaos-radio` helper and
-the **Radios** controls in Cockpit > AryaOS Site do both.
+The **Radios** controls in Cockpit > AryaOS Site do both.
 
 !!! info "Wired ethernet is never affected"
     EMCON and the AP controls only touch the *onboard radios*. The wired
@@ -14,7 +14,7 @@ the **Radios** controls in Cockpit > AryaOS Site do both.
 
 ## Disable the Wi-Fi hotspot
 
-Once a box is fielded on ethernet you may not want it broadcasting `aryaos-xxxx`
+Once a box is fielded on Ethernet, you can stop it from broadcasting `aryaos-xxxx`
 at all. Disabling the hotspot stops the broadcast and keeps it off across reboots.
 
 === "In Cockpit"
@@ -31,20 +31,20 @@ at all. Disabling the hotspot stops the broadcast and keeps it off across reboot
     ```
 
 The Wi-Fi radio itself stays available (e.g. to join a Wi-Fi network as a
-client); only the onboarding hotspot is turned off. To silence the radio
+client). Only the onboarding hotspot is turned off. To silence the radio
 entirely, use EMCON below.
 
 ## EMCON (radio silence)
 
 EMCON blocks **both Wi-Fi and Bluetooth** at the `rfkill` level, so the onboard
-radios stop transmitting entirely. The block **persists across reboots** - a flag
-at `/etc/aryaos/emcon` is re-applied at boot by `aryaos-radio-silence.service`
-before the network stack comes up, so an EMCON box never emits RF on boot.
+radios stop transmitting entirely. The block **persists across reboots**.
+`aryaos-radio-silence.service` applies `/etc/aryaos/emcon` before the network
+starts. Thus, an EMCON device emits no RF during boot.
 
 === "In Cockpit"
 
     **AryaOS Site > Radios > EMCON / radio silence > On.** The hotspot drops and
-    the Wi-Fi/Bluetooth adapters go dark. Toggle **Off** to restore.
+    The Wi-Fi/Bluetooth adapters go dark. Toggle **Off** to restore.
 
 === "From the shell"
 
@@ -64,10 +64,10 @@ before the network stack comes up, so an EMCON box never emits RF on boot.
 
 Independent of EMCON, AryaOS **never bridges or routes** a wireless onboarding
 client onto the wired ethernet. The firewalld default zone ships with no
-intra-zone forwarding, so a device connected to the `aryaos-xxxx` hotspot (or the
-Bluetooth PAN) can reach the box's own onboarding/admin services **but is never
-routed to `eth0` or the upstream network** - even if `net.ipv4.ip_forward` is
-enabled on the host (Docker, for example, turns it on). See
+intra-zone forwarding. A hotspot or Bluetooth PAN client can reach the device's
+onboarding and administration services. The firewall never routes that client
+to `eth0` or the upstream network. This rule also applies when the host enables
+`net.ipv4.ip_forward`. See
 [Firewall](firewall.md) for the zone details.
 
 ## Related

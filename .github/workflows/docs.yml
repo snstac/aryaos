@@ -1,13 +1,30 @@
 name: docs
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/docs.yml"
+      - "AGENTS.md"
+      - "README.md"
+      - "docs/**"
+      - "mkdocs.yml"
+      - "scripts/fixtures/**"
+      - "scripts/test_docs_style.py"
+      - "shared_files/aryaos/**"
+      - "shared_files/node-red/aryaos_flows.json"
   push:
     branches:
       - main
     paths:
       - ".github/workflows/docs.yml"
+      - "AGENTS.md"
+      - "README.md"
       - "docs/**"
       - "mkdocs.yml"
+      - "scripts/fixtures/**"
+      - "scripts/test_docs_style.py"
+      - "shared_files/aryaos/**"
+      - "shared_files/node-red/aryaos_flows.json"
   workflow_dispatch:
 
 permissions:
@@ -36,18 +53,24 @@ jobs:
       - name: Install documentation dependencies
         run: python -m pip install -r docs/requirements.txt
 
+      - name: Check technical writing style
+        run: python3 -m unittest scripts.test_docs_style -v
+
       - name: Build documentation
-        run: mkdocs build
+        run: mkdocs build --strict
 
       - name: Configure GitHub Pages
+        if: github.event_name == 'push'
         uses: actions/configure-pages@v6
 
       - name: Upload documentation artifact
+        if: github.event_name == 'push'
         uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
   deploy:
+    if: github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
     environment:

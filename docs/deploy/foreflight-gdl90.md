@@ -1,11 +1,16 @@
 # Display the air picture in ForeFlight
 
-See the TAK air picture in your Electronic Flight Bag (EFB). AryaOS runs **GDLCOT**, which rebroadcasts Cursor on Target (CoT) tracks as **GDL90** over UDP, so **ForeFlight**, **FlyQ EFB**, and **Garmin Pilot** display the same traffic TAK sees.
+See the TAK air picture in your Electronic Flight Bag (EFB). AryaOS runs **GDLCOT**, which sends
+Cursor on Target (CoT) tracks as **GDL90** over UDP. **ForeFlight**, **FlyQ EFB**, and
+**Garmin Pilot** can display the same traffic that TAK shows.
 
-GDLCOT is the reverse of `adsbcot`: **CoT in, GDL90 out**. It subscribes to the CoT air picture, keeps a table of tracks, and once a second emits GDL90 Heartbeat, Ownship, and Traffic Report datagrams - exactly as a stratux or GDL 90 receiver would. Any traffic on your TAK network shows up in the cockpit: ADS-B via `adsbcot`, drone Remote ID via `dronecot`, even tracks from a TAK Server.
+GDLCOT is the reverse of `adsbcot`: **CoT in, GDL90 out**. It subscribes to the CoT air picture and
+keeps a track table. Each second, it sends GDL90 Heartbeat, Ownship, and Traffic Report datagrams.
+A Stratux or GDL 90 receiver sends the same datagrams. Traffic from your TAK network then appears
+in the cockpit.
 
 !!! info "Enabled by the air and multi roles"
-    `gdlcot` is part of the `air` and `multi` role unit sets, so selecting either role in **Cockpit > AryaOS Site** turns it on automatically. See [Air - ADS-B & UAT](./air-adsb.md) and [Device roles](../config/device-roles.md).
+    `gdlcot` is part of the `air` and `multi` role unit sets. Thus, selecting either role in **Cockpit > AryaOS Site** turns it on automatically. See [Air - ADS-B & UAT](./air-adsb.md) and [Device roles](../config/device-roles.md).
 
 ## ForeFlight setup
 
@@ -19,7 +24,7 @@ GDLCOT is the reverse of `adsbcot`: **CoT in, GDL90 out**. It subscribes to the 
     Same behavior: join the same Wi-Fi, and the app auto-detects GDL90 traffic on UDP 4000. No manual IP entry needed.
 
 !!! warning "Same Wi-Fi is required"
-    GDLCOT broadcasts GDL90 to `255.255.255.255:4000` by default. Broadcast does not cross subnets, so the EFB device must be on the **same Wi-Fi network / L2 segment** as the box (e.g. both on the AryaOS hotspot). It is not carried over a routed uplink.
+    GDLCOT broadcasts GDL90 to `255.255.255.255:4000` by default. Broadcast does not cross subnets. Thus, the EFB device must be on the **same Wi-Fi network / L2 segment** as the box (e.g. Both on the AryaOS hotspot). It is not carried over a routed uplink.
 
 ## How it flows
 
@@ -37,10 +42,10 @@ GDLCOT is PyTAK-style, configured via `/etc/default/gdlcot` (systemd `Environmen
 | Key | Default | Description |
 |-----|---------|-------------|
 | `COT_URL` | `udp+ro://239.2.3.1:6969` | CoT source. Default is the Mesh SA multicast group. |
-| `GDL90_URL` | `udp+broadcast://255.255.255.255:4000` | GDL90 egress. Broadcast is the stratux/ForeFlight convention; unicast `udp://host:port` also works. |
+| `GDL90_URL` | `udp+broadcast://255.255.255.255:4000` | GDL90 egress. Broadcast is the stratux/ForeFlight convention. unicast `udp://host:port` also works. |
 | `STALE_SECS` | `60` | Drop tracks not updated within this many seconds. |
 | `UPDATE_HZ` | `1` | GDL90 update rate (heartbeat convention is 1 Hz). |
-| `OWNSHIP_UID` | - | CoT UID whose track becomes the Ownship Report (e.g. this device's GPSCOT/LINCOT UID). |
+| `OWNSHIP_UID` | - | CoT UID whose track becomes the Ownship Report (e.g. This device's GPSCOT/LINCOT UID). |
 | `OWNSHIP_LAT` / `OWNSHIP_LON` / `OWNSHIP_ALT_FT` | - | Static ownship position fallback. |
 | `CALLSIGN` | `GDLCOT` | Ownship callsign shown in the EFB. |
 
@@ -54,7 +59,7 @@ Give the EFB a blue "you are here" ownship in one of two ways:
 If no ownship is configured, GDLCOT sends heartbeat + traffic only.
 
 !!! note "Advisory traffic, not certified ADS-B In"
-    CoT carries geometric (HAE) altitude, which GDLCOT uses for the Traffic Report altitude and the Ownship Geometric Altitude message. EFBs treat this as **advisory traffic**, not certified ADS-B In. Tracks with `ICAO-A1B2C3`-style UIDs keep their real 24-bit ICAO address; other tracks get a stable self-assigned address hashed from the UID.
+    CoT carries geometric (HAE) altitude, which GDLCOT uses for the Traffic Report altitude and the Ownship Geometric Altitude message. EFBs treat this as **advisory traffic**, not certified ADS-B In. Tracks with `ICAO-A1B2C3`-style UIDs keep their real 24-bit ICAO address. other tracks get a stable self-assigned address hashed from the UID.
 
 ## Verify
 

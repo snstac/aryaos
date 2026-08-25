@@ -1,9 +1,9 @@
 # Software suite
 
-AryaOS ships the full [Sensors & Signals](https://www.snstac.com) open-source suite of Team Awareness Kit (TAK) gateways and Cursor on Target (CoT) tools, plus a touch-friendly [Cockpit](https://cockpit-project.org/) web plugin for each one. Every gateway is built on [PyTAK](#pytak) and, on AryaOS, feeds the [COTBridge](#cotbridge) hub, which owns the site-wide egress to Mesh SA or a TAK Server.
+AryaOS ships the [Sensors & Signals](https://www.snstac.com) open-source TAK gateways and CoT tools. Each gateway has a touch-friendly [Cockpit](https://cockpit-project.org/) plugin. Every gateway uses [PyTAK](#pytak) and feeds the [COTBridge](#cotbridge) hub.
 
 !!! info "How the pieces fit together"
-    Local feeders (adsbcot, aiscot, dronecot, lincot, gdlcot, gpscot) send CoT to COTBridge at `udp+wo://127.0.0.1:28087`. COTBridge listens on `udp+ro://127.0.0.1:28087` and forwards through `site-output`, which targets the Mesh SA multicast `udp+wo://239.2.3.1:6969` by default or a TAK Server selected in the AryaOS Site page. See [Ports & protocols](ports.md) and [Relay & routing](../deploy/relay-routing.md).
+    Local feeders (adsbcot, aiscot, dronecot, lincot, gdlcot, gpscot) send CoT to COTBridge at `udp+wo://127.0.0.1:28087`. COTBridge listens on `udp+ro://127.0.0.1:28087` and forwards through `site-output`. This targets the Mesh SA multicast `udp+wo://239.2.3.1:6969` by default or a TAK Server selected in the AryaOS Site page. See [Ports & protocols](ports.md) and [Relay & routing](../deploy/relay-routing.md).
 
 ## Foundation
 
@@ -58,7 +58,7 @@ Deploy: [Own position (GPS)](../deploy/own-position-gps.md).
 
 <div class="grid cards" markdown>
 
-- :material-transit-connection-variant: **[COTBridge](https://github.com/snstac/cotbridge)** - Bridges and relays CoT between networks and TAK Servers; the AryaOS egress hub. Deploy: [Relay & routing](../deploy/relay-routing.md)
+- :material-transit-connection-variant: **[COTBridge](https://github.com/snstac/cotbridge)** - The AryaOS egress hub. It relays CoT between networks and TAK Servers. [Relay & routing](../deploy/relay-routing.md)
 
 </div>
 
@@ -80,7 +80,7 @@ Deploy: [Own position (GPS)](../deploy/own-position-gps.md).
 
 ## Web admin - Cockpit plugins
 
-Every gateway on AryaOS is managed from a browser UI built on [Cockpit](https://cockpit-project.org/) (HTTPS on port 9090, also reachable via the portal proxy). Each plugin edits its service's `/etc/default/<svc>`; the **AryaOS Site** plugin edits the site config and TAK TLS.
+Every gateway on AryaOS is managed from a browser UI built on [Cockpit](https://cockpit-project.org/) (HTTPS on port 9090, also reachable via the portal proxy). Each plugin edits its service's `/etc/default/<svc>`. The **AryaOS Site** plugin edits the site config and TAK TLS.
 
 | Plugin | Manages |
 |---|---|

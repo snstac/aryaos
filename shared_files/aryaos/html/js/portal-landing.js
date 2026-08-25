@@ -117,7 +117,8 @@
           loadStatus();
         })
         .catch(function (e) {
-          setDpResult("bad", e && e.message ? e.message : "Upload failed.");
+          var detail = e && e.message ? " Detail: " + e.message : "";
+          setDpResult("bad", "Package import failed. Examine the package and try again." + detail);
         })
         .finally(function () {
           if (dpSubmit) dpSubmit.disabled = false;
@@ -712,7 +713,8 @@
         fillSystem(d.system != null ? d.system : null);
       })
       .catch(function (e) {
-        showErr("Could not load status from " + api + ". " + (e && e.message ? e.message : ""));
+        var detail = e && e.message ? " Detail: " + e.message : "";
+        showErr("Status request failed for " + api + ". Examine the network connection and try again." + detail);
         setOnline(false);
         fillHero(null);
         fillRadios(null);

@@ -28,7 +28,7 @@ if [[ -f $AOS_CONFIG ]]; then
 	# shellcheck source=aryaos-config.txt
 	. "$AOS_CONFIG"
 else
-	echo "$AOS_CONFIG doesn't exist, initializing."
+	echo "$AOS_CONFIG does not exist. Initializing the configuration."
 	install -d -m 0755 /etc/aryaos
 	touch "$AOS_CONFIG"
 	echo 'DEVICE_SUFFIX=""' >>"$AOS_CONFIG"
@@ -39,7 +39,7 @@ grep -qs -e 'DEVICE_SUFFIX' "$AOS_CONFIG" || echo 'DEVICE_SUFFIX=""' >>"$AOS_CON
 # DEVICE_SUFFIX — last 4 of machine-id (or MAC) for hostname and WiFi SSID.
 if [[ -z "${DEVICE_SUFFIX}" ]]; then
 	NEW_SUFFIX="$(device_suffix)" || {
-		echo "device_suffix: could not derive suffix" >&2
+		echo "device_suffix: Suffix derivation failed. Examine the machine ID and network interfaces." >&2
 		exit 1
 	}
 	sed --follow-symlinks -i -E -e "s/^DEVICE_SUFFIX=.*/DEVICE_SUFFIX=${NEW_SUFFIX}/" "$AOS_CONFIG"

@@ -1,17 +1,16 @@
 # GutCheck Discovery v1
 
-GutCheck Discovery is AryaOS's tactical local-link discovery contract. Its
-layered shape is informed by military service-discovery requirements, including
-the kinds of capabilities described around NATO/STANAG 4817, but version 1 is
-an AryaOS protocol and makes **no STANAG conformance claim**.
+GutCheck Discovery is AryaOS's tactical local-link discovery contract. Its layered shape is informed
+by military service-discovery requirements. This includes the kinds of capabilities described around
+NATO/STANAG 4817. But version 1 is an AryaOS protocol and makes **no STANAG conformance claim**.
 
 ## Identity document
 
 `GET /.well-known/gutcheck` is unauthenticated and returns only:
 
-- schema and protocol version;
-- a stable opaque UUID derived from (but not revealing) the machine ID;
-- product name, hostname, and `.local` FQDN;
+- schema and protocol version.
+- a stable opaque UUID derived from (but not revealing) the machine ID.
+- product name, hostname, and `.local` FQDN.
 - discovery, landing-page, and admin service URLs.
 
 It deliberately excludes location, health, roles, sensor capabilities,
@@ -37,7 +36,7 @@ provides the address needed to join multicast groups.
 ## Source precedence
 
 The same opaque discovery ID joins CoT, DNS-SD, and SSDP observations into one
-node. DNS-SD/SSDP may refresh network presence and service URLs, but may not
+node. DNS-SD/SSDP can refresh network presence and service URLs, but can not
 refresh or replace CoT-derived health and position. LINCOT is the preferred
-AryaOS self beacon; GutCheck emits a no-fix CoT fallback only after LINCOT is
+AryaOS self beacon. GutCheck emits a no-fix CoT fallback only after LINCOT is
 stale.

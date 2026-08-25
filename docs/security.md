@@ -1,8 +1,8 @@
 # Security posture
 
-AryaOS units are field appliances: they must be administrable through a
-browser (Cockpit) by an operator wearing gloves, survive hostile LANs, and
-still be recoverable without key material. The hardening below reflects those
+AryaOS devices are field appliances. An operator wearing gloves must be able
+to administer them through Cockpit. They must survive hostile LANs and support
+recovery without key material. The hardening below reflects those
 trade-offs. Everything ships in both dev/lab and release images - the two
 flavors differ only in *access* (lab SSH key, passwordless sudo, password
 expiry), never in posture.
@@ -12,7 +12,7 @@ expiry), never in posture.
 - **Authorized-use notices** are shown before authentication over SSH
   (`/etc/issue.net`), on local consoles (`/etc/issue`), after login
   (`/etc/motd`), and persistently on the HTTPS landing page. The notice states
-  that access is restricted and activity may be monitored, recorded, and
+  that access is restricted and activity can be monitored, recorded, and
   audited. This is CMMC-aligned preparatory language, not a claim that a
   particular deployment is CMMC certified or compliant.
 - **Default password** (`pi` / published) is force-expired at first login on
@@ -20,11 +20,11 @@ expiry), never in posture.
 - **sshd** (`/etc/ssh/sshd_config.d/50-aryaos.conf`): root login disabled,
   empty passwords disabled, `MaxAuthTries 4`, `LoginGraceTime 30`, no X11
   forwarding. Password authentication stays **enabled** by design - field
-  operators may have no keys; see the default-password expiry above.
+  operators can have no keys. See the default-password expiry above.
 - **fail2ban** (`/etc/fail2ban/jail.d/aryaos.local`): sshd jail, systemd
   backend, 15 min bans. Bluetooth PAN clients (`10.44.0.0/24`) are never
   banned - that is the operator standing next to the box.
-- **sudo** is fully logged (JSON I/O logging, `/etc/sudoers.d/aryaos`); no
+- **sudo** is fully logged (JSON I/O logging, `/etc/sudoers.d/aryaos`). No
   NOPASSWD on release images (asserted by `scripts/verify-image.sh`).
 
 ## Network
@@ -38,10 +38,10 @@ expiry), never in posture.
 - Operators manage the firewall in **Cockpit > Networking > Firewall** (no
   shell needed).
 - The AntSDR point-to-point link (`eth1`, `aryaos-antsdr.nmconnection`) is in
-  the **trusted** zone so the sensor can reach the `dronecot-dji` listener.
+  the **trusted** zone. This lets the sensor reach the `dronecot-dji` listener.
 - Docker-published ports (CloudTAK, UAS broker) are governed by Docker's own
   firewalld integration, not the public zone.
-- **cockpit-ws** binds loopback only; lighttpd terminates TLS on `:443` and
+- **cockpit-ws** binds loopback only. Lighttpd terminates TLS on `:443` and
   proxies `/admin`.
 - **sysctl** (`/etc/sysctl.d/90-aryaos-hardening.conf`): no ICMP redirects,
   no source routing, loose RPF (multi-homed + multicast), syncookies, kptr/
@@ -49,7 +49,7 @@ expiry), never in posture.
 
 ## TLS keys
 
-- pi-gen deletes SSH host keys at image build; they regenerate per device on
+- pi-gen deletes SSH host keys at image build. They regenerate per device on
   first boot.
 - The web (portal/Cockpit) TLS key is also **regenerated per device** at
   first boot (`aryaos-firstboot.sh`, marker
@@ -62,7 +62,7 @@ expiry), never in posture.
 ## Updates
 
 - **Debian security fixes install automatically** every day
-  (unattended-upgrades; `/etc/apt/apt.conf.d/52unattended-upgrades-aryaos`).
+  (`unattended-upgrades`, `/etc/apt/apt.conf.d/52unattended-upgrades-aryaos`).
   No automatic reboots. The snstac sensor stack is *not* auto-upgraded -
   restarting sensors mid-operation is an operator decision.
 - **One-click updates**: Cockpit > AryaOS Site > *Software updates* checks
@@ -75,10 +75,10 @@ expiry), never in posture.
 
 ## Node-RED admin password
 
-Node-RED ships with a publicly known default admin password (`aryaos415`) and
-the editor can run arbitrary code as the `node-red` user - **rotate it before
+Node-RED ships with a publicly known default admin password (`aryaos415`).
+The editor can run arbitrary code as the `node-red` user. **Change the password before
 fielding a unit**. Cockpit > AryaOS Site > *Node-RED admin password* does
-this in the browser; the backend is
+this in the browser. The backend is
 `/usr/local/sbin/aryaos-set-nodered-password` (reads the new password on
 stdin, bcrypt-hashes it with Node-RED's bundled bcryptjs, rewrites the
 `adminAuth` entry in `settings.js`, restarts Node-RED).
@@ -89,33 +89,30 @@ Cockpit > AryaOS Site > *Support bundle* generates a downloadable diagnostics
 tarball via `/usr/local/sbin/aryaos-support-bundle`: system/package/service
 state, capped journals, network and firewall state, and sensor-gateway
 configs. Values of keys matching `PASSWORD/TOKEN/SECRET/PASSPHRASE/PSK` and
-`tak://` enrollment credentials are redacted; nothing from `/etc/aryaos/tls`
+`tak://` enrollment credentials are redacted. Nothing from `/etc/aryaos/tls`
 or other private key material is included. Bundles land in
 `/var/lib/aryaos/support/` (`0600`, three newest kept).
 
 ## Decommissioning
 
-When a unit is re-issued, retired, or at risk of capture, AryaOS gives you two
-levels of teardown - always **[back up](operations/backup-restore.md) first** if
-you want the config back (a full backup carries private keys and Wi-Fi PSKs, so
-store it securely):
+AryaOS provides two teardown levels for reassignment, retirement, or capture.
+If you need the configuration, **[back it up](operations/backup-restore.md)
+first**. Store full backups securely because they contain private keys and Wi-Fi PSKs.
 
 - **[Factory reset](operations/factory-reset.md)**
   (`/usr/local/sbin/aryaos-factory-reset`) - restores config to packaged
   defaults, deletes uploaded TAK certs, clears device identity so first boot
   re-runs, and reboots. Keeps the OS, packages, and (by default) the network.
-  This is for **re-use**; it does **not** securely erase anything.
+  This is for **re-use**. It does **not** securely erase anything.
 - **[Zeroize](operations/zeroize.md)** (`/usr/local/sbin/aryaos-zeroize`) - for
-  **decommission or capture**: shreds and overwrites all keys, credentials,
-  logs, tracks, and identity, restores the default site/COTBridge targets,
-  replaces and expires the `pi` password, removes authorized keys and lab
-  privilege, overwrites free space, TRIMs, and reboots clean. The Cockpit card
-  requires a typed confirmation phrase.
+  **decommission or capture**. It erases keys, credentials, logs, tracks, and
+  identity. It restores defaults, removes access, cleans free space, and
+  reboots. The Cockpit card requires a typed confirmation phrase.
 
 !!! danger "Zeroize is best-effort on flash media"
     Wear-leveling on microSD/eMMC/NVMe means overwrite and TRIM **cannot
-    guarantee** prior contents are unrecoverable - the controller may have
-    written data to blocks software can't reach. For a hard guarantee, use
+    guarantee** prior contents are unrecoverable - the controller can have
+    written data to blocks software cannot reach. For a hard guarantee, use
     full-disk encryption with crypto-erase (roadmap) or physically destroy the
     media. See [Zeroize](operations/zeroize.md).
 

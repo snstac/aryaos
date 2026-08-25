@@ -1,10 +1,10 @@
 # Aircraft via ADS-B & UAT
 
-Turn AryaOS into a standalone airspace picture: attach an SDR and antenna, select the **`air`** role, and crewed aircraft appear on ATAK/WinTAK/iTAK as native Cursor on Target (CoT) tracks.
+Turn AryaOS into a standalone airspace picture. Attach an SDR and antenna, select the **`air`** role. Crewed aircraft appear on ATAK/WinTAK/iTAK as native Cursor on Target (CoT) tracks.
 
 Aircraft broadcast their position on two frequencies:
 
-- **1090 MHz - ADS-B (Mode S Extended Squitter).** The global standard; airliners and most turbine aircraft.
+- **1090 MHz - ADS-B (Mode S Extended Squitter).** The global standard for airliners and most turbine aircraft.
 - **978 MHz - UAT (Universal Access Transceiver).** A US-only band used by many general-aviation aircraft below 18,000 ft.
 
 AryaOS decodes both and feeds them to your COP through `adsbcot`.
@@ -15,7 +15,7 @@ AryaOS decodes both and feeds them to your COP through `adsbcot`.
 |------|-------|
 | RTL-SDR (RTL2832U) dongle | One per band. `readsb`, `dump1090-fa`, and `dump978-fa` all use RTL-SDR. |
 | 1090 MHz antenna | A tuned 1090 MHz ADS-B antenna beats a stock whip by a wide margin. |
-| 978 MHz antenna | Only if you decode UAT; use a separate SDR + antenna for the second band. |
+| 978 MHz antenna | Only if you decode UAT. Use a separate SDR + antenna for the second band. |
 | Low-loss coax + optional LNA/filter | A 1090 MHz SAW filter/LNA reduces out-of-band overload near cities. |
 
 !!! tip "Range in the field"
@@ -43,11 +43,11 @@ AryaOS decodes both and feeds them to your COP through `adsbcot`.
 
 ## Choose the ADS-B decoder
 
-AryaOS ships two 1090 MHz decoders; **exactly one** runs at a time, selected by `ARYAOS_ADSB_DECODER` in the site config:
+AryaOS ships two 1090 MHz decoders. **exactly one** runs at a time, selected by `ARYAOS_ADSB_DECODER` in the site config:
 
 | Value | Decoder | Notes |
 |-------|---------|-------|
-| `readsb` | `readsb` | Default. Broad SDR support (RTL-SDR / SoapySDR / HackRF). `apt-mark hold` so updates don't change it under you. |
+| `readsb` | `readsb` | Default. Broad SDR support (RTL-SDR / SoapySDR / HackRF). `apt-mark hold` so updates do not change it under you. |
 | `dump1090_fa` | `dump1090-fa` | FlightAware's decoder. |
 
 Set it from the **TAK destination** card's **ADS-B decoder** dropdown, or edit `ARYAOS_ADSB_DECODER` directly.
@@ -67,7 +67,10 @@ AryaOS selects dongles by their **EEPROM serial** so the right SDR handles the r
 The 978 MHz serial is configurable from the **UAT (978 MHz) RTL-SDR serial** field on the **TAK destination** card, or via `ARYAOS_UAT_978_DEVICE` in the site config (default `stx:978:0`, which matches the Nooelec NESDR Nano 3 "978" EEPROM preset).
 
 !!! danger "Never share a serial between bands"
-    The 978 MHz SDR must not use the same serial as the 1090 MHz path, or the decoders will fight over the same dongle. If your dongles ship blank or duplicated, re-serial them from the **Radios** card or with `aryaos-sdr set-serial IDX SERIAL`. Writing a serial briefly stops SDR services - **replug the dongle (or reboot)** before the new serial is visible.
+    The 978 MHz SDR must not use the same serial as the 1090 MHz path. Duplicate serials make both
+    decoders claim the same dongle. Assign unique serials with the **Radios** card or
+    `aryaos-sdr set-serial IDX SERIAL`. Writing a serial briefly stops SDR services. **Replug the
+    dongle or reboot** before you check the new serial.
 
 For SDR discovery, EEPROM re-serialing, and antenna wiring, see the [Radios](../config/radios-sdr.md) page.
 
@@ -86,7 +89,7 @@ flowchart LR
     ADSB -->|CoT| H[COTBridge hub]
 ```
 
-- **One SDR (1090 only):** the most common setup. Decode ADS-B; leave `dump978-fa` idle (no UAT antenna).
+- **One SDR (1090 only):** Decode ADS-B and leave `dump978-fa` idle. This is the most common setup.
 - **Two SDRs (1090 + 978):** add a second dongle serialed `stx:978:0` and a 978 MHz antenna to also see UAT traffic.
 
 ## Verify tracks

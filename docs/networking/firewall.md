@@ -15,9 +15,9 @@ implicitly accepted by firewalld.
 | --- | --- | --- |
 | `ssh` | 22/tcp | SSH administration (sshd hardened - see [Security](../security.md)). |
 | `http` | 80/tcp | Web portal (lighttpd) and Cockpit proxy. |
-| `https` | 443/tcp | TLS portal; lighttpd terminates TLS and proxies `/admin` to Cockpit. |
+| `https` | 443/tcp | TLS portal. Lighttpd terminates TLS and proxies `/admin` to Cockpit. |
 | `mdns` | 5353/udp | mDNS/ZeroConf so the box is findable as `aryaos-xxxx.local`. |
-| `dhcp` | 67/udp | DHCP leases - served only while the comitup hotspot runs; also leases [Bluetooth PAN](../bluetooth-pan.md) clients. |
+| `dhcp` | 67/udp | DHCP leases - served only while the comitup hotspot runs. also leases [Bluetooth PAN](../bluetooth-pan.md) clients. |
 | `dhcpv6-client` | 546/udp | DHCPv6 client. |
 | `dns` | 53/tcp+udp | DNS - answered only while the comitup onboarding hotspot is up (dnsmasq is not otherwise active). |
 | `aryaos-mesh-sa` | 6969/udp | TAK **Mesh SA** multicast - COTBridge and GutCheck CoT discovery on `239.2.3.1:6969`. |
@@ -34,23 +34,22 @@ implicitly accepted by firewalld.
     readable and lets you toggle a whole capability at once.
 
 !!! note "Some ports only answer sometimes"
-    `dhcp`, `dhcpv6-client`, and `dns` exist for onboarding: they're answered
+    `dhcp`, `dhcpv6-client`, and `dns` exist for onboarding: they are answered
     while the [comitup hotspot](wifi-hotspot.md) is running (and DHCP also
     leases Bluetooth PAN clients). The `9080` onboarding portal likewise only
-    listens in hotspot mode. Opening the port in the zone doesn't mean a service
+    listens in hotspot mode. Opening the port in the zone does not mean a service
     is always behind it.
 
 ## Onboarding radios are isolated from the wired network
 
-The `AryaOS` zone deliberately ships with **no intra-zone forwarding** (no
-`forward` element). This is an appliance, not a router: a client on the
-`aryaos-xxxx` Wi-Fi hotspot or the [Bluetooth PAN](../bluetooth-pan.md) can reach
-the box's own services (the allowlist above) but is **never routed or bridged
-onto `eth0` or the upstream network.**
+The `AryaOS` zone deliberately ships with **no intra-zone forwarding**. This
+device is an appliance, not a router. A hotspot or
+[Bluetooth PAN](../bluetooth-pan.md) client can reach the allowlisted services.
+The firewall never routes that client to the upstream network.
 
 Because the rule is enforced in the firewall's `FORWARD` path, it holds **even
-when `net.ipv4.ip_forward` is enabled** on the host - which happens whenever
-Docker is running. Without this, a hotspot client could otherwise be routed
+When `net.ipv4.ip_forward` is enabled** on the host - which happens whenever
+Docker is running. Without this, a hotspot client can otherwise be routed
 straight onto the wired LAN. Docker's own container networking is unaffected (it
 lives in a separate `docker` zone with its own forwarding rules).
 
@@ -61,10 +60,9 @@ For the canonical port/protocol reference across the whole system, see
 
 ## The AntSDR trusted-zone note
 
-The AntSDR point-to-point link (`eth1`, `aryaos-antsdr.nmconnection`) is placed
-in firewalld's **`trusted`** zone rather than the default `AryaOS` zone, so the
-drone-detection sensor can reach the `dronecot-dji` listener over that dedicated
-cable without you poking a hole in the field-facing allowlist. This is a private
+Firewalld places the AntSDR point-to-point link in the **`trusted`** zone. The
+drone sensor can then reach the `dronecot-dji` listener over its dedicated
+cable. You do not need to open the field-facing allowlist. This is a private
 sensor link, not a general network - treat the `trusted` zone as reserved for
 it.
 
@@ -123,10 +121,9 @@ Say you want to expose a new dashboard on TCP `8200`.
 
 !!! warning "Open only what you serve"
     The allowlist model is the point of the firewall. Every port you open is
-    attack surface on a device that may sit on a hostile LAN. Close services you
-    don't use, and prefer reaching internal-only tools over the
-    [VPN](vpn-tailscale.md) or [Bluetooth PAN](../bluetooth-pan.md) instead of
-    opening a port to the whole network.
+    attack surface on a device that can sit on a hostile LAN. Close services you
+    do not use. Reach internal tools through the [VPN](vpn-tailscale.md) or
+    [Bluetooth PAN](../bluetooth-pan.md) instead of opening a public port.
 
 ## Related
 

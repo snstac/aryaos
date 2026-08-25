@@ -17,14 +17,13 @@ hide:
     [Read the AOS2 reveal](launch/aos2/announcement.md){ .md-button .md-button--primary }
     [Compare AOS2 with v1](launch/aos2/feature-matrix.md){ .md-button }
 
-AryaOS turns an inexpensive single-board computer into a turn-key gateway that
-puts live aircraft, vessels, and drones onto any [TAK](reference/glossary.md#tak)
-device - ATAK, WinTAK, iTAK, or a TAK Server - with no cloud, no subscription,
-and no command line required. Sensors in, [Cursor on Target](reference/glossary.md#cot)
-out, managed entirely from a touch-friendly web console.
+AryaOS turns an inexpensive single-board computer into a turn-key sensor
+gateway. It sends live aircraft, vessel, and drone tracks to any
+[TAK](reference/glossary.md#tak) device. The gateway needs no cloud,
+subscription, or command line. A touch-friendly web console controls it.
 
-ADS-B and UAT aircraft, AIS vessels, drone Remote ID over Wi-Fi and Bluetooth,
-DJI DroneID, APRS, and your own GPS position - on one box, in one picture.
+ADS-B and UAT aircraft, AIS vessels, drone Remote ID over Wi-Fi. Bluetooth, DJI DroneID, APRS. Your
+own GPS position - on one box, in one picture.
 
 [Get started in 15 minutes](get-started/quickstart.md){ .md-button .md-button--primary }
 [What is AryaOS?](get-started/overview.md){ .md-button }
@@ -76,12 +75,12 @@ DJI DroneID, APRS, and your own GPS position - on one box, in one picture.
 
 Capabilities are named after the signal, not after a product - `adsb`, `ais`,
 `wifi-rid`, `ble-rid`, `rid`, `dji`, `sik`, `sapient`, `acars`. They are exactly the names
-you type, the names the box reports, and the names on the map.
+You type, the names the box reports, and the names on the map.
 
-The image ships with every sensor **switched off**; on first boot the box works
-out what is actually plugged in and enables what it finds, then reports anything
-it could do but did not turn on. Mix them freely - it will tell you when two
-capabilities want the same radio.
+The image ships with every sensor **switched off**. On first boot, AryaOS finds
+attached hardware and enables supported sensors. It reports supported sensors
+that remain disabled. Mix them
+freely - it will tell you when two capabilities want the same radio.
 
 | Capability | Enable with | What appears on the map | Hardware needed |
 |------------|-------------|-------------------------|-----------------|

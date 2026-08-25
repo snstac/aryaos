@@ -1,16 +1,18 @@
 # Own position & GPS
 
-Put the AryaOS box itself on the map, and share its GPS with your TAK client. This works in **every** role - the position core always runs - so your sensor gateway is also a self-locating node.
+Put the AryaOS box itself on the map. Share its GPS with your TAK client. This works in **every** role. The position core always runs. So your sensor gateway is also a self-locating node.
 
 AryaOS uses two cooperating tools for position:
 
 - **LINCOT** beacons the *host's own position* to TAK as a CoT marker, so the box shows up on the map like any other unit.
-- **GPSCOT** streams `gpsd` position data to the network as CoT and fans out NMEA for WinTAK - giving a connected phone or laptop a GPS fix even when it has no receiver of its own.
+- **GPSCOT** streams `gpsd` position data to the network as CoT and fans out NMEA for WinTAK. Giving a connected phone or laptop a GPS fix even when it has no receiver of its own.
 
 Both feed from **`gpsd`**, which reads a connected GNSS receiver.
 
 !!! note "Always on"
-    `cotbridge`, `lincot`, `gpscot`, and `gpsd` are part of the CoT core and run regardless of the selected [device role](../config/device-roles.md) - including `relay`. You do not need a special role to share position.
+    `cotbridge`, `lincot`, `gpscot`, and `gpsd` are part of the CoT core. They run in every
+    [device role](../config/device-roles.md), including `relay`. You do not need a special role to
+    share position.
 
 ## Hardware
 
@@ -36,7 +38,8 @@ flowchart LR
 
 ## Share the box's position with TAK
 
-No configuration is required in the common case: connect a GNSS receiver, connect your EUD to the AryaOS hotspot, and the box's marker appears via Mesh SA.
+The common case needs no configuration. Connect a GNSS receiver and connect your EUD to the AryaOS
+hotspot. The box's marker appears through Mesh SA.
 
 To confirm the pipeline:
 
@@ -54,7 +57,7 @@ When your phone or WinTAK machine has no GPS (or a poor one indoors/in a vehicle
 
 === "WinTAK"
 
-    GPSCOT fans out NMEA that WinTAK can consume as an external GPS source, so a laptop with no receiver gets a live fix from the box.
+    GPSCOT fans out NMEA that WinTAK can consume as an external GPS source. Thus, a laptop with no receiver gets a live fix from the box.
 
 === "ATAK"
 
@@ -64,10 +67,12 @@ See the [GPSCOT](https://github.com/snstac/gpscot) project for client-side setup
 
 ## Static position fallback
 
-If the box has no GNSS receiver - or you want a fixed marker for a base station or repeater - set a static position instead of relying on `gpsd`. LINCOT supports a fixed lat/lon so the host still beacons a location. Configure it from the LINCOT plugin in Cockpit (which edits `/etc/default/lincot`).
+Set a static position when the box has no GNSS receiver or serves as a fixed site.
+LINCOT supports fixed latitude and longitude values. Configure them in the LINCOT Cockpit plugin,
+which edits `/etc/default/lincot`.
 
 !!! info "Wildland fire & SAR"
-    In fire and search-and-rescue deployments, a self-locating gateway lets the incident COP show exactly where each sensor node sits, even when the carrying EUD is offline.
+    A self-locating gateway shows each sensor node in the incident COP. This works when the connected EUD is offline.
 
 ## Related
 

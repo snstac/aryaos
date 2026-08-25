@@ -2,34 +2,32 @@
 
 ## What is AryaOS 2?
 
-AryaOS 2 is an arm64 operating-system image that turns a Raspberry Pi into a
-multi-sensor gateway for the Team Awareness Kit ecosystem. It receives local
-aircraft, vessel, drone, radio, and GNSS information and converts or routes it
-as Cursor on Target for ATAK, WinTAK, iTAK, TAKX, or TAK Server.
+AryaOS 2 is an arm64 operating-system image that turns a Raspberry Pi into a multi-sensor gateway
+for the Team Awareness Kit ecosystem. It receives local aircraft, vessel, drone, radio. GNSS
+information. Converts or routes it as Cursor on Target for ATAK, WinTAK, iTAK, TAKX, or TAK Server.
 
 It is the complete rewrite of AryaOS 1 and the AirTAK lineage. The first stable
-AOS2 artifact is `v2.1.19`; “AryaOS 2” is the public generation name.
+AOS2 artifact is `v2.1.19`. “AryaOS 2” is the public generation name.
 
 ## Is it available now?
 
 Yes. Use [AryaOS Imager](https://github.com/snstac/aryaos-imager/releases) or
 download the stable image from the
 [v2.1.19 GitHub release](https://github.com/snstac/aryaos/releases/tag/v2.1.19).
-Do not field an image whose tag ends in `-dev`; development images contain lab
+Do not field an image whose tag ends in `-dev`. Development images contain lab
 access and are published as prereleases.
 
 ## Is AryaOS free or subscription-based?
 
-AryaOS is open source under the Apache License 2.0. It does not require a cloud
-service or subscription. Sensors & Signals also offers assembled hardware for
-teams that do not want to source and integrate their own Raspberry Pi, radios,
-antennas, GPS, power, and enclosure.
+AryaOS is open source under the Apache License 2.0. It does not require a cloud service or
+subscription. Sensors & Signals also offers assembled hardware for teams that do not want to source.
+Integrate their own Raspberry Pi, radios, antennas, GPS, power, and enclosure.
 
 ## Which computers are supported?
 
 The downloadable image is arm64 and is tested on Raspberry Pi 3, 4, and 5.
-Raspberry Pi 5 is recommended for multi-sensor builds; Pi 4 is the most common
-field platform; Pi 3 is appropriate for lighter single-sensor use.
+Raspberry Pi 5 is recommended for multi-sensor builds. Pi 4 is the most common
+field platform. Pi 3 is appropriate for lighter single-sensor use.
 
 An amd64 image does not ship today. Individual gateway packages can run on
 Debian amd64 systems, but that is not the same as a supported AryaOS appliance
@@ -39,7 +37,7 @@ image.
 
 No. AryaOS 2 is a full rewrite and moves the base system from Debian Bookworm
 to Trixie. Back up the information you need, flash a new card, boot AOS2 with
-the receivers attached, and re-import or re-enroll the TAK connection.
+The receivers attached, and re-import or re-enroll the TAK connection.
 
 Do not try to transplant the complete v1 filesystem or apt sources into AOS2.
 
@@ -76,22 +74,22 @@ scan enables receivers it can identify safely. Operators can then choose exact
 capabilities or apply an air, maritime, C-UAS, multi-sensor, or relay role.
 
 Network-only sensors such as SAPIENT are not auto-detected. One SDR also cannot
-decode several frequencies simultaneously; add receivers or retask the one you
+decode several frequencies simultaneously. Add receivers or retask the one you
 have.
 
 ## Which signals can it receive?
 
 Depending on attached hardware and configuration:
 
-- ADS-B on 1090 MHz and UAT on 978 MHz;
-- marine AIS;
-- ASTM Remote ID over Wi-Fi and Bluetooth;
-- Remote ID through a dedicated MAVLink receiver such as DroneScout;
-- DJI DroneID through a compatible AntSDR integration;
-- SiK/MAVLink telemetry;
-- SAPIENT BSI Flex 335 reports;
-- position-bearing ACARS messages;
-- APRS over local RF; and
+- ADS-B on 1090 MHz and UAT on 978 MHz.
+- marine AIS.
+- ASTM Remote ID over Wi-Fi and Bluetooth.
+- Remote ID through a dedicated MAVLink receiver such as DroneScout.
+- DJI DroneID through a compatible AntSDR integration.
+- SiK/MAVLink telemetry.
+- SAPIENT BSI Flex 335 reports.
+- position-bearing ACARS messages.
+- APRS over local RF.
 - GNSS position and time.
 
 It can also convert CoT aircraft tracks into GDL90 for ForeFlight and other
@@ -115,9 +113,8 @@ needed for a remote TAK Server, Tailscale, package updates, and online feeds.
 
 ## Does it include a TAK Server?
 
-No. Bundled CloudTAK was removed. AryaOS can use Mesh SA locally or connect to
-an existing TAK Server by importing a connection data package, using a one-time
-`tak://` enrollment URL, or configuring a COTBridge lane manually.
+No. Bundled CloudTAK was removed. AryaOS can use Mesh SA locally. It can connect
+to a TAK Server through a package, an enrollment URL, or a COTBridge lane.
 
 ## What is COTBridge?
 
@@ -129,7 +126,7 @@ page. Additional lanes can bridge other networks or record selected traffic.
 ## Can one node send to Mesh SA and TAK Server at the same time?
 
 Yes. Add separate COTBridge egress lanes. Avoid pointing each local sensor at
-the same upstream independently, which creates duplicated configuration and can
+The same upstream independently, which creates duplicated configuration and can
 duplicate traffic.
 
 ## Is all administration really browser-based?
@@ -142,7 +139,7 @@ or sharing controls remains command-line oriented.
 ## What happened to Node-RED?
 
 Node-RED remains installed for optional low-code automation. It is no longer
-the system configuration surface or a dependency of the landing page. It runs
+The system configuration surface or a dependency of the landing page. It runs
 as an unprivileged account, starts with empty flows, listens on loopback, and is
 served through the HTTPS proxy at `/nr/`. Legacy example flows can be imported
 manually.
@@ -160,7 +157,7 @@ No cloud inventory service is required.
 
 EMCON persistently rfkill-blocks onboard Wi-Fi and Bluetooth before the network
 stack starts. Wired Ethernet remains available. Receive-only SDR sensor services
-continue because they are not RF emitters; stop or unplug them if the mission
+continue because they are not RF emitters. stop or unplug them if the mission
 also requires removing receiver power.
 
 ## Is Bluetooth PAN a route to the upstream network?
@@ -171,10 +168,9 @@ onto the wired network.
 
 ## What does zeroize guarantee?
 
-Zeroize removes operational configuration, TAK targets and TLS material,
-authorized SSH keys, shell histories, recorded tracks, local support/backup
-files, and usable local login credentials before restoring clean defaults and
-rebooting.
+Zeroize removes operational configuration, TAK targets and TLS material, authorized SSH keys, shell
+histories, recorded tracks, local support/backup files. Usable local login credentials before
+restoring clean defaults and rebooting.
 
 It is best-effort on SD and NVMe flash. Wear leveling means filesystem overwrite
 and TRIM cannot guarantee that every prior physical flash cell is unrecoverable.

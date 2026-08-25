@@ -1,10 +1,9 @@
 # Install media longevity
 
-AryaOS runs from flash: a microSD card, eMMC, or an NVMe SSD. Flash media wears
-out by *writing* - every block has a finite number of program/erase cycles, and
-a chatty Linux install (swap, logs, atime updates) can burn through a cheap SD
-card in a single fire season. AryaOS is tuned from the factory to write to the
-install media as little as possible, so a fielded box survives.
+AryaOS runs from flash: a microSD card, eMMC, or an NVMe SSD. Flash media wears out by *writing* -
+every block has a finite number of program/erase cycles. A chatty Linux install (swap, logs, atime
+updates) can burn through a cheap SD card in a single fire season. AryaOS is tuned from the factory
+to write to the install media as little as possible, so a fielded box survives.
 
 There is **nothing to configure** - the tuning below is on by default in every
 image.
@@ -13,7 +12,7 @@ image.
 
 | Technique | What it saves |
 | --- | --- |
-| **RAM-only zram swap** | No swapfile writes ever hit the SD/NVMe. Swap lives in RAM instead (`zstd`-compressed, sized `min(ram / 2, 4096)` MB), so a memory spike from multi-SDR + Node-RED + containers still can't OOM-kill a service - and it costs zero media writes. |
+| **RAM-only zram swap** | No swapfile writes ever hit the SD/NVMe. Swap lives in RAM instead (`zstd`-compressed, sized `min(ram / 2, 4096)` MB), so a memory spike from multi-SDR + Node-RED + containers still cannot OOM-kill a service - and it costs zero media writes. |
 | **journald volatile (logs in RAM)** | The systemd journal is stored in RAM, not on disk, so the constant log churn from a running sensor stack never touches the media. |
 | **tmpfs for `/tmp`, `/var/tmp`, `/var/log`** | These write-heavy directories are RAM-backed tmpfs mounts (`/tmp` and `/var/tmp` capped at 100 MB, `/var/log` at 50 MB). Scratch files and logs live and die in memory. |
 | **Bounded sudo I/O audit history** | Sudo still records compressed command I/O for troubleshooting, but `Defaults maxseq=128` makes the history wrap after 128 sessions. This prevents audit traffic from exhausting the 50 MB `/var/log` tmpfs. |
@@ -30,29 +29,26 @@ image.
 
 ## The tradeoff: logs live in RAM
 
-Because the journal and `/var/log` are RAM-backed, **logs do not survive a
-reboot.** That is a deliberate wear tradeoff: it spares the media from the
-single biggest source of write traffic on an appliance, at the cost of
-persistent on-disk history.
+Because the journal and `/var/log` use RAM, **logs do not survive a reboot.**
+This tradeoff removes the largest source of write traffic. It also removes
+persistent log history.
 
-!!! tip "Capture logs before they're gone"
-    If you need the logs from a misbehaving unit, grab them *while the problem
-    is happening* - generate a [support bundle](./support-bundles.md), which
-    snapshots the current journal into a redacted tarball you can attach to a
-    field report. A reboot clears the RAM journal, so fresh is always better.
+!!! tip "Capture logs before they are gone"
+    If a problem occurs, generate a [support bundle](./support-bundles.md)
+    before you reboot. The bundle saves the current journal in a redacted
+    archive. A reboot clears the RAM journal.
 
 The sudo I/O history is also bounded by **session count, not elapsed time**.
-Busy diagnostic or automation runs may therefore replace old command sessions
+Busy diagnostic or automation runs can therefore replace old command sessions
 well before a reboot.
 
-TAK clients can also be exposed to very long remote outages. PyTAK `7.5.2` and
-newer retries transient TCP, TLS, WebSocket, and local network-policy failures
-inside one process with bounded, jittered exponential backoff. The same
-supervisor is available to gateways with custom worker graphs; GPSCOT `2.0.1`,
-GDLCOT `2.0.1`, and SiKW00FCOT `1.0.2` rebuild their transports in process
-instead of relying on a systemd crash loop. PKCS#12 client certificates are
-loaded from short-lived extracted PEM files that are removed immediately, so a
-week-long outage cannot fill `/tmp` or `/var/tmp` with reconnect artifacts.
+TAK clients can also be exposed to very long remote outages. PyTAK `7.5.2` and newer retries
+transient TCP, TLS, WebSocket, and local network-policy failures inside one process with bounded,
+jittered exponential backoff. The same supervisor is available to gateways with custom worker
+graphs. GPSCOT `2.0.1`, GDLCOT `2.0.1`, and SiKW00FCOT `1.0.2` rebuild their transports in process
+instead of relying on a systemd crash loop. PKCS#12 client certificates are loaded from short-lived
+extracted PEM files that are removed immediately. Thus, a week-long outage cannot fill `/tmp` or
+`/var/tmp` with reconnect artifacts.
 
 ## Check and recover tmpfs capacity
 
@@ -68,7 +64,7 @@ sudo -n find /var/log/sudo-io -mindepth 3 -maxdepth 3 -type d | wc -l
 sudo -n find /tmp /var/tmp -maxdepth 1 -type f -user acarscot -name 'tmp*.pem'
 ```
 
-A current image should accept passwordless sudo, report the `maxseq` line, keep
+A current image must accept passwordless sudo and report the `maxseq` line. It must keep
 no more than 128 completed I/O sessions, leave all three tmpfs mounts below 95%
 use, and produce no ACARSCOT PEM listing. The HIL service and security modules
 check the configuration and capacity automatically:
@@ -85,18 +81,18 @@ sudo: error initializing I/O plugin sudoers_io
 ```
 
 For a TAK client, the equivalent symptom is `No usable temporary directory`
-or `No space left on device` during certificate loading, often accompanied by
-many root-level `tmp*.pem` files owned by the gateway account. Upgrade PyTAK to
+or `No space left on device` during certificate loading. Many root-level
+`tmp*.pem` files can accompany the error. Upgrade PyTAK to
 `7.5.2` or newer before restarting the gateway. If cleanup is required, stop
 the affected unit and remove only the confirmed root-level temporary PEMs owned
-by that service account; never remove its persistent certificate cache under
+by that service account. Never remove its persistent certificate cache under
 `/var/lib/<service>/.pytak/certs`.
 
 Capture a support bundle before recovery if sudo and enough log space remain.
 A controlled reboot is the normal recovery: `/var/log` is RAM-backed, so the
 reboot clears the full tmpfs. If sudo is already unusable, recover from a local
 root console or perform the controlled reboot through the appliance power/UI
-path; do not recursively delete `/var/log`. After recovery, install AryaOS
+path. Do not recursively delete `/var/log`. After recovery, install AryaOS
 overlay `2.0.6` or newer, reboot once, and rerun the security check above.
 
 ## NVMe vs SD cards
@@ -119,9 +115,9 @@ itself matters:
     itself is the weakest link:
 
     - Use a reputable, endurance-rated ("high endurance" / industrial) card, not
-      the cheapest one on the shelf.
+      The cheapest one on the shelf.
     - A worn or counterfeit card shows up as filesystem corruption or a box that
-      won't boot. If a unit starts misbehaving after long service, suspect the
+      Will not boot. If a unit starts misbehaving after long service, suspect the
       card.
     - For a long-lived fixed installation, consider moving to an
       [NVMe/eMMC box](../purchase.md).
@@ -134,21 +130,20 @@ Run the full HIL suite after the first boot and before any reset burn-in:
 ARYAOS_SSH=pi@<box-address> ./scripts/aryaos-test/run.sh
 ```
 
-The storage module rejects an SD device that reports a zero manufacturer ID,
-a binary or wrong-root `cmdline.txt`, or missing/implausibly small kernel and
-initramfs files. Treat any of those as a media failure: capture a support bundle
-while the box is still running, do not reboot it, and replace the card. Repeated
-reflashing does not rehabilitate counterfeit or failing flash.
+The storage module rejects zero manufacturer IDs and invalid `cmdline.txt`
+files. It also rejects missing or implausibly small boot files. Treat these as a
+media failure. Capture a support bundle while the box is still running, do not reboot it, and
+replace the card. Repeated reflashing does not rehabilitate counterfeit or failing flash.
 
 AryaOS `2.0.16` also verifies the first-boot FAT command-line rewrite before
-the initramfs continues. It writes a separate candidate, syncs and remounts the
+The initramfs continues. It writes a separate candidate, syncs and remounts the
 boot filesystem, reads the candidate back byte-for-byte, then remounts and
-verifies the final path; a bad write is retried on a new allocation instead of
+verifies the final path. A bad write is retried on a new allocation instead of
 silently leaving an unbootable appliance.
 
 !!! note "This is why logs and swap moved off disk"
     Every one of these techniques exists to keep write traffic off the install
-    media so the card outlives the deployment. It's the same philosophy as the
+    media so the card outlives the deployment. It is the same philosophy as the
     rest of AryaOS: a field appliance you set down and forget.
 
 ## Related

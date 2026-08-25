@@ -1,9 +1,12 @@
 # Site configuration
 
-`/etc/aryaos/aryaos-config.txt` is the **site configuration** file: the site-wide defaults inherited by every PyTAK sensor gateway on the device. This page is the complete key reference. Edit it through the [AryaOS Site page](../admin/aryaos-site.md) - the form updates known keys in place and preserves comments and everything else - or, for keys the form does not surface, through that page's **Raw site config** editor.
+`/etc/aryaos/aryaos-config.txt` contains the site-wide defaults for every PyTAK sensor gateway.
+This page is the complete key reference. Edit the file through the
+[AryaOS Site page](../admin/aryaos-site.md). Use its **Raw site config** editor for keys that the
+form does not show. Both editors preserve comments and unknown keys.
 
 !!! info "How it is applied"
-    Each gateway's systemd unit loads this file via `EnvironmentFile=` **before** its own `/etc/default/<svc>`, so these are *defaults*: a per-service value overrides the site value. See the [configuration model](./index.md).
+    Each gateway's systemd unit loads this file via `EnvironmentFile=` **before** its own `/etc/default/<svc>`. Thus, these are *defaults*. A per-service value overrides the site value. See the [configuration model](./index.md).
 
 ## The CoT routing invariant
 
@@ -23,16 +26,16 @@ flowchart LR
 | Key | Default | Meaning |
 |-----|---------|---------|
 | `COT_URL` | `udp+wo://127.0.0.1:28087` | Where local `*cot` feeders send CoT. Default is the COTBridge hub ingress on localhost. Upstream mesh / TAK Server forwarding is configured in `/etc/cotbridge.ini`. |
-| `COT_HOST_ID` | *(set on first boot)* | Functional source id stamped into CoT flow-tags and remarks by the PyTAK tools. Set on first boot to `aryaos-<suffix>`; override for a custom name. |
+| `COT_HOST_ID` | *(set on first boot)* | Functional source id stamped into CoT flow-tags and remarks by the PyTAK tools. Set on first boot to `aryaos-<suffix>`. Override for a custom name. |
 
-TLS material for TAK Server connections is written to this file by the [Site-wide TAK TLS certificates](../admin/aryaos-site.md#site-wide-tak-tls-certificates) card as `PYTAK_TLS_CLIENT_CERT`, `PYTAK_TLS_CLIENT_KEY`, and `PYTAK_TLS_CLIENT_CAFILE` (paths under `/etc/aryaos/tls/`), plus `PYTAK_TLS_DONT_VERIFY` (lab only). Prefer the [TAK connection](../admin/aryaos-site.md#tak-connection) card, which sets these for you.
+TLS material for TAK Server connections is written to this file by the [Site-wide TAK TLS certificates](../admin/aryaos-site.md#site-wide-tak-tls-certificates) card as `PYTAK_TLS_CLIENT_CERT`, `PYTAK_TLS_CLIENT_KEY`. `PYTAK_TLS_CLIENT_CAFILE` (paths under `/etc/aryaos/tls/`), plus `PYTAK_TLS_DONT_VERIFY` (lab only). Prefer the [TAK connection](../admin/aryaos-site.md#tak-connection) card, which sets these for you.
 
 ## ADS-B / radios
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `ARYAOS_ADSB_DECODER` | `readsb` | 1090 MHz decoder: `readsb` or `dump1090_fa` (only one may run). Must match the image build. Changing this alone does not reconfigure systemd - re-apply the [device role](./device-roles.md). |
-| `ARYAOS_ADSB_JSON_DIR` | `/run/adsb` | Directory where the decoder writes `aircraft.json`; `adsbcot` reads `aircraft.json` from here. |
+| `ARYAOS_ADSB_DECODER` | `readsb` | 1090 MHz decoder: `readsb` or `dump1090_fa` (only one can run). Must match the image build. Changing this alone does not reconfigure systemd - re-apply the [device role](./device-roles.md). |
+| `ARYAOS_ADSB_JSON_DIR` | `/run/adsb` | Directory where the decoder writes `aircraft.json`. `adsbcot` reads `aircraft.json` from here. |
 | `ARYAOS_UAT_978_DEVICE` | `stx:978:0` | RTL-SDR EEPROM serial for `dump978-fa` (UAT / 978 MHz). Must differ from the 1090 MHz serial. Restart `dump978-fa` after changing. |
 
 See [Radios & SDRs](./radios-sdr.md) for the serial conventions and decoder-switch procedure.
@@ -41,14 +44,14 @@ See [Radios & SDRs](./radios-sdr.md) for the serial conventions and decoder-swit
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `PYTAK_MULTICAST_LOCAL_ADDRS` | `auto` | Mesh SA source addresses. `auto` fans out over active physical Ethernet/Wi-Fi links and `pan0`; an explicit comma-separated list restricts output. |
-| `PYTAK_MULTICAST_LOCAL_ADDR` | `10.41.0.1` | Legacy single-interface setting, used only when the plural setting is absent. `0.0.0.0` lets Linux select one route; it does not mean all interfaces. |
+| `PYTAK_MULTICAST_LOCAL_ADDRS` | `auto` | Mesh SA source addresses. `auto` fans out over active physical Ethernet/Wi-Fi links and `pan0`. An explicit comma-separated list restricts output. |
+| `PYTAK_MULTICAST_LOCAL_ADDR` | `10.41.0.1` | Legacy single-interface setting, used only when the plural setting is absent. `0.0.0.0` lets Linux select one route. It does not mean all interfaces. |
 | `ARYAOS_IPV4LL_FALLBACK` | `1` | Enable DHCP-compatible RFC 3927 fallback on ordinary Ethernet profiles. Manage with the AryaOS Site card or `aryaos-ipv4ll`. |
 | `WIFI_AP_IP` | `10.41.0.1` | **Deprecated** legacy setting. |
 | `AOS_SERVICES` | `"cotbridge gpscot aiscot lincot adsbcot dronecot-dji adsbxcot aprscot spotcot gutcheck"` | Network-facing CoT/discovery services restarted on network-state change and by **Save & restart sensors**. Keep local decoders, GPS, UI, and the Bluetooth bridge out of this list. |
 
 !!! note "AOS_SERVICES and the Site page"
-    The **Sensor services** card and the **Save & restart sensors** button use `AOS_SERVICES` when it is set. Restarting the wrong units during boot can interrupt radio ingest and Bluetooth pairing, which is why the list deliberately excludes decoders, gpsd, and the PAN bridge.
+    The **Sensor services** card and the **Save & restart sensors** button use `AOS_SERVICES` when it is set. Restarting the wrong units during boot can interrupt radio ingest and Bluetooth pairing. This is why the list deliberately excludes decoders, gpsd, and the PAN bridge.
 
 See [DHCP-less Ethernet and MANET fallback](../networking/manet-ipv4ll.md)
 for IPv4LL behavior, multicast fanout, and operational checks.
@@ -57,16 +60,15 @@ for IPv4LL behavior, multicast fanout, and operational checks.
 
 At boot, AryaOS restores a saved last-known-good clock floor, then gives normal
 Chrony sources (configured/DHCP/internet NTP and GNSS/PPS) the first opportunity
-to synchronize. If none succeeds, GutCheck may identify a fresh, directly
+to synchronize. If none succeeds, GutCheck can identify a fresh, directly
 connected AryaOS peer advertising a synchronized stratum 1-4 clock. AryaOS then
 corroborates that claim with a standard NTP exchange and adds the peer to Chrony
 as an ephemeral source. CoT timestamps are never written directly to the system
 clock.
 
-The gate is best effort: time-sensitive CoT and certificate startup waits up to
-60 seconds by default, then continues in a visibly degraded state rather than
-blocking the appliance. Runtime state is published in
-`/run/aryaos/time-status.json` and in the GutCheck `<time>` detail.
+The gate is best effort. Time-sensitive CoT and certificate services wait up to 60 seconds by
+default. They then start in a visible degraded state. Runtime state appears in
+`/run/aryaos/time-status.json` and the GutCheck `<time>` detail.
 
 | Key | Default | Meaning |
 |-----|---------|---------|
@@ -82,7 +84,8 @@ blocking the appliance. Runtime state is published in
 
 ## Bluetooth PAN
 
-AryaOS acts as a Bluetooth Network Access Point (NAP) so a paired phone can reach AryaOS services over Bluetooth. It serves DHCP on the PAN link; **no NAT or forwarding** is enabled. See [Bluetooth PAN](../bluetooth-pan.md).
+AryaOS acts as a Bluetooth Network Access Point (NAP), so a paired phone can reach its services.
+It serves DHCP on the PAN link. **No NAT or forwarding** is enabled. See [Bluetooth PAN](../bluetooth-pan.md).
 
 | Key | Default | Meaning |
 |-----|---------|---------|
@@ -116,10 +119,10 @@ Set this from the [Device role](../admin/aryaos-site.md#device-role) card. The f
 For the normal case, leave `COT_URL` alone and edit lanes:
 
 === "Recommended (via COTBridge)"
-    Point upstream destinations at the [COTBridge lane editor](../admin/cotbridge-lanes.md). Feeders keep `COT_URL=udp+wo://127.0.0.1:28087`; COTBridge forwards to Mesh SA and/or a TAK Server. For TAK Servers, the [TAK connection](../admin/aryaos-site.md#tak-connection) card wires the lane and certs automatically.
+    Point upstream destinations at the [COTBridge lane editor](../admin/cotbridge-lanes.md). Feeders keep `COT_URL=udp+wo://127.0.0.1:28087`. COTBridge forwards to Mesh SA and/or a TAK Server. For TAK Servers, the [TAK connection](../admin/aryaos-site.md#tak-connection) card wires the lane and certs automatically.
 
 === "Bypass COTBridge (advanced)"
-    Set `COT_URL` directly on the Site page (or per-gateway) to route feeders around the hub - for example `tls://takserver.example.com:8089` or `udp+wo://239.2.3.1:6969`. This forgoes COTBridge's fan-out and is normally used only for debugging.
+    Set `COT_URL` directly on the Site page (or per-gateway) to route feeders around the hub. For example `tls://takserver.example.com:8089` or `udp+wo://239.2.3.1:6969`. This forgoes COTBridge's fan-out and is normally used only for debugging.
 
 ## Editing over SSH
 
