@@ -271,6 +271,9 @@ require_path /usr/share/cockpit/aryaos/manifest.json
 require_path /usr/share/cockpit/aryaos/aryaos.js
 require_grep 'id="card-neighbors"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos neighbor card"
 require_grep 'refreshNeighbors' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos neighbor refresh"
+require_grep 'id="card-system-time"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos system time card"
+require_grep 'set-browser' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos browser time synchronization"
+require_grep 'set-browser' /usr/local/sbin/aryaos-time-bootstrap "browser time helper command"
 require_grep 'id="card-updates"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos software updates card"
 require_grep 'id="card-location"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos location chip card"
 require_path /usr/share/cockpit/aryaos/aryaos-basemap.js

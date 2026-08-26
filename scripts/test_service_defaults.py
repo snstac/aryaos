@@ -277,6 +277,9 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         chrony = (ROOT / "shared_files/aryaos/chrony/aryaos.conf").read_text()
         helper = (ROOT / "shared_files/aryaos/aryaos-time-bootstrap").read_text()
         cot_detail = (ROOT / "shared_files/aryaos/aryaos-cot-detail").read_text()
+        cockpit_patch = (
+            ROOT / "shared_files/aryaos/patch-cockpit-aryaos-dp"
+        ).read_text()
         docs = (ROOT / "docs/config/site-config.md").read_text()
         bootstrap = (
             ROOT / "shared_files/aryaos/systemd/aryaos-time-bootstrap.service"
@@ -311,7 +314,15 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertNotIn("cotbridge.service.d/aryaos-time.conf", builder)
         self.assertIn("aryaos-time-ready.target", tls_unit)
         self.assertIn("/run/aryaos/time-status.json", cot_detail)
-        self.assertEqual(helper.count('[DATE, "-u", "--set"'), 1)
+        self.assertEqual(helper.count('[DATE, "-u", "--set"'), 2)
+        self.assertIn('"set-browser"', helper)
+        self.assertIn('[HWCLOCK, "--systohc", "--utc"]', helper)
+        self.assertIn('[SYSTEMCTL, "stop", "chrony.service"]', helper)
+        self.assertIn('[SYSTEMCTL, "start", "chrony.service"]', helper)
+        self.assertIn('id="card-system-time"', cockpit_patch)
+        self.assertIn('[TIME_HELPER, "set-browser", String(browserEpochMs)]', cockpit_patch)
+        self.assertIn('{ superuser: "require", err: "message" }', cockpit_patch)
+        self.assertIn('cockpit.spawn(["/usr/bin/true"]', cockpit_patch)
         self.assertIn("CoT timestamps are never written directly", docs)
         self.assertIn("cryptographically authenticated", docs)
 

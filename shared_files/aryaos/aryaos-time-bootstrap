@@ -18,7 +18,9 @@ from pathlib import Path
 
 CHRONYC = "/usr/bin/chronyc"
 DATE = "/usr/bin/date"
+HWCLOCK = "/usr/sbin/hwclock"
 IP = "/usr/sbin/ip"
+SYSTEMCTL = "/usr/bin/systemctl"
 TIMEDATECTL = "/usr/bin/timedatectl"
 NEIGHBORS = Path("/run/gutcheck/neighbors.json")
 RUNTIME_DIR = Path("/run/aryaos")
@@ -172,6 +174,101 @@ def _last_good_epoch() -> float | None:
     except (TypeError, ValueError):
         return None
     return epoch if MIN_VALID_UNIX <= epoch <= MAX_VALID_UNIX else None
+
+
+def _timezone() -> str:
+    result = _run([TIMEDATECTL, "show", "-p", "Timezone", "--value"])
+    return result.stdout.strip() if result.returncode == 0 and result.stdout.strip() else "UTC"
+
+
+def live_status() -> dict:
+    """Return clock status with a live wall-clock sample for Cockpit."""
+    payload = _load_json(TIME_STATUS) or build_status()
+    last_good = _load_json(LAST_GOOD)
+    payload["timezone"] = _timezone()
+    payload["system_epoch_ms"] = round(time.time() * 1000)
+    if last_good.get("source"):
+        payload["last_good_source"] = str(last_good["source"])
+    return payload
+
+
+def _browser_epoch(raw: str) -> float:
+    try:
+        epoch_ms = int(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("browser time must be an integer Unix epoch in milliseconds") from exc
+    epoch = epoch_ms / 1000
+    if not MIN_VALID_UNIX <= epoch <= MAX_VALID_UNIX:
+        raise ValueError("browser time must be between 2024-01-01 and 2100-01-01")
+    return epoch
+
+
+def _print_json(payload: dict) -> None:
+    print(json.dumps(payload, separators=(",", ":"), sort_keys=True))
+
+
+def set_browser_time(raw_epoch_ms: str) -> int:
+    """Seed the system clock from an authenticated Cockpit browser."""
+    try:
+        epoch = _browser_epoch(raw_epoch_ms)
+    except ValueError as exc:
+        _print_json({"ok": False, "error": str(exc)})
+        return 2
+    if os.geteuid() != 0:
+        _print_json({"ok": False, "error": "setting system time requires administrator access"})
+        return 1
+
+    before = time.time()
+    stop = _run([SYSTEMCTL, "stop", "chrony.service"], timeout=20.0)
+    if stop.returncode != 0:
+        _print_json({"ok": False, "error": "could not pause automatic time synchronization"})
+        return 1
+
+    clock_set = False
+    chrony_resumed = False
+    try:
+        result = _run([DATE, "-u", "--set", f"@{epoch:.3f}"], timeout=10.0)
+        if result.returncode != 0:
+            _print_json({"ok": False, "error": "could not set the system clock"})
+            return 1
+        clock_set = True
+
+        saved = {
+            "schema": 1,
+            "epoch": round(epoch, 3),
+            "source": "browser",
+            "reference": "cockpit",
+        }
+        _atomic_write(LAST_GOOD, json.dumps(saved, sort_keys=True) + "\n", 0o644)
+        rtc_updated = _run([HWCLOCK, "--systohc", "--utc"], timeout=10.0).returncode == 0
+    finally:
+        chrony_resumed = _run(
+            [SYSTEMCTL, "start", "chrony.service"], timeout=20.0
+        ).returncode == 0
+
+    if chrony_resumed:
+        _run([CHRONYC, "online"])
+        _run([CHRONYC, "burst", "4/4"])
+
+    quality = _tracking_quality()
+    status = build_status(quality, reason="browser-manual")
+    if not quality.get("synchronized"):
+        status["source"] = "browser"
+        status["reference"] = "cockpit"
+    _atomic_write(TIME_STATUS, json.dumps(status, separators=(",", ":"), sort_keys=True) + "\n")
+    _print_json(
+        {
+            "ok": clock_set,
+            "before_epoch_ms": round(before * 1000),
+            "system_epoch_ms": round(time.time() * 1000),
+            "requested_epoch_ms": round(epoch * 1000),
+            "delta_ms": round((epoch - before) * 1000),
+            "floor_saved": True,
+            "rtc_updated": rtc_updated,
+            "chrony_resumed": chrony_resumed,
+        }
+    )
+    return 0
 
 
 def restore_floor() -> int:
@@ -496,7 +593,10 @@ def _with_lock(callback) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("restore", "wait", "refresh", "save", "status"))
+    parser.add_argument(
+        "command", choices=("restore", "wait", "refresh", "save", "status", "set-browser")
+    )
+    parser.add_argument("value", nargs="?")
     args = parser.parse_args()
     if args.command == "restore":
         return _with_lock(restore_floor)
@@ -506,7 +606,12 @@ def main() -> int:
         return _with_lock(refresh)
     if args.command == "save":
         return _with_lock(lambda: (save_last_good(), write_status(), 0)[-1])
-    print(json.dumps(_load_json(TIME_STATUS) or build_status(), sort_keys=True))
+    if args.command == "set-browser":
+        if args.value is None:
+            _print_json({"ok": False, "error": "set-browser requires a Unix epoch in milliseconds"})
+            return 2
+        return _with_lock(lambda: set_browser_time(args.value))
+    _print_json(live_status())
     return 0
 
 

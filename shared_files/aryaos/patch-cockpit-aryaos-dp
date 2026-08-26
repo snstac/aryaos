@@ -57,6 +57,26 @@ NEIGHBOR_CARD = """    <section class="aos-card" id="card-neighbors">
 
 """
 
+TIME_CARD = """    <section class="aos-card" id="card-system-time">
+      <div class="aos-section-head">
+        <h2>System time</h2>
+        <button class="aos-icon-btn" id="btn-time-refresh" title="Refresh system time" aria-label="Refresh system time">&#8635;</button>
+      </div>
+      <p class="aos-hint">Seed the device clock from this browser when GNSS and network time are unavailable. Chrony resumes afterward.</p>
+      <table class="aos-table aos-status-table"><tbody>
+        <tr><td>Browser time</td><td id="time-browser">Loading...</td></tr>
+        <tr><td>Device time</td><td id="time-device">Loading...</td></tr>
+        <tr><td>Clock difference</td><td id="time-offset">Loading...</td></tr>
+        <tr><td>Device source</td><td id="time-source">Loading...</td></tr>
+      </tbody></table>
+      <div class="aos-actions-inline">
+        <button class="aos-btn aos-primary" id="btn-time-sync">Sync from this browser</button>
+      </div>
+      <span id="time-status" class="aos-status"></span>
+    </section>
+
+"""
+
 DP_JS = """
 /* --- TAK connection import and enrollment status --- */
 function renderTakEnrollmentStatus(payload) {
@@ -308,6 +328,87 @@ function refreshNeighbors() {
 
 """
 
+TIME_JS = """
+/* --- Manual system time seed --- */
+const TIME_HELPER = "/usr/local/sbin/aryaos-time-bootstrap";
+let deviceTimeSample = null;
+
+function formatClock(epochMs) {
+    const value = Number(epochMs);
+    if (!Number.isFinite(value)) return "unavailable";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "unavailable";
+    return date.toLocaleString() + " (" + date.toISOString() + ")";
+}
+
+function formatClockOffset(offsetMs) {
+    const value = Number(offsetMs);
+    if (!Number.isFinite(value)) return "unavailable";
+    const seconds = Math.abs(value) / 1000;
+    if (seconds < 1) return "Within one second";
+    const amount = seconds < 120 ? Math.round(seconds) + " seconds" : Math.round(seconds / 60) + " minutes";
+    return "Device is " + amount + (value > 0 ? " ahead" : " behind");
+}
+
+function renderSystemTime() {
+    const browserNow = Date.now();
+    $("time-browser").textContent = formatClock(browserNow);
+    if (!deviceTimeSample) return;
+    const deviceNow = deviceTimeSample.epochMs + (browserNow - deviceTimeSample.receivedAt);
+    $("time-device").textContent = formatClock(deviceNow);
+    $("time-offset").textContent = formatClockOffset(deviceNow - browserNow);
+}
+
+function refreshSystemTime() {
+    const requestedAt = Date.now();
+    return cockpit.spawn([TIME_HELPER, "status"], { superuser: "try", err: "message" })
+        .then((out) => {
+            const receivedAt = Date.now();
+            const payload = JSON.parse(out);
+            const epochMs = Number(payload.system_epoch_ms);
+            if (!Number.isFinite(epochMs)) throw new Error("The device returned an invalid clock value.");
+            deviceTimeSample = { epochMs, receivedAt: (requestedAt + receivedAt) / 2 };
+            let source = payload.source || payload.last_good_source || "unknown";
+            if ((source === "none" || source === "local") && payload.last_good_source) {
+                source = payload.last_good_source + " floor";
+            }
+            const state = payload.state || (payload.synchronized ? "synchronized" : "not synchronized");
+            const timezone = payload.timezone || "UTC";
+            $("time-source").textContent = source + "; " + state + "; " + timezone;
+            renderSystemTime();
+        })
+        .catch((ex) => setStatus($("time-status"), "Failed to read device time: " + (ex.message || ex), false));
+}
+
+function syncSystemTime() {
+    const warning = "Set the device clock from this browser? This can change log order and certificate checks.";
+    if (!window.confirm(warning)) return;
+    const button = $("btn-time-sync");
+    const status = $("time-status");
+    button.disabled = true;
+    status.textContent = "Requesting administrator access...";
+    status.className = "aos-status";
+    cockpit.spawn(["/usr/bin/true"], { superuser: "require", err: "message" })
+        .then(() => {
+            const browserEpochMs = Date.now();
+            status.textContent = "Setting device time...";
+            return cockpit.spawn([TIME_HELPER, "set-browser", String(browserEpochMs)],
+                { superuser: "require", err: "message" });
+        })
+        .then((out) => {
+            const payload = JSON.parse(out);
+            if (!payload.ok) throw new Error(payload.error || "The device rejected the new time.");
+            const rtc = payload.rtc_updated ? "The hardware clock was updated." : "No hardware clock was updated.";
+            const chrony = payload.chrony_resumed ? "Chrony resumed." : "Chrony did not resume.";
+            setStatus(status, "Device time updated. " + rtc + " " + chrony, true);
+            return refreshSystemTime();
+        })
+        .catch((ex) => setStatus(status, "Failed to set device time: " + (ex.message || ex), false))
+        .finally(() => { button.disabled = false; });
+}
+
+"""
+
 DP_CSS = """
 .aos-status-table { margin: 0.7rem 0 1rem; }
 .aos-status-table td:first-child { width: 12rem; color: var(--aos-muted); }
@@ -359,6 +460,12 @@ def patch_index():
             raise RuntimeError(f"{INDEX}: services card marker not found")
         text = text.replace(services_marker, services_marker + NEIGHBOR_CARD)
         changed = True
+    if 'id="card-system-time"' not in text:
+        config_marker = '    <section class="aos-card" id="card-config">\n'
+        if config_marker not in text:
+            raise RuntimeError(f"{INDEX}: configuration card marker not found")
+        text = text.replace(config_marker, TIME_CARD + config_marker)
+        changed = True
     if changed:
         INDEX.write_text(text, encoding="utf-8")
     return changed
@@ -388,11 +495,19 @@ def patch_js():
             raise RuntimeError(f"{JS}: services marker not found")
         text = text.replace(marker, NEIGHBOR_JS + marker)
         changed = True
+    if "function refreshSystemTime" not in text:
+        marker = "/* --- Services card --- */"
+        if marker not in text:
+            raise RuntimeError(f"{JS}: services marker not found")
+        text = text.replace(marker, TIME_JS + marker)
+        changed = True
     listener = '$("btn-tls-upload").addEventListener("click", installTls);'
     dp_listener = '$("btn-dp-upload").addEventListener("click", importDataPackage);'
     enrollment_listener = '$("btn-enrollment-import").addEventListener("click", importEnrollmentUrl);'
     refresh_listener = '$("btn-tak-refresh").addEventListener("click", refreshTakEnrollmentStatus);'
     neighbors_listener = '$("btn-neighbors-refresh").addEventListener("click", refreshNeighbors);'
+    time_refresh_listener = '$("btn-time-refresh").addEventListener("click", refreshSystemTime);'
+    time_sync_listener = '$("btn-time-sync").addEventListener("click", syncSystemTime);'
     if dp_listener not in text:
         if listener not in text:
             raise RuntimeError(f"{JS}: TLS upload listener marker not found")
@@ -416,8 +531,23 @@ def patch_js():
             raise RuntimeError(f"{JS}: neighbor refresh listener marker not found")
         text = text.replace(anchor, anchor + "\n" + neighbors_listener)
         changed = True
+    if time_refresh_listener not in text:
+        anchor = neighbors_listener if neighbors_listener in text else listener
+        if anchor not in text:
+            raise RuntimeError(f"{JS}: system time listener marker not found")
+        text = text.replace(anchor, anchor + "\n" + time_refresh_listener)
+        changed = True
+    if time_sync_listener not in text:
+        anchor = time_refresh_listener if time_refresh_listener in text else listener
+        if anchor not in text:
+            raise RuntimeError(f"{JS}: system time sync listener marker not found")
+        text = text.replace(anchor, anchor + "\n" + time_sync_listener)
+        changed = True
     if "setInterval(refreshNeighbors, 8000);" not in text:
         text = text.rstrip() + "\nsetInterval(refreshNeighbors, 8000);\n"
+        changed = True
+    if "setInterval(renderSystemTime, 1000);" not in text:
+        text = text.rstrip() + "\nrefreshSystemTime();\nsetInterval(renderSystemTime, 1000);\nsetInterval(refreshSystemTime, 10000);\n"
         changed = True
     watch_marker = "    showCurrentTls();\n});"
     watch_block = text.split("configFile.watch", 1)[1].split("});", 1)[0]

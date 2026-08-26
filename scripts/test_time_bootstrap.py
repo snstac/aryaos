@@ -5,11 +5,13 @@ from __future__ import annotations
 
 import importlib.machinery
 import importlib.util
+import io
 import json
 import struct
 import subprocess
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
@@ -201,6 +203,101 @@ class TimeBootstrapTestCase(unittest.TestCase):
 
         saved = json.loads(self.paths["LAST_GOOD"].read_text())
         self.assertEqual(saved["source"], "gnss_pps")
+
+    def test_live_status_adds_current_clock_timezone_and_floor_source(self):
+        self.paths["TIME_STATUS"].parent.mkdir(parents=True)
+        self.paths["TIME_STATUS"].write_text(json.dumps({"state": "holdover"}))
+        self.paths["LAST_GOOD"].parent.mkdir(parents=True)
+        self.paths["LAST_GOOD"].write_text(
+            json.dumps({"epoch": 1_787_600_000, "source": "browser"})
+        )
+        with mock.patch.object(timeboot.time, "time", return_value=1_787_600_123.456), mock.patch.object(
+            timeboot, "_timezone", return_value="America/Los_Angeles"
+        ):
+            status = timeboot.live_status()
+
+        self.assertEqual(status["system_epoch_ms"], 1_787_600_123_456)
+        self.assertEqual(status["timezone"], "America/Los_Angeles")
+        self.assertEqual(status["last_good_source"], "browser")
+
+    def test_browser_time_replaces_floor_and_resumes_chrony(self):
+        target = 1_787_600_000.125
+        self.paths["LAST_GOOD"].parent.mkdir(parents=True)
+        self.paths["LAST_GOOD"].write_text(
+            json.dumps({"epoch": 1_900_000_000, "source": "ntp"})
+        )
+
+        def command(argv, timeout=4.0):
+            if argv == [timeboot.HWCLOCK, "--systohc", "--utc"]:
+                return completed(argv, rc=1)
+            return completed(argv)
+
+        output = io.StringIO()
+        quality = {
+            "synchronized": False,
+            "source_kind": "none",
+            "source": "",
+            "stratum": 0,
+            "leap": "unknown",
+            "tracking": {},
+        }
+        with mock.patch.object(timeboot.os, "geteuid", return_value=0), mock.patch.object(
+            timeboot, "_run", side_effect=command
+        ) as run, mock.patch.object(
+            timeboot, "_tracking_quality", return_value=quality
+        ), mock.patch.object(
+            timeboot.time, "time", side_effect=[1_800_000_000, target + 0.05]
+        ), redirect_stdout(output):
+            self.assertEqual(timeboot.set_browser_time(str(round(target * 1000))), 0)
+
+        saved = json.loads(self.paths["LAST_GOOD"].read_text())
+        self.assertEqual(saved["epoch"], target)
+        self.assertEqual(saved["source"], "browser")
+        calls = [call.args[0] for call in run.call_args_list]
+        self.assertIn([timeboot.SYSTEMCTL, "stop", "chrony.service"], calls)
+        self.assertIn([timeboot.DATE, "-u", "--set", f"@{target:.3f}"], calls)
+        self.assertIn([timeboot.HWCLOCK, "--systohc", "--utc"], calls)
+        self.assertIn([timeboot.SYSTEMCTL, "start", "chrony.service"], calls)
+        self.assertIn([timeboot.CHRONYC, "online"], calls)
+        response = json.loads(output.getvalue())
+        self.assertTrue(response["ok"])
+        self.assertTrue(response["floor_saved"])
+        self.assertFalse(response["rtc_updated"])
+        self.assertTrue(response["chrony_resumed"])
+        status = json.loads(self.paths["TIME_STATUS"].read_text())
+        self.assertEqual(status["source"], "browser")
+        self.assertEqual(status["reason"], "browser-manual")
+
+    def test_browser_time_rejects_bad_input_and_requires_root(self):
+        for value in ("not-a-time", "0", str((timeboot.MAX_VALID_UNIX + 1) * 1000)):
+            with self.subTest(value=value), redirect_stdout(io.StringIO()):
+                self.assertEqual(timeboot.set_browser_time(value), 2)
+
+        with mock.patch.object(timeboot.os, "geteuid", return_value=1000), mock.patch.object(
+            timeboot, "_run"
+        ) as run, redirect_stdout(io.StringIO()):
+            self.assertEqual(timeboot.set_browser_time("1787600000000"), 1)
+        run.assert_not_called()
+
+    def test_browser_time_restarts_chrony_when_setting_clock_fails(self):
+        calls = []
+
+        def command(argv, timeout=4.0):
+            calls.append(argv)
+            if argv[0] == timeboot.DATE:
+                return completed(argv, rc=1)
+            return completed(argv)
+
+        with mock.patch.object(timeboot.os, "geteuid", return_value=0), mock.patch.object(
+            timeboot, "_run", side_effect=command
+        ), mock.patch.object(timeboot.time, "time", return_value=1_800_000_000), redirect_stdout(
+            io.StringIO()
+        ):
+            self.assertEqual(timeboot.set_browser_time("1787600000000"), 1)
+
+        self.assertEqual(calls[0], [timeboot.SYSTEMCTL, "stop", "chrony.service"])
+        self.assertIn([timeboot.SYSTEMCTL, "start", "chrony.service"], calls)
+        self.assertFalse(self.paths["LAST_GOOD"].exists())
 
 
 if __name__ == "__main__":

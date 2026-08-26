@@ -5,9 +5,28 @@ The **AryaOS Site** page is the single most important admin surface on the devic
 ![The AryaOS Site page in Cockpit - TAK destination, device role, radios, TLS, sensor services, updates, backup, and decommission cards](../media/screenshots/aryaos-site-cockpit.png)
 
 !!! info "How saving works"
-    The page edits known keys **in place** and preserves everything else in the file. This includes comments. Most cards apply immediately. But the **TAK destination** and TLS fields at the top only take effect when you press **Save & restart sensors** (or **Save only**) at the bottom of the page. See [Save & restart](#save-restart). Cards with their own buttons (role, hotspot, MANET fallback, radios, updates, VPN, support, Node-RED) act on their own.
+    The page edits known keys **in place** and preserves everything else in the file. This includes comments. Most cards apply immediately. But the **TAK destination** and TLS fields at the top only take effect when you press **Save & restart sensors** (or **Save only**) at the bottom of the page. See [Save & restart](#save-restart). Cards with their own buttons act on their own.
 
 The cards appear in the order below.
+
+---
+
+## System time
+
+**What it does.** Shows the browser clock, device clock, difference, time source, state, and device time zone.
+
+Press **Sync from this browser** when GNSS and network time are unavailable. Confirm the warning and provide administrator access when Cockpit asks.
+
+AryaOS samples the browser clock after authorization. It pauses Chrony, sets the device clock, saves a last-good clock floor, and resumes Chrony.
+
+AryaOS also updates a hardware clock when one is present. This step is best effort because many devices lack one.
+
+Chrony can correct the clock later when GNSS, NTP, or a validated tactical peer becomes available.
+
+!!! warning "Time changes affect security and records"
+    A large time change can reorder logs and change certificate checks. Verify the browser clock before you confirm.
+
+**Backend:** `aryaos-time-bootstrap set-browser` runs through Cockpit's authenticated administrator channel. The public landing page and CGI endpoints cannot set time.
 
 ---
 
