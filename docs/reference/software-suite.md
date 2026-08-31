@@ -84,10 +84,10 @@ Every gateway on AryaOS is managed from a browser UI built on [Cockpit](https://
 
 | Plugin | Manages |
 |---|---|
-| [cockpit-aryaos](https://github.com/snstac/cockpit-aryaos) | The AryaOS Site page: TAK destination, site TAK TLS, device role, radios, updates, support bundles, Node-RED password, VPN, nearby nodes |
+| [cockpit-aryaos](https://github.com/snstac/cockpit-aryaos) | AryaOS Site plus ACARS, GDL90, SiK, and GutCheck management pages |
 | [cockpit-adsbcot](https://github.com/snstac/cockpit-adsbcot) | ADSBCOT (aircraft) |
 | [cockpit-aiscot](https://github.com/snstac/cockpit-aiscot) | AISCOT (vessels) |
-| [cockpit-dronecot](https://github.com/snstac/cockpit-dronecot) | DroneCOT (drones) |
+| [cockpit-dronecot](https://github.com/snstac/cockpit-dronecot) | DJI, DroneScout, Wi-Fi, and Bluetooth DroneCOT services |
 | [cockpit-lincot](https://github.com/snstac/cockpit-lincot) | LINCOT (host position) |
 | [cockpit-gps](https://github.com/snstac/cockpit-gps) | GPS / `gpsd` |
 | [cockpit-gpscot](https://github.com/snstac/cockpit-gpscot) | GPSCOT (network GPS) |

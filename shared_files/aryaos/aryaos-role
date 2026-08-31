@@ -33,7 +33,7 @@
 
 set -euo pipefail
 
-SITE_CONFIG="/etc/aryaos/aryaos-config.txt"
+SITE_CONFIG="${ARYAOS_SITE_CONFIG:-/etc/aryaos/aryaos-config.txt}"
 # No product line. It was a label baked into the image at build time and never
 # derived from anything, so every box claimed the same one no matter what was
 # attached. Capabilities are what differ between boxes, and unlike the product
@@ -127,10 +127,10 @@ cap_label() {
 # Legacy role -> capability set (back-compat for `set` and Cockpit's role card).
 role_caps() {
 	case "$1" in
-		multi)    echo "adsb ais dji sik sapient" ;;
-		air)      echo "adsb" ;;
+		multi)    echo "adsb ais dji rid sik sapient" ;;
+		air)      echo "adsb rid" ;;
 		maritime) echo "ais" ;;
-		cuas)     echo "dji sik sapient" ;;
+		cuas)     echo "dji rid sik sapient" ;;
 		relay)    echo "" ;;
 		*)        return 1 ;;
 	esac

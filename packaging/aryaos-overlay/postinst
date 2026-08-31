@@ -3,6 +3,7 @@ set -e
 
 case "$1" in
   configure)
+    aryaos_role_migration=""
     getent group gpsd >/dev/null 2>&1 || groupadd --system gpsd || true
     getent group tak-certs >/dev/null 2>&1 || groupadd --system tak-certs || true
     usermod -aG gpsd www-data 2>/dev/null || true
@@ -97,6 +98,20 @@ case "$1" in
           [ -n "$default_line" ] && printf '\n%s\n' "$default_line" >> "$aryaos_config"
         fi
       done
+      old_aos_services="cotbridge gpscot aiscot lincot adsbcot dronecot-dji adsbxcot aprscot spotcot gutcheck"
+      new_aos_services="cotbridge gpscot lincot gutcheck adsbcot aiscot acarscot aprscot gdlcot dronecot-dji dronecot-dronescout dronecot-wifi dronecot-ble sikw00fcot sapientcot"
+      configured_aos_services="$(sed -n 's/^AOS_SERVICES=["'"'"']\?\([^"'"'"']*\)["'"'"']\?$/\1/p' "$aryaos_config" | tail -n 1)"
+      if [ "$configured_aos_services" = "$old_aos_services" ]; then
+        sed -i "s|^AOS_SERVICES=.*|AOS_SERVICES=\"$new_aos_services\"|" "$aryaos_config"
+      fi
+
+      configured_role="$(sed -n 's/^ARYAOS_ROLE=["'"'"']\?\([^"'"'"']*\)["'"'"']\?$/\1/p' "$aryaos_config" | tail -n 1)"
+      configured_caps="$(sed -n 's/^ARYAOS_CAPABILITIES=["'"'"']\?\([^"'"'"']*\)["'"'"']\?$/\1/p' "$aryaos_config" | tail -n 1)"
+      case "$configured_role|$configured_caps" in
+        "air|adsb") aryaos_role_migration=air ;;
+        "cuas|dji sik sapient") aryaos_role_migration=cuas ;;
+        "multi|adsb ais dji sik sapient") aryaos_role_migration=multi ;;
+      esac
       # Older discovery releases configured a protocol-verified ADSBee as a
       # Pico Beast serial input but had no persistent source marker. Preserve
       # that evidence so Cockpit and HIL distinguish it from a generic SDR.
@@ -177,6 +192,9 @@ case "$1" in
       systemctl daemon-reload || true
       systemctl reset-failed rpi-zram-writeback.timer 2>/dev/null || true
       systemctl reset-failed NetworkManager-wait-online.service 2>/dev/null || true
+      if [ -n "$aryaos_role_migration" ] && [ -x /usr/local/sbin/aryaos-role ]; then
+        /usr/local/sbin/aryaos-role set "$aryaos_role_migration" >/dev/null 2>&1 || true
+      fi
       systemctl start NetworkManager-wait-online.service 2>/dev/null || true
       systemctl disable --now aryaos-neighbord.service dronecot.service 2>/dev/null || true
       systemctl mask dronecot.service 2>/dev/null || true

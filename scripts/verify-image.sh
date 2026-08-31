@@ -145,7 +145,7 @@ echo "== AryaOS image content checks: ${IMG##*/} (lab=${LAB_EXPECTED}) =="
 require_pkg aryaos-overlay
 require_path /etc/aryaos-release
 require_path /etc/aryaos-version
-require_pkg_version aryaos-overlay 2.3.1
+require_pkg_version aryaos-overlay 2.4.0
 require_pkg_version cotbridge 1.1.0
 require_path /etc/aryaos/aryaos-config.txt
 require_path /etc/sudoers.d/aryaos
@@ -327,11 +327,21 @@ require_pkg cockpit-lincot
 require_pkg_version cockpit-lincot 1.1.3
 require_pkg cockpit-aiscatcher
 require_pkg cockpit-dronecot
-require_pkg_version cockpit-dronecot 1.2.0
+require_pkg_version cockpit-dronecot 1.3.0
 require_pkg cockpit-cotbridge
 require_pkg_version cockpit-cotbridge 1.2.2
 require_pkg cockpit-gpscot
-require_pkg_version cockpit-aryaos 2.1.0
+require_pkg_version cockpit-aryaos 2.2.0
+for _drone_page in dji dronescout wifi ble; do
+	require_path "/usr/share/cockpit/dronecot/${_drone_page}.html"
+	require_grep '"path": "'"${_drone_page}"'\.html"' /usr/share/cockpit/dronecot/manifest.json \
+		"Cockpit lists the ${_drone_page} DroneCOT instance"
+done
+for _gateway_page in acarscot gdlcot sikw00fcot gutcheck; do
+	require_path "/usr/share/cockpit/aryaos/${_gateway_page}.html"
+	require_grep '"path": "'"${_gateway_page}"'\.html"' /usr/share/cockpit/aryaos/manifest.json \
+		"Cockpit lists the ${_gateway_page} gateway"
+done
 require_pkg cockpit-spyserver
 require_path /usr/share/cockpit/spyserver/manifest.json
 require_pkg readsb
@@ -471,7 +481,9 @@ require_grep '^Environment="LOCAL_HEALTH_COMMAND=/usr/bin/sudo -n /usr/local/sbi
 require_grep '^Environment="DISCOVERY_SERVICE_TYPE=_aryaos._tcp.local."$' /etc/systemd/system/gutcheck.service.d/aryaos-health.conf "GutCheck advertises AryaOS DNS-SD"
 require_grep '^Environment="DISCOVERY_INTERVAL=10"$' /etc/systemd/system/gutcheck.service.d/aryaos-health.conf "GutCheck Mesh SA discovery fits the dev scan window"
 require_grep 'UnitFileState' /usr/local/sbin/aryaos-health "gateway health records systemd enablement"
-require_grep 'state.*!=.*disabled' /usr/local/sbin/aryaos-health "disabled gateways do not degrade aggregate health"
+require_grep 'not in.*disabled.*unavailable' /usr/local/sbin/aryaos-health "disabled or hardware-skipped gateways do not degrade aggregate health"
+require_grep '"unavailable"' /usr/local/sbin/aryaos-health "hardware-skipped gateways do not report a fault"
+require_grep '"sapientcot"' /usr/local/sbin/aryaos-health "gateway health includes every installed gateway"
 require_grep 'name="https"' /etc/firewalld/zones/public.xml "firewall zone allows HTTPS"
 require_path /etc/systemd/system/multi-user.target.wants/firewalld.service
 require_path /etc/systemd/system/multi-user.target.wants/fail2ban.service

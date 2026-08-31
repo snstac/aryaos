@@ -17,10 +17,10 @@ Roles only toggle the **sensor** units on top of that core. This means a unit al
 
 | Role | Purpose | Sensor units enabled |
 |------|---------|----------------------|
-| `multi` | All pipelines (default) | ADS-B + AIS + drones |
-| `air` | Aircraft only (ADS-B 1090/978) | `<decoder>`, `dump978-fa`, `adsbcot`, `gdlcot` |
+| `multi` | All pipelines (default) | ADS-B + AIS + DJI + DroneScout + SiK + SAPIENT |
+| `air` | Aircraft and Remote ID awareness | `<decoder>`, `dump978-fa`, `adsbcot`, `gdlcot`, `dronecot-dronescout` |
 | `maritime` | Vessels only (AIS) | `ais-catcher`, `aiscot` |
-| `cuas` | Counter-UAS (drones) | `dronecot-dji`, `sikw00fcot`, `sapientcot` |
+| `cuas` | Counter-UAS (drones) | `dronecot-dji`, `dronecot-dronescout`, `sikw00fcot`, `sapientcot` |
 | `relay` | CoT routing only | *(none)* |
 
 `<decoder>` is the 1090 MHz decoder chosen by [`ARYAOS_ADSB_DECODER`](./site-config.md#ads-b-radios): `readsb` (default) or `dump1090-fa`.
@@ -31,7 +31,8 @@ The exact unit sets, from `aryaos-role`:
 |-------|-------|
 | ADS-B (`air`, `multi`) | `readsb` **or** `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdlcot` |
 | AIS (`maritime`, `multi`) | `ais-catcher`, `aiscot` |
-| Drones / C-UAS (`cuas`, `multi`) | `dronecot-dji`, `sikw00fcot`, `sapientcot` |
+| DroneScout Remote ID (`air`, `cuas`, `multi`) | `dronecot-dronescout` |
+| Other drones / C-UAS (`cuas`, `multi`) | `dronecot-dji`, `sikw00fcot`, `sapientcot` |
 
 !!! note "Units missing from your image are skipped"
     Applying a role enables the role's units and disables all other managed units. Missing optional units are skipped without error. The full managed set includes `readsb`, `dump1090-fa`, `dump978-fa`, `adsbcot`, `gdlcot`, `ais-catcher`, `aiscot`, the explicit `dronecot-*` instances, `sikw00fcot`, and `sapientcot`.
@@ -65,7 +66,9 @@ Because the units are *disabled*, the role sticks across reboots.
     The helper prints each `enable`/`disable` action it takes. See [CLI helpers](../reference/cli-helpers.md).
 
 !!! warning "Applying a role disables other sensors"
-    Switching to `air` stops and disables the AIS and drone units. Switching to `relay` stops **all** sensor units. This is intentional. Pick the role that matches the mission. The CoT core keeps running regardless.
+    Switching to `air` keeps ADS-B, GDL90, and DroneScout active. It stops AIS and the other C-UAS services.
+
+    Switching to `relay` stops all sensor units. The CoT core keeps running.
 
 ## Capability discovery
 

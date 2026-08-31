@@ -79,7 +79,7 @@ ARYAOS_ADSB_JSON_DIR=/run/adsb
 # Network-facing CoT services to restart if network state changes.
 # Keep local decoders, GPS, UI, and Bluetooth bridge out of this list; restarting
 # them during boot interrupts radio ingest and Bluetooth pairing/RFCOMM.
-AOS_SERVICES="cotbridge gpscot aiscot lincot adsbcot dronecot-dji adsbxcot aprscot spotcot gutcheck"
+AOS_SERVICES="cotbridge gpscot lincot gutcheck adsbcot aiscot acarscot aprscot gdlcot dronecot-dji dronecot-dronescout dronecot-wifi dronecot-ble sikw00fcot sapientcot"
 
 # RTL-SDR USB serial string for dump978-fa (UAT / 978 MHz). Factory default matches Nooelec
 # NESDR Nano 3 “978” EEPROM preset: stx:978:0 — do not use the same serial as the 1090 path

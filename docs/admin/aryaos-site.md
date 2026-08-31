@@ -181,9 +181,13 @@ On success the card reports the TAK target and that **COTBridge forwarding was u
 
 ## Sensor services
 
-**What it does.** Shows the live systemd state (active / inactive / failed / not installed) of the site's sensor units, with a status dot per service.
+**What it does.** Shows the health of every installed gateway. Each service has a status dot.
 
-The set of services is taken from `AOS_SERVICES` in the site config. The default includes `cotbridge`, `adsbcot`, `aiscot`, `dronecot-dji`, `lincot`, and `gutcheck`. This is a **read-only status list**. Start, stop, enable, or restart individual services from each gateway's own [Cockpit page](./gateways.md), or restart them all with **Save & restart sensors**.
+The table distinguishes active, disabled, unavailable, degraded, and failed services. An unavailable service is waiting for optional hardware.
+
+This is a read-only status list. Use each [gateway page](./gateways.md) to control one service.
+
+The **Save & restart sensors** button still uses `AOS_SERVICES`. It restarts active network-facing gateways after a site change.
 
 ---
 

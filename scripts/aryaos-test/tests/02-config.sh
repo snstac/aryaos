@@ -94,6 +94,20 @@ else
 	ok "local decoder/system services excluded from network restart list"
 fi
 
+for gateway in cotbridge gpscot lincot gutcheck adsbcot aiscot acarscot aprscot gdlcot \
+	dronecot-dji dronecot-dronescout dronecot-wifi dronecot-ble sikw00fcot sapientcot; do
+	if grep -qE "^AOS_SERVICES=.*(^|[[:space:]])${gateway}([[:space:]]|\")" /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+		ok "${gateway} included in network gateway inventory"
+	else
+		fail "${gateway} missing from AOS_SERVICES"
+	fi
+done
+if grep -qE '^AOS_SERVICES=.*(^|[[:space:]])(adsbxcot|spotcot)([[:space:]]|")' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+	fail "stale unguaranteed gateway included in AOS_SERVICES"
+else
+	ok "stale unguaranteed gateways excluded from AOS_SERVICES"
+fi
+
 if grep -qx 'etc/default/gutcheck' /usr/local/sbin/aryaos-config-backup 2>/dev/null; then
 	ok "Gutcheck settings included in full config backups"
 else

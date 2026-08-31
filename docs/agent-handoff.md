@@ -3,6 +3,15 @@
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 
+## 2026-08-29 AryaAir DroneScout and gateway visibility
+
+- The Air, C-UAS, and Multi presets now include `rid`. Exact old presets migrate during an overlay upgrade.
+- `ARYAOS_TEST_PROFILE=air` requires ADS-B and DroneScout. It runs DroneScout checks without AntSDR checks.
+- Cockpit DroneCOT has separate pages for DJI, DroneScout, Wi-Fi Remote ID, and Bluetooth Remote ID.
+- AryaOS Site adds management pages for ACARS, GDL90, SiK, and GutCheck. Its status card uses the complete health inventory.
+- Optional hardware condition skips report `unavailable`. They remain visible without degrading overall system health.
+- Release order is cockpit-dronecot 1.3.0, cockpit-aryaos 2.2.0, package-index refresh, then AryaOS overlay 2.4.0.
+
 ## 2026-08-25 existing-host provisioning and DragonOS conversion
 
 - The Ansible path now provisions a complete AryaOS appliance on an existing

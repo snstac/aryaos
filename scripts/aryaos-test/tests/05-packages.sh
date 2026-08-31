@@ -55,7 +55,7 @@ else
 	ok "dhbridge absent (private package)"
 fi
 
-require_package_version aryaos-overlay 2.3.1
+require_package_version aryaos-overlay 2.4.0
 require_package_version cotbridge 1.1.0
 
 if [[ -d /var/www/html/calfire_airbases ]]; then
@@ -83,10 +83,10 @@ require_package_version cockpit-adsbcot 1.2.3
 require_package_version cockpit-aiscot 1.2.3
 require_package_version cockpit-aprscot 0.1.1
 require_package_version cockpit-cotbridge 1.2.2
-require_package_version cockpit-dronecot 1.2.0
+require_package_version cockpit-dronecot 1.3.0
 require_package_version cockpit-lincot 1.1.3
 require_package_version cockpit-sapientcot 0.1.1
-require_package_version cockpit-aryaos 2.1.0
+require_package_version cockpit-aryaos 2.2.0
 # GDLCOT 2.0.1 retains the NaN/Inf guards from 1.0.1 and also rebuilds its
 # custom PyTAK client in-process after transient CoT transport failures.
 require_package_version gdlcot 2.0.1
@@ -94,6 +94,23 @@ require_package_version gdlcot 2.0.1
 for plugin in adsbcot aiscot aprscot cotbridge dronecot lincot sapientcot; do
 	require_cockpit_root_scroll "${plugin}"
 	require_cockpit_stylesheets "${plugin}"
+done
+
+for page in dji dronescout wifi ble; do
+	if [[ -r "/usr/share/cockpit/dronecot/${page}.html" ]] \
+		&& grep -q "\"path\": \"${page}\\.html\"" /usr/share/cockpit/dronecot/manifest.json; then
+		ok "Cockpit lists DroneCOT ${page}"
+	else
+		fail "Cockpit DroneCOT ${page} page is missing"
+	fi
+done
+for page in acarscot gdlcot sikw00fcot gutcheck; do
+	if [[ -r "/usr/share/cockpit/aryaos/${page}.html" ]] \
+		&& grep -q "\"path\": \"${page}\\.html\"" /usr/share/cockpit/aryaos/manifest.json; then
+		ok "Cockpit lists gateway ${page}"
+	else
+		fail "Cockpit gateway ${page} page is missing"
+	fi
 done
 
 print_summary

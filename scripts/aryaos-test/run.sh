@@ -89,6 +89,9 @@ if [[ ! "${EXPECTED_CAPABILITIES}" =~ ^[a-z0-9,_[:space:]-]*$ ]]; then
 	echo "ARYAOS_EXPECT_CAPABILITIES contains an invalid character" >&2
 	exit 2
 fi
+if [[ "${ARYAOS_TEST_PROFILE:-default}" == "air" ]]; then
+	EXPECTED_CAPABILITIES="$(printf '%s\n' adsb rid ${EXPECTED_CAPABILITIES//,/ } | awk 'NF && !seen[$0]++' | paste -sd ' ' -)"
+fi
 
 # Lab images grant the development key passwordless sudo. Release images keep
 # the field security policy and require pi's password. Authenticate once without

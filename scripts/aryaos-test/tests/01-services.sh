@@ -37,6 +37,15 @@ for cap in ${EXPECTED_CAPS}; do
 	fi
 done
 
+if test_profile air; then
+	configured_role="$(sed -n 's/^ARYAOS_ROLE=["'"'"']\?\([^"'"'"']*\)["'"'"']\?$/\1/p' /etc/aryaos/aryaos-config.txt 2>/dev/null | tail -n 1)"
+	if [[ "${configured_role}" == "air" ]]; then
+		ok "AryaAir role persisted"
+	else
+		fail "Air test profile requires ARYAOS_ROLE=air (found ${configured_role:-unset})"
+	fi
+fi
+
 CORE_SERVICES=(lighttpd gpsd gpscot)
 if capability_enabled adsb; then
 	CORE_SERVICES=(readsb adsbcot "${CORE_SERVICES[@]}")
@@ -103,7 +112,8 @@ else
 	done
 fi
 
-for svc in cotbridge lincot gutcheck adsbcot aiscot dronecot-dji sikw00fcot; do
+for svc in cotbridge gpscot lincot gutcheck adsbcot aiscot acarscot aprscot gdlcot \
+	dronecot-dji dronecot-dronescout dronecot-wifi dronecot-ble sikw00fcot sapientcot; do
 	if ! unit_loaded "${svc}"; then
 		fail "TAK gateway unit ${svc} missing (portal expects it)"
 		continue
@@ -116,6 +126,10 @@ for svc in cotbridge lincot gutcheck adsbcot aiscot dronecot-dji sikw00fcot; do
 		skip "TAK gateway ${svc} inactive on UAS profile"
 	elif [[ "${svc}" == "gutcheck" ]]; then
 		fail "TAK discovery core ${svc} loaded but not active"
+	elif [[ "${svc}" == "cotbridge" || "${svc}" == "gpscot" || "${svc}" == "lincot" ]]; then
+		fail "TAK core ${svc} loaded but not active"
+	elif [[ "${svc}" == "dronecot-dronescout" ]] && capability_enabled rid; then
+		fail "TAK gateway ${svc} inactive for rid capability"
 	elif ! test_profile uas && [[ "${svc}" == "dronecot-dji" ]]; then
 		skip "TAK gateway ${svc} inactive outside UAS profile"
 	elif [[ "${svc}" == "sikw00fcot" ]]; then

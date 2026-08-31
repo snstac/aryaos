@@ -48,10 +48,12 @@ See [Radios & SDRs](./radios-sdr.md) for the serial conventions and decoder-swit
 | `PYTAK_MULTICAST_LOCAL_ADDR` | `10.41.0.1` | Legacy single-interface setting, used only when the plural setting is absent. `0.0.0.0` lets Linux select one route. It does not mean all interfaces. |
 | `ARYAOS_IPV4LL_FALLBACK` | `1` | Enable DHCP-compatible RFC 3927 fallback on ordinary Ethernet profiles. Manage with the AryaOS Site card or `aryaos-ipv4ll`. |
 | `WIFI_AP_IP` | `10.41.0.1` | **Deprecated** legacy setting. |
-| `AOS_SERVICES` | `"cotbridge gpscot aiscot lincot adsbcot dronecot-dji adsbxcot aprscot spotcot gutcheck"` | Network-facing CoT/discovery services restarted on network-state change and by **Save & restart sensors**. Keep local decoders, GPS, UI, and the Bluetooth bridge out of this list. |
+| `AOS_SERVICES` | `"cotbridge gpscot lincot gutcheck adsbcot aiscot acarscot aprscot gdlcot dronecot-dji dronecot-dronescout dronecot-wifi dronecot-ble sikw00fcot sapientcot"` | Network-facing gateways restarted after network or site changes. Keep local decoders, GPS, UI, and the Bluetooth bridge out of this list. |
 
 !!! note "AOS_SERVICES and the Site page"
-    The **Sensor services** card and the **Save & restart sensors** button use `AOS_SERVICES` when it is set. Restarting the wrong units during boot can interrupt radio ingest and Bluetooth pairing. This is why the list deliberately excludes decoders, gpsd, and the PAN bridge.
+    The **Save & restart sensors** button uses `AOS_SERVICES`. The Sensor services card uses the complete health inventory.
+
+    The restart list excludes decoders, `gpsd`, and the PAN bridge. Restarting those units can interrupt radio ingest or Bluetooth pairing.
 
 See [DHCP-less Ethernet and MANET fallback](../networking/manet-ipv4ll.md)
 for IPv4LL behavior, multicast fanout, and operational checks.

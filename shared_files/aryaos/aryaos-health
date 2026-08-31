@@ -11,17 +11,22 @@ APPS = (
     "cotbridge",
     "gpscot",
     "lincot",
+    "gutcheck",
     "adsbcot",
     "aiscot",
+    "acarscot",
+    "aprscot",
+    "gdlcot",
     "dronecot-dji",
     "dronecot-wifi",
     "dronecot-ble",
     "dronecot-dronescout",
-    "acarscot",
-    "gdlcot",
+    "sikw00fcot",
+    "sapientcot",
 )
 
 STATUS_ROOT = Path("/run")
+SYSTEMD_ONLY_APPS = {"gutcheck"}
 ENABLED_STATES = {"enabled", "enabled-runtime"}
 DISABLED_STATES = {
     "disabled",
@@ -75,6 +80,8 @@ def service_health(state):
     unit_file = state.get("UnitFileState")
     if active == "failed":
         return {"state": "fault", "detail": "service failed"}
+    if active == "inactive" and state.get("Result") == "exec-condition":
+        return {"state": "unavailable", "detail": "required hardware is not present"}
     if active in ("activating", "deactivating", "reloading"):
         return {"state": "degraded", "detail": f"service {active}"}
     if active == "inactive" and unit_file in ENABLED_STATES:
@@ -109,6 +116,12 @@ def load(app, now, root=STATUS_ROOT, state=None):
     try:
         doc = json.loads(path.read_text())
     except (OSError, ValueError):
+        if app in SYSTEMD_ONLY_APPS and state.get("ActiveState") == "active":
+            return {
+                "app": app,
+                "service": state,
+                "health": {"state": "ok", "detail": "service active"},
+            }
         return {"app": app, "service": state, "health": missing_health(state)}
     age = max(0, now - float(doc.get("wall_t", 0)))
     doc["app"] = app
@@ -123,7 +136,7 @@ def overall_health(apps):
     states = [
         item.get("health", {}).get("state", "unknown")
         for item in apps
-        if item.get("health", {}).get("state") != "disabled"
+        if item.get("health", {}).get("state") not in ("disabled", "unavailable")
     ]
     if not states:
         return "unknown"

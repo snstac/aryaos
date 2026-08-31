@@ -17,13 +17,19 @@ import xml.etree.ElementTree as ET
 
 SERVICES = (
     "cotbridge",
+    "gpscot",
     "lincot",
+    "gutcheck",
     "adsbcot",
     "aiscot",
+    "acarscot",
+    "aprscot",
+    "gdlcot",
     "dronecot-dji",
     "dronecot-wifi",
     "dronecot-ble",
     "dronecot-dronescout",
+    "sikw00fcot",
     "sapientcot",
 )
 
@@ -176,6 +182,7 @@ def _roles() -> dict[str, str]:
         "uas": str(
             _service_state("dronecot-dji") == "active"
             or _service_state("dronecot-wifi") == "active"
+            or _service_state("dronecot-ble") == "active"
             or _service_state("dronecot-dronescout") == "active"
         ).lower(),
     }

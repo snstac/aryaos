@@ -10,6 +10,36 @@ ROOT = Path(__file__).parents[1]
 
 
 class ServiceDefaultsTestCase(unittest.TestCase):
+    def test_legacy_air_and_cuas_roles_include_dronescout(self):
+        role = (ROOT / "shared_files/aryaos/aryaos-role").read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+
+        self.assertIn('multi)    echo "adsb ais dji rid sik sapient"', role)
+        self.assertIn('air)      echo "adsb rid"', role)
+        self.assertIn('cuas)     echo "dji rid sik sapient"', role)
+        self.assertIn('"air|adsb") aryaos_role_migration=air', postinst)
+        self.assertIn('"cuas|dji sik sapient") aryaos_role_migration=cuas', postinst)
+        self.assertIn(
+            '"multi|adsb ais dji sik sapient") aryaos_role_migration=multi',
+            postinst,
+        )
+        self.assertIn('aryaos-role set "$aryaos_role_migration"', postinst)
+
+    def test_gateway_restart_inventory_is_complete_and_migrated_safely(self):
+        config = (ROOT / "shared_files/aryaos/aryaos-config.txt").read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        expected = (
+            "cotbridge gpscot lincot gutcheck adsbcot aiscot acarscot aprscot "
+            "gdlcot dronecot-dji dronecot-dronescout dronecot-wifi dronecot-ble "
+            "sikw00fcot sapientcot"
+        )
+
+        self.assertIn(f'AOS_SERVICES="{expected}"', config)
+        self.assertIn(f'new_aos_services="{expected}"', postinst)
+        self.assertIn('if [ "$configured_aos_services" = "$old_aos_services" ]', postinst)
+        self.assertNotIn("adsbxcot", config)
+        self.assertNotIn("spotcot", config)
+
     def test_hil_noninteractive_path_includes_aryaos_helpers(self):
         library = (ROOT / "scripts/aryaos-test/lib.sh").read_text()
 
@@ -58,9 +88,10 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             "cockpit-aiscot": "1.2.3",
             "cockpit-aprscot": "0.1.1",
             "cockpit-cotbridge": "1.2.2",
-            "cockpit-dronecot": "1.2.0",
+            "cockpit-dronecot": "1.3.0",
             "cockpit-lincot": "1.1.3",
             "cockpit-sapientcot": "0.1.1",
+            "cockpit-aryaos": "2.2.0",
         }
 
         for package, version in minimums.items():
@@ -194,8 +225,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('grep -q "^${gpsd_key}=" "$gpsd_config"', postinst)
-        self.assertIn("require_pkg_version aryaos-overlay 2.3.1", verifier)
-        self.assertIn("require_package_version aryaos-overlay 2.3.1", hil)
+        self.assertIn("require_pkg_version aryaos-overlay 2.4.0", verifier)
+        self.assertIn("require_package_version aryaos-overlay 2.4.0", hil)
         self.assertIn("require_pkg_version cotbridge 1.1.0", verifier)
         self.assertIn("require_package_version cotbridge 1.1.0", hil)
         self.assertIn('[[ "$current" == "$desired" ]] && return 1', assign)
@@ -477,8 +508,14 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("/usr/local/sbin/aryaos-health --json", dropin)
         self.assertIn("cotbridge.service gutcheck.service lighttpd.service", postinst)
         self.assertIn('"UnitFileState"', health)
-        self.assertIn('!= "disabled"', health)
-        self.assertNotIn('"gutcheck",', health)
+        self.assertIn('not in ("disabled", "unavailable")', health)
+        for service in (
+            "cotbridge", "gpscot", "lincot", "gutcheck", "adsbcot",
+            "aiscot", "acarscot", "aprscot", "gdlcot", "dronecot-dji",
+            "dronecot-dronescout", "dronecot-wifi", "dronecot-ble",
+            "sikw00fcot", "sapientcot",
+        ):
+            self.assertIn(f'"{service}"', health)
 
     def test_overlay_orders_feeders_after_cotbridge(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()

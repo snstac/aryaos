@@ -1,6 +1,8 @@
 # Gateway pages
 
-Each sensor gateway on AryaOS has its own Cockpit plugin for fine-tuning. Where the [AryaOS Site page](./aryaos-site.md) sets defaults for the whole device, a gateway page edits **one** service's own settings, controls that service. Shows its logs. All the gateway plugins share the same layout. Thus, once you know one you know them all.
+Each AryaOS gateway appears in Cockpit's left menu. A dedicated page edits one service and shows its logs.
+
+Some optional gateways use a smaller management page. That page provides service controls, health, configuration paths, and logs.
 
 Open any gateway page from Cockpit's left menu.
 
@@ -12,6 +14,12 @@ Open any gateway page from Cockpit's left menu.
 | aiscot | `aiscot` | `/etc/default/aiscot` | AIS vessels > CoT |
 | DroneCOT DJI / AntSDR | `dronecot-dji` | `/etc/default/dronecot-dji` | DJI DroneID > CoT |
 | DroneCOT DroneScout | `dronecot-dronescout` | `/etc/default/dronecot-dronescout` | Open Drone ID > CoT |
+| DroneCOT Wi-Fi Remote ID | `dronecot-wifi` | `/etc/default/dronecot-wifi` | Wi-Fi Remote ID > CoT |
+| DroneCOT Bluetooth Remote ID | `dronecot-ble` | `/etc/default/dronecot-ble` | Bluetooth Remote ID > CoT |
+| ACARS | `acarscot` | `/etc/default/acarscot` | ACARS > CoT |
+| GDL90 | `gdlcot` | `/etc/default/gdlcot` | CoT > EFB traffic |
+| SiK telemetry | `sikw00fcot` | `/etc/default/sikw00fcot` | MAVLink > CoT |
+| GutCheck | `gutcheck` | `/etc/default/gutcheck` | Tactical discovery and health |
 | aprscot | `aprscot` | `/etc/default/aprscot` | APRS (KISS TNC / APRS-IS) > CoT |
 | sapientcot | `sapientcot` | `/etc/default/sapientcot` | SAPIENT (BSI Flex 335) C-UAS / ISR > CoT |
 | lincot | `lincot` | `/etc/default/lincot` | This host's position/beacon > CoT |
@@ -56,7 +64,7 @@ A representative slice of the aiscot form:
 | `UNDERWAY_ONLY` | boolean | `false` | Drop anchored/moored vessels |
 | `COT_STALE` | number | `3600` | CoT stale timeout (seconds) |
 
-The other gateways expose their own variables, but the mechanics are identical.
+Dedicated gateway pages expose their own variables. ACARS, GDL90, SiK, and GutCheck use smaller management pages.
 
 ### Debug / logs card
 

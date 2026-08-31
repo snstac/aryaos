@@ -137,6 +137,42 @@ exit 0
             self.assertIn("OK   required capability adsb enabled", output)
             self.assertIn("FAIL required capability rid not enabled", output)
 
+    def test_air_profile_automatically_requires_adsb_and_rid(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temp = pathlib.Path(tmp)
+            fake_bin = temp / "bin"
+            fake_bin.mkdir()
+            log = temp / "calls.log"
+            self._write_executable(
+                fake_bin / "scp",
+                "#!/bin/sh\nprintf 'scp %s\\n' \"$*\" >>\"$FAKE_HIL_LOG\"\n",
+            )
+            self._write_executable(
+                fake_bin / "ssh",
+                "#!/bin/sh\nprintf 'ssh %s\\n' \"$*\" >>\"$FAKE_HIL_LOG\"\nexit 0\n",
+            )
+            env = os.environ.copy()
+            env.update(
+                {
+                    "PATH": f"{fake_bin}:{env['PATH']}",
+                    "ARYAOS_SSH": "pi@air-under-test",
+                    "ARYAOS_TEST_PROFILE": "air",
+                    "ARYAOS_DEV_PI_SKIP_KEY": "1",
+                    "FAKE_HIL_LOG": str(log),
+                }
+            )
+            result = subprocess.run(
+                [str(RUNNER)], cwd=ROOT, env=env, text=True,
+                capture_output=True, timeout=30, check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("Profile: air", result.stdout)
+            self.assertIn("Required capabilities: adsb rid", result.stdout)
+            calls = log.read_text(encoding="utf-8")
+            self.assertIn("ARYAOS_TEST_PROFILE='air'", calls)
+            self.assertIn("ARYAOS_EXPECT_CAPABILITIES='adsb rid'", calls)
+
 
 if __name__ == "__main__":
     unittest.main()

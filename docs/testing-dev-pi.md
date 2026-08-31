@@ -50,10 +50,10 @@ ARYAOS_SSH=pi@192.168.0.44 ARYAOS_TEST_PROFILE=ais \
   ARYAOS_TEST_TIER=strict ./scripts/aryaos-test/run.sh
 
 # AryaAir: ADSBee, DroneScout, and GNSS
-ARYAOS_SSH=pi@192.168.0.45 ARYAOS_EXPECT_CAPABILITIES="adsb rid" \
+ARYAOS_SSH=pi@192.168.0.45 ARYAOS_TEST_PROFILE=air \
   ARYAOS_TEST_TIER=strict \
   ./scripts/aryaos-test/run.sh
-ARYAOS_SSH=pi@192.168.0.199 ARYAOS_EXPECT_CAPABILITIES="adsb rid" \
+ARYAOS_SSH=pi@192.168.0.199 ARYAOS_TEST_PROFILE=air \
   ARYAOS_TEST_TIER=strict \
   ./scripts/aryaos-test/run.sh
 
@@ -62,6 +62,8 @@ ARYAOS_SSH=pi@192.168.0.149 ARYAOS_EXPECT_CAPABILITIES="acars" \
   ARYAOS_TEST_TIER=strict \
   ./scripts/aryaos-test/run.sh
 ```
+
+The `air` profile requires `adsb` and `rid`. It tests ADSBee and DroneScout without running AntSDR checks.
 
 For an unattended fleet soak, first populate the dedicated known-hosts file,
 then run the sampler. Raw JSONL is the source of truth. Regenerate summaries
