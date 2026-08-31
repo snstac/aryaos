@@ -70,7 +70,7 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-web-tls-init" "${ROOTFS_DIR}/u
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-lincot-remarks" "${ROOTFS_DIR}/usr/local/sbin/aryaos-lincot-remarks"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-cot-detail" "${ROOTFS_DIR}/usr/local/sbin/aryaos-cot-detail"
 install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system"
-for unit in aryaos-time-floor.service aryaos-time-bootstrap.service aryaos-time-ready.target aryaos-time-refresh.service aryaos-time-refresh.path aryaos-time-refresh.timer aryaos-web-tls-init.service; do
+for unit in aryaos-ipv4ll-apply.service aryaos-time-floor.service aryaos-time-bootstrap.service aryaos-time-ready.target aryaos-time-refresh.service aryaos-time-refresh.path aryaos-time-refresh.timer aryaos-web-tls-init.service; do
 	install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/${unit}" \
 		"${ROOTFS_DIR}/etc/systemd/system/${unit}"
 done

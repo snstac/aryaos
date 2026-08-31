@@ -137,6 +137,62 @@ class IPv4LLTestCase(unittest.TestCase):
         )
         self.assertNotIn("u2", modify)
 
+    def test_boot_apply_reactivates_only_changed_active_profiles(self):
+        profiles = [
+            {
+                "uuid": "active",
+                "name": "Wired connection 1",
+                "interface": "end0",
+                "zone": "",
+                "method": "auto",
+                "link_local": "0",
+                "required_timeout": "-1",
+                "ipv6_method": "auto",
+            },
+            {
+                "uuid": "inactive",
+                "name": "Dock Ethernet",
+                "interface": "end1",
+                "zone": "",
+                "method": "auto",
+                "link_local": "0",
+                "required_timeout": "-1",
+                "ipv6_method": "auto",
+            },
+        ]
+        result = subprocess.CompletedProcess([], 0, "", "")
+        with (
+            mock.patch.object(ipv4ll, "_connection_profiles", return_value=profiles),
+            mock.patch.object(
+                ipv4ll, "_active_connection_uuids", return_value={"active"}
+            ),
+            mock.patch.object(ipv4ll, "_run", return_value=result) as run,
+        ):
+            changed = ipv4ll._apply_profiles(True, reactivate_changed=True)
+
+        self.assertEqual(changed, profiles)
+        up_calls = [
+            call.args[0]
+            for call in run.call_args_list
+            if call.args[0][:3] == ["nmcli", "connection", "up"]
+        ]
+        self.assertEqual(
+            up_calls,
+            [["nmcli", "connection", "up", "uuid", "active"]],
+        )
+
+    def test_boot_apply_preserves_configured_feature_state(self):
+        with (
+            mock.patch.object(ipv4ll, "_configured_enabled", return_value=False),
+            mock.patch.object(ipv4ll, "_atomic_write") as write,
+            mock.patch.object(ipv4ll, "_apply_profiles", return_value=[]) as apply,
+            mock.patch.object(ipv4ll.os, "geteuid", return_value=0),
+            mock.patch("sys.argv", ["aryaos-ipv4ll", "apply"]),
+        ):
+            self.assertEqual(ipv4ll.main(), 0)
+        self.assertIn("ipv4.link-local=2", write.call_args.args[1])
+        apply.assert_called_once_with(False, reactivate_changed=True)
+
 
 class MulticastLinksTestCase(unittest.TestCase):
     def test_auto_selects_one_address_per_physical_link(self):

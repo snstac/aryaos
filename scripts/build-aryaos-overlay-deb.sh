@@ -100,7 +100,7 @@ install_file 0755 "${SHARED}/aryaos/wifi-nuke.py" "/usr/local/sbin/wifi-nuke.py"
 install_file 0755 "${SHARED}/aryaos/get_position.sh" "/usr/local/bin/get_position.sh"
 
 install_file 0644 "${SHARED}/aryaos/aryaos-firstboot.service" "/etc/systemd/system/aryaos-firstboot.service"
-for unit in aryaos-time-floor.service aryaos-time-bootstrap.service aryaos-time-ready.target aryaos-time-refresh.service aryaos-time-refresh.path aryaos-time-refresh.timer aryaos-web-tls-init.service; do
+for unit in aryaos-ipv4ll-apply.service aryaos-time-floor.service aryaos-time-bootstrap.service aryaos-time-ready.target aryaos-time-refresh.service aryaos-time-refresh.path aryaos-time-refresh.timer aryaos-web-tls-init.service; do
 	install_file 0644 "${SHARED}/aryaos/systemd/${unit}" "/etc/systemd/system/${unit}"
 done
 install_file 0644 "${SHARED}/aryaos/systemd/aryaos-tak-dp-importd.service" "/etc/systemd/system/aryaos-tak-dp-importd.service"

@@ -67,6 +67,7 @@ fi
 
 API_JSON="$(sudo -n python3 - <<'PY'
 import json
+import time
 import urllib.request
 
 config = {}
@@ -82,15 +83,32 @@ def get(path):
     request = urllib.request.Request(
         "http://127.0.0.1:8181" + path, headers=headers
     )
-    with urllib.request.urlopen(request, timeout=3) as response:
+    with urllib.request.urlopen(request, timeout=4) as response:
         return json.load(response)
 
-print(json.dumps({
-    "status": get("/api/v1/status"),
-    "entities": get("/api/v1/entities?kind=aryaos"),
-}))
+payload = {}
+error = None
+for attempt in range(13):
+    try:
+        payload = {
+            "status": get("/api/v1/status"),
+            "entities": get("/api/v1/entities?kind=aryaos"),
+        }
+        error = None
+        if (
+            payload["status"].get("events_seen", 0) > 0
+            and payload["entities"].get("items")
+        ):
+            break
+    except (OSError, ValueError) as caught:
+        error = caught
+    if attempt < 12:
+        time.sleep(5)
+if not payload and error is not None:
+    raise error
+print(json.dumps(payload))
 PY
-)"
+)" || true
 
 if python3 -c '
 import json, sys
@@ -165,7 +183,11 @@ import json, sys
 doc = json.load(sys.stdin)
 apps = doc.get("apps", [])
 assert apps
-assert "gutcheck" not in {item.get("app") for item in apps}
+gutcheck = [item for item in apps if item.get("app") == "gutcheck"]
+assert len(gutcheck) == 1
+assert gutcheck[0].get("health", {}).get("state") == "ok"
+assert gutcheck[0].get("service", {}).get("ActiveState") == "active"
+assert gutcheck[0].get("service", {}).get("UnitFileState") == "enabled"
 for item in apps:
     service = item.get("service", {})
     assert "UnitFileState" in service
@@ -173,7 +195,7 @@ for item in apps:
     if service.get("UnitFileState") == "disabled" and service.get("ActiveState") == "inactive":
         assert item.get("health", {}).get("state") == "disabled"
 ' <<<"${ARYAOS_HEALTH_JSON}" 2>/dev/null; then
-	ok "AryaOS health ignores disabled roles and records service state"
+	ok "AryaOS health includes Gutcheck and records role/service state"
 else
 	fail "AryaOS health role/service classification invalid"
 fi

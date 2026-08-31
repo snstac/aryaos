@@ -1,5 +1,9 @@
 [Unit]
 Description=Refresh AryaOS tactical NTP peers when GutCheck neighbors change
+# Kept as an optional compatibility unit, but not enabled by AryaOS. GutCheck
+# can replace its cache several times in one update and storm a path-triggered
+# oneshot into systemd's start limit. The 30-second timer is the authoritative,
+# bounded refresh mechanism.
 
 [Path]
 PathChanged=/run/gutcheck/neighbors.json

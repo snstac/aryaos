@@ -201,7 +201,9 @@ case "$1" in
       rm -f /etc/systemd/system/aryaos-neighbord.service /usr/local/sbin/aryaos-neighbord
       systemctl daemon-reload || true
       systemctl disable --now aryaos-gps-time-sync.service 2>/dev/null || true
-      systemctl enable aryaos-firstboot.service aryaos-time-floor.service aryaos-time-bootstrap.service aryaos-time-ready.target aryaos-time-refresh.path aryaos-time-refresh.timer aryaos-web-tls-init.service aryaos-tak-dp-importd.service aryaos-multicast-links.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service gutcheck.service 2>/dev/null || true
+      systemctl disable --now aryaos-time-refresh.path 2>/dev/null || true
+      systemctl reset-failed aryaos-time-refresh.path aryaos-time-refresh.service 2>/dev/null || true
+      systemctl enable aryaos-firstboot.service aryaos-ipv4ll-apply.service aryaos-time-floor.service aryaos-time-bootstrap.service aryaos-time-ready.target aryaos-time-refresh.timer aryaos-web-tls-init.service aryaos-tak-dp-importd.service aryaos-multicast-links.service aryaos-radio-silence.service aryaos-serial-assign.service NetworkManager-dispatcher.service gutcheck.service 2>/dev/null || true
       if [ "$legacy_dji_enabled" = 1 ]; then
         systemctl enable dronecot-dji.service 2>/dev/null || true
       fi
@@ -243,7 +245,7 @@ case "$1" in
       # aryaos-serial-assign already resumed gpsd with the detected device.
       # Restarting the socket/service pair again races the tty open path.
       systemctl try-restart cockpit.socket 2>/dev/null || true
-      systemctl start aryaos-time-refresh.path aryaos-time-refresh.timer aryaos-web-tls-init.service 2>/dev/null || true
+      systemctl start aryaos-ipv4ll-apply.service aryaos-time-refresh.timer aryaos-web-tls-init.service 2>/dev/null || true
     fi
 
     if [ -x /usr/local/sbin/patch-cockpit-aryaos-dp ]; then

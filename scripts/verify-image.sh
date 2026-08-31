@@ -169,9 +169,11 @@ require_path /etc/systemd/system/aryaos-time-ready.target
 require_path /etc/systemd/system/aryaos-time-refresh.service
 require_path /etc/systemd/system/aryaos-time-refresh.path
 require_path /etc/systemd/system/aryaos-time-refresh.timer
+require_path /etc/systemd/system/aryaos-ipv4ll-apply.service
+require_path /etc/systemd/system/multi-user.target.wants/aryaos-ipv4ll-apply.service
 require_path /etc/systemd/system/multi-user.target.wants/aryaos-time-floor.service
 require_path /etc/systemd/system/multi-user.target.wants/aryaos-time-ready.target
-require_path /etc/systemd/system/multi-user.target.wants/aryaos-time-refresh.path
+forbid_path /etc/systemd/system/multi-user.target.wants/aryaos-time-refresh.path
 require_path /etc/systemd/system/timers.target.wants/aryaos-time-refresh.timer
 forbid_path /etc/systemd/system/multi-user.target.wants/aryaos-gps-time-sync.service
 require_grep '^ARYAOS_TIME_PEER_MODE=validated$' /etc/aryaos/aryaos-config.txt \

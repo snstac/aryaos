@@ -130,9 +130,23 @@ def _connection_profiles() -> list[dict[str, str]]:
     return profiles
 
 
-def _apply_profiles(enabled: bool) -> list[dict[str, str]]:
+def _active_connection_uuids() -> set[str]:
+    try:
+        listing = _run(["nmcli", "-t", "-f", "UUID", "connection", "show", "--active"])
+    except OSError:
+        return set()
+    if listing.returncode:
+        return set()
+    return {line.strip() for line in listing.stdout.splitlines() if line.strip()}
+
+
+def _apply_profiles(
+    enabled: bool, *, reactivate_changed: bool = False
+) -> list[dict[str, str]]:
     target = ENABLED_VALUE if enabled else DISABLED_VALUE
     profiles = _connection_profiles()
+    active_uuids = _active_connection_uuids() if reactivate_changed else set()
+    changed = []
     for profile in profiles:
         changes = []
         if profile["link_local"] != target:
@@ -162,9 +176,21 @@ def _apply_profiles(enabled: bool) -> list[dict[str, str]]:
             ],
             check=True,
         )
+        changed.append(profile)
     _run(["nmcli", "general", "reload", "conf"])
     _run(["nmcli", "connection", "reload"])
-    return profiles
+    # Interactive enable/disable deliberately waits until the next activation
+    # so it cannot drop the operator's session. The boot reconciliation unit
+    # may immediately reactivate changed profiles: doing that here prevents a
+    # generated DHCP-only profile from timing out and retrying forever on a
+    # MANET that has carrier but no DHCP server.
+    if reactivate_changed:
+        for profile in changed:
+            if profile["uuid"] in active_uuids:
+                _run(
+                    ["nmcli", "connection", "up", "uuid", profile["uuid"]]
+                )
+    return changed
 
 
 def _configured_enabled() -> bool:
@@ -201,7 +227,7 @@ def _status() -> dict[str, object]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("status", "enable", "disable"))
+    parser.add_argument("command", choices=("status", "enable", "disable", "apply"))
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
@@ -219,14 +245,20 @@ def main() -> int:
 
     if os.geteuid() != 0:
         parser.error(f"{args.command} requires root")
-    enabled = args.command == "enable"
-    _set_config(enabled)
+    enabled = _configured_enabled() if args.command == "apply" else args.command == "enable"
+    if args.command != "apply":
+        _set_config(enabled)
     _atomic_write(NM_CONF_PATH, _nm_default(enabled))
-    profiles = _apply_profiles(enabled)
+    profiles = _apply_profiles(enabled, reactivate_changed=args.command == "apply")
     state = "enabled" if enabled else "disabled"
+    action = "applied" if args.command == "apply" else state
     print(
-        f"IPv4LL MANET fallback {state}; {len(profiles)} Ethernet profile(s) "
-        "will use the setting on next activation or reboot."
+        f"IPv4LL MANET fallback {action}; changed {len(profiles)} Ethernet "
+        + (
+            "profile(s) during boot."
+            if args.command == "apply"
+            else "profile(s); changes take effect on next activation or reboot."
+        )
     )
     return 0
 

@@ -1,7 +1,7 @@
 # DHCP-less Ethernet and MANET fallback
 
 AryaOS can remain reachable and publish Mesh SA when Ethernet has carrier but
-The attached MANET has no DHCP server. The optional **MANET fallback (IPv4LL)**
+the attached MANET has no DHCP server. The optional **MANET fallback (IPv4LL)**
 feature uses NetworkManager's RFC 3927 link-local mode alongside DHCP:
 
 - DHCP remains enabled and supplies the normal routed address when available.
@@ -28,8 +28,14 @@ not reconnect them. The new state applies when Ethernet next activates or the
 device reboots, preventing a web or SSH management session from being dropped.
 Static-address profiles and the dedicated AntSDR link are never changed.
 Profiles without an operator-selected firewall zone are assigned to `public`,
-The normal AryaOS wired-LAN zone, so SSH, HTTPS, and Mesh SA remain reachable
+the normal AryaOS wired-LAN zone, so SSH, HTTPS, and Mesh SA remain reachable
 over IPv4LL.
+
+At boot, `aryaos-ipv4ll-apply.service` reconciles NetworkManager profiles that
+were created after package installation. It immediately reapplies only changed,
+active DHCP Ethernet profiles before `network-online.target`. This closes the
+first-boot gap without reconnecting a live session when an operator changes the
+setting later.
 
 ## Discover and use a DHCP-less device
 
@@ -40,10 +46,10 @@ normal wired-LAN firewall policy.
 
 AryaOS resolves all active physical Ethernet and Wi-Fi addresses, plus `pan0`,
 into `/run/aryaos/multicast.env`. COTBridge then sends each Mesh SA event once
-On every resolved link. Container bridges, VPNs, tunnels, and trusted sensor
+on every resolved link. Container bridges, VPNs, tunnels, and trusted sensor
 links are excluded. NetworkManager's dispatcher refreshes the list and restarts
 multicast consumers whenever a link gains or loses an address, including after
-A link assigns IPv4LL. The resolver's idempotent oneshot has no systemd start
+a link assigns IPv4LL. The resolver's idempotent oneshot has no systemd start
 limit because one NetworkManager transition can legitimately emit several
 dispatcher events. Losing one link does not stop the remaining outputs.
 

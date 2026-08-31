@@ -1,0 +1,14 @@
+[Unit]
+Description=Apply AryaOS IPv4LL fallback to Ethernet profiles
+Documentation=https://aryaos.org/
+After=NetworkManager.service
+Wants=NetworkManager.service
+Before=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/aryaos-ipv4ll apply
+
+[Install]
+WantedBy=multi-user.target network-online.target

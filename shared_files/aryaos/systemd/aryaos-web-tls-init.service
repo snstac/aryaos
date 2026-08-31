@@ -2,7 +2,10 @@
 Description=AryaOS: mint the per-device web certificate after clock acquisition
 After=aryaos-firstboot.service aryaos-time-ready.target
 Wants=aryaos-firstboot.service aryaos-time-ready.target
-Before=lighttpd.service cockpit.socket
+# lighttpd terminates TLS and proxies Cockpit on loopback. Cockpit does not
+# depend on the certificate, and ordering this service before cockpit.socket
+# creates a basic.target -> sockets.target boot cycle on a fresh image.
+Before=lighttpd.service
 
 [Service]
 Type=oneshot

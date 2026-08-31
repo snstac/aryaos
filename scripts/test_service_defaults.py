@@ -301,6 +301,15 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertNotIn("--wait-for-startup", wait_online)
         self.assertIn("NetworkManager-wait-online.service.d/aryaos.conf", builder)
 
+        ipv4ll_unit = (
+            ROOT / "shared_files/aryaos/systemd/aryaos-ipv4ll-apply.service"
+        ).read_text()
+        self.assertIn("After=NetworkManager.service", ipv4ll_unit)
+        self.assertIn("Before=network-online.target", ipv4ll_unit)
+        self.assertIn("ExecStart=/usr/local/sbin/aryaos-ipv4ll apply", ipv4ll_unit)
+        self.assertIn("aryaos-ipv4ll-apply.service", builder)
+        self.assertIn("systemctl disable --now aryaos-time-refresh.path", postinst)
+
     def test_resilient_time_bootstrap_is_packaged_and_bounded(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
         postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
@@ -344,6 +353,8 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("aryaos-time-ready.target", feeder_gate)
         self.assertNotIn("cotbridge.service.d/aryaos-time.conf", builder)
         self.assertIn("aryaos-time-ready.target", tls_unit)
+        self.assertIn("Before=lighttpd.service\n", tls_unit)
+        self.assertNotIn("Before=lighttpd.service cockpit.socket", tls_unit)
         self.assertIn("/run/aryaos/time-status.json", cot_detail)
         self.assertEqual(helper.count('[DATE, "-u", "--set"'), 2)
         self.assertIn('"set-browser"', helper)

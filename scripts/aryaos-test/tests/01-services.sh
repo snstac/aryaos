@@ -62,8 +62,8 @@ for svc in "${CORE_SERVICES[@]}"; do
 	fi
 done
 
-for unit in aryaos-time-floor.service aryaos-time-bootstrap.service \
-	aryaos-time-ready.target aryaos-time-refresh.path aryaos-time-refresh.timer \
+for unit in aryaos-ipv4ll-apply.service aryaos-time-floor.service aryaos-time-bootstrap.service \
+	aryaos-time-ready.target aryaos-time-refresh.timer \
 	aryaos-web-tls-init.service; do
 	if systemctl show "${unit}" -p LoadState --value 2>/dev/null | grep -qx loaded \
 		&& systemctl is-enabled --quiet "${unit}" 2>/dev/null; then
@@ -72,6 +72,13 @@ for unit in aryaos-time-floor.service aryaos-time-bootstrap.service \
 		fail "${unit} not installed/enabled"
 	fi
 done
+if systemctl is-enabled --quiet aryaos-time-refresh.path 2>/dev/null; then
+	fail "storm-prone aryaos-time-refresh.path is enabled"
+elif systemctl show aryaos-time-refresh.path -p LoadState --value 2>/dev/null | grep -qx loaded; then
+	ok "storm-prone time refresh path disabled; bounded timer is authoritative"
+else
+	fail "aryaos-time-refresh.path compatibility unit missing"
+fi
 if [[ "$(systemctl show aryaos-time-bootstrap.service -p Result --value 2>/dev/null || true)" == "success" ]]; then
 	ok "bounded boot clock attempt completed successfully"
 else

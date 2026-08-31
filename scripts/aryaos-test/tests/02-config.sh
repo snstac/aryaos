@@ -88,7 +88,19 @@ else
 	warn "DEVICE_SUFFIX missing or invalid in aryaos-config.txt"
 fi
 
-if grep -qE '^AOS_SERVICES=.*(^|[[:space:]])(readsb|dump1090-fa|dump978-fa|gpsd|nodered|tar1090)([[:space:]]|")' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+aos_services="$(sed -n 's/^AOS_SERVICES=["'"'"']\?\([^"'"'"']*\)["'"'"']\?$/\1/p' /etc/aryaos/aryaos-config.txt 2>/dev/null | tail -n 1)"
+service_in_inventory() {
+	case " ${aos_services} " in
+		*" $1 "*) return 0 ;;
+		*) return 1 ;;
+	esac
+}
+
+local_service_present=0
+for service in readsb dump1090-fa dump978-fa gpsd nodered tar1090; do
+	service_in_inventory "${service}" && local_service_present=1
+done
+if [[ "${local_service_present}" == 1 ]]; then
 	fail "local decoder/system service included in AOS_SERVICES"
 else
 	ok "local decoder/system services excluded from network restart list"
@@ -96,13 +108,13 @@ fi
 
 for gateway in cotbridge gpscot lincot gutcheck adsbcot aiscot acarscot aprscot gdlcot \
 	dronecot-dji dronecot-dronescout dronecot-wifi dronecot-ble sikw00fcot sapientcot; do
-	if grep -qE "^AOS_SERVICES=.*(^|[[:space:]])${gateway}([[:space:]]|\")" /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+	if service_in_inventory "${gateway}"; then
 		ok "${gateway} included in network gateway inventory"
 	else
 		fail "${gateway} missing from AOS_SERVICES"
 	fi
 done
-if grep -qE '^AOS_SERVICES=.*(^|[[:space:]])(adsbxcot|spotcot)([[:space:]]|")' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+if service_in_inventory adsbxcot || service_in_inventory spotcot; then
 	fail "stale unguaranteed gateway included in AOS_SERVICES"
 else
 	ok "stale unguaranteed gateways excluded from AOS_SERVICES"

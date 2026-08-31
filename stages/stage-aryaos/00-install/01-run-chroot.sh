@@ -37,8 +37,9 @@ systemctl enable lighttpd
 systemctl enable firewalld
 systemctl enable fail2ban
 systemctl disable aryaos-gps-time-sync.service 2>/dev/null || true
-systemctl enable aryaos-time-floor.service aryaos-time-bootstrap.service \
-	aryaos-time-ready.target aryaos-time-refresh.path aryaos-time-refresh.timer \
+systemctl disable aryaos-time-refresh.path 2>/dev/null || true
+systemctl enable aryaos-ipv4ll-apply.service aryaos-time-floor.service aryaos-time-bootstrap.service \
+	aryaos-time-ready.target aryaos-time-refresh.timer \
 	aryaos-web-tls-init.service
 # Time service: chrony (GPS-disciplined + serves the local network) instead of the
 # client-only systemd-timesyncd.

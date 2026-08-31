@@ -147,6 +147,7 @@
     dest: "/etc/systemd/system/{{ item }}"
     mode: "0644"
   loop:
+    - aryaos-ipv4ll-apply.service
     - aryaos-time-floor.service
     - aryaos-time-bootstrap.service
     - aryaos-time-ready.target
@@ -248,12 +249,20 @@
     enabled: true
     daemon_reload: true
   loop:
+    - aryaos-ipv4ll-apply.service
     - aryaos-time-floor.service
     - aryaos-time-bootstrap.service
     - aryaos-time-ready.target
-    - aryaos-time-refresh.path
     - aryaos-time-refresh.timer
     - aryaos-web-tls-init.service
+
+- name: Disable storm-prone event-driven time refresh
+  ansible.builtin.systemd:
+    name: aryaos-time-refresh.path
+    enabled: false
+    state: stopped
+    daemon_reload: true
+  failed_when: false
 
 - name: Disable legacy direct GPS clock writer
   ansible.builtin.systemd:

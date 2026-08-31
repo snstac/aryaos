@@ -1,7 +1,28 @@
-# Agent handoff - state as of 2026-08-25
+# Agent handoff - state as of 2026-08-31
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
+
+## 2026-08-31 boot, IPv4LL, and HIL fixes
+
+- AryaOS overlay 2.4.1 removes a systemd ordering cycle that could leave
+  `cockpit.socket` inactive after a fresh boot. Lighttpd still waits for the
+  per-device TLS certificate, but Cockpit can start with the other sockets.
+- `aryaos-ipv4ll-apply.service` closes the fresh-image Ethernet gap. It runs
+  after NetworkManager, updates generated DHCP Ethernet profiles, and reapplies
+  only changed active profiles before `network-online.target`. A wired MANET
+  with no DHCP server now keeps a stable IPv4LL address from its first boot.
+- Tactical time peer updates use the 30-second refresh timer. The optional path
+  unit stays installed for compatibility but is disabled because frequent
+  GutCheck cache replacements could hit systemd's start limit.
+- The HIL service inventory now parses the first `AOS_SERVICES` item correctly,
+  expects GutCheck in appliance health, and waits one discovery interval after
+  a planned GutCheck restart before it requires a populated private API.
+- Release HIL on `aryaos-da2a` forced its wired profile back to the old broken
+  first-boot state, rebooted it, and confirmed automatic recovery. The complete
+  strict suite then passed all 15 modules with no failed units. Expected lab
+  warnings remained for no ADS-B traffic, disabled optional gateways, and the
+  backup directory that is created by the first backup.
 
 ## 2026-08-29 AryaAir DroneScout and gateway visibility
 
