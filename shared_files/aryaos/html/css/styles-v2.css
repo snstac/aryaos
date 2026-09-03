@@ -1,0 +1,322 @@
+/* AryaOS dashboard v2 — big-tile "one button per service" layout.
+ *
+ * Extends styles.css: all CSS custom properties (--aos-*, --sns-*) are
+ * defined there. This file adds only the tile grid and tile anatomy.
+ * Load styles.css first, then this file.
+ *
+ * Layout model: Okta-style card grid, one card per sensor/gateway class.
+ * Each card is a large touch target (min 160px × 160px). Status is never
+ * carried by colour alone — every tile shows a glyph and a text label.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * Copyright Sensors & Signals LLC https://www.snstac.com/
+ */
+
+/* ── App bar overrides for v2 ────────────────────────────────────────── */
+
+.aos-appbar-v2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sns-gutter);
+  padding: 0 var(--sns-gutter);
+  height: 56px;
+  background: rgba(5, 8, 7, 0.76);
+  border-bottom: var(--sns-rule) solid var(--aos-panel-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.aos-appbar-v2-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--aos-mono);
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--aos-text);
+  text-decoration: none;
+}
+
+.aos-appbar-v2-logo {
+  color: var(--aos-brand);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.aos-appbar-v2-host {
+  font-family: var(--aos-mono);
+  font-size: 0.75rem;
+  color: var(--aos-muted);
+  letter-spacing: 0.08em;
+  margin-left: 0.25rem;
+}
+
+.aos-appbar-v2-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Gear / settings icon button */
+.aos-v2-settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sns-target);
+  height: var(--sns-target);
+  border: var(--sns-rule) solid var(--aos-panel-border);
+  border-radius: var(--sns-radius);
+  background: transparent;
+  color: var(--aos-muted);
+  font-size: 1.25rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.aos-v2-settings-btn:hover,
+.aos-v2-settings-btn:focus-visible {
+  color: var(--aos-text);
+  border-color: var(--aos-accent);
+  outline: none;
+}
+
+/* ── Switch-view banner ──────────────────────────────────────────────── */
+
+.aos-v2-switchbar {
+  font-family: var(--aos-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aos-muted);
+  background: var(--aos-panel-2);
+  border-bottom: 1px solid var(--aos-panel-border);
+  padding: 0.35rem var(--sns-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.25rem;
+}
+
+.aos-v2-switchbar a {
+  color: var(--aos-accent);
+  text-decoration: none;
+}
+
+.aos-v2-switchbar a:hover {
+  text-decoration: underline;
+}
+
+/* ── Online indicator (re-used from v1 pattern) ──────────────────────── */
+
+.aos-online--off {
+  color: var(--aos-bad) !important;
+}
+
+/* ── Deck / page body ────────────────────────────────────────────────── */
+
+.aos-v2-deck {
+  padding: var(--sns-gutter);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Tile grid ───────────────────────────────────────────────────────── */
+
+.aos-tile-grid {
+  display: grid;
+  /* 2 columns minimum on mobile; expands to fit. Each tile is at least
+     160 px wide so text and glyphs stay readable. */
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--sns-gutter);
+  margin-top: var(--sns-gutter);
+}
+
+/* ── Single tile ─────────────────────────────────────────────────────── */
+
+.aos-tile {
+  /* Geometry — matches the AryaOS design-kit rules exactly. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+  min-height: 180px;
+  padding: 1.25rem 1rem 1.1rem;
+  border: var(--sns-rule) solid var(--aos-panel-border);
+  border-radius: var(--sns-radius);
+  background: var(--aos-panel);
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--aos-text);
+  position: relative;
+  overflow: hidden;
+  /* No box-shadow — kit rule. */
+  transition: border-color 0.14s, background 0.14s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.aos-tile:hover,
+.aos-tile:focus-visible {
+  border-color: var(--aos-accent);
+  outline: none;
+}
+
+/* ── Tile status indicator (the "big button" coloured top area) ──────── */
+
+.aos-tile-indicator {
+  /* Fills the top portion of the card. Acts as the colour signal. */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;           /* 3× the standard 2 px rule — prominent, not flashy. */
+  border-radius: var(--sns-radius);
+  background: var(--aos-muted);
+  opacity: 0.5;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+/* State modifiers ─ applied to the .aos-tile element itself so the
+   indicator, glyph, and label can all react to a single class. */
+
+.aos-tile--ok   .aos-tile-indicator { background: var(--aos-ok);   opacity: 1; }
+.aos-tile--warn .aos-tile-indicator { background: var(--aos-warn); opacity: 1; }
+.aos-tile--bad  .aos-tile-indicator { background: var(--aos-bad);  opacity: 1; }
+
+/* Tint the card body lightly on non-pending states for extra legibility. */
+.aos-tile--ok   { background: color-mix(in srgb, var(--aos-ok)   6%, var(--aos-panel)); }
+.aos-tile--warn { background: color-mix(in srgb, var(--aos-warn) 8%, var(--aos-panel)); }
+.aos-tile--bad  { background: color-mix(in srgb, var(--aos-bad)  8%, var(--aos-panel)); }
+
+/* ── Tile glyph (large emoji / icon) ────────────────────────────────── */
+
+.aos-tile-glyph {
+  font-size: 2.6rem;
+  line-height: 1;
+  margin-bottom: 0.55rem;
+  /* Do not let the glyph carry colour meaning; it is a shape cue. */
+  filter: none;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* ── Tile label (service name) ───────────────────────────────────────── */
+
+.aos-tile-name {
+  font-family: var(--aos-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--aos-muted);
+  margin-bottom: 0.2rem;
+}
+
+/* ── Tile value (state text) ─────────────────────────────────────────── */
+
+.aos-tile-value {
+  font-family: var(--aos-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--aos-text);
+  min-height: 1.2em;   /* Reserve space so tiles stay same height during load. */
+}
+
+/* State-specific value colour — reinforces, never replaces, the indicator. */
+.aos-tile--ok   .aos-tile-value { color: var(--aos-ok);   }
+.aos-tile--warn .aos-tile-value { color: var(--aos-warn); }
+.aos-tile--bad  .aos-tile-value { color: var(--aos-bad);  }
+
+/* ── Section heading ─────────────────────────────────────────────────── */
+
+.aos-v2-section-heading {
+  font-family: var(--aos-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--aos-muted);
+  margin: calc(var(--sns-gutter) * 1.5) 0 0;
+  padding-bottom: 0.4rem;
+  border-bottom: var(--sns-rule) solid var(--aos-panel-border);
+}
+
+.aos-v2-section-heading:first-child {
+  margin-top: 0;
+}
+
+/* ── Error banner ────────────────────────────────────────────────────── */
+
+.aos-v2-banner-bad {
+  font-family: var(--aos-mono);
+  font-size: 0.78rem;
+  color: var(--aos-bad);
+  border: var(--sns-rule) solid var(--aos-bad);
+  border-radius: var(--sns-radius);
+  padding: 0.55rem 0.85rem;
+  margin-top: var(--sns-gutter);
+  background: color-mix(in srgb, var(--aos-bad) 6%, var(--aos-panel));
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────── */
+
+.aos-v2-foot {
+  margin-top: calc(var(--sns-gutter) * 2);
+  padding: var(--sns-gutter) 0 calc(var(--sns-gutter) * 1.5);
+  border-top: var(--sns-rule) solid var(--aos-panel-border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.aos-v2-foot-legal {
+  font-family: var(--aos-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--aos-muted);
+}
+
+.aos-v2-foot-switch {
+  font-family: var(--aos-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--aos-accent);
+  text-decoration: none;
+}
+
+.aos-v2-foot-switch:hover {
+  text-decoration: underline;
+}
+
+/* ── Use notice ──────────────────────────────────────────────────────── */
+
+.aos-use-notice {
+  font-family: var(--aos-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--aos-muted);
+  border: var(--sns-rule) solid var(--aos-panel-border);
+  border-radius: var(--sns-radius);
+  padding: 0.55rem 0.85rem;
+  margin-bottom: var(--sns-gutter);
+  background: var(--aos-panel-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+  align-items: baseline;
+}
+
+.aos-use-notice strong {
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--aos-text);
+}
