@@ -1,0 +1,199 @@
+<!--
+  AryaOS index-v2.html — Okta-style big-tile dashboard.
+  One large tile per sensor / gateway class. Clicking a tile opens the
+  relevant Cockpit page. Status is colour + glyph + text — never colour alone.
+
+  Copyright Sensors & Signals LLC https://www.snstac.com
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>AryaOS — Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="AryaOS sensor and gateway status — big-tile view.">
+    <meta name="theme-color" content="#0b0f0e" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#eef1ef" media="(prefers-color-scheme: light)">
+    <link rel="stylesheet" href="css/uikit.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles-v2.css">
+    <script>
+      /* Restore theme before first paint to avoid a flash. */
+      (function () {
+        try {
+          var t = localStorage.getItem("aos-theme");
+          if (t === "day" || t === "night") document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+
+  <body class="aos-page">
+
+    <!-- ── App bar ──────────────────────────────────────────────────────── -->
+    <header class="aos-appbar-v2">
+      <a class="aos-appbar-v2-brand" href="index-v2.html" aria-label="AryaOS dashboard home">
+        <span class="aos-appbar-v2-logo" aria-hidden="true">◆</span>
+        <span>ARYAOS</span>
+        <span class="aos-appbar-v2-host" id="aos-v2-appbar-host" title="This unit">…</span>
+      </a>
+
+      <div class="aos-appbar-v2-right">
+        <span class="aos-online" id="aos-v2-online" title="Portal reachable">
+          <span class="aos-online-dot" aria-hidden="true"></span> ONLINE
+        </span>
+
+        <!-- Day / night toggle -->
+        <button type="button" class="aos-theme-toggle" id="aos-v2-theme-toggle"
+                aria-label="Switch day / night theme" title="Day / night">
+          <span class="aos-theme-ico" aria-hidden="true">◐</span>
+          <span class="aos-theme-txt" id="aos-v2-theme-txt">Auto</span>
+        </button>
+
+        <!-- Settings / admin — gear icon, mobile-friendly -->
+        <a class="aos-v2-settings-btn" href="/admin/" title="Open Cockpit admin"
+           aria-label="Open Cockpit admin panel">
+          <!-- Unicode wrench / gear; screen-reader hidden via aria-label on the <a> -->
+          <span aria-hidden="true">⚙</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- ── Switch-view banner ────────────────────────────────────────────── -->
+    <div class="aos-v2-switchbar" role="navigation" aria-label="View switcher">
+      <a href="index.html">Switch to detailed view →</a>
+    </div>
+
+    <!-- ── Main content ──────────────────────────────────────────────────── -->
+    <main class="aos-v2-deck">
+
+      <!-- Authorized-use notice -->
+      <aside class="aos-use-notice" role="note" aria-labelledby="aos-v2-use-notice-title">
+        <strong id="aos-v2-use-notice-title">AUTHORIZED USE ONLY</strong>
+        <span>This system is restricted to authorized users and authorized purposes. Activity may be monitored, recorded, and audited. Users have no expectation of privacy except as provided by applicable law. Unauthorized access or use is prohibited and may result in disciplinary action, civil liability, or criminal penalties. Disconnect now if you are not authorized.</span>
+      </aside>
+
+      <!-- Error banner (hidden until a fetch failure) -->
+      <div class="aos-v2-banner-bad" id="aos-v2-error" role="alert" hidden></div>
+
+      <!-- ── Sensor & gateway tiles ─────────────────────────────────────── -->
+      <h2 class="aos-v2-section-heading">Sensors &amp; Gateways</h2>
+
+      <div class="aos-tile-grid" role="list">
+
+        <!-- AIRCRAFT — adsbcot / ADS-B -->
+        <a id="aos-v2-tile-aircraft"
+           class="aos-tile aos-tile--pending"
+           href="/admin/"
+           role="listitem"
+           aria-label="AIRCRAFT: …"
+           title="ADS-B aircraft tracking (adsbcot) — opens Cockpit admin">
+          <div class="aos-tile-indicator" aria-hidden="true"></div>
+          <span class="aos-tile-glyph" aria-hidden="true">✈</span>
+          <span class="aos-tile-name">AIRCRAFT</span>
+          <span class="aos-tile-value">…</span>
+        </a>
+
+        <!-- UAS — dronecot / drone detection -->
+        <a id="aos-v2-tile-uas"
+           class="aos-tile aos-tile--pending"
+           href="/admin/"
+           role="listitem"
+           aria-label="UAS: …"
+           title="UAS / drone detection (dronecot) — opens Cockpit admin">
+          <div class="aos-tile-indicator" aria-hidden="true"></div>
+          <span class="aos-tile-glyph" aria-hidden="true">🚁</span>
+          <span class="aos-tile-name">UAS</span>
+          <span class="aos-tile-value">…</span>
+        </a>
+
+        <!-- MARITIME — aiscot / AIS -->
+        <a id="aos-v2-tile-maritime"
+           class="aos-tile aos-tile--pending"
+           href="/admin/"
+           role="listitem"
+           aria-label="MARITIME: …"
+           title="AIS maritime tracking (aiscot) — opens Cockpit admin">
+          <div class="aos-tile-indicator" aria-hidden="true"></div>
+          <span class="aos-tile-glyph" aria-hidden="true">⚓</span>
+          <span class="aos-tile-name">MARITIME</span>
+          <span class="aos-tile-value">…</span>
+        </a>
+
+        <!-- SENSORS — active gateway count -->
+        <a id="aos-v2-tile-sensors"
+           class="aos-tile aos-tile--pending"
+           href="/admin/"
+           role="listitem"
+           aria-label="SENSORS: …"
+           title="Active sensor gateways — opens Cockpit admin">
+          <div class="aos-tile-indicator" aria-hidden="true"></div>
+          <span class="aos-tile-glyph" aria-hidden="true">📡</span>
+          <span class="aos-tile-name">SENSORS</span>
+          <span class="aos-tile-value">…</span>
+        </a>
+
+      </div><!-- /.aos-tile-grid -->
+
+      <!-- ── System tiles ───────────────────────────────────────────────── -->
+      <h2 class="aos-v2-section-heading">System</h2>
+
+      <div class="aos-tile-grid" role="list">
+
+        <!-- GNSS — GPS fix quality -->
+        <a id="aos-v2-tile-gnss"
+           class="aos-tile aos-tile--pending"
+           href="index.html#aos-gps-section"
+           role="listitem"
+           aria-label="GNSS: …"
+           title="GNSS / GPS fix quality — opens detailed status">
+          <div class="aos-tile-indicator" aria-hidden="true"></div>
+          <span class="aos-tile-glyph" aria-hidden="true">🛰</span>
+          <span class="aos-tile-name">GNSS</span>
+          <span class="aos-tile-value">…</span>
+        </a>
+
+        <!-- SYSTEM — power / temperature -->
+        <a id="aos-v2-tile-system"
+           class="aos-tile aos-tile--pending"
+           href="index.html#aos-sys-section"
+           role="listitem"
+           aria-label="SYSTEM: …"
+           title="CPU temperature and power state — opens detailed status">
+          <div class="aos-tile-indicator" aria-hidden="true"></div>
+          <span class="aos-tile-glyph" aria-hidden="true">⚡</span>
+          <span class="aos-tile-name">SYSTEM</span>
+          <span class="aos-tile-value">…</span>
+        </a>
+
+      </div><!-- /.aos-tile-grid -->
+
+      <!-- ── Footer ─────────────────────────────────────────────────────── -->
+      <footer class="aos-v2-foot">
+        <span class="aos-v2-foot-legal">
+          Served over <strong>HTTPS</strong> · Apache-2.0 ·
+          Copyright Sensors &amp; Signals LLC ·
+          <a href="https://www.snstac.com">www.snstac.com</a>
+        </span>
+        <a class="aos-v2-foot-switch" href="index.html">
+          Switch to detailed view →
+        </a>
+      </footer>
+
+    </main><!-- /.aos-v2-deck -->
+
+    <script src="js/portal-v2.js?v=1.0.0" defer></script>
+  </body>
+</html>
