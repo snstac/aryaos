@@ -38,5 +38,4 @@ provides the address needed to join multicast groups.
 The same opaque discovery ID joins CoT, DNS-SD, and SSDP observations into one
 node. DNS-SD/SSDP can refresh network presence and service URLs, but can not
 refresh or replace CoT-derived health and position. LINCOT is the preferred
-AryaOS self beacon. GutCheck emits a no-fix CoT fallback only after LINCOT is
-stale.
+AryaOS self beacon. GutCheck does not emit a separate AryaOS CoT beacon.

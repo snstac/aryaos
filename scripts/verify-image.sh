@@ -237,6 +237,8 @@ require_grep '^EnvironmentFile=-/run/aryaos/multicast.env$' \
 	/etc/systemd/system/gutcheck.service.d/aryaos-health.conf \
 	"GutCheck consumes resolved multicast interfaces"
 require_grep '^COT_URL=udp\+wo://127\.0\.0\.1:28087$' /etc/aryaos/aryaos-config.txt "feeder COT_URL points to cotbridge"
+require_grep '^SENSOR_BEACON=0$' /etc/aryaos/aryaos-config.txt \
+	"sensor gateways suppress duplicate receiver markers"
 
 # Portal (stage-aryaos)
 require_path /var/www/html/index.html
@@ -275,9 +277,17 @@ require_grep 'id="card-neighbors"' /usr/share/cockpit/aryaos/index.html "cockpit
 require_grep 'refreshNeighbors' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos neighbor refresh"
 require_grep 'id="card-system-time"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos system time card"
 require_grep 'set-browser' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos browser time synchronization"
+require_grep 'cockpit\.spawn\(\[TIME_HELPER, "status"\], \{ err: "message" \}\)' /usr/share/cockpit/aryaos/aryaos.js \
+	"cockpit-aryaos reads system time without elevation"
+forbid_grep '\[TIME_HELPER, "status"\].*superuser: "try"' /usr/share/cockpit/aryaos/aryaos.js \
+	"cockpit-aryaos system time status avoids the optional root bridge"
+require_grep 'startsWith\("Failed to read device time:"\)' /usr/share/cockpit/aryaos/aryaos.js \
+	"cockpit-aryaos clears recovered system time errors"
 require_grep 'set-browser' /usr/local/sbin/aryaos-time-bootstrap "browser time helper command"
 require_grep 'id="card-updates"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos software updates card"
 require_grep 'id="card-location"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos location chip card"
+require_grep 'class="aos-launcher"' /usr/share/cockpit/aryaos/index.html "cockpit-aryaos workflow launcher"
+require_grep '\.aos-launch-tile::before' /usr/share/cockpit/aryaos/aryaos.css "cockpit-aryaos v2-style launcher CSS"
 require_path /usr/share/cockpit/aryaos/aryaos-basemap.js
 require_grep 'ARYAOS_BASEMAP' /usr/share/cockpit/aryaos/aryaos-basemap.js "cockpit-aryaos offline base map data"
 require_grep 'get_throttled' /usr/share/cockpit/aryaos/aryaos.js "cockpit-aryaos power-health indicator"
@@ -319,7 +329,10 @@ forbid_path /etc/systemd/system/dhbridge.service.d
 
 # Sensor / CoT stack
 require_pkg aiscot
-require_pkg_version aiscot 7.3.1
+require_pkg_version adsbcot 9.2.2
+require_pkg_version aiscot 7.3.2
+require_pkg_version aprscot 8.3.1
+require_pkg_version lincot 1.3.9
 require_pkg cockpit-gps
 require_pkg cockpit-adsbcot
 require_pkg_version cockpit-adsbcot 1.2.3
@@ -358,7 +371,7 @@ require_pkg_version gdlcot 2.0.1
 require_pkg_version pytak 7.6.0
 require_pkg_version acarscot 0.1.1
 require_pkg acarsdec
-require_pkg_version dronecot 2.3.9
+require_pkg_version dronecot 2.3.10
 require_pkg_version gutcheck 0.4.2
 require_unit adsbcot.service
 require_unit aiscot.service

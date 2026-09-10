@@ -174,12 +174,29 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("ais-catcher-rtl@.service", builder)
         self.assertIn("aryaos-ais-sdr.service", builder)
 
+    def test_lime_ais_task_uses_verified_soapy_arguments(self):
+        helper = (ROOT / "shared_files/aryaos/aryaos-sdr").read_text()
+        unit = (
+            ROOT / "shared_files/aryaos/systemd/aryaos-ais-sdr.service"
+        ).read_text()
+        unit_section, service_section = unit.split("\n[Service]\n", 1)
+
+        self.assertIn(
+            "-gu DEVICE driver=lime,serial=${serial} ANTENNA LNAW "
+            "GAIN LNA=30 -s 1536000",
+            helper,
+        )
+        self.assertNotIn('-d SOAPYSDR -gs SOAPYSDR', helper)
+        self.assertIn("StartLimitIntervalSec=300", unit_section)
+        self.assertIn("StartLimitBurst=5", unit_section)
+        self.assertIn("TimeoutStopSec=15s", service_section)
+
     def test_image_requires_aiscot_with_reconnect_safe_listener_cleanup(self):
         verifier = (ROOT / "scripts/verify-image.sh").read_text()
         hil = (ROOT / "scripts/aryaos-test/tests/05-packages.sh").read_text()
 
-        self.assertIn("require_pkg_version aiscot 7.3.1", verifier)
-        self.assertIn("require_package_version aiscot 7.3.1", hil)
+        self.assertIn("require_pkg_version aiscot 7.3.2", verifier)
+        self.assertIn("require_package_version aiscot 7.3.2", hil)
 
     def test_node_red_installer_retries_transient_release_asset_failures(self):
         stage = (
@@ -362,6 +379,11 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn('[SYSTEMCTL, "stop", "chrony.service"]', helper)
         self.assertIn('[SYSTEMCTL, "start", "chrony.service"]', helper)
         self.assertIn('id="card-system-time"', cockpit_patch)
+        self.assertIn(
+            'cockpit.spawn([TIME_HELPER, "status"], { err: "message" })',
+            cockpit_patch,
+        )
+        self.assertIn('startsWith("Failed to read device time:")', cockpit_patch)
         self.assertIn('[TIME_HELPER, "set-browser", String(browserEpochMs)]', cockpit_patch)
         self.assertIn('{ superuser: "require", err: "message" }', cockpit_patch)
         self.assertIn('cockpit.spawn(["/usr/bin/true"]', cockpit_patch)
@@ -384,8 +406,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("dronescout_crlf=1", postinst)
         self.assertIn("ID_VENDOR_ID=303a", postinst)
         self.assertIn(
-            "try-restart lincot.service acarsdec.service "
-            "dronecot-dji.service dronecot-dronescout.service",
+            "try-restart lincot.service adsbcot.service aiscot.service",
             postinst,
         )
 
@@ -410,8 +431,64 @@ class ServiceDefaultsTestCase(unittest.TestCase):
 
         self.assertIn("for dronecot_instance in dronescout wifi ble", postinst)
         self.assertIn("STATUS_APP=dronecot-%s", postinst)
-        self.assertIn("require_pkg_version dronecot 2.3.9", image_check)
-        self.assertIn("require_package_version dronecot 2.3.9", hil_check)
+        self.assertIn("require_pkg_version dronecot 2.3.10", image_check)
+        self.assertIn("require_package_version dronecot 2.3.10", hil_check)
+
+    def test_aryaos_emits_one_enriched_host_beacon(self):
+        site_config = (
+            ROOT / "shared_files/aryaos/aryaos-config.txt"
+        ).read_text()
+        cot_detail = (
+            ROOT / "shared_files/aryaos/aryaos-cot-detail"
+        ).read_text()
+        postinst = (ROOT / "packaging/aryaos-overlay/postinst").read_text()
+        image_check = (ROOT / "scripts/verify-image.sh").read_text()
+        hil_check = (
+            ROOT / "scripts/aryaos-test/tests/02-config.sh"
+        ).read_text()
+        package_hil = (
+            ROOT / "scripts/aryaos-test/tests/05-packages.sh"
+        ).read_text()
+        gutcheck_dropin = (
+            ROOT
+            / "shared_files/aryaos/systemd/gutcheck.service.d/aryaos-health.conf"
+        ).read_text()
+
+        self.assertIn("SENSOR_BEACON=0", site_config)
+        self.assertNotIn("DISCOVERY_DETAIL_CMD", gutcheck_dropin)
+        self.assertNotIn("DISCOVERY_REMARKS_CMD", gutcheck_dropin)
+        self.assertIn("ARYAOS_COT_OUTPUT_URL SENSOR_BEACON", postinst)
+        self.assertIn("^SENSOR_BEACON=0$", image_check)
+        self.assertIn("SENSOR_BEACON=0", hil_check)
+        for service in (
+            "lincot",
+            "adsbcot",
+            "aiscot",
+            "aprscot",
+            "dronecot-dji",
+            "dronecot-dronescout",
+            "dronecot-wifi",
+            "dronecot-ble",
+        ):
+            self.assertIn(f"{service}.service", postinst)
+        for package, version in (
+            ("adsbcot", "9.2.2"),
+            ("aiscot", "7.3.2"),
+            ("aprscot", "8.3.1"),
+            ("dronecot", "2.3.10"),
+            ("lincot", "1.3.9"),
+        ):
+            self.assertIn(f"require_pkg_version {package} {version}", image_check)
+            self.assertIn(
+                f"require_package_version {package} {version}", package_hil
+            )
+        for app, label in (
+            ("dronecot-dji", "dji"),
+            ("dronecot-dronescout", "rid"),
+            ("dronecot-wifi", "wifi-rid"),
+            ("dronecot-ble", "ble-rid"),
+        ):
+            self.assertIn(f'"{app}": "{label}"', cot_detail)
 
     def test_generic_dronecot_is_migrated_to_explicit_dji_service(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()

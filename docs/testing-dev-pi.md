@@ -77,6 +77,19 @@ ssh-keyscan -H 192.168.0.44 192.168.0.45 192.168.0.149 192.168.0.199 \
   --duration-hours 8 --interval 60 --enforce-acceptance
 ```
 
+If the image lacks the lab key, read the password from an environment variable.
+The sampler does not store the password in its arguments or artifacts.
+
+```bash
+read -r -s ARYAOS_BURNIN_PASSWORD
+export ARYAOS_BURNIN_PASSWORD
+./scripts/aryaos-burnin.py \
+  --hosts 192.168.0.85 --password-env ARYAOS_BURNIN_PASSWORD \
+  --duration-hours 8 --interval 60 --min-gnss-3d-ratio 0.95 \
+  --enforce-acceptance
+unset ARYAOS_BURNIN_PASSWORD
+```
+
 The generated `summary.json` reports service state counts, automatic restart ranges, boot IDs,
 filesystem alerts, and per-gateway `gateway_activity`. Gateway activity includes observed samples,
 total counter growth, counter resets, the last counters, and the range of CoT write errors. Positive
@@ -87,6 +100,7 @@ distinguish a controlled package or operator restart from an unexplained failure
 completed systemd oneshots are not reported as service drops. Samples also carry the resilient clock
 decision from `/run/aryaos/time-status.json`. The raw burn-in record shows peer NTP, holdover, and
 degraded operation.
+GNSS summaries contain fix health and satellite counts. They never contain coordinates.
 
 The release gate rejects probe failures, service drops, restart growth,
 reboots, USB changes, filesystem alerts, throttling, and gateway write errors.

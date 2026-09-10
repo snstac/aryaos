@@ -12,6 +12,12 @@ else
 	fail "COT_URL not udp+wo://127.0.0.1:28087 in aryaos-config.txt"
 fi
 
+if grep -qx 'SENSOR_BEACON=0' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
+	ok "sensor gateways suppress duplicate receiver markers"
+else
+	fail "SENSOR_BEACON must be 0 in aryaos-config.txt"
+fi
+
 if grep -q 'ARYAOS_ADSB_JSON_DIR=/run/adsb' /etc/aryaos/aryaos-config.txt 2>/dev/null; then
 	ok "ARYAOS_ADSB_JSON_DIR=/run/adsb"
 else

@@ -27,6 +27,7 @@ flowchart LR
 |-----|---------|---------|
 | `COT_URL` | `udp+wo://127.0.0.1:28087` | Where local `*cot` feeders send CoT. Default is the COTBridge hub ingress on localhost. Upstream mesh / TAK Server forwarding is configured in `/etc/cotbridge.ini`. |
 | `COT_HOST_ID` | *(set on first boot)* | Functional source id stamped into CoT flow-tags and remarks by the PyTAK tools. Set on first boot to `aryaos-<suffix>`. Override for a custom name. |
+| `SENSOR_BEACON` | `0` | Disable separate gateway receiver markers. LINCOT still sends one host beacon with GutCheck-compatible AryaOS health data. |
 
 TLS material for TAK Server connections is written to this file by the [Site-wide TAK TLS certificates](../admin/aryaos-site.md#site-wide-tak-tls-certificates) card as `PYTAK_TLS_CLIENT_CERT`, `PYTAK_TLS_CLIENT_KEY`. `PYTAK_TLS_CLIENT_CAFILE` (paths under `/etc/aryaos/tls/`), plus `PYTAK_TLS_DONT_VERIFY` (lab only). Prefer the [TAK connection](../admin/aryaos-site.md#tak-connection) card, which sets these for you.
 

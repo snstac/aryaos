@@ -73,11 +73,14 @@ fi
 # Cockpit pins the document body and expects each page to supply its own scroll
 # container. These versions include the common #app root scroller, preventing
 # expanded Debug Logs and Advanced Details cards from being clipped.
-require_package_version aiscot 7.3.1
+require_package_version adsbcot 9.2.2
+require_package_version aiscot 7.3.2
+require_package_version aprscot 8.3.1
+require_package_version lincot 1.3.9
 require_package_version pytak 7.6.0
 require_package_version gpscot 2.0.1
 require_package_version sikw00fcot 1.0.2
-require_package_version dronecot 2.3.9
+require_package_version dronecot 2.3.10
 require_package_version gutcheck 0.4.2
 require_package_version cockpit-adsbcot 1.2.3
 require_package_version cockpit-aiscot 1.2.3
@@ -87,6 +90,12 @@ require_package_version cockpit-dronecot 1.3.0
 require_package_version cockpit-lincot 1.1.3
 require_package_version cockpit-sapientcot 0.1.1
 require_package_version cockpit-aryaos 2.2.0
+if grep -q 'class="aos-launcher"' /usr/share/cockpit/aryaos/index.html \
+	&& grep -q '\.aos-launch-tile::before' /usr/share/cockpit/aryaos/aryaos.css; then
+	ok "Cockpit AryaOS provides the v2-style workflow launcher"
+else
+	fail "Cockpit AryaOS v2-style workflow launcher missing"
+fi
 # GDLCOT 2.0.1 retains the NaN/Inf guards from 1.0.1 and also rebuilds its
 # custom PyTAK client in-process after transient CoT transport failures.
 require_package_version gdlcot 2.0.1

@@ -258,7 +258,7 @@ See [VPN (Tailscale)](../networking/vpn-tailscale.md).
 
 **What it does.** Lists other AryaOS units heard on the local Mesh SA network, so you can see and reach neighbors without a central server.
 
-Each AryaOS box beacons a structured `<__aryaos>` CoT detail through LINCOT. GutCheck combines those beacons with DNS-SD and SSDP identity discovery and caches nearby nodes. The table refreshes every 8 seconds and shows, per node:
+Each AryaOS box sends one structured `<__aryaos>` CoT beacon through LINCOT. Sensor gateways send tracks without separate receiver markers. GutCheck combines those beacons with DNS-SD and SSDP identity discovery. It caches nearby nodes. The table refreshes every 8 seconds and shows, per node:
 
 | Column | Meaning |
 |--------|---------|

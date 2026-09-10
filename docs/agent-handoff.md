@@ -1,7 +1,24 @@
-# Agent handoff - state as of 2026-08-31
+# Agent handoff - state as of 2026-09-06
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
+
+## 2026-09-06 single AryaOS host beacon
+
+- AryaOS sets `SENSOR_BEACON=0` in its shared gateway environment.
+  ADSBCOT, AISCoT, APRSCoT, DroneCOT, and LINCOT honor this setting.
+- Sensor gateways still emit detected tracks and write runtime status.
+  They no longer emit separate `a-f-G-E-S-E` receiver markers on AryaOS.
+- LINCOT remains the single host beacon source.
+  Its `<__aryaos>` detail contains service, capability, clock, and decoder data.
+- GutCheck keeps mDNS and SSDP discovery active without its CoT fallback beacon.
+- Released versions are ADSBCOT 9.2.2, AISCoT 7.3.2, APRSCoT 8.3.1,
+  DroneCOT 2.3.10, and LINCOT 1.3.9.
+- Signed package repository run `33970552435` published all five Debian packages.
+- Live validation passed on `aryaos-deb2` through `enx8cae4cff4266`.
+  A 135-second capture contained two LINCOT host events and no other CoT events.
+- The default HIL suite passed the beacon, config, package, portal, and GutCheck checks.
+  AIS hardware checks failed because this device has no assigned AIS serial port.
 
 ## 2026-08-31 boot, IPv4LL, and HIL fixes
 

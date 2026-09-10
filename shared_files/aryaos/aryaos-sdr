@@ -266,14 +266,17 @@ _set_dump978_device() { [[ -f /etc/default/dump978-fa ]] && sed -i "s|serial=[^,
 #   rtlsdr : serial matches SoapySDR's rtlsdr serial as-is.
 #   airspy : ais-catcher's native Airspy serial is UPPERCASE; SoapySDR reports it
 #            lowercase and the `-d` search is case-sensitive — so upper-case it.
-#   other  : the generic SOAPYSDR backend (HackRF/Lime — validated on Airspy/RTL;
-#            other Soapy drivers are best-effort until hardware-tested).
+#   lime   : the generic SOAPYSDR backend with the verified VHF antenna, gain,
+#            and sample rate settings for LimeSDR Mini.
+#   other  : the generic SOAPYSDR backend. Other Soapy drivers remain
+#            best-effort until hardware-tested.
 _set_ais_device() {  # driver serial
 	local driver="$1" serial="$2" args
 	case "${driver}" in
 		rtlsdr) args="-d ${serial}" ;;
 		airspy) args="-d ${serial^^}" ;;
-		*) args="-d SOAPYSDR -gs SOAPYSDR device:driver=${driver},serial=${serial}" ;;
+		lime) args="-gu DEVICE driver=lime,serial=${serial} ANTENNA LNAW GAIN LNA=30 -s 1536000" ;;
+		*) args="-gu DEVICE driver=${driver},serial=${serial} -s 1536000" ;;
 	esac
 	mkdir -p /etc/default
 	printf 'AIS_CATCHER_DEVICE_ARGS="%s"\n' "${args}" > /etc/default/aryaos-ais-sdr

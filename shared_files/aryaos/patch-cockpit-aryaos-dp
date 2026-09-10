@@ -77,6 +77,41 @@ TIME_CARD = """    <section class="aos-card" id="card-system-time">
 
 """
 
+LAUNCHER_HTML = """    <nav class="aos-launcher" aria-label="Configuration shortcuts">
+      <a class="aos-launch-tile" href="#card-role">
+        <svg class="aos-launch-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 4v6M4 17h16M17 14v6"/></svg>
+        <span class="aos-launch-name">Sensors</span>
+        <span class="aos-launch-value">Role &amp; services</span>
+      </a>
+      <a class="aos-launch-tile" href="#card-dp">
+        <svg class="aos-launch-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>
+        <span class="aos-launch-name">TAK &amp; CoT</span>
+        <span class="aos-launch-value">Output &amp; enrollment</span>
+      </a>
+      <a class="aos-launch-tile" href="#card-radios">
+        <svg class="aos-launch-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM8.5 7.5a6 6 0 0 0 0 9M15.5 7.5a6 6 0 0 1 0 9M5.5 4.5a10 10 0 0 0 0 15M18.5 4.5a10 10 0 0 1 0 15"/></svg>
+        <span class="aos-launch-name">Radios</span>
+        <span class="aos-launch-value">SDR hardware</span>
+      </a>
+      <a class="aos-launch-tile" href="#card-radio-control">
+        <svg class="aos-launch-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14M4 7h2M18 7h2M4 17h2M18 17h2"/></svg>
+        <span class="aos-launch-name">Network</span>
+        <span class="aos-launch-value">Wi-Fi &amp; EMCON</span>
+      </a>
+      <a class="aos-launch-tile" href="#card-location">
+        <svg class="aos-launch-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span class="aos-launch-name">System</span>
+        <span class="aos-launch-value">Position &amp; power</span>
+      </a>
+      <a class="aos-launch-tile" href="#card-updates">
+        <svg class="aos-launch-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+        <span class="aos-launch-name">Maintain</span>
+        <span class="aos-launch-value">Updates &amp; backup</span>
+      </a>
+    </nav>
+
+"""
+
 DP_JS = """
 /* --- TAK connection import and enrollment status --- */
 function renderTakEnrollmentStatus(payload) {
@@ -361,7 +396,7 @@ function renderSystemTime() {
 
 function refreshSystemTime() {
     const requestedAt = Date.now();
-    return cockpit.spawn([TIME_HELPER, "status"], { superuser: "try", err: "message" })
+    return cockpit.spawn([TIME_HELPER, "status"], { err: "message" })
         .then((out) => {
             const receivedAt = Date.now();
             const payload = JSON.parse(out);
@@ -376,6 +411,11 @@ function refreshSystemTime() {
             const timezone = payload.timezone || "UTC";
             $("time-source").textContent = source + "; " + state + "; " + timezone;
             renderSystemTime();
+            const status = $("time-status");
+            if (status.textContent.startsWith("Failed to read device time:")) {
+                status.textContent = "";
+                status.className = "aos-status";
+            }
         })
         .catch((ex) => setStatus($("time-status"), "Failed to read device time: " + (ex.message || ex), false));
 }
@@ -409,6 +449,23 @@ function syncSystemTime() {
 
 """
 
+OLD_TIME_STATUS_SPAWN = (
+    'return cockpit.spawn([TIME_HELPER, "status"], '
+    '{ superuser: "try", err: "message" })'
+)
+TIME_STATUS_SPAWN = (
+    'return cockpit.spawn([TIME_HELPER, "status"], { err: "message" })'
+)
+OLD_TIME_STATUS_RENDER = '''            $("time-source").textContent = source + "; " + state + "; " + timezone;
+            renderSystemTime();'''
+TIME_STATUS_RENDER = '''            $("time-source").textContent = source + "; " + state + "; " + timezone;
+            renderSystemTime();
+            const status = $("time-status");
+            if (status.textContent.startsWith("Failed to read device time:")) {
+                status.textContent = "";
+                status.className = "aos-status";
+            }'''
+
 DP_CSS = """
 .aos-status-table { margin: 0.7rem 0 1rem; }
 .aos-status-table td:first-child { width: 12rem; color: var(--aos-muted); }
@@ -418,10 +475,48 @@ DP_CSS = """
 .aos-file-label textarea { display: block; box-sizing: border-box; width: 100%; margin-top: 0.3rem; font: inherit; font-family: monospace; }
 """
 
+LAUNCHER_CSS = """
+/* --- V2-style workflow launcher and controls --- */
+:root { --aos-brand: #c2520d; }
+.aos-main { width: min(100%, 72rem); }
+.aos-launcher { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.75rem, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.aos-launch-tile { position: relative; display: flex; min-height: 9.5rem; padding: 1.25rem 1rem 1rem; flex-direction: column; align-items: center; justify-content: flex-end; border: 2px solid var(--aos-border); border-radius: 0; background: var(--aos-panel); color: var(--aos-ink); text-align: center; text-decoration: none; transition: border-color 140ms, background 140ms; }
+.aos-launch-tile::before { position: absolute; inset: 0 0 auto; height: 6px; background: var(--aos-brand); content: ""; }
+.aos-launch-tile:hover { border-color: var(--aos-accent); background: var(--aos-panel-2); }
+.aos-launch-tile:focus-visible, .aos-btn:focus-visible, .aos-icon-btn:focus-visible { outline: 3px solid var(--aos-accent); outline-offset: 3px; }
+.aos-launch-icon { width: 2.65rem; height: 2.65rem; margin: auto 0 0.8rem; fill: none; stroke: currentColor; stroke-linecap: square; stroke-linejoin: miter; stroke-width: 1.7; }
+.aos-launch-name { margin-bottom: 0.25rem; color: var(--aos-muted); font-family: "Arial Narrow", "Roboto Condensed", sans-serif; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.aos-launch-value { min-height: 1.2em; font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.82rem; font-weight: 650; letter-spacing: 0.02em; }
+.aos-card { border: 2px solid var(--aos-border); border-radius: 0; box-shadow: none; }
+.aos-btn { border-width: 2px; border-radius: 0; font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.aos-btn.aos-primary { border-color: var(--aos-brand); background: var(--aos-brand); }
+.aos-btn:not(:disabled):hover { background: var(--aos-accent); color: var(--aos-accent-ink); }
+.aos-btn.aos-primary:not(:disabled):hover { background: var(--aos-brand); filter: brightness(0.9); }
+.aos-icon-btn { border-width: 2px; border-radius: 0; }
+@media (max-width: 760px) { .aos-launcher { grid-template-columns: repeat(2, minmax(0, 1fr)); } .aos-launch-tile { min-height: 8.5rem; } }
+"""
+
+
+def add_launcher_html(text):
+    """Add the workflow launcher before the first operational card."""
+    if 'class="aos-launcher"' in text:
+        return text
+    for marker in (
+        '    <section class="aos-safebanner" id="safe-mode-banner"',
+        '    <section class="aos-card aos-card-location" id="card-location"',
+    ):
+        if marker in text:
+            return text.replace(marker, LAUNCHER_HTML + marker, 1)
+    raise RuntimeError(f"{INDEX}: workflow launcher marker not found")
+
 
 def patch_index():
     text = INDEX.read_text(encoding="utf-8")
     changed = False
+    upgraded = add_launcher_html(text)
+    if upgraded != text:
+        text = upgraded
+        changed = True
     services_marker = '    <section class="aos-card" id="card-services">\n'
     if 'id="card-dp"' in text:
         if 'id="tak-enrollment-table"' not in text:
@@ -474,6 +569,10 @@ def patch_index():
 def patch_js():
     text = JS.read_text(encoding="utf-8")
     changed = False
+    upgraded = upgrade_time_js(text)
+    if upgraded != text:
+        text = upgraded
+        changed = True
     if "function refreshTakEnrollmentStatus" not in text:
         marker = "/* --- Services card --- */"
         if marker not in text:
@@ -567,6 +666,16 @@ def patch_js():
     return changed
 
 
+def upgrade_time_js(text):
+    """Upgrade the first browser-time panel without duplicating its code."""
+    if OLD_TIME_STATUS_SPAWN not in text:
+        return text
+    if OLD_TIME_STATUS_RENDER not in text:
+        raise RuntimeError(f"{JS}: system time render marker not found")
+    text = text.replace(OLD_TIME_STATUS_SPAWN, TIME_STATUS_SPAWN, 1)
+    return text.replace(OLD_TIME_STATUS_RENDER, TIME_STATUS_RENDER, 1)
+
+
 def patch_css():
     text = CSS.read_text(encoding="utf-8")
     additions = []
@@ -585,6 +694,8 @@ def patch_css():
         additions.append(".aos-table-scroll { width: 100%; overflow-x: auto; }")
         additions.append(".aos-neighbor-summary { margin: 0.6rem 0 0.75rem; color: var(--aos-muted); font-size: 0.9rem; }")
         additions.append(".aos-neighbor-table { min-width: 48rem; }")
+    if ".aos-launcher" not in text:
+        additions.append(LAUNCHER_CSS.strip())
     if not additions:
         return False
     CSS.write_text(text.rstrip() + "\n" + "\n".join(additions) + "\n", encoding="utf-8")

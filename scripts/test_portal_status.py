@@ -234,6 +234,16 @@ class TakGatewayTestCase(unittest.TestCase):
 
 
 class PortalMarkupTestCase(unittest.TestCase):
+    def test_https_root_prefers_v2_dashboard(self):
+        config = (
+            Path(__file__).parents[1]
+            / "shared_files/aryaos/95-aryaos-cockpit-https.conf"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            'index-file.names = ( "index-v2.html", "index.html" )', config
+        )
+
     def test_sensor_strip_has_acars_and_sdr_chips(self):
         root = Path(__file__).parents[1] / "shared_files/aryaos/html"
         html = (root / "index.html").read_text(encoding="utf-8")

@@ -10,8 +10,7 @@ GutCheck combines three complementary transports:
 
 - **CoT Mesh SA** on `239.2.3.1:6969` carries the rich operational record:
   callsign, position, service state, capabilities, timing, and host remarks.
-  LINCOT is the preferred host beacon. If LINCOT has not emitted recently,
-  GutCheck sends a no-position fallback and never overwrites a newer LINCOT fix.
+  LINCOT sends the single host beacon with GutCheck-compatible health data.
 - **DNS-SD/mDNS** advertises `_aryaos._tcp.local.` and the HTTPS landing/admin
   URLs. It makes the appliance browsable by hostname on a local link.
 - **SSDP** on `239.255.255.250:1900` supplies an additional Layer-2 discovery
@@ -19,7 +18,7 @@ GutCheck combines three complementary transports:
 
 DNS-SD and SSDP publish identity and service URLs only. They do not expose
 position, health, capabilities, or credentials. Rich status remains on CoT and
-The token-protected GutCheck API.
+the token-protected GutCheck API.
 
 ```mermaid
 flowchart LR

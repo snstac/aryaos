@@ -115,6 +115,15 @@ else
 	fail "Cockpit AryaOS TAK connection or neighbor UI missing"
 fi
 
+if grep -Fq 'cockpit.spawn([TIME_HELPER, "status"], { err: "message" })' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null \
+	&& ! grep -q '\[TIME_HELPER, "status"\].*superuser: "try"' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null \
+	&& grep -Fq 'startsWith("Failed to read device time:")' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null \
+	&& grep -Fq '[TIME_HELPER, "set-browser", String(browserEpochMs)]' /usr/share/cockpit/aryaos/aryaos.js 2>/dev/null; then
+	ok "Cockpit system time reads recover without elevation"
+else
+	fail "Cockpit system time privilege or recovery policy is incorrect"
+fi
+
 PORTAL_BODY="$(curl -gk --max-time 8 -sS https://127.0.0.1/ 2>/dev/null || true)"
 # The security property: the portal is unauthenticated, so it must carry no
 # mutating TAK form. That is the part that matters and it is asserted on its own.

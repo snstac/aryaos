@@ -89,7 +89,7 @@ case "$1" in
     aryaos_config=/etc/aryaos/aryaos-config.txt
     aryaos_defaults=/usr/share/aryaos/defaults/aryaos-config.txt
     if [ -f "$aryaos_config" ] && [ -f "$aryaos_defaults" ]; then
-      for key in ARYAOS_COT_OUTPUT_URL ARYAOS_ADSB_1090_SOURCE \
+      for key in ARYAOS_COT_OUTPUT_URL SENSOR_BEACON ARYAOS_ADSB_1090_SOURCE \
         ARYAOS_ADSB_1090_DEVICE ARYAOS_UAT_978_DEVICE \
         PYTAK_MULTICAST_LOCAL_ADDRS ARYAOS_IPV4LL_FALLBACK \
         ARYAOS_TIME_PEER_MODE ARYAOS_TIME_BOOT_TIMEOUT; do
@@ -241,7 +241,10 @@ case "$1" in
       systemctl restart aryaos-serial-assign.service 2>/dev/null || true
       # These are role-dependent, so refresh only instances that were already
       # running; package installation must not enable a new radio role.
-      systemctl try-restart lincot.service acarsdec.service dronecot-dji.service dronecot-dronescout.service 2>/dev/null || true
+      systemctl try-restart lincot.service adsbcot.service aiscot.service \
+        aprscot.service acarsdec.service dronecot-dji.service \
+        dronecot-dronescout.service dronecot-wifi.service \
+        dronecot-ble.service 2>/dev/null || true
       # aryaos-serial-assign already resumed gpsd with the detected device.
       # Restarting the socket/service pair again races the tty open path.
       systemctl try-restart cockpit.socket 2>/dev/null || true

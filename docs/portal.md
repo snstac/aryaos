@@ -29,6 +29,8 @@ flowchart LR
 
 **Client:** [`portal-landing.js`](https://github.com/snstac/aryaos/blob/main/shared_files/aryaos/html/js/portal-landing.js) polls **`GET /cgi-bin/aryaos-portal-status`** every **8s** (`cache: no-store`).
 
+The HTTPS root serves `index-v2.html` by default. The detailed dashboard remains available at `index.html`.
+
 The Cockpit login and shell at **`/admin/`** use the canonical reverse AryaOS Signal Block from the
 brand guide. The overlay installs the stylesheet and SVG into Cockpit's `debian` and `default`
 branding directories. This keeps the mark consistent across OS brands and makes it available
@@ -62,12 +64,10 @@ producer. AryaOS adds a structured `<__aryaos>` detail element to that beacon vi
 `/usr/local/sbin/aryaos-cot-detail`. The detail carries hostname, admin URL, source IP,
 roles, service states, and coarse system health.
 
-`gutcheck.service` listens on Mesh SA, DNS-SD/mDNS, and SSDP, then writes a TTL
-Cache to `/run/gutcheck/neighbors.json`. If LINCOT has no current self beacon,
-GutCheck emits a low-rate CoT fallback without a position. The node remains
-visible, and GutCheck does not replace a newer LINCOT position. The landing page
-reads the cache through `/cgi-bin/aryaos-neighbors` to show nearby AryaOS boxes and
-admin links.
+`gutcheck.service` listens on Mesh SA, DNS-SD/mDNS, and SSDP. It writes a TTL
+cache to `/run/gutcheck/neighbors.json`. LINCOT sends the single enriched AryaOS
+CoT beacon. The landing page reads the cache through
+`/cgi-bin/aryaos-neighbors`. It shows nearby AryaOS boxes and admin links.
 
 ## Deploy to a lab device (fast iteration)
 

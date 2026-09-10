@@ -4,7 +4,9 @@
 import importlib.machinery
 import importlib.util
 import json
+from types import SimpleNamespace
 from pathlib import Path
+from unittest import mock
 import tempfile
 import unittest
 
@@ -44,7 +46,43 @@ def sample(cycle, memory, state, filesystem=None):
 
 class BurninSummaryTestCase(unittest.TestCase):
     def test_probe_tracks_both_ais_pipeline_services(self):
-        self.assertIn('"ais-catcher", "aiscot"', burnin.REMOTE_PROBE)
+        service_block = burnin.REMOTE_PROBE.split("SERVICES = (", 1)[1].split(
+            ")\n\n", 1
+        )[0]
+        for service in ("ais-catcher", "aryaos-ais-sdr", "aiscot"):
+            with self.subTest(service=service):
+                self.assertIn(f'"{service}"', service_block)
+
+    def test_probe_exports_gnss_health_without_coordinates(self):
+        self.assertIn('"gnss": gnss_status()', burnin.REMOTE_PROBE)
+        gnss_block = burnin.REMOTE_PROBE.split("def gnss_status():", 1)[1].split(
+            "\ndef networks():", 1
+        )[0]
+        self.assertNotIn('result["lat"]', gnss_block)
+        self.assertNotIn('result["lon"]', gnss_block)
+
+    @mock.patch.dict("os.environ", {"BURNIN_PASSWORD": "secret"}, clear=False)
+    @mock.patch("subprocess.run")
+    def test_password_probe_uses_environment_without_command_leak(self, run):
+        run.return_value = SimpleNamespace(returncode=0, stdout='{"hostname":"box"}', stderr="")
+        args = SimpleNamespace(
+            password_env="BURNIN_PASSWORD",
+            key="unused",
+            known_hosts="/tmp/known-hosts",
+            user="pi",
+            probe_timeout=30,
+        )
+
+        result = burnin.probe("192.0.2.1", args)
+
+        command = run.call_args.args[0]
+        self.assertEqual(command[:3], ["sshpass", "-e", "ssh"])
+        self.assertNotIn("secret", command)
+        self.assertIn("read -r burnin_password", command[-1])
+        self.assertIn("exec sudo -n python3 -", command[-1])
+        self.assertEqual(run.call_args.kwargs["env"]["SSHPASS"], "secret")
+        self.assertTrue(run.call_args.kwargs["input"].startswith("secret\n"))
+        self.assertTrue(result["ok"])
 
     def test_probe_tracks_core_and_optional_gateway_processes(self):
         service_block = burnin.REMOTE_PROBE.split("SERVICES = (", 1)[1].split(
@@ -111,6 +149,18 @@ class BurninSummaryTestCase(unittest.TestCase):
             {"active": 1, "inactive": 1},
         )
         self.assertEqual(host["service_types"]["setup-service"], "oneshot")
+        self.assertNotIn("setup-service", host["service_nonactive"])
+
+    def test_activating_oneshot_is_not_a_service_drop(self):
+        item = sample(1, 10, "active")
+        item["services"]["setup-service"] = {
+            "Type": "oneshot",
+            "ActiveState": "activating",
+            "NRestarts": 0,
+        }
+
+        host = burnin.summarize([item])["hosts"]["192.0.2.1"]
+
         self.assertNotIn("setup-service", host["service_nonactive"])
 
     def test_known_run_to_completion_service_is_not_a_service_drop(self):
@@ -287,6 +337,24 @@ class BurninSummaryTestCase(unittest.TestCase):
         self.assertTrue(acceptance["passed"])
         self.assertEqual(acceptance["failures"], [])
 
+    def test_acceptance_enforces_gnss_3d_fix_ratio(self):
+        first = sample(1, 10, "active")
+        second = sample(2, 10, "active")
+        first["gnss"] = {"mode": 3, "used_satellites": 8}
+        second["gnss"] = {"mode": 2, "used_satellites": 4}
+
+        summary = burnin.summarize([first, second])
+        acceptance = burnin.evaluate_acceptance(
+            summary, min_gnss_3d_ratio=0.95
+        )
+
+        host = summary["hosts"]["192.0.2.1"]
+        self.assertEqual(host["gnss_3d_fix_ratio"], 0.5)
+        self.assertEqual(host["min_used_satellites"], 4)
+        self.assertEqual(host["max_used_satellites"], 8)
+        self.assertFalse(acceptance["passed"])
+        self.assertIn("GNSS 3D fix ratio", acceptance["failures"][0]["failure"])
+
     def test_acceptance_rejects_short_or_sparse_run(self):
         samples = [sample(1, 10, "active"), sample(2, 10, "active")]
         summary = burnin.summarize(samples)
@@ -338,6 +406,7 @@ class BurninSummaryTestCase(unittest.TestCase):
                 "hosts": ["one", "two"],
                 "min_coverage_ratio": 0.99,
                 "max_gap_s": 180,
+                "min_gnss_3d_ratio": 0.95,
             }))
 
             self.assertEqual(burnin.load_run_policy(samples_path), {
@@ -346,6 +415,7 @@ class BurninSummaryTestCase(unittest.TestCase):
                 "expected_hosts": ["one", "two"],
                 "min_coverage_ratio": 0.99,
                 "max_gap_s": 180.0,
+                "min_gnss_3d_ratio": 0.95,
             })
 
 

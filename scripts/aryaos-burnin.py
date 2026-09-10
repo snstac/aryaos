@@ -31,7 +31,7 @@ SERVICES = (
     "cotbridge", "gpscot", "gdlcot", "lincot", "gutcheck", "dronecot-dji",
     "dronecot-wifi", "dronecot-ble", "dronecot-dronescout",
     "acarscot", "acarsdec", "readsb", "dump978-fa", "adsbcot",
-    "gpsd", "ais-catcher", "aiscot", "aprscot", "sapientcot",
+    "gpsd", "ais-catcher", "aryaos-ais-sdr", "aiscot", "aprscot", "sapientcot",
     "sikw00fcot", "sikw00fscan", "sikw00fsentinel", "gutcheck",
     "aryaos-bt-pan", "aryaos-time-bootstrap", "aryaos-time-refresh",
     "aryaos-web-tls-init", "aryaos-gps-time-sync",
@@ -111,6 +111,31 @@ def time_status():
     except (TypeError, ValueError):
         return {}
     return doc if isinstance(doc, dict) else {}
+
+def gnss_status():
+    """Return fix health without exporting the receiver's coordinates."""
+    rc, out, err = run(["gpspipe", "-w", "-n", "10"], 5)
+    result = {"probe_rc": rc}
+    tpv = {}
+    sky = {}
+    for line in out.splitlines():
+        try:
+            doc = json.loads(line)
+        except (TypeError, ValueError):
+            continue
+        if doc.get("class") == "TPV":
+            tpv = doc
+        elif doc.get("class") == "SKY":
+            sky = doc
+    if isinstance(tpv.get("mode"), int):
+        result["mode"] = tpv["mode"]
+    if tpv.get("time"):
+        result["fix_time"] = tpv["time"]
+    if isinstance(sky.get("uSat"), int):
+        result["used_satellites"] = sky["uSat"]
+    if rc != 0 and not tpv and not sky:
+        result["error"] = err or "gpspipe returned no fix data"
+    return result
 
 def networks():
     result = {}
@@ -230,7 +255,7 @@ print(json.dumps({
     "journal_warning_events_2m": journal_events,
     "journal_warning_tail": [event.get("message") for event in journal_events[-12:]],
     "services": services(), "gateway_status": gateway_status(),
-    "time_status": time_status(),
+    "time_status": time_status(), "gnss": gnss_status(),
     "filesystem": filesystem_health(),
     "networks": networks(), "usb": usb.splitlines(), "health": health,
     "top_processes": top.splitlines()[1:13],
@@ -247,16 +272,37 @@ def stop(_signum, _frame):
 
 
 def probe(host, args):
-    cmd = [
-        "ssh", "-i", args.key, "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes",
-        "-o", "ConnectTimeout=12", "-o", "StrictHostKeyChecking=yes",
-        "-o", f"UserKnownHostsFile={args.known_hosts}", f"{args.user}@{host}",
-        "sudo", "-n", "python3", "-",
-    ]
+    password_env = getattr(args, "password_env", None)
+    password = os.environ.get(password_env, "") if password_env else ""
+    if password_env:
+        cmd = [
+            "sshpass", "-e", "ssh", "-o", "BatchMode=no",
+            "-o", "PreferredAuthentications=password,keyboard-interactive",
+            "-o", "ConnectTimeout=12", "-o", "StrictHostKeyChecking=yes",
+            "-o", f"UserKnownHostsFile={args.known_hosts}", f"{args.user}@{host}",
+            (
+                "IFS= read -r burnin_password; "
+                "printf '%s\\n' \"$burnin_password\" | sudo -S -p '' -v && "
+                "exec sudo -n python3 -"
+            ),
+        ]
+        probe_input = password + "\n" + REMOTE_PROBE
+        probe_env = os.environ.copy()
+        probe_env["SSHPASS"] = password
+    else:
+        cmd = [
+            "ssh", "-i", args.key, "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes",
+            "-o", "ConnectTimeout=12", "-o", "StrictHostKeyChecking=yes",
+            "-o", f"UserKnownHostsFile={args.known_hosts}", f"{args.user}@{host}",
+            "sudo", "-n", "python3", "-",
+        ]
+        probe_input = REMOTE_PROBE
+        probe_env = None
     started = time.monotonic()
     try:
         proc = subprocess.run(
-            cmd, input=REMOTE_PROBE, text=True, capture_output=True, timeout=args.probe_timeout
+            cmd, input=probe_input, text=True, capture_output=True,
+            timeout=args.probe_timeout, env=probe_env,
         )
     except subprocess.TimeoutExpired as exc:
         return {"host": host, "ok": False, "error": f"probe timeout: {exc}", "duration_s": args.probe_timeout}
@@ -343,6 +389,9 @@ def summarize(samples):
             "first_probe_failure_utc": None, "last_probe_failure_utc": None,
             "first_probe_failure_cycle": None, "last_probe_failure_cycle": None,
             "network_activity": {}, "usb_inventories": [],
+            "gnss_samples": 0, "gnss_3d_fix_samples": 0,
+            "gnss_3d_fix_ratio": None, "min_used_satellites": None,
+            "max_used_satellites": None,
         })
         out["samples"] += 1
         if not sample.get("ok"):
@@ -369,6 +418,25 @@ def summarize(samples):
             )
         if sample.get("throttled") not in (None, "throttled=0x0"):
             out["throttle_events"] += 1
+        gnss = sample.get("gnss") or {}
+        if isinstance(gnss.get("mode"), int):
+            out["gnss_samples"] += 1
+            if gnss["mode"] >= 3:
+                out["gnss_3d_fix_samples"] += 1
+        used_satellites = gnss.get("used_satellites")
+        if isinstance(used_satellites, int):
+            if out["min_used_satellites"] is None:
+                out["min_used_satellites"] = used_satellites
+            else:
+                out["min_used_satellites"] = min(
+                    out["min_used_satellites"], used_satellites
+                )
+            if out["max_used_satellites"] is None:
+                out["max_used_satellites"] = used_satellites
+            else:
+                out["max_used_satellites"] = max(
+                    out["max_used_satellites"], used_satellites
+                )
         warning_count = sample.get("journal_warning_count_2m") or 0
         # Keep the original field for readers of older artifacts, but name its
         # semantics explicitly: overlapping two-minute windows are observations,
@@ -425,7 +493,8 @@ def summarize(samples):
             active_state = state.get("ActiveState") or "unknown"
             counts = out["service_state_counts"].setdefault(name, {})
             counts[active_state] = counts.get(active_state, 0) + 1
-            if active_state not in ("active", "inactive"):
+            is_oneshot = unit_type == "oneshot" or name in RUN_TO_COMPLETION_SERVICES
+            if active_state not in ("active", "inactive") and not is_oneshot:
                 out["service_nonactive"][name] = out["service_nonactive"].get(name, 0) + 1
             restarts = state.get("NRestarts")
             if isinstance(restarts, int):
@@ -478,6 +547,10 @@ def summarize(samples):
                     out["service_nonactive"].get(name, 0) + inactive
                 )
     for host, out in summary["hosts"].items():
+        if out["gnss_samples"]:
+            out["gnss_3d_fix_ratio"] = round(
+                out["gnss_3d_fix_samples"] / out["gnss_samples"], 4
+            )
         for activity in out["network_activity"].values():
             activity["delta"] = {
                 key: activity["last"][key] - activity["first"].get(key, activity["last"][key])
@@ -501,6 +574,7 @@ def evaluate_acceptance(
     expected_hosts=None,
     min_coverage_ratio=0.99,
     max_gap_s=None,
+    min_gnss_3d_ratio=None,
 ):
     """Apply the fleet burn-in release gates and return actionable failures."""
     failures = []
@@ -562,6 +636,12 @@ def evaluate_acceptance(
         reject(state.get("failed_unit_samples", 0) > 0, f"failed-unit samples={state.get('failed_unit_samples')}")
         reject(bool(state.get("service_nonactive")), f"service drops={state.get('service_nonactive')}")
         reject(state.get("filesystem_alerts", 0) > 0, f"filesystem alerts={state.get('filesystem_alerts')}")
+        if min_gnss_3d_ratio is not None:
+            ratio = state.get("gnss_3d_fix_ratio")
+            reject(
+                ratio is None or ratio < min_gnss_3d_ratio,
+                f"GNSS 3D fix ratio={ratio} (<{min_gnss_3d_ratio})",
+            )
         reject(len(state.get("boot_ids") or []) > 1, f"unexpected boots={len(state.get('boot_ids') or [])}")
         reject(len(state.get("usb_inventories") or []) > 1, "USB inventory changed")
         for service, restart_range in state.get("restart_range", {}).items():
@@ -599,13 +679,16 @@ def load_run_policy(samples_path):
         return {}
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     interval = float(metadata["interval_s"])
-    return {
+    policy = {
         "required_duration_s": float(metadata["duration_s"]),
         "expected_interval_s": interval,
         "expected_hosts": metadata.get("hosts"),
         "min_coverage_ratio": float(metadata.get("min_coverage_ratio", 0.99)),
         "max_gap_s": float(metadata.get("max_gap_s", max(180, interval * 3))),
     }
+    if metadata.get("min_gnss_3d_ratio") is not None:
+        policy["min_gnss_3d_ratio"] = float(metadata["min_gnss_3d_ratio"])
+    return policy
 
 
 def main():
@@ -613,11 +696,20 @@ def main():
     parser.add_argument("--hosts", nargs="+", default=["192.168.0.44", "192.168.0.45", "192.168.0.149", "192.168.0.199"])
     parser.add_argument("--user", default="pi")
     parser.add_argument("--key", default="shared_files/aryaos/ssh/aryaos-dev-lab")
+    parser.add_argument(
+        "--password-env",
+        help="read the SSH and sudo password from this environment variable",
+    )
     parser.add_argument("--known-hosts", default="/tmp/aryaos-burnin-known-hosts")
     parser.add_argument("--duration-hours", type=float, default=8.0)
     parser.add_argument("--duration-seconds", type=float)
     parser.add_argument("--interval", type=float, default=60.0)
     parser.add_argument("--probe-timeout", type=float, default=30.0)
+    parser.add_argument(
+        "--min-gnss-3d-ratio",
+        type=float,
+        help="require this fraction of valid GNSS samples to have a 3D fix",
+    )
     parser.add_argument("--output")
     parser.add_argument(
         "--resume",
@@ -640,6 +732,10 @@ def main():
         help="exit non-zero when release burn-in thresholds are not met",
     )
     args = parser.parse_args()
+    if args.password_env and not os.environ.get(args.password_env):
+        parser.error(f"--password-env variable is unset or empty: {args.password_env}")
+    if args.min_gnss_3d_ratio is not None and not 0 <= args.min_gnss_3d_ratio <= 1:
+        parser.error("--min-gnss-3d-ratio must be between 0 and 1")
     if args.summarize_existing:
         if args.output or args.resume:
             parser.error("--output cannot be combined with --summarize-existing")
@@ -704,6 +800,7 @@ def main():
             "started_utc": stamp, "duration_s": duration, "interval_s": args.interval,
             "hosts": args.hosts, "argv": sys.argv,
             "min_coverage_ratio": 0.99, "max_gap_s": max_gap_s,
+            "min_gnss_3d_ratio": args.min_gnss_3d_ratio,
         }, indent=2) + "\n")
         samples = []
         deadline = time.monotonic() + duration
