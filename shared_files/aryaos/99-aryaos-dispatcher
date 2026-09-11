@@ -19,12 +19,20 @@
 AOS_CONFIG="/etc/aryaos/aryaos-config.txt"
 RESTART_STAMP="/run/aryaos-dispatcher-services-restarted"
 RESTART_MIN_INTERVAL_SEC="${ARYAOS_DISPATCHER_RESTART_MIN_INTERVAL_SEC:-20}"
+ADDRESS_FAMILIES=""
+
+add_address_family() {
+    case " $ADDRESS_FAMILIES " in
+        *" $1 "*) ;;
+        *) ADDRESS_FAMILIES="${ADDRESS_FAMILIES}${ADDRESS_FAMILIES:+ }$1" ;;
+    esac
+}
 
 if [ -n "$IP4_NUM_ADDRESSES" ] && [ "$IP4_NUM_ADDRESSES" -gt 0 ]; then
-   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet"
+   add_address_family inet
 fi
 if [ -n "$IP6_NUM_ADDRESSES" ] && [ "$IP6_NUM_ADDRESSES" -gt 0 ]; then
-   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet6"
+   add_address_family inet6
 fi
 
 # If we have a VPN connection ignore the underlying IP address(es)
@@ -33,10 +41,10 @@ if [ "$2" = "vpn-up" ] || [ "$2" = "vpn-down" ]; then
 fi
 
 if [ -n "$VPN_IP4_NUM_ADDRESSES" ] && [ "$VPN_IP4_NUM_ADDRESSES" -gt 0 ]; then
-   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet"
+   add_address_family inet
 fi
 if [ -n "$VPN_IP6_NUM_ADDRESSES" ] && [ "$VPN_IP6_NUM_ADDRESSES" -gt 0 ]; then
-   ADDRESS_FAMILIES="$ADDRESS_FAMILIES inet6"
+   add_address_family inet6
 fi
 
 # We're probably bringing the interface down.

@@ -24,6 +24,9 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             postinst,
         )
         self.assertIn('aryaos-role set "$aryaos_role_migration"', postinst)
+        self.assertIn('aryaos-role caps "${configured_caps:-none}"', postinst)
+        self.assertIn('configured_sdr_tasks="$(cat /etc/aryaos/sdr-tasks)"', postinst)
+        self.assertIn("systemctl enable --now aryaos-sdr-tasks.service", postinst)
 
     def test_gateway_restart_inventory_is_complete_and_migrated_safely(self):
         config = (ROOT / "shared_files/aryaos/aryaos-config.txt").read_text()
@@ -36,9 +39,21 @@ class ServiceDefaultsTestCase(unittest.TestCase):
 
         self.assertIn(f'AOS_SERVICES="{expected}"', config)
         self.assertIn(f'new_aos_services="{expected}"', postinst)
-        self.assertIn('if [ "$configured_aos_services" = "$old_aos_services" ]', postinst)
+        self.assertIn('managed_aos_services="$new_aos_services dronecot adsbxcot spotcot', postinst)
+        self.assertIn('migrated_aos_services="$new_aos_services${custom_aos_services:+ $custom_aos_services}"', postinst)
+        self.assertIn('if [ "$configured_aos_services" != "$migrated_aos_services" ]', postinst)
+        self.assertNotIn('if [ "$configured_aos_services" = "$old_aos_services" ]', postinst)
         self.assertNotIn("adsbxcot", config)
         self.assertNotIn("spotcot", config)
+
+        role = (ROOT / "shared_files/aryaos/aryaos-role").read_text()
+        for stale_or_unassigned_service in (
+            "adsbxcot",
+            "aprscot",
+            "dronecot",
+            "spotcot",
+        ):
+            self.assertIn(stale_or_unassigned_service, role)
 
     def test_hil_noninteractive_path_includes_aryaos_helpers(self):
         library = (ROOT / "scripts/aryaos-test/lib.sh").read_text()
@@ -310,6 +325,10 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertNotIn("network-online.target", resolver_unit)
         dispatcher = (ROOT / "shared_files/aryaos/99-aryaos-dispatcher").read_text()
         self.assertIn("$AOS_SERVICES gdlcot gutcheck", dispatcher)
+        self.assertIn('ADDRESS_FAMILIES=""', dispatcher)
+        self.assertIn("add_address_family()", dispatcher)
+        self.assertIn("add_address_family inet", dispatcher)
+        self.assertIn("add_address_family inet6", dispatcher)
         wait_online = (
             ROOT
             / "shared_files/aryaos/systemd/NetworkManager-wait-online.service.d/aryaos.conf"
@@ -397,6 +416,15 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn(
             "MAVLink heartbeat received|Processing RID data", hil
         )
+        self.assertIn(
+            "Remote ID payloads not observed (airspace may be quiet)", hil
+        )
+        gutcheck_hil = (
+            ROOT / "scripts/aryaos-test/tests/12-gutcheck.sh"
+        ).read_text()
+        self.assertNotIn('counters.get("emitted", 0) > 0', gutcheck_hil)
+        self.assertNotIn('assert doc.get("events_seen", 0) > 0', gutcheck_hil)
+        self.assertNotIn("\nassert items\n", gutcheck_hil)
 
     def test_overlay_migrates_dronescout_crlf_setting(self):
         builder = (ROOT / "scripts/build-aryaos-overlay-deb.sh").read_text()
@@ -477,6 +505,7 @@ class ServiceDefaultsTestCase(unittest.TestCase):
             ("aprscot", "8.3.1"),
             ("dronecot", "2.3.10"),
             ("lincot", "1.3.9"),
+            ("sapientcot", "0.1.3"),
         ):
             self.assertIn(f"require_pkg_version {package} {version}", image_check)
             self.assertIn(

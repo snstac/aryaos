@@ -81,6 +81,7 @@ require_package_version pytak 7.6.0
 require_package_version gpscot 2.0.1
 require_package_version sikw00fcot 1.0.2
 require_package_version dronecot 2.3.10
+require_package_version sapientcot 0.1.3
 require_package_version gutcheck 0.4.2
 require_package_version cockpit-adsbcot 1.2.3
 require_package_version cockpit-aiscot 1.2.3

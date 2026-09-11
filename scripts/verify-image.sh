@@ -372,6 +372,7 @@ require_pkg_version pytak 7.6.0
 require_pkg_version acarscot 0.1.1
 require_pkg acarsdec
 require_pkg_version dronecot 2.3.10
+require_pkg_version sapientcot 0.1.3
 require_pkg_version gutcheck 0.4.2
 require_unit adsbcot.service
 require_unit aiscot.service

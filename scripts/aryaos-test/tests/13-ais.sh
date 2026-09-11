@@ -12,7 +12,12 @@ if ! capability_enabled ais; then
 	exit 0
 fi
 
-for svc in ais-catcher aiscot; do
+receiver_service=ais-catcher
+if unit_active aryaos-ais-sdr; then
+	receiver_service=aryaos-ais-sdr
+fi
+
+for svc in "${receiver_service}" aiscot; do
 	if unit_active "${svc}"; then
 		ok "${svc} active"
 	else
@@ -26,8 +31,17 @@ for svc in ais-catcher aiscot; do
 	fi
 done
 
-serial_port="$(sed -n 's/^SERIAL_PORT=//p' /etc/default/ais-catcher 2>/dev/null | tail -1 | tr -d '"')"
-if [[ "${serial_port}" == /dev/serial/by-id/* && -e "${serial_port}" ]]; then
+serial_port=""
+if [[ "${receiver_service}" == aryaos-ais-sdr ]]; then
+	device_args="$(sed -n 's/^AIS_CATCHER_DEVICE_ARGS=//p' /etc/default/aryaos-ais-sdr 2>/dev/null | tail -1 | tr -d '"')"
+	if { [[ "${device_args}" == *"DEVICE driver="* ]] || [[ "${device_args}" == -d\ * ]]; } \
+		&& grep -q '=ais$' /etc/aryaos/sdr-tasks 2>/dev/null; then
+		ok "AIS receiver has a persistent SDR selector"
+	else
+		fail "AIS SDR selector is absent or invalid (${device_args:-unset})"
+	fi
+elif serial_port="$(sed -n 's/^SERIAL_PORT=//p' /etc/default/ais-catcher 2>/dev/null | tail -1 | tr -d '"')" \
+	&& [[ "${serial_port}" == /dev/serial/by-id/* && -e "${serial_port}" ]]; then
 	ok "AIS receiver pinned to a present by-id device"
 else
 	fail "AIS SERIAL_PORT is absent, unstable, or missing (${serial_port:-unset})"
@@ -41,7 +55,7 @@ else
 	ok "AIS and GPS serial assignments are isolated"
 fi
 
-if systemctl show ais-catcher.service -p ExecStart --value 2>/dev/null | grep -Fq -- '-X off'; then
+if systemctl show "${receiver_service}.service" -p ExecStart --value 2>/dev/null | grep -Fq -- '-X off'; then
 	ok "AIS-catcher internet community sharing explicitly disabled"
 else
 	fail "AIS-catcher does not explicitly disable internet community sharing"
@@ -59,7 +73,7 @@ else
 	fail "aiscot not listening on UDP/5050"
 fi
 
-recent_ais="$(journalctl -u ais-catcher.service --since "10 minutes ago" --no-pager 2>/dev/null || true)"
+recent_ais="$(journalctl -u "${receiver_service}.service" --since "10 minutes ago" --no-pager 2>/dev/null || true)"
 if grep -q '!AIVDM' <<<"${recent_ais}"; then
 	ok "live AIS NMEA observed in the last 10 minutes"
 else

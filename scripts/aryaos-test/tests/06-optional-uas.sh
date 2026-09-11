@@ -126,7 +126,7 @@ if capability_enabled rid; then
 	if grep -q 'Processing RID data' <<<"${RID_LOG}"; then
 		ok "DroneScout Remote ID payloads processed"
 	else
-		fail "DroneScout Remote ID payloads not observed"
+		warn "DroneScout Remote ID payloads not observed (airspace may be quiet)"
 	fi
 	RID_RESTARTS="$(systemctl show "${RID_UNIT}.service" -p NRestarts --value 2>/dev/null || true)"
 	if [[ "${RID_RESTARTS}" == 0 ]]; then

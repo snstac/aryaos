@@ -137,8 +137,8 @@ role_caps() {
 }
 
 all_managed_units() {
-	echo "readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot acarsdec acarscot \
-		dronecot-dji dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot"
+	echo "readsb dump1090-fa dump978-fa adsbcot adsbxcot gdlcot ais-catcher aiscot acarsdec acarscot aprscot \
+		dronecot dronecot-dji dronecot-wifi dronecot-ble dronecot-dronescout spotcot sikw00fcot sapientcot"
 }
 
 # Expand a capability list to the (deduplicated) union of its units.
@@ -242,8 +242,11 @@ prepare_serial_ais() {
 # Persist caps + a nearest-legacy-role alias and clear SDR re-tasks.
 persist_and_settle() {
 	local caps="$1"
+	systemctl stop aryaos-ais-sdr.service 'ais-catcher-rtl@*.service' \
+		'aryaos-direwolf@*.service' >/dev/null 2>&1 || true
 	config_set ARYAOS_CAPABILITIES "${caps}"
 	local r
+	config_set ARYAOS_ROLE ""
 	for r in ${LEGACY_ROLES}; do
 		[[ "$(role_caps "${r}")" == "${caps}" ]] && { config_set ARYAOS_ROLE "${r}"; break; }
 	done

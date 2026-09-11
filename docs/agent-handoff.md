@@ -1,7 +1,36 @@
-# Agent handoff - state as of 2026-09-06
+# Agent handoff - state as of 2026-09-11
 
 Working notes for agents (and humans) picking up AryaOS and the snstac fleet.
 Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
+
+## 2026-09-11 AryaOS 2.4.2 gold master HIL
+
+- AryaOS 2.4.2 enforces the tested sensor and Cockpit package versions.
+- Overlay upgrades now reapply the saved capability set after package installation.
+  They also preserve deliberate generic SDR tasks.
+- The upgrade removes retired managed services from `AOS_SERVICES`.
+  It preserves unknown operator services.
+- Role changes now stop generic SDR tasks before they clear the saved task configuration.
+- The NetworkManager dispatcher now deduplicates address families.
+  This prevents duplicate gateway restarts after one network event.
+- HIL now supports generic SDR AIS and serial AIS receivers.
+  GutCheck HIL distinguishes rich CoT neighbors from identity-only mDNS and SSDP neighbors.
+- Quiet ADS-B, ACARS, and Remote ID airspace produces warnings instead of false failures.
+- GutCheck HIL accepts a healthy standalone node with no events or discovered neighbors.
+- Strict HIL passed on all five known devices.
+  The tested paths include serial AIS, LimeSDR AIS, LimeSDR ACARS, ADS-B, GDL90, DJI, DroneScout, and SAPIENT.
+- Each known device completed 60 one-minute acceptance samples after the fixes.
+  The accepted runs had no probe failures, service drops, restart growth, throttling, filesystem alerts, or network errors.
+- The highest temperature was 68.3 C on `192.168.0.85`.
+  The other device peaks were between 40.8 C and 60.6 C.
+- The GPS receiver on `192.168.0.85` reports UTC and sees 20 satellites.
+  It does not use any satellites for a position fix.
+- The two isolated MANET devices need a routed DNS and gateway path for public TAK access.
+  HIL uses a temporary TLS-preserving relay on `brute` for that test.
+- A short DHCP lease changed the `aryaos-fdb9` address repeatedly and restarted its gateways.
+  Its lab Ethernet profile now uses stable IPv4LL without a default route.
+- The final overlay package is `aryaos-overlay_2.4.2_all.deb`.
+  Its SHA-256 is `ca83360bb261d090c173afae9d6964ab0567e4543d243aed2f030f6c035ea096`.
 
 ## 2026-09-06 single AryaOS host beacon
 

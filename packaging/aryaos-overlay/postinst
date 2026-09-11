@@ -88,6 +88,10 @@ case "$1" in
     fi
     aryaos_config=/etc/aryaos/aryaos-config.txt
     aryaos_defaults=/usr/share/aryaos/defaults/aryaos-config.txt
+    configured_sdr_tasks=""
+    if [ -s /etc/aryaos/sdr-tasks ]; then
+      configured_sdr_tasks="$(cat /etc/aryaos/sdr-tasks)"
+    fi
     if [ -f "$aryaos_config" ] && [ -f "$aryaos_defaults" ]; then
       for key in ARYAOS_COT_OUTPUT_URL SENSOR_BEACON ARYAOS_ADSB_1090_SOURCE \
         ARYAOS_ADSB_1090_DEVICE ARYAOS_UAT_978_DEVICE \
@@ -98,11 +102,19 @@ case "$1" in
           [ -n "$default_line" ] && printf '\n%s\n' "$default_line" >> "$aryaos_config"
         fi
       done
-      old_aos_services="cotbridge gpscot aiscot lincot adsbcot dronecot-dji adsbxcot aprscot spotcot gutcheck"
       new_aos_services="cotbridge gpscot lincot gutcheck adsbcot aiscot acarscot aprscot gdlcot dronecot-dji dronecot-dronescout dronecot-wifi dronecot-ble sikw00fcot sapientcot"
       configured_aos_services="$(sed -n 's/^AOS_SERVICES=["'"'"']\?\([^"'"'"']*\)["'"'"']\?$/\1/p' "$aryaos_config" | tail -n 1)"
-      if [ "$configured_aos_services" = "$old_aos_services" ]; then
-        sed -i "s|^AOS_SERVICES=.*|AOS_SERVICES=\"$new_aos_services\"|" "$aryaos_config"
+      managed_aos_services="$new_aos_services dronecot adsbxcot spotcot readsb dump1090-fa dump978-fa gpsd nodered tar1090"
+      custom_aos_services=""
+      for service in $configured_aos_services; do
+        case " $managed_aos_services " in
+          *" $service "*) ;;
+          *) custom_aos_services="${custom_aos_services}${custom_aos_services:+ }${service}" ;;
+        esac
+      done
+      migrated_aos_services="$new_aos_services${custom_aos_services:+ $custom_aos_services}"
+      if [ "$configured_aos_services" != "$migrated_aos_services" ]; then
+        sed -i "s|^AOS_SERVICES=.*|AOS_SERVICES=\"$migrated_aos_services\"|" "$aryaos_config"
       fi
 
       configured_role="$(sed -n 's/^ARYAOS_ROLE=["'"'"']\?\([^"'"'"']*\)["'"'"']\?$/\1/p' "$aryaos_config" | tail -n 1)"
@@ -192,8 +204,17 @@ case "$1" in
       systemctl daemon-reload || true
       systemctl reset-failed rpi-zram-writeback.timer 2>/dev/null || true
       systemctl reset-failed NetworkManager-wait-online.service 2>/dev/null || true
-      if [ -n "$aryaos_role_migration" ] && [ -x /usr/local/sbin/aryaos-role ]; then
-        /usr/local/sbin/aryaos-role set "$aryaos_role_migration" >/dev/null 2>&1 || true
+      if [ -x /usr/local/sbin/aryaos-role ]; then
+        if [ -n "$aryaos_role_migration" ]; then
+          /usr/local/sbin/aryaos-role set "$aryaos_role_migration" >/dev/null 2>&1 || true
+        else
+          /usr/local/sbin/aryaos-role caps "${configured_caps:-none}" >/dev/null 2>&1 || true
+          if [ -n "$configured_sdr_tasks" ]; then
+            printf '%s\n' "$configured_sdr_tasks" > /etc/aryaos/sdr-tasks
+            chmod 0644 /etc/aryaos/sdr-tasks
+            systemctl enable --now aryaos-sdr-tasks.service >/dev/null 2>&1 || true
+          fi
+        fi
       fi
       systemctl start NetworkManager-wait-online.service 2>/dev/null || true
       systemctl disable --now aryaos-neighbord.service dronecot.service 2>/dev/null || true

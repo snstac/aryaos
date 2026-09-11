@@ -14,6 +14,12 @@ ROLE = ROOT / "shared_files/aryaos/aryaos-role"
 
 
 class RolePresetTestCase(unittest.TestCase):
+    def test_custom_capabilities_clear_stale_legacy_role(self):
+        role = ROLE.read_text(encoding="utf-8")
+
+        persist = role.split("persist_and_settle() {", 1)[1].split("\n}", 1)[0]
+        self.assertIn('config_set ARYAOS_ROLE ""', persist)
+
     def test_air_cuas_and_multi_include_dronescout(self):
         with tempfile.TemporaryDirectory() as root:
             config = Path(root) / "aryaos-config.txt"

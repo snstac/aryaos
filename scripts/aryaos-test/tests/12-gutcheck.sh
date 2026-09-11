@@ -95,10 +95,7 @@ for attempt in range(13):
             "entities": get("/api/v1/entities?kind=aryaos"),
         }
         error = None
-        if (
-            payload["status"].get("events_seen", 0) > 0
-            and payload["entities"].get("items")
-        ):
+        if payload["status"].get("ok") is True:
             break
     except (OSError, ValueError) as caught:
         error = caught
@@ -114,19 +111,13 @@ if python3 -c '
 import json, sys
 doc = json.load(sys.stdin)["status"]
 assert doc.get("ok") is True
-assert doc.get("events_seen", 0) > 0
 assert doc.get("events_dropped") == 0
 assert doc.get("warnings") == []
 gateways = doc.get("local_gateways", [])
 assert gateways
 assert all(item.get("health", {}).get("state") != "disabled" for item in gateways)
-for item in gateways:
-    counters = item.get("counters", {})
-    if item.get("app") == "dronecot-dronescout":
-        assert counters.get("rx", 0) > 0
-        assert counters.get("emitted", 0) > 0
 ' <<<"${API_JSON}" 2>/dev/null; then
-	ok "Gutcheck API healthy with events and zero drops/warnings"
+	ok "Gutcheck API healthy with zero drops and warnings"
 else
 	fail "Gutcheck status API missing or unhealthy"
 fi
@@ -147,23 +138,32 @@ fi
 if python3 -c '
 import json, sys
 items = json.load(sys.stdin)["entities"].get("items", [])
-assert items
 machine_ids = {}
 for item in items:
     uid = item.get("uid", "")
     canonical = uid[7:] if uid.startswith("aryaos-") and len(uid) == 39 else uid
     assert canonical not in machine_ids, (canonical, machine_ids[canonical], uid)
     machine_ids[canonical] = uid
-entity = items[0]
-assert entity.get("kind") == "aryaos"
-assert isinstance(entity.get("capabilities"), list)
-assert "decoding" in entity
-assert "time" in entity
-assert "nap" in entity
+rich = [item for item in items if "cot" in item.get("sources", [])]
+if rich:
+    for entity in rich:
+        assert entity.get("kind") == "aryaos"
+        assert isinstance(entity.get("capabilities"), list)
+        assert "decoding" in entity
+        assert "time" in entity
+        assert "nap" in entity
+else:
+    for entity in items:
+        assert entity.get("kind") == "aryaos"
+        assert set(entity.get("sources", [])) <= {"mdns", "ssdp"}
+        assert "capabilities" not in entity
+        assert "decoding" not in entity
+        assert "time" not in entity
+        assert "nap" not in entity
 ' <<<"${API_JSON}" 2>/dev/null; then
-	ok "Gutcheck ingests capabilities, decoder, clock and PAN fields"
+	ok "Gutcheck distinguishes rich CoT and identity-only AryaOS entities"
 else
-	fail "Gutcheck AryaOS capability entity incomplete"
+	fail "Gutcheck AryaOS entity transport fields are inconsistent"
 fi
 
 if python3 -c '
