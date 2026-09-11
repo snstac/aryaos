@@ -5,6 +5,11 @@ Supersedes the 2026-05-16 handoff in [portal.md](portal.md).
 
 ## 2026-09-11 AryaOS 2.4.2 gold master HIL
 
+- GitHub published the `v2.4.2` gold master from commit `c8e8c0c` on 2026-09-11.
+- GitHub Actions run `34642873489` passed the image build, verification, SBOM, tagging, and release steps.
+- The published image is `image_2026-09-11-aryaos-main-build.img.xz`.
+  Its SHA-256 is `af26507c35cc12b0fe69faf2434afad15439b4b78c0d98f48e868e8a48fa5019`.
+- The release includes the overlay package, image metadata, and SPDX and CycloneDX SBOMs.
 - AryaOS 2.4.2 enforces the tested sensor and Cockpit package versions.
 - Overlay upgrades now reapply the saved capability set after package installation.
   They also preserve deliberate generic SDR tasks.

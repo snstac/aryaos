@@ -10,6 +10,8 @@
 .aryaos-pigen-deploy/
 .aryaos-burnin/
 .aryaos-lifecycle/
+/build-*.log
+/hil-*.log
 __pycache__/
 node_modules/
 
