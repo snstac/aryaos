@@ -81,6 +81,24 @@ home/node-red/.node-red/flows_cred.json
 EOF
 }
 
+# Config files that are NOT secrets as a whole, but carry one secret KEY that
+# must be scrubbed under --no-secrets. Format: <relative path>:<key regex>.
+#
+# /etc/comitup.conf holds ap_password -- the Wi-Fi onboarding hotspot WPA2
+# passphrase. It sits in config_paths (correctly: ap_name and the rest are
+# ordinary config), so --no-secrets was shipping the passphrase in cleartext.
+# The trap is that it only appears AFTER an operator sets a hotspot password,
+# which is exactly what the "Secure the device" checklist instructs -- so every
+# correctly-hardened box produced a "redacted" backup containing its own AP
+# passphrase. Dropping the whole file instead would lose real config, so redact
+# the single key. (aryaos-support-bundle was never affected: its redactor
+# matches key names containing PASSWORD.)
+redacted_keys() {
+	cat <<'EOF'
+etc/comitup.conf:ap_password
+EOF
+}
+
 # tar exclusions applied under --no-secrets (key material inside kept trees).
 secret_globs() {
 	cat <<'EOF'
@@ -152,10 +170,32 @@ do_backup() {
 		while IFS= read -r g; do exclude+=("${g}"); done < <(secret_globs)
 	fi
 
+	# Under --no-secrets, swap any single-key-secret file for a scrubbed copy:
+	# drop it from the live-root list and stage a redacted version instead.
+	local -a redacted_args=()
+	if [[ "${include_secrets}" == "0" ]]; then
+		local entry rel key i
+		while IFS= read -r entry; do
+			rel="${entry%%:*}"; key="${entry#*:}"
+			[[ -e "/${rel}" ]] || continue
+			for i in "${!paths[@]}"; do
+				[[ "${paths[$i]}" == "${rel}" ]] && unset 'paths[i]'
+			done
+			mkdir -p "${work}/redacted/$(dirname "${rel}")"
+			sed -E "s/^([[:space:]]*${key}[[:space:]]*:).*/\1 [REDACTED]/" \
+				"/${rel}" > "${work}/redacted/${rel}"
+			chmod --reference="/${rel}" "${work}/redacted/${rel}" 2>/dev/null || true
+			redacted_args+=(-C "${work}/redacted" "${rel}")
+		done < <(redacted_keys)
+		# unset leaves holes in the index; re-pack so "${paths[@]}" stays dense.
+		paths=("${paths[@]}")
+	fi
+
 	# Preserve permissions/ownership (system uids are stable across AryaOS images).
 	tar -C / -czpf "${archive}" \
 		--numeric-owner "${exclude[@]}" \
 		-C "${work}" "${name}/MANIFEST.txt" \
+		"${redacted_args[@]}" \
 		-C / "${paths[@]}"
 	chmod 0600 "${archive}"
 

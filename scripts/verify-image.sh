@@ -670,9 +670,25 @@ require_unit aryaos-crash-guard.service
 require_unit aryaos-safe-mode.service
 require_unit aryaos-boot-stable.timer
 require_pkg uhubctl
-for svc in readsb adsbcot ais-catcher; do
+# Every sensor unit aryaos-safe-mode stops must also carry the gate, or systemd
+# restarts it while safe mode holds USB power off. acarsdec/acarscot and the
+# dronecot-* instances were missing from both lists on 2.4.2; on an ACARS box
+# that meant safe mode cut VBUS and acarsdec then restart-looped against a radio
+# that was no longer on the bus.
+for svc in readsb adsbcot ais-catcher acarsdec acarscot dronecot-wifi dronecot-ble dronecot-dronescout; do
 	require_grep 'ConditionPathExists=!/etc/aryaos/safe-mode' "/etc/systemd/system/${svc}.service.d/safe-mode.conf" "${svc} withheld in safe mode"
 done
+# Exiting safe mode must restore the CAPABILITY SET, not a legacy role. A
+# capability set with no legacy preset (e.g. "acars") persists ARYAOS_ROLE="",
+# and the old code defaulted that to "multi" -- silently re-tasking the box on
+# `aryaos-safe-mode off`.
+require_grep 'aryaos-role caps' /usr/local/sbin/aryaos-safe-mode "safe mode restores capabilities, not a legacy role"
+forbid_grep 'aryaos-role set "$(configured_role)"' /usr/local/sbin/aryaos-safe-mode "safe mode no longer re-applies a guessed legacy role"
+# SDR-backed AIS must never auto-apply: the box cannot see which antenna is on
+# the coax, and a bare SDR is not evidence that anyone wants AIS.
+require_grep 'caps\["ais"\]\["manual_only"\] = True' /usr/local/sbin/aryaos-capability-scan "SDR-backed AIS is manual_only"
+# --no-secrets backups must not ship the hotspot WPA2 passphrase.
+require_grep 'etc/comitup.conf:ap_password' /usr/local/sbin/aryaos-config-backup "config backup redacts the hotspot passphrase"
 # USB current cap relaxed so the Pi 5 can feed SDRs on a 5A / PoE+ supply.
 require_grep 'usb_max_current_enable=1' /boot/firmware/config.txt "USB current cap relaxed for SDRs (Pi 5)"
 # AP/PAN isolation: the default zone must NOT enable intra-zone forwarding, or a

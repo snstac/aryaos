@@ -620,6 +620,32 @@ def scan():
         "available": ais_available,
         "evidence": "; ".join(ais_ev) or "no AIS receiver detected",
     }
+    if ais_available and not ais_serial:
+        # SDR-backed AIS is manual_only for exactly the reason ACARS is: the
+        # antenna, not the radio.
+        #
+        # A dedicated NMEA/dAISy receiver IS evidence of intent -- somebody
+        # attached an AIS receiver, so AIS auto-applies. A bare SDR is not. AIS
+        # lives at 162 MHz and the box cannot see what antenna is on the coax.
+        #
+        # Without this, a LimeSDR-only box auto-applied "ais" at first boot and
+        # ran aiscot against a radio pointed at nothing. Observed on aryaos-a29c
+        # (DragonEgg: LimeSDR Mini v2 + GPS, no AIS receiver): firstboot latched
+        # ARYAOS_CAPABILITIES="ais" and the scan then REPORTED ITS OWN MISTAKE
+        # back as evidence -- "aiscot.service is running" satisfies the
+        # already-running rule below, which re-marks the capability available
+        # and auto-applicable on every subsequent scan.
+        #
+        # The contention loop could not save us here: it skips any capability
+        # whose auto_apply is already False, and on this hardware 'adsb' is
+        # manual_only (non-RTL SDR), so the higher-priority entry was passed
+        # over and 'ais' was never demoted.
+        caps["ais"]["manual_only"] = True
+        caps["ais"]["deferred_reason"] = (
+            "AIS is 162 MHz and needs a marine VHF antenna; the box cannot "
+            "detect which antenna is attached, and no dedicated AIS receiver "
+            "was found. Enable it deliberately with `aryaos-role caps ... ais`."
+        )
     if sdrs and not ais_serial and len(sdrs) < 2 and not adsbee:
         caps["ais"]["contended_with"] = ["adsb"]
         caps["adsb"]["contended_with"] = ["ais"]

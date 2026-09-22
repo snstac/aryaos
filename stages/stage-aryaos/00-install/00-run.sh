@@ -234,7 +234,7 @@ for unit in aryaos-crash-guard.service aryaos-safe-mode.service aryaos-boot-stab
 done
 # Safe-mode gate: sensor/SDR services must not start while /etc/aryaos/safe-mode
 # exists (kept in sync with aryaos-safe-mode MANAGED_UNITS / aryaos-role).
-for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot-dji sikw00fcot sapientcot; do
+for svc in readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot acarsdec acarscot dronecot-dji dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot; do
 	install -v -D -m 0644 "${SHARED_FILES}/aryaos/systemd/safe-mode.conf" \
 		"${ROOTFS_DIR}/etc/systemd/system/${svc}.service.d/safe-mode.conf"
 done

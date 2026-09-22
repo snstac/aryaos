@@ -53,6 +53,27 @@ def _adsb_block(src):
     return _dedent(src[start:end])
 
 
+def _ais_block(src):
+    start = src.index("    # AIS: a dedicated NMEA receiver")
+    end = src.index("    # DJI DroneID:")
+    return _dedent(src[start:end])
+
+
+# The conflict resolver that runs after the recomputation. Kept as a literal for
+# the same reason as RECOMPUTE: the ais bug was invisible without it.
+CONTENTION = (
+    'for key in ("adsb", "ais"):\n'
+    '    cap = caps.get(key)\n'
+    '    if not cap or not cap.get("auto_apply"):\n'
+    '        continue\n'
+    '    for loser in cap.get("contended_with") or []:\n'
+    '        other = caps.get(loser)\n'
+    '        if other and other.get("auto_apply"):\n'
+    '            other["auto_apply"] = False\n'
+    '            other["deferred_reason"] = "shares a radio with %s" % key\n'
+)
+
+
 class AdsbCapabilityTestCase(unittest.TestCase):
     """adsb must only auto-apply when the DECODER can drive the SDR."""
 
@@ -343,6 +364,135 @@ class SerialRoleWiringTestCase(unittest.TestCase):
         self.assertIn('rid_feed_port="/dev/dronescout"', role)
         self.assertIn('[[ "${rid_port}" == *:* ]]', role)
         self.assertIn("FEED_URL=serial://${rid_feed_port}:115200", role)
+
+
+
+class AisCapabilityTestCase(unittest.TestCase):
+    """ais must not auto-apply on the strength of a bare SDR.
+
+    The live failure (aryaos-a29c, 2026-09-22). A DragonEgg -- LimeSDR Mini v2
+    plus a USB GPS, no AIS receiver of any kind -- came off its first boot with
+
+        ARYAOS_CAPABILITIES="ais"
+
+    and aiscot enabled against a radio pointed at nothing.
+
+    Three things had to line up, which is why reading the file did not catch it:
+
+      1. caps["ais"] carried no manual_only, so the recomputation made it
+         auto-applicable purely because an SDR existed.
+      2. The contention loop should have demoted it in favour of adsb -- but it
+         starts with `if not cap.get("auto_apply"): continue`, and on this
+         hardware adsb is manual_only (non-RTL SDR), so the higher-priority
+         entry was skipped and ais was never demoted.
+      3. Once aiscot was running, the "a capability whose gateway is ALREADY
+         RUNNING is available by definition" rule re-marked ais available on
+         every later scan -- the scanner confirming its own mistake.
+
+    Testing the ais block alone passes even with the bug present. Only the block
+    plus RECOMPUTE plus CONTENTION reproduces it.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        with open(SCANNER) as fh:
+            cls.src = fh.read()
+        cls.block = _ais_block(cls.src)
+
+    def decide(self, sdrs, ais_serial=None, adsbee=None, adsb_manual_only=False):
+        # adsb is seeded the way the real scanner leaves it by this point.
+        caps = {
+            "adsb": {
+                "available": bool(sdrs or adsbee),
+                "evidence": "seeded by the adsb block",
+            }
+        }
+        if adsb_manual_only:
+            caps["adsb"]["manual_only"] = True
+        ns = {
+            "sdrs": sdrs,
+            "ais_serial": ais_serial,
+            "silent_ais_serial": None,
+            "adsbee": adsbee or [],
+            "caps": caps,
+            "_labels": lambda items: ", ".join(
+                i.get("label", i.get("driver", "?")) for i in items
+            ),
+        }
+        exec(self.block, ns)
+        exec(RECOMPUTE, ns)
+        exec(CONTENTION, ns)
+        return ns["caps"]
+
+    # -- the live failure ------------------------------------------------
+    def test_lime_only_box_does_not_auto_apply_ais(self):
+        """aryaos-a29c: one LimeSDR, no AIS receiver, adsb deferred."""
+        caps = self.decide(
+            [{"driver": "lime", "label": "LimeSDR Mini"}], adsb_manual_only=True
+        )
+        self.assertTrue(caps["ais"]["available"], "an SDR could run AIS; say so")
+        self.assertFalse(
+            caps["ais"]["auto_apply"],
+            "a bare SDR is not evidence that anyone wants AIS",
+        )
+
+    def test_contention_loop_cannot_be_relied_on_to_demote_ais(self):
+        """The reason a contention-only fix would not have worked.
+
+        adsb is manual_only here, so the loop skips it and never demotes ais.
+        ais must therefore defer on its own merits, not on adsb's behalf.
+        """
+        caps = self.decide(
+            [{"driver": "lime", "label": "LimeSDR Mini"}], adsb_manual_only=True
+        )
+        self.assertFalse(caps["adsb"]["auto_apply"], "precondition: adsb deferred")
+        self.assertFalse(
+            caps["ais"]["auto_apply"],
+            "ais auto-applied because the loop skipped the deferred adsb entry",
+        )
+
+    def test_manual_only_is_what_survives_the_recomputation(self):
+        """auto_apply is recomputed FROM manual_only, so it must be the input."""
+        ns_caps = self.decide([{"driver": "lime"}], adsb_manual_only=True)
+        self.assertTrue(ns_caps["ais"].get("manual_only"))
+
+    def test_deferred_reason_names_the_antenna(self):
+        caps = self.decide([{"driver": "lime"}], adsb_manual_only=True)
+        self.assertIn("antenna", caps["ais"].get("deferred_reason", "").lower())
+
+    # -- the cases that must keep working --------------------------------
+    def test_dedicated_ais_receiver_still_auto_applies(self):
+        """A real AIS receiver IS evidence of intent. Do not regress this."""
+        caps = self.decide([], ais_serial="/dev/serial/by-id/usb-dAISy")
+        self.assertTrue(caps["ais"]["available"])
+        self.assertTrue(
+            caps["ais"]["auto_apply"],
+            "somebody attached an AIS receiver; that is the whole signal",
+        )
+        self.assertNotIn("manual_only", caps["ais"])
+
+    def test_ais_receiver_alongside_an_sdr_still_auto_applies(self):
+        caps = self.decide(
+            [{"driver": "rtlsdr", "label": "RTL"}],
+            ais_serial="/dev/serial/by-id/usb-dAISy",
+        )
+        self.assertTrue(caps["ais"]["auto_apply"])
+
+    def test_no_sdr_and_no_receiver_is_unavailable(self):
+        caps = self.decide([])
+        self.assertFalse(caps["ais"]["available"])
+        self.assertFalse(caps["ais"]["auto_apply"])
+
+    def test_shipped_scanner_defers_sdr_backed_ais(self):
+        """Guards the real file, not this reconstruction."""
+        idx = self.src.find('caps["ais"] = {')
+        self.assertGreater(idx, 0, 'caps["ais"] assignment not found')
+        window = self.src[idx:idx + 2000]
+        self.assertIn(
+            'caps["ais"]["manual_only"] = True',
+            window,
+            "SDR-backed ais must be manual_only in the shipped scanner",
+        )
 
 
 if __name__ == "__main__":
