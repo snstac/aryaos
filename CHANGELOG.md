@@ -1,5 +1,51 @@
 # Changelog
 
+## v2.4.3 — 2026-09-22
+
+Field-hardening release from a DragonEgg (LimeSDR Mini v2 + GPS) in-service run
+on `aryaos-a29c`. All four issues were found on live hardware and confirmed in
+the source; each ships with a regression test that fails against 2.4.2.
+
+### Fixed
+
+- **SDR-backed AIS no longer auto-applies.** `aryaos-capability-scan` marked
+  `ais` available from a bare SDR with no `manual_only`, so a box with one
+  LimeSDR and no AIS receiver latched `ARYAOS_CAPABILITIES="ais"` at first boot
+  and ran `aiscot` against a radio pointed at nothing. The contention loop that
+  should have demoted it skips any capability whose `auto_apply` is already
+  false, and `adsb` is `manual_only` on a non-RTL SDR — so the higher-priority
+  entry was passed over and `ais` was never demoted. Once `aiscot` was running,
+  the "already running implies available" rule re-confirmed the mistake on every
+  later scan. A dedicated NMEA/dAISy receiver still auto-applies, unchanged.
+- **Exiting safe mode no longer re-tasks the box.** `aryaos-safe-mode off` read
+  the legacy `ARYAOS_ROLE` and defaulted an empty value to `multi`. Capability
+  sets with no legacy preset — `acars`, `ble-rid` — persist `ARYAOS_ROLE=""`, so
+  clearing safe mode on an ACARS box ran `aryaos-role set multi`, disabling ACARS
+  and starting `readsb` on an SDR it cannot drive. Safe mode now restores the
+  capability set verbatim, preserves an intentionally empty set, and falls back
+  to the legacy role only for configs predating capabilities.
+- **Safe mode now gates every sensor unit it stops.** `acarsdec`, `acarscot`,
+  `dronecot-wifi`, `dronecot-ble` and `dronecot-dronescout` were missing from
+  both `MANAGED_UNITS` and the `safe-mode.conf` drop-in loop, despite a comment
+  asserting the lists were kept in sync. On an ACARS box safe mode cut USB VBUS
+  while systemd went on restarting `acarsdec` against a radio that had left the
+  bus — the restart storm safe mode exists to stop.
+- **`aryaos-config-backup --no-secrets` no longer ships the Wi-Fi hotspot
+  passphrase.** `/etc/comitup.conf` is ordinary config apart from one key, so it
+  was archived verbatim including `ap_password` in cleartext. The key is now
+  redacted while the rest of the file is preserved. The passphrase only appears
+  once an operator sets a hotspot password — which the "Secure the device"
+  checklist instructs — so only correctly-hardened boxes were affected.
+  `aryaos-support-bundle` was never affected.
+
+### Added
+
+- `scripts/test_safe_mode.py` and `scripts/test_config_backup.py`; AIS coverage
+  in `scripts/test_capability_scan.py`.
+- `scripts/verify-image.sh` asserts the safe-mode gate across all sensor units,
+  capability-restoring safe-mode exit, `manual_only` SDR-backed AIS, and
+  hotspot-passphrase redaction.
+
 ## AryaOS 2 / v2.1.19 — 2026-08-16
 
 AryaOS 2 is a complete rewrite of the April 2024 AryaOS 1.0 image. See the

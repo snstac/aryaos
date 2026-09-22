@@ -44,7 +44,15 @@ THRESHOLD=3
 
 # Sensor/SDR services whose USB peripherals draw the current that browns the box
 # out. Keep in sync with aryaos-role's all_managed_units.
-MANAGED_UNITS="readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot dronecot-dji sikw00fcot sapientcot"
+#
+# acarsdec/acarscot and the dronecot-{wifi,ble,dronescout} instances were
+# missing here (and from the safe-mode.conf drop-in loop in
+# stages/stage-aryaos/00-install/00-run.sh) even though the comment above
+# claimed the lists were in sync. The consequence on an ACARS box: safe mode
+# latched and cut USB VBUS, but systemd went on restarting acarsdec against a
+# radio that was no longer on the bus -- the exact restart storm safe mode
+# exists to stop.
+MANAGED_UNITS="readsb dump1090-fa dump978-fa adsbcot gdlcot ais-catcher aiscot aprscot acarsdec acarscot dronecot-dji dronecot-wifi dronecot-ble dronecot-dronescout sikw00fcot sapientcot"
 
 require_root() {
 	if [[ "$(id -u)" != "0" ]]; then
@@ -87,21 +95,66 @@ _usb_authorize() {
 usb_off() { _uhub_set off || _usb_authorize 0; }
 usb_on()  { _uhub_set on  || _usb_authorize 1; }
 
-configured_role() {
-	local role="multi"
+# What to restore when safe mode is cleared.
+#
+# CAPABILITIES ARE THE MODEL; ARYAOS_ROLE is a legacy alias that aryaos-role
+# only writes when the capability set happens to match a legacy preset. Any
+# capability set without such a preset -- "acars" is one, so is "ble-rid" --
+# persists as ARYAOS_ROLE="".
+#
+# The old code read ARYAOS_ROLE and defaulted to "multi" when it was empty, so
+# clearing safe mode on an ACARS box ran `aryaos-role set multi` and silently
+# re-tasked it to "adsb ais dji rid sik sapient": ACARS off, and readsb started
+# on a LimeSDR it cannot drive. Read the capability set first and restore that
+# verbatim; fall back to the legacy role only for configs predating it.
+#
+# Emits "caps <set>" or "role <name>"; a bare empty capability set is a valid
+# answer (a relay node runs no sensors) and must NOT become "multi".
+configured_restore() {
+	# Initialise both: `local caps role` leaves them UNSET, and under the
+	# script's `set -u` the later [[ -n "$role" ]] aborts with "unbound
+	# variable" on a box whose config file is missing -- exactly the recovery
+	# path safe mode exists to serve.
+	local caps="" role=""
 	if [[ -f "$CONFIG" ]]; then
+		if grep -q '^ARYAOS_CAPABILITIES=' "$CONFIG"; then
+			caps="$(sed -n 's/^ARYAOS_CAPABILITIES=//p' "$CONFIG" | tr -d '"' | head -1)"
+			echo "caps ${caps}"
+			return 0
+		fi
 		role="$(sed -n 's/^ARYAOS_ROLE=//p' "$CONFIG" | tr -d '"' | head -1)"
 	fi
-	[[ -n "$role" ]] && echo "$role" || echo "multi"
+	[[ -n "$role" ]] && echo "role ${role}" || echo "role multi"
+}
+
+# Back-compat shim: the human-readable label used in cmd_off's message.
+configured_role() {
+	local restore; restore="$(configured_restore)"
+	case "${restore}" in
+		caps\ *) echo "capabilities '${restore#caps }'" ;;
+		role\ *) echo "role '${restore#role }'" ;;
+	esac
 }
 
 stop_sensors() { systemctl stop ${MANAGED_UNITS} >/dev/null 2>&1 || true; }
 
 start_sensors() {
-	# Flag is already cleared; re-apply the configured role so the right pipelines
-	# come back (their ConditionPathExists gate now passes).
+	# Flag is already cleared; re-apply the configured capability set so the right
+	# pipelines come back (their ConditionPathExists gate now passes).
+	local restore
+	restore="$(configured_restore)"
 	if [[ -x /usr/local/sbin/aryaos-role ]]; then
-		/usr/local/sbin/aryaos-role set "$(configured_role)" >/dev/null 2>&1 || true
+		case "${restore}" in
+			caps\ *)
+				# "none" is aryaos-role's spelling of the empty set.
+				local caps="${restore#caps }"
+				[[ -z "${caps}" ]] && caps="none"
+				/usr/local/sbin/aryaos-role caps ${caps} >/dev/null 2>&1 || true
+				;;
+			role\ *)
+				/usr/local/sbin/aryaos-role set "${restore#role }" >/dev/null 2>&1 || true
+				;;
+		esac
 	else
 		systemctl start ${MANAGED_UNITS} >/dev/null 2>&1 || true
 	fi
@@ -145,7 +198,7 @@ cmd_off() {
 	else
 		start_sensors
 		_log "SAFE MODE cleared by admin — hot-restored"
-		echo "Safe mode cleared — USB re-powered, sensors restored (role: $(configured_role))."
+		echo "Safe mode cleared — USB re-powered, sensors restored ($(configured_role))."
 	fi
 }
 
