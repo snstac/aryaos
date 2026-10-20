@@ -10,7 +10,7 @@ backrefs==7.0
     # via mkdocs-material
 bracex==2.6
     # via wcmatch
-certifi==2026.6.17
+certifi==2026.10.19
     # via requests
 charset-normalizer==3.4.7
     # via requests
@@ -103,7 +103,7 @@ requests==2.34.2
     # via mkdocs-material
 six==1.17.0
     # via python-dateutil
-urllib3==2.7.0
+urllib3==2.8.0
     # via requests
 watchdog==6.0.0
     # via mkdocs
