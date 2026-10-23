@@ -16,16 +16,13 @@
 # limitations under the License.
 #
 
-- name: Download realtek-8821cu-dkms package
-  ansible.builtin.get_url:
-    url: "https://github.com/snstac/realtek-8821cu-dkms/releases/download/v1.0.0-beta1/realtek-8821cu-dkms_5.12.0.4-1_amd64.deb"
-    dest: "/usr/src/realtek-8821cu-dkms_5.12.0.4-1_amd64.deb"
-    mode: "0644"
-  when: ansible_architecture in ['x86_64', 'amd64']
-
-- name: Install realtek-8821cu-dkms package
+# realtek-8821cu-dkms from the signed snstac apt repository (was a
+# version-pinned GitHub release deb; the repo is configured in stage-pytak,
+# which precedes this stage in every image build).
+- name: Install realtek-8821cu-dkms from the snstac apt repository
   ansible.builtin.apt:
-    deb: "/usr/src/realtek-8821cu-dkms_5.12.0.4-1_amd64.deb"
+    name: realtek-8821cu-dkms
+    state: present
   when: ansible_architecture in ['x86_64', 'amd64']
 
 
