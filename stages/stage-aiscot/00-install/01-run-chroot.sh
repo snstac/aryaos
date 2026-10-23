@@ -26,29 +26,17 @@ usermod -aG plugdev,dialout ais-catcher
 # amd64+arm64 debs via upstream's build-debian.sh). Binary: /usr/bin/AIS-catcher.
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ais-catcher
 
-COCKPIT_AISCOT_DEB_URL='https://github.com/snstac/cockpit-aiscot/releases/download/v1.2.3/cockpit-aiscot_1.2.3_all.deb'
-curl -fsSL -o /usr/src/cockpit-aiscot_1.2.3_all.deb "${COCKPIT_AISCOT_DEB_URL}"
-dpkg -i /usr/src/cockpit-aiscot_1.2.3_all.deb
-
-# cockpit-spyserver: SpyServer SDR-share admin page (drives `aryaos-sdr share
-# N spyserver`, shipped by the AryaOS overlay). Installed here — the last heavy
-# dpkg stage before export — alongside the other Cockpit plugins. Sourced from
-# the plugin's GitHub release (nfpm-built _all.deb), same idiom as cockpit-aiscot.
-COCKPIT_SPYSERVER_DEB_URL='https://github.com/snstac/cockpit-spyserver/releases/download/v0.1.0/cockpit-spyserver_0.1.0-1_all.deb'
-curl -fsSL -o /usr/src/cockpit-spyserver.deb "${COCKPIT_SPYSERVER_DEB_URL}"
-dpkg -i /usr/src/cockpit-spyserver.deb || apt-get install -f -y
-
-# cockpit-aprscot: APRS-to-TAK gateway admin page (manages the aprscot service
-# used by `aryaos-sdr task N aprs`). Same install idiom as the other plugins.
-COCKPIT_APRSCOT_DEB_URL='https://github.com/snstac/cockpit-aprscot/releases/download/v0.1.1/cockpit-aprscot_0.1.1-1_all.deb'
-curl -fsSL -o /usr/src/cockpit-aprscot.deb "${COCKPIT_APRSCOT_DEB_URL}"
-dpkg -i /usr/src/cockpit-aprscot.deb || apt-get install -f -y
-
-# cockpit-sapientcot: SAPIENT (BSI Flex 335) C-UAS/ISR gateway admin page
-# (manages the sapientcot service). Same install idiom as the other plugins.
-COCKPIT_SAPIENTCOT_DEB_URL='https://github.com/snstac/cockpit-sapientcot/releases/download/v0.1.1/cockpit-sapientcot_0.1.1-1_all.deb'
-curl -fsSL -o /usr/src/cockpit-sapientcot.deb "${COCKPIT_SAPIENTCOT_DEB_URL}"
-dpkg -i /usr/src/cockpit-sapientcot.deb || apt-get install -f -y
+# Cockpit plugins: install from the signed snstac apt repository instead of
+# downloading version-pinned debs from (now-private) GitHub release URLs. The
+# snstac apt repo is configured upstream (stage-pytak; also this stage's
+# ais-catcher.yml), so apt resolves dependencies and tracks each plugin's
+# current release:
+#   cockpit-aiscot     — AIS-catcher / aiscot admin page
+#   cockpit-spyserver  — SpyServer SDR-share admin page (`aryaos-sdr share N spyserver`)
+#   cockpit-aprscot    — APRS-to-TAK gateway admin page (`aryaos-sdr task N aprs`)
+#   cockpit-sapientcot — SAPIENT (BSI Flex 335) C-UAS/ISR gateway admin page
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    cockpit-aiscot cockpit-spyserver cockpit-aprscot cockpit-sapientcot
 
 # Ensure apt-listchanges stays off before export-image finalise (see stage-base note).
 if dpkg -s apt-listchanges >/dev/null 2>&1; then
@@ -81,9 +69,8 @@ systemctl disable aprscot >/dev/null 2>&1 || true
 # SAPIENT C-UAS gateway (sapientcot): SAPIENT (BSI Flex 335) DetectionReports -> CoT.
 # sapientcot deb Depends only on pytak (apt); its sapient-msg protobuf binding is
 # NOT in Debian, so pip-install it (pure-python; pulls a matching protobuf).
-SAPIENTCOT_DEB_URL='https://github.com/snstac/sapientcot/releases/download/v0.1.3/sapientcot_0.1.3-1_all.deb'
-curl -fsSL -o /usr/src/sapientcot.deb "${SAPIENTCOT_DEB_URL}"
-dpkg -i /usr/src/sapientcot.deb || apt-get install -f -y
+# sapientcot from the snstac apt repo (was a version-pinned GitHub release deb).
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends sapientcot
 pip3 install --break-system-packages --no-input sapient-msg || \
 	python3 -m pip install --break-system-packages --no-input sapient-msg
 install -v -m 0644 /usr/share/aryaos/sapientcot.default /etc/default/sapientcot
