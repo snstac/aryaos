@@ -120,9 +120,16 @@ class ServiceDefaultsTestCase(unittest.TestCase):
         self.assertIn("require_cockpit_stylesheets", hil_check)
         self.assertIn('href="index.css"', hil_check)
         self.assertIn('href="../../static/branding.css"', hil_check)
-        self.assertIn("v1.2.3/cockpit-aiscot_1.2.3_all.deb", aiscot_stage)
-        self.assertIn("v0.1.1/cockpit-aprscot_0.1.1-1_all.deb", aiscot_stage)
-        self.assertIn("v0.1.1/cockpit-sapientcot_0.1.1-1_all.deb", aiscot_stage)
+        # GH-PRIV-01: the cockpit plugins + sapientcot now install from the
+        # signed snstac apt repository instead of version-pinned GitHub
+        # release debs (those repos are private, so the release-download URLs
+        # 403). Assert the apt install is present and no release URL remains.
+        self.assertIn(
+            "cockpit-aiscot cockpit-spyserver cockpit-aprscot cockpit-sapientcot",
+            aiscot_stage,
+        )
+        self.assertIn("apt-get install -y --no-install-recommends sapientcot", aiscot_stage)
+        self.assertNotIn("releases/download", aiscot_stage)
 
     def test_gpsd_defines_both_option_variables_used_by_vendor_unit(self):
         defaults = (ROOT / "shared_files/aryaos/gpsd.default").read_text()
