@@ -1,0 +1,402 @@
+#!/usr/bin/env python3
+# Copyright Sensors & Signals LLC https://www.snstac.com/
+# SPDX-License-Identifier: Apache-2.0
+"""aryaos-adsbee-lockdown — quiet the onboard radios of a detected ADSBee.
+
+AryaOS uses the ADSBee only through its USB console (Mode S Beast into
+readsb). The ADSBee's own Wi-Fi AP, Wi-Fi station, Ethernet and the
+preloaded public aggregator feeds are pure liability: emissions nobody
+wants and power nobody needs. Stock firmware enables the Wi-Fi AP (SSID
+ADSBee1090-<serial>, password "yummyflowers") and marks four public
+aggregator feeds active; they are dormant only while the device has no
+network of its own.
+
+Runs as ExecStartPre of readsb.service, so it applies on every readsb
+start and heals itself if the firmware is ever reflashed. It is a no-op
+unless ARYAOS_ADSB_1090_SOURCE is "adsbee", and it skips the radio
+settings when ARYAOS_ADSBEE_RADIO is "on". It reads the current settings
+first (AT+SETTINGS?DUMP) and writes only the settings that differ, so a
+converged device costs one read and zero flash writes.
+
+Fail open for reception, always: every error path logs loudly and exits
+0 so readsb still streams. Stdlib only (the image ships no
+python3-serial); the tty helpers follow aryaos-capability-scan.
+
+desired_settings() and satisfied() are ported unchanged from the
+adsbee-receiver branch (closed PR #248, head 3f0da59).
+"""
+
+import os
+import re
+import selectors
+import signal
+import subprocess
+import sys
+import termios
+import time
+
+TAG = "aryaos-adsbee-lockdown"
+CONFIG_PATH = "/etc/aryaos/aryaos-config.txt"
+READSB_DEFAULTS = "/etc/default/readsb"
+
+# The console is a USB CDC virtual COM port, so the baud rate is arbitrary.
+BAUD = 115200
+# Line endings MUST be CRLF; the firmware's AT parser ignores bare LF.
+EOL = b"\r\n"
+
+
+def log(msg):
+    """journalctl line plus stderr, so a failed lockdown is loud either way."""
+    try:
+        subprocess.run(
+            ["logger", "-t", TAG, msg],
+            capture_output=True, timeout=5, check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        pass
+    print(f"{TAG}: {msg}", file=sys.stderr)
+
+
+def config_value(key, default="", path=CONFIG_PATH):
+    """Read one key out of /etc/aryaos/aryaos-config.txt."""
+    try:
+        with open(path, encoding="utf-8") as handle:
+            for line in handle:
+                line = line.strip()
+                if line.startswith(f"{key}="):
+                    return line.split("=", 1)[1].strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return default
+
+
+def device_from_config(config_path=CONFIG_PATH,
+                        readsb_defaults=READSB_DEFAULTS):
+    """The ADSBee's stable serial path, as pinned by discovery.
+
+    aryaos-role records the protocol-verified by-id path in
+    ARYAOS_ADSB_1090_DEVICE; the same path is what readsb reads from, so
+    /etc/default/readsb RECEIVER_OPTIONS is the fallback.
+    """
+    dev = config_value("ARYAOS_ADSB_1090_DEVICE", "", config_path)
+    if not dev:
+        try:
+            with open(readsb_defaults, encoding="utf-8") as handle:
+                options = "".join(handle)
+            match = re.search(r"--beast-serial\s+(\S+)", options)
+            if match:
+                dev = match.group(1)
+        except OSError:
+            pass
+    return dev or ""
+
+
+# ---------------------------------------------------------------------------
+# Settings model. Ported unchanged from the adsbee-receiver branch
+# (closed PR #248, head 3f0da59): parse_settings_dump() is the parsing half
+# of that branch's read_settings(), desired_settings() and satisfied() are
+# verbatim.
+# ---------------------------------------------------------------------------
+
+def parse_settings_dump(text):
+    """Parse `AT+SETTINGS?DUMP` output into {command_key: full_line}.
+
+    Settings that take an interface argument (PROTOCOL_OUT, BAUD_RATE,
+    FEED) stay distinct per interface/index instead of overwriting each
+    other.
+    """
+    settings = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line.startswith("AT+"):
+            continue
+        body = line[3:]
+        name, _, args = body.partition("=")
+        if not args:
+            continue
+        if name in ("PROTOCOL_OUT", "BAUD_RATE", "FEED"):
+            key = f"{name}:{args.split(',')[0]}"
+        else:
+            key = name
+        settings[key] = line
+    return settings
+
+
+def desired_settings(current, disable_radio=True):
+    """The configuration AryaOS wants, as {key: AT command}.
+
+    Only what we actually rely on is set, so operator tuning of anything else
+    (trigger level, bias tees, receiver position) is preserved.
+    """
+    wanted = {
+        # Beast on the USB console is the entire point: it carries 1090 Mode S
+        # AND 978 UAT (encapsulated in frame type 0xec), both of which readsb
+        # decodes off the serial port.
+        "PROTOCOL_OUT:CONSOLE": "AT+PROTOCOL_OUT=CONSOLE,BEAST",
+        # Nothing consumes the hardware UART on our builds.
+        "PROTOCOL_OUT:COMMS_UART": "AT+PROTOCOL_OUT=COMMS_UART,NONE",
+        # Debug chatter would be interleaved into the binary Beast stream.
+        "LOG_LEVEL": "AT+LOG_LEVEL=SILENT",
+        # Both bands on -- this is what lets one device retire two dongles.
+        "RX_ENABLE": "AT+RX_ENABLE=1",
+        "SUBG_ENABLE": "AT+SUBG_ENABLE=1",
+        # DO NOT set this to 0, however tempting it looks on a box that will
+        # never use the ADSBee's networking.
+        #
+        # `AT+ESP32_ENABLE=0` silences the device COMPLETELY -- including Beast
+        # on the USB console, which has nothing to do with networking. Measured
+        # on firmware 0.9.0-rc19: 0 bytes in 120 s with the ESP32 disabled,
+        # 63 Beast frames in the next 120 s with it re-enabled, same antenna,
+        # same sky, receivers reporting ENABLED throughout. The reporting
+        # pipeline evidently runs through the ESP32 regardless of transport.
+        #
+        # Pinned to 1 rather than merely left alone, so a box provisioned by an
+        # earlier build that did disable it heals itself on the next boot.
+        "ESP32_ENABLE": "AT+ESP32_ENABLE=1",
+    }
+
+    # OPSEC: clear every aggregator feed slot. Stock firmware ships slots 6-9
+    # pointed at public feeders and marked active.
+    for index in range(10):
+        wanted[f"FEED:{index}"] = f"AT+FEED={index},,0,0,NONE"
+
+    if disable_radio:
+        # We only ever use the USB console, so the ADSBee's own radios are pure
+        # liability: emissions we do not want and power we do not need. Silencing
+        # each interface individually is both necessary and sufficient -- the
+        # ESP32 itself must stay enabled (see ESP32_ENABLE above).
+        # Reversible with ARYAOS_ADSBEE_RADIO=on.
+        wanted["WIFI_STA"] = "AT+WIFI_STA=0,,"
+        wanted["ETHERNET"] = "AT+ETHERNET=0"
+        # WIFI_AP's setter is positional and takes the SSID/password/channel
+        # too, so preserve whatever is there and flip only the enable flag.
+        ap = current.get("WIFI_AP", "")
+        ap_args = ap.partition("=")[2].split(",") if ap else []
+        if len(ap_args) >= 4:
+            ap_args[0] = "0"
+            wanted["WIFI_AP"] = "AT+WIFI_AP=" + ",".join(ap_args[:4])
+        else:
+            wanted["WIFI_AP"] = "AT+WIFI_AP=0,ADSBee,aryaos415,1"
+
+    return wanted
+
+
+def satisfied(key, current_line, wanted_line):
+    """Is this setting already good enough to leave alone?
+
+    Mostly an exact string match, with one exception. Clearing a feed slot with
+    an empty URI deactivates it but does NOT erase the stored hostname: ask for
+        AT+FEED=6,,0,0,NONE
+    and the device afterwards reports
+        AT+FEED=6,feed.whereplane.xyz,0,0,NONE
+    A literal comparison therefore never converges, and we would rewrite and
+    re-flash all four preloaded aggregator slots on every single boot. What
+    actually matters for a feed is that it is inactive and has no protocol, so
+    compare on that. (The leftover hostname is inert: port 0, active 0, protocol
+    NONE. It is cosmetic, not a live feed.)
+    """
+    if current_line is None:
+        return False
+    if not key.startswith("FEED:"):
+        return current_line == wanted_line
+    fields = current_line.partition("=")[2].split(",")
+    if len(fields) < 5:
+        return False
+    active, protocol = fields[3].strip(), fields[4].strip().upper()
+    return active == "0" and protocol == "NONE"
+
+
+def diff_settings(current, wanted):
+    """The AT commands that must be written, in stable order (may be empty)."""
+    return [
+        cmd for key, cmd in sorted(wanted.items())
+        if not satisfied(key, current.get(key), cmd)
+    ]
+
+
+# ---------------------------------------------------------------------------
+# USB console I/O. Stdlib tty helpers following aryaos-capability-scan.
+# ---------------------------------------------------------------------------
+
+def _open_nonblocking_with_timeout(port, flags=None, seconds=1.0):
+    """Open a USB tty without hanging boot in a driver drain path."""
+
+    def timed_out(_signum, _frame):
+        raise TimeoutError
+
+    previous = signal.signal(signal.SIGALRM, timed_out)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        if flags is None:
+            flags = os.O_RDWR
+        return os.open(port, flags | os.O_NONBLOCK | os.O_NOCTTY)
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
+def _close_with_timeout(fd, seconds=1.0):
+    """Close a USB tty without hanging the boot path in a driver drain."""
+
+    def timed_out(_signum, _frame):
+        raise TimeoutError
+
+    previous = signal.signal(signal.SIGALRM, timed_out)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        os.close(fd)
+    except (OSError, TimeoutError):
+        pass
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
+def _set_raw_115200(fd):
+    """Temporarily put a tty in the mode used by the ADSBee console."""
+    old = termios.tcgetattr(fd)
+    attrs = termios.tcgetattr(fd)
+    attrs[0] = 0
+    attrs[1] = 0
+    attrs[2] = termios.CS8 | termios.CREAD | termios.CLOCAL
+    attrs[3] = 0
+    attrs[4] = termios.B115200
+    attrs[5] = termios.B115200
+    attrs[6][termios.VMIN] = 0
+    attrs[6][termios.VTIME] = 0
+    termios.tcsetattr(fd, termios.TCSANOW, attrs)
+    return old
+
+
+def _restore_tty(fd, attrs):
+    if attrs is None:
+        return
+    try:
+        termios.tcsetattr(fd, termios.TCSANOW, attrs)
+    except (OSError, termios.error):
+        pass
+
+
+def _command(fd, cmd, wait=1.5):
+    """Send one AT command; return the reply as a single decoded string."""
+    os.write(fd, cmd.encode("latin-1") + EOL)
+    sel = selectors.DefaultSelector()
+    sel.register(fd, selectors.EVENT_READ)
+    buf = b""
+    end = time.monotonic() + wait
+    try:
+        while time.monotonic() < end:
+            if sel.select(timeout=min(0.5, max(0.0, end - time.monotonic()))):
+                chunk = os.read(fd, 4096)
+                if chunk:
+                    buf += chunk
+    finally:
+        sel.close()
+    return buf.decode("latin-1", errors="replace")
+
+
+def read_settings(port):
+    """Read the whole device configuration via AT+SETTINGS?DUMP."""
+    fd = _open_nonblocking_with_timeout(port)
+    old = None
+    try:
+        old = _set_raw_115200(fd)
+        return parse_settings_dump(_command(fd, "AT+SETTINGS?DUMP", wait=3.0))
+    finally:
+        _restore_tty(fd, old)
+        _close_with_timeout(fd)
+
+
+def apply_settings(port, changes):
+    """Write the differing settings and persist them. Returns per-cmd replies."""
+    replies = {}
+    fd = _open_nonblocking_with_timeout(port)
+    old = None
+    try:
+        old = _set_raw_115200(fd)
+        for cmd in changes:
+            replies[cmd] = _command(fd, cmd, wait=0.8).strip()
+        replies["AT+SETTINGS=SAVE"] = _command(fd, "AT+SETTINGS=SAVE", wait=2.0).strip()
+    finally:
+        _restore_tty(fd, old)
+        _close_with_timeout(fd)
+    return replies
+
+
+def port_is_busy(port):
+    """True if some other process holds the port (readsb, typically)."""
+    try:
+        return subprocess.run(
+            ["fuser", port], capture_output=True, timeout=5
+        ).returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def lockdown(port, disable_radio=True):
+    """Bring one ADSBee to the AryaOS radio-lockdown configuration.
+
+    Reads current settings first and writes only what differs (the RP2040
+    flash has a finite erase budget and this runs on every readsb start).
+    """
+    current = read_settings(port)
+    if not current:
+        return None
+    wanted = desired_settings(current, disable_radio=disable_radio)
+    changes = diff_settings(current, wanted)
+    if not changes:
+        return []
+    replies = apply_settings(port, changes)
+    return [(cmd, replies.get(cmd, "")) for cmd in changes]
+
+
+def main():
+    if os.geteuid() != 0:
+        log("WARNING: not running as root; skipping ADSBee radio lockdown")
+        return 0
+
+    if config_value("ARYAOS_ADSB_1090_SOURCE", "auto") != "adsbee":
+        return 0
+
+    if config_value("ARYAOS_ADSBEE_RADIO", "off").lower() == "on":
+        log("ARYAOS_ADSBEE_RADIO=on; leaving ADSBee radios active")
+        return 0
+
+    dev = device_from_config()
+    if not dev or not os.path.exists(dev):
+        log(
+            "ERROR: ADSBee device path missing "
+            f"('ARYAOS_ADSB_1090_DEVICE={dev or 'unset'}'); "
+            "skipping radio lockdown, reception continues"
+        )
+        return 0
+    if port_is_busy(dev):
+        log(f"{dev}: busy (in use by another process); not touching console")
+        return 0
+
+    try:
+        result = lockdown(dev)
+    except (OSError, termios.error, TimeoutError) as exc:
+        log(f"ERROR: radio lockdown failed on {dev} ({exc}); "
+            "leaving device untouched, reception continues")
+        return 0
+
+    if result is None:
+        log(f"ERROR: could not read settings from {dev}; "
+            "leaving device untouched, reception continues")
+        return 0
+    if not result:
+        log(f"{dev}: radio lockdown already in effect (no settings changed)")
+        return 0
+
+    errors = [f"{cmd} -> {reply[:120]}" for cmd, reply in result
+              if "ERROR" in reply.upper()]
+    for item in errors:
+        log(f"WARNING: {dev}: {item}")
+    log(f"{dev}: applied {len(result)} setting(s) and saved to "
+        f"nonvolatile memory" + (f"; {len(errors)} reported ERROR" if errors else ""))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -94,7 +94,7 @@ case "$1" in
     fi
     if [ -f "$aryaos_config" ] && [ -f "$aryaos_defaults" ]; then
       for key in ARYAOS_COT_OUTPUT_URL SENSOR_BEACON ARYAOS_ADSB_1090_SOURCE \
-        ARYAOS_ADSB_1090_DEVICE ARYAOS_UAT_978_DEVICE \
+        ARYAOS_ADSB_1090_DEVICE ARYAOS_ADSBEE_RADIO ARYAOS_UAT_978_DEVICE \
         PYTAK_MULTICAST_LOCAL_ADDRS ARYAOS_IPV4LL_FALLBACK \
         ARYAOS_TIME_PEER_MODE ARYAOS_TIME_BOOT_TIMEOUT; do
         if ! grep -q "^${key}=" "$aryaos_config"; then
