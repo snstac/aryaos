@@ -77,6 +77,17 @@ ARYAOS_ADSB_DECODER=readsb
 ARYAOS_ADSB_1090_SOURCE=auto
 ARYAOS_ADSB_1090_DEVICE=""
 
+# ADSBee radio lockdown (applies when ARYAOS_ADSB_1090_SOURCE=adsbee).
+# aryaos-adsbee-lockdown (ExecStartPre of readsb.service) quiets the
+# ADSBee's own Wi-Fi AP, Wi-Fi station, Ethernet and all public aggregator
+# feed slots on every readsb start, writing only settings that differ.
+#
+# on  | keep the ADSBee's own radios active (lockdown skips the radio
+#      settings; log level, protocol and feed slots still apply). Use when
+#      re-provisioning the ADSBee itself over its own Wi-Fi AP.
+# off | full radio lockdown (default).
+ARYAOS_ADSBEE_RADIO=off
+
 # 1090 MHz ADS-B JSON directory (readsb --write-json and dump1090-fa --write-json). adsbcot FEED_URL uses aircraft.json here.
 ARYAOS_ADSB_JSON_DIR=/run/adsb
 

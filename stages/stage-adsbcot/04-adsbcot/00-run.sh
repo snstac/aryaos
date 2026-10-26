@@ -50,6 +50,9 @@ install -v -m 0644 "${SHARED_FILES}/adsbcot/99-aryaos-dump978-uat-rtlsdr.rules" 
 install -v -m 644 "${SHARED_FILES}/adsbcot/readsb.service" "${ROOTFS_DIR}/usr/src/readsb.service.aryaos"
 install -v -m 755 "${SHARED_FILES}/adsbcot/run_readsb.sh" "${ROOTFS_DIR}/usr/local/sbin/"
 install -v -m 644 "${SHARED_FILES}/adsbcot/readsb.service" "${ROOTFS_DIR}/lib/systemd/system/"
+# ADSBee radio lockdown: ExecStartPre hook of readsb.service. Stdlib only
+# (the image ships no python3-serial). No-op on SDR boxes.
+install -v -m 755 "${SHARED_FILES}/adsbcot/aryaos-adsbee-lockdown" "${ROOTFS_DIR}/usr/local/sbin/"
 install -d -m 0755 "${ROOTFS_DIR}/etc/systemd/system/readsb.service.d"
 install -v -m 0644 "${SHARED_FILES}/adsbcot/systemd/readsb.service.d/aryaos-conflicts.conf" \
 	"${ROOTFS_DIR}/etc/systemd/system/readsb.service.d/aryaos-conflicts.conf"

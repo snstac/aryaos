@@ -25,6 +25,11 @@ After=network.target
 User=readsb
 RuntimeDirectoryMode=0755
 RuntimeDirectory=adsb
+# Quiesce the ADSBee's onboard radios (Wi-Fi AP, Wi-Fi station, Ethernet,
+# public aggregator feeds) before the decoder starts. No-op when the box
+# decodes from an SDR or when ARYAOS_ADSBEE_RADIO=on. The leading dash
+# makes readsb start even if the lockdown fails: fail open for reception.
+ExecStartPre=-/usr/local/sbin/aryaos-adsbee-lockdown
 ExecStart=/usr/local/sbin/run_readsb.sh
 Type=simple
 Type=simple
