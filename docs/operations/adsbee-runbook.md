@@ -1,4 +1,4 @@
-# Runbook — fitting an ADSBee to a unit
+# Runbook: fitting an ADSBee to a unit
 
 Operational procedure for swapping a unit's ADS-B RTL-SDR dongles for an
 [ADSBee 1090U](../config/adsbee.md). Written for a technician with SSH or
@@ -13,11 +13,11 @@ Budget about ten minutes, most of it waiting for aircraft.
 - Antennas for **both** bands if you want UAT: the 1090 and sub-GHz ports are
   separate, and antennas are sold separately.
 - An AryaOS image containing `aryaos-adsbee` (check with
-  `command -v aryaos-adsbee`). Older images will simply ignore the device.
+  `command -v aryaos-adsbee`). Older images ignore the device.
 
 !!! warning "Quiet the radios first on a marginal supply"
-    On a Pi 5, or any unit on a questionable supply or cable, shed load before
-    changing hardware — a brownout *during a write* can corrupt config:
+    On a Pi 5 or a weak supply or cable, shed load before changing hardware.
+    A brownout *during a write* can corrupt config:
     ```bash
     sudo aryaos-safe-mode on "fitting adsbee"
     #   ... do the work ...
@@ -47,7 +47,7 @@ ps -o args= -C readsb | head -1
 Expect `--device-type modesbeast --beast-serial /dev/serial/by-id/usb-Raspberry_Pi_Pico_...`.
 
 `/etc/default/readsb` will still contain the old RTL line. **That is correct and
-deliberate** — the switch happens at runtime, so pulling the ADSBee returns the
+deliberate**. The switch happens at runtime, so pulling the ADSBee returns the
 unit to its SDR configuration with no edit required. Do not "fix" it.
 
 **4. Enable the capability** (if not already):
@@ -56,8 +56,8 @@ unit to its SDR configuration with no edit required. Do not "fix" it.
 sudo aryaos-role caps adsb
 ```
 
-`dump978-fa` should be listed as `disable`. The ADSBee covers 978 UAT itself, and
-dump978-fa would only crash-loop hunting a dongle that is no longer fitted.
+Expect `dump978-fa` listed as `disable`. The ADSBee covers 978 UAT itself, and
+dump978-fa only crash-loops hunting a dongle that is no longer fitted.
 
 **5. Confirm aircraft, then CoT.**
 
@@ -83,15 +83,15 @@ vcgencmd measure_temp; vcgencmd get_throttled
 - [ ] `dump978-fa` inactive, and **not** crash-looping
 - [ ] `systemctl --failed` is empty
 - [ ] `aircraft.json` gains aircraft within a few minutes
-- [ ] `adsbcot` logging retrievals; CoT visible on the mesh
+- [ ] `adsbcot` logging retrievals, and CoT visible on the mesh
 - [ ] `readsb` CPU at or near 0%
 - [ ] `get_throttled` is `0x0`
 
 ## Verifying the emissions posture
 
 A factory ADSBee runs a Wi-Fi AP and carries four active public aggregator
-feeds. Provisioning disables these on every boot; verify on any unit going to the
-field:
+feeds. Provisioning disables these on every boot. Verify this on any unit going
+to the field:
 
 ```bash
 sudo systemctl stop readsb        # the console is one port; readsb holds it
@@ -99,13 +99,13 @@ sudo aryaos-adsbee provision      # expect "configuration already correct"
 sudo systemctl start readsb
 ```
 
-To inspect directly, stop `readsb` and query the device — every `FEED` line must
+To inspect directly, stop `readsb` and query the device. Every `FEED` line must
 end `,0,0,NONE`, and `WIFI_AP`/`WIFI_STA`/`ETHERNET` must all be `0`. Disabled
-feed slots still *display* their original hostnames; that is cosmetic, the
+feed slots still *display* their original hostnames. That is cosmetic. The
 `0,0,NONE` is what matters.
 
 `ESP32_ENABLE` must be **1**. Setting it to 0 silences the device completely,
-Beast over USB included — see [the ADSBee page](../config/adsbee.md).
+Beast over USB included. See [the ADSBee page](../config/adsbee.md).
 
 ## Failure modes
 
