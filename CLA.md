@@ -27,7 +27,7 @@ The Contributor must disclose any third-party materials or intellectual property
 ## 6. No Support Obligation
 The Company is under no obligation to provide support, maintenance, or updates for the Contribution.
 
-## 7. Notification of Inaccuracies
+## 7. Notification of Inaccurities
 If the Contributor becomes aware of any inaccuracies or defects in the Contribution, they shall notify the Company as soon as reasonably possible.
 
 ## 8. Governing Law
