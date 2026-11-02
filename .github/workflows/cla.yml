@@ -1,14 +1,27 @@
 name: CLA Check
 on:
-  pull_request:
-    types: [opened, synchronize]
+  pull_request_target:
+  issue_comment:
+    types: [created]
 
 jobs:
   cla-check:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+      statuses: write
     steps:
       - uses: actions/checkout@v4
       - name: Run CLA Check
-        uses: contributor-assistant/github-action@v1
+        uses: contributor-assistant/github-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          signature-repo: snstac/cla-signatures
+          path-to-signatures: signatures/version1/cla.json
+          path-to-document: https://github.com/snstac/aryaos/blob/main/CLA.md
+          branch: main
+          allowlist: ampledata,btannerbot,dependabot[bot],github-actions[bot]
+          remote-organization-name: snstac
+          remote-repository-name: cla-signatures
