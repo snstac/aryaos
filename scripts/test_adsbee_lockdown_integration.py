@@ -46,7 +46,7 @@ class LockdownIntegrationTest(unittest.TestCase):
 
         env = os.environ.copy()
         env["ARYAOS_CONFIG_PATH"] = str(self.config_path)
-        script_path = "/home/hermes/devops/wt/t_91bbb65c/aryaos/shared_files/adsbcot/aryaos-adsbee-lockdown"
+        script_path = Path(__file__).parents[1] / "shared_files" / "adsbcot" / "aryaos-adsbee-lockdown"
         
         result = subprocess.run(["python3", script_path], env=env, capture_output=True, text=True)
         
@@ -75,7 +75,7 @@ class LockdownIntegrationTest(unittest.TestCase):
 
         env = os.environ.copy()
         env["ARYAOS_CONFIG_PATH"] = str(self.config_path)
-        script_path = "/home/hermes/devops/wt/t_91bbb65c/aryaos/shared_files/adsbcot/aryaos-adsbee-lockdown"
+        script_path = Path(__file__).parents[1] / "shared_files" / "adsbcot" / "aryaos-adsbee-lockdown"
         
         result = subprocess.run(["python3", script_path], env=env, capture_output=True, text=True)
         
