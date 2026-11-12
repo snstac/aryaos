@@ -35,14 +35,26 @@ radio settings and logs the choice on every `readsb` start. Log level,
 protocol and feed slot settings still apply, since the preloaded feeds are
 an OPSEC risk even when the device has no network.
 
-## Do not disable the ESP32
+## The ESP32 stays enabled
 
-`AT+ESP32_ENABLE=0` stops the device reporting entirely, including Beast
-over USB, which has nothing to do with networking. Measured on firmware
-0.9.0-rc19. With the ESP32 disabled, the device sent zero bytes in 120 s.
-With it re-enabled, the next 120 s gave 63 Beast frames. Same antenna and
-sky. The lockdown therefore pins `AT+ESP32_ENABLE=1` and disables each
-radio individually.
+The lockdown pins `AT+ESP32_ENABLE=1` and disables each radio individually.
+With `AT+ESP32_ENABLE=0`, the device still sends Beast frames over USB.
+
+Measured on firmware 0.9.1-rc11 with the lockdown settings, in alternating
+120 s windows:
+
+- Bench signal generator at 100 frames per second: 11,953 to 11,977
+  frames per window with the ESP32 disabled, and 11,952 to 11,969 with
+  the ESP32 enabled. Each window received at least 99.6 percent of the
+  frames.
+- Live antenna: 577 to 2,250 Mode S frames per window with the ESP32
+  disabled, and 1,026 to 1,513 with the ESP32 enabled.
+- After `AT+SETTINGS=SAVE` and a reboot: 702 and 1,202 frames with the
+  ESP32 disabled, and 2,232 frames with the ESP32 enabled.
+
+An earlier test on firmware 0.9.0-rc19 recorded zero bytes with the ESP32
+disabled. That test ran at very low traffic. At low traffic, a 120 s window
+can contain zero frames with either setting.
 
 ## Feed slots keep their hostnames
 
