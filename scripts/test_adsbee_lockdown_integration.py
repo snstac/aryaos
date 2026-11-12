@@ -12,14 +12,32 @@ class LockdownIntegrationTest(unittest.TestCase):
     def setUp(self):
         self.master_fd, self.slave_fd = pty.openpty()
         self.slave_name = os.ttyname(self.slave_fd)
+        # The script refuses a busy port (fuser). The test must not hold the slave
+        # itself, or CI (where fuser exists) sees it as busy. The slave node stays
+        # valid while the master is open.
+        os.close(self.slave_fd)
+        self.slave_fd = None
         self.config_dir = tempfile.TemporaryDirectory()
         self.config_path = Path(self.config_dir.name) / "aryaos-config.txt"
         self.config_path.write_text(f"ARYAOS_ADSB_1090_SOURCE=adsbee\nARYAOS_ADSB_1090_DEVICE={self.slave_name}")
 
     def tearDown(self):
         os.close(self.master_fd)
-        os.close(self.slave_fd)
         self.config_dir.cleanup()
+
+    def _read_master(self, wait_s=30.0):
+        """Read the fake console. The test holds no slave fd (see setUp), so Linux
+        returns EIO whenever the script under test has the port closed (before the
+        first open and between its read and write phases). Retry until the deadline;
+        the fake console thread ends itself after SAVE."""
+        deadline = time.monotonic() + wait_s
+        while True:
+            try:
+                return os.read(self.master_fd, 4096).decode("latin-1")
+            except OSError:
+                if time.monotonic() > deadline:
+                    raise
+                time.sleep(0.02)
 
     def test_save_failure_exits_nonzero(self):
         # Thread to handle the fake ADSBee console
@@ -29,7 +47,7 @@ class LockdownIntegrationTest(unittest.TestCase):
             # But we need to send it when the script asks for it.
             while True:
                 try:
-                    data = os.read(self.master_fd, 4096).decode("latin-1")
+                    data = self._read_master()
                     if not data: break
                     if "AT+SETTINGS?DUMP" in data:
                         os.write(self.master_fd, b"AT+WIFI_AP=1,ADSBee1090-9A3B7C,yummyflowers,1\\r\\nAT+WIFI_STA=0,,\\r\\nAT+ETHERNET=1\\r\\nAT+ESP32_ENABLE=1\\r\\nAT+LOG_LEVEL=INFO\\r\\nAT+PROTOCOL_OUT=CONSOLE,NONE\\r\\nAT+PROTOCOL_OUT=COMMS_UART,NONE\\r\\nAT+FEED=6,feed.whereplane.xyz,0,1,RAW\\r\\nAT+FEED=9,feed.adsb.fi,0,1,RAW\\r\\n")
@@ -58,7 +76,7 @@ class LockdownIntegrationTest(unittest.TestCase):
         def fake_adsbee_success():
             while True:
                 try:
-                    data = os.read(self.master_fd, 4096).decode("latin-1")
+                    data = self._read_master()
                     if not data: break
                     if "AT+SETTINGS?DUMP" in data:
                         os.write(self.master_fd, b"AT+WIFI_AP=1,ADSBee1090-9A3B7C,yummyflowers,1\\r\\nAT+WIFI_STA=0,,\\r\\nAT+ETHERNET=1\\r\\nAT+ESP32_ENABLE=1\\r\\nAT+LOG_LEVEL=INFO\\r\\nAT+PROTOCOL_OUT=CONSOLE,NONE\\r\\nAT+PROTOCOL_OUT=COMMS_UART,NONE\\r\\nAT+FEED=6,feed.whereplane.xyz,0,1,RAW\\r\\nAT+FEED=9,feed.adsb.fi,0,1,RAW\\r\\n")
