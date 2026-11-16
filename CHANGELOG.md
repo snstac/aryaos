@@ -1,3 +1,6 @@
+## [Unreleased]
+- Add `aryaos-state` read-only CLI and state contracts for safe-mode, emcon, and zeroize.
+
 # Changelog
 
 ## v2.4.3 — 2026-09-22

@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "machine": "safe-mode",
+  "states": [
+    "normal",
+    "counting",
+    "safe",
+    "cleared"
+  ],
+  "initial": "normal",
+  "transitions": [
+    {
+      "from": "normal",
+      "to": "counting",
+      "trigger": "boot"
+    },
+    {
+      "from": "counting",
+      "to": "safe",
+      "trigger": "threshold reached"
+    },
+    {
+      "from": "safe",
+      "to": "cleared",
+      "trigger": "admin off"
+    },
+    {
+      "from": "cleared",
+      "to": "normal",
+      "trigger": "reboot"
+    }
+  ],
+  "sources": [
+    {
+      "path": "/etc/aryaos/safe-mode",
+      "kind": "flag",
+      "meaning": "Safe mode active"
+    },
+    {
+      "path": "/var/lib/aryaos/boot-attempts",
+      "kind": "counter",
+      "meaning": "Boot attempt count"
+    },
+    {
+      "path": "/var/lib/aryaos/safe-mode-reason",
+      "kind": "text",
+      "meaning": "Reason for safe mode"
+    }
+  ]
+}

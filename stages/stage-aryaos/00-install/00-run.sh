@@ -182,6 +182,11 @@ install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-capability-scan" "${ROOTFS_DIR
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-config-backup" "${ROOTFS_DIR}/usr/local/sbin/aryaos-config-backup"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-factory-reset" "${ROOTFS_DIR}/usr/local/sbin/aryaos-factory-reset"
 install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-zeroize" "${ROOTFS_DIR}/usr/local/sbin/aryaos-zeroize"
+install -v -m 0755 "${SHARED_FILES}/aryaos/aryaos-state" "${ROOTFS_DIR}/usr/local/sbin/aryaos-state"
+install -v -m 0644 "${SHARED_FILES}/aryaos/state/schema.json" "${ROOTFS_DIR}/usr/share/aryaos/state/schema.json"
+install -v -m 0644 "${SHARED_FILES}/aryaos/state/safe-mode.json" "${ROOTFS_DIR}/usr/share/aryaos/state/safe-mode.json"
+install -v -m 0644 "${SHARED_FILES}/aryaos/state/emcon.json" "${ROOTFS_DIR}/usr/share/aryaos/state/emcon.json"
+install -v -m 0644 "${SHARED_FILES}/aryaos/state/zeroize.json" "${ROOTFS_DIR}/usr/share/aryaos/state/zeroize.json"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-factory-reset.service" \
 	"${ROOTFS_DIR}/etc/systemd/system/aryaos-factory-reset.service"
 install -v -m 0644 "${SHARED_FILES}/aryaos/systemd/aryaos-zeroize.service" \
