@@ -4,80 +4,74 @@ import sys
 import json
 import argparse
 
-# For testing, we can override the root directory
 STATE_ROOT = os.environ.get("ARYAOS_STATE_ROOT", "/")
-CONTRACTS_DIR = os.path.join(STATE_ROOT, "usr/share/aryaos/state")
 
-def get_source_value(source):
-    path = os.path.join(STATE_ROOT, source["path"].lstrip("/"))
+def get_source_value(source, root):
+    rel_path = source["path"].lstrip("/")
+    path = os.path.join(root, rel_path)
     kind = source["kind"]
     
+    if not os.path.exists(path):
+        return False if kind == "flag" else None
+
     try:
         if kind == "flag":
-            return os.path.exists(path)
+            return True
         elif kind == "counter":
-            if os.path.exists(path):
-                with open(path, "r") as f:
-                    val = f.read().strip()
-                    return int(val) if val.isdigit() else 0
-            return 0
+            with open(path, "r") as f:
+                val = f.read().strip()
+                return int(val) if val.isdigit() else 0
         elif kind == "text":
-            if os.path.exists(path):
-                with open(path, "r") as f:
-                    return f.read().strip()
-            return "unknown"
+            with open(path, "r") as f:
+                return f.read().strip()
     except Exception as e:
-        return f"ERROR: {str(e)}"
+        return f"ERROR:{str(e)}"
     return None
 
-def derive_state(machine, contract):
-    sources = contract["sources"]
-    
+def derive_state_refined(machine, contract, root):
+    sources = contract.get("sources", [])
+    if not sources: return "unknown"
+
     if machine == "emcon":
-        # emcon: flag exists -> on, else off
-        flag = get_source_value(sources[0])
-        return "on" if flag else "off"
+        val = get_source_value(sources[0], root)
+        if isinstance(val, str) and val.startswith("ERROR:"): return "unknown"
+        return "on" if val else "off"
+    
+    if machine == "zeroize":
+        val = get_source_value(sources[0], root)
+        if isinstance(val, str) and val.startswith("ERROR:"): return "unknown"
+        return "zeroizing" if val else "normal"
         
-    elif machine == "zeroize":
-        # zeroize: flag exists -> zeroizing, else normal
-        flag = get_source_value(sources[0])
-        return "zeroizing" if flag else "normal"
+    if machine == "safe-mode":
+        flag_val = get_source_value(sources[0], root)
+        if isinstance(flag_val, str) and flag_val.startswith("ERROR:"): return "unknown"
+        if flag_val: return "safe"
         
-    elif machine == "safe-mode":
-        # safe-mode: 
-        # 1. flag exists -> safe
-        # 2. flag missing and counter > 0 -> counting
-        # 3. else -> normal
-        flag = get_source_value(sources[0])
-        if flag:
-            return "safe"
-        
-        counter = get_source_value(sources[1])
-        if isinstance(counter, int) and counter > 0:
-            return "counting"
-        
+        if len(sources) > 1:
+            counter_val = get_source_value(sources[1], root)
+            if isinstance(counter_val, str) and counter_val.startswith("ERROR:"): return "unknown"
+            if isinstance(counter_val, int) and counter_val > 0:
+                return "counting"
         return "normal"
     
     return "unknown"
 
 def main():
     parser = argparse.ArgumentParser(description="AryaOS State CLI")
-    parser.add_argument("command", choices=["list", "status"], help="Command to run")
-    parser.add_argument("machine", nargs="?", help="Machine to query status for")
-    parser.add_argument("--json", action="store_true", help="Output in JSON format")
+    parser.add_argument("command", choices=["list", "status"])
+    parser.add_argument("machine", nargs="?", help="Machine name")
+    parser.add_argument("--json", action="store_true", help="Output JSON")
     
     args = parser.parse_args()
     
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    contracts_dir = os.path.join(script_dir, "state")
+    
     try:
         contracts = {}
-        if not os.path.exists(CONTRACTS_DIR):
-            # Fallback for local dev if the directory is missing
-            print(f"Error: Contracts directory {CONTRACTS_DIR} not found.", file=sys.stderr)
-            sys.exit(1)
-            
-        for f in os.listdir(CONTRACTS_DIR):
+        for f in os.listdir(contracts_dir):
             if f.endswith(".json") and f != "schema.json":
-                with open(os.path.join(CONTRACTS_DIR, f), "r") as jf:
+                with open(os.path.join(contracts_dir, f), "r") as jf:
                     c = json.load(jf)
                     contracts[c["machine"]] = c
         
@@ -89,18 +83,17 @@ def main():
                 print("Available state machines:")
                 for m in machines:
                     print(f" - {m}")
-                    
+        
         elif args.command == "status":
             if not args.machine:
-                print("Error: status requires a machine name.", file=sys.stderr)
+                print("Error: machine required", file=sys.stderr)
                 sys.exit(1)
-            
             if args.machine not in contracts:
-                print(f"Error: Unknown machine '{args.machine}'.", file=sys.stderr)
+                print(f"Error: Unknown machine '{args.machine}'", file=sys.stderr)
                 sys.exit(1)
-            
+                
             contract = contracts[args.machine]
-            state = derive_state(args.machine, contract)
+            state = derive_state_refined(args.machine, contract, STATE_ROOT)
             
             if args.json:
                 print(json.dumps({"machine": args.machine, "state": state}))
@@ -108,7 +101,7 @@ def main():
                 print(f"{args.machine}: {state}")
                 
     except Exception as e:
-        print(f"Unexpected error: {str(e)}", file=sys.stderr)
+        print(f"Error: {str(e)}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":

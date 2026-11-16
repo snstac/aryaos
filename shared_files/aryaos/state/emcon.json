@@ -1,28 +1,13 @@
 {
   "schema_version": "1.0",
   "machine": "emcon",
-  "states": [
-    "off",
-    "on"
-  ],
+  "states": ["off", "on"],
   "initial": "off",
   "transitions": [
-    {
-      "from": "off",
-      "to": "on",
-      "trigger": "silence on"
-    },
-    {
-      "from": "on",
-      "to": "off",
-      "trigger": "silence off"
-    }
+    {"from": "off", "to": "on", "trigger": "silence on"},
+    {"from": "on", "to": "off", "trigger": "silence off"}
   ],
   "sources": [
-    {
-      "path": "/etc/aryaos/emcon",
-      "kind": "flag",
-      "meaning": "RF Silence active"
-    }
+    {"path": "/etc/aryaos/emcon", "kind": "flag", "meaning": "RF Silence active"}
   ]
 }

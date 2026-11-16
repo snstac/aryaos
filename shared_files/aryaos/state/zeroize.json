@@ -1,29 +1,13 @@
 {
   "schema_version": "1.0",
   "machine": "zeroize",
-  "states": [
-    "normal",
-    "zeroizing",
-    "done"
-  ],
+  "states": ["normal", "zeroizing", "done"],
   "initial": "normal",
   "transitions": [
-    {
-      "from": "normal",
-      "to": "zeroizing",
-      "trigger": "start zeroize"
-    },
-    {
-      "from": "zeroizing",
-      "to": "done",
-      "trigger": "complete zeroize"
-    }
+    {"from": "normal", "to": "zeroizing", "trigger": "start zeroize"},
+    {"from": "zeroizing", "to": "done", "trigger": "complete zeroize"}
   ],
   "sources": [
-    {
-      "path": "/run/aryaos-zeroize.keep-network",
-      "kind": "flag",
-      "meaning": "Zeroize in progress (network preserve)"
-    }
+    {"path": "/run/aryaos-zeroize.keep-network", "kind": "flag", "meaning": "Zeroize in progress"}
   ]
 }

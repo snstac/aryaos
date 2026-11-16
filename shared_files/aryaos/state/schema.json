@@ -3,41 +3,20 @@
   "title": "AryaOS State Contract",
   "type": "object",
   "properties": {
-    "schema_version": {
-      "type": "string"
-    },
-    "machine": {
-      "type": "string"
-    },
-    "states": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "initial": {
-      "type": "string"
-    },
+    "schema_version": {"type": "string"},
+    "machine": {"type": "string"},
+    "states": {"type": "array", "items": {"type": "string"}},
+    "initial": {"type": "string"},
     "transitions": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
-          "from": {
-            "type": "string"
-          },
-          "to": {
-            "type": "string"
-          },
-          "trigger": {
-            "type": "string"
-          }
+          "from": {"type": "string"},
+          "to": {"type": "string"},
+          "trigger": {"type": "string"}
         },
-        "required": [
-          "from",
-          "to",
-          "trigger"
-        ]
+        "required": ["from", "to", "trigger"]
       }
     },
     "sources": {
@@ -45,33 +24,13 @@
       "items": {
         "type": "object",
         "properties": {
-          "path": {
-            "type": "string"
-          },
-          "kind": {
-            "enum": [
-              "flag",
-              "counter",
-              "text"
-            ]
-          },
-          "meaning": {
-            "type": "string"
-          }
+          "path": {"type": "string"},
+          "kind": {"type": "string", "enum": ["flag", "counter", "text"]},
+          "meaning": {"type": "string"}
         },
-        "required": [
-          "path",
-          "kind",
-          "meaning"
-        ]
+        "required": ["path", "kind", "meaning"]
       }
     }
   },
-  "required": [
-    "schema_version",
-    "machine",
-    "states",
-    "initial",
-    "sources"
-  ]
+  "required": ["schema_version", "machine", "states", "initial", "sources"]
 }
