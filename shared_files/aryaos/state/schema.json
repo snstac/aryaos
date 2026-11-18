@@ -32,5 +32,5 @@
       }
     }
   },
-  "required": ["schema_version", "machine", "states", "initial", "sources"]
+  "required": ["schema_version", "machine", "states", "initial", "transitions", "sources"]
 }

@@ -6,55 +6,56 @@ import argparse
 
 STATE_ROOT = os.environ.get("ARYAOS_STATE_ROOT", "/")
 
-def get_source_value(source, root):
-    rel_path = source["path"].lstrip("/")
-    path = os.path.join(root, rel_path)
-    kind = source["kind"]
-    
-    if not os.path.exists(path):
-        return False if kind == "flag" else None
+class SourceError(Exception):
+    pass
 
+
+def get_source_value(source, root):
+    """Return flag->bool, counter->int|None, text->str|None. Raise SourceError if unreadable."""
+    path = os.path.join(root, source["path"].lstrip("/"))
+    kind = source["kind"]
     try:
         if kind == "flag":
+            os.stat(path)
             return True
-        elif kind == "counter":
-            with open(path, "r") as f:
-                val = f.read().strip()
-                return int(val) if val.isdigit() else 0
-        elif kind == "text":
-            with open(path, "r") as f:
-                return f.read().strip()
-    except Exception as e:
-        return f"ERROR:{str(e)}"
-    return None
+        with open(path, "r") as f:
+            val = f.read().strip()
+    except FileNotFoundError:
+        return False if kind == "flag" else None
+    except OSError as e:
+        raise SourceError("%s: %s" % (source["path"], e.strerror or type(e).__name__))
+    except UnicodeDecodeError:
+        raise SourceError("%s: not text" % source["path"])
+    if kind == "counter":
+        if not val.isdigit():
+            raise SourceError("%s: not an integer" % source["path"])
+        return int(val)
+    return val
+
 
 def derive_state_refined(machine, contract, root):
+    """Return (state, reason). reason is None unless state is unknown."""
     sources = contract.get("sources", [])
-    if not sources: return "unknown"
+    if not sources:
+        return "unknown", "no sources in contract"
+    try:
+        first = get_source_value(sources[0], root)
+        if machine == "emcon":
+            return ("on" if first else "off"), None
+        if machine == "zeroize":
+            return ("zeroizing" if first else "normal"), None
+        if machine == "safe-mode":
+            if first:
+                return "safe", None
+            if len(sources) > 1:
+                n = get_source_value(sources[1], root)
+                if n:
+                    return "counting", None
+            return "normal", None
+    except SourceError as e:
+        return "unknown", str(e)
+    return "unknown", "no derivation for machine"
 
-    if machine == "emcon":
-        val = get_source_value(sources[0], root)
-        if isinstance(val, str) and val.startswith("ERROR:"): return "unknown"
-        return "on" if val else "off"
-    
-    if machine == "zeroize":
-        val = get_source_value(sources[0], root)
-        if isinstance(val, str) and val.startswith("ERROR:"): return "unknown"
-        return "zeroizing" if val else "normal"
-        
-    if machine == "safe-mode":
-        flag_val = get_source_value(sources[0], root)
-        if isinstance(flag_val, str) and flag_val.startswith("ERROR:"): return "unknown"
-        if flag_val: return "safe"
-        
-        if len(sources) > 1:
-            counter_val = get_source_value(sources[1], root)
-            if isinstance(counter_val, str) and counter_val.startswith("ERROR:"): return "unknown"
-            if isinstance(counter_val, int) and counter_val > 0:
-                return "counting"
-        return "normal"
-    
-    return "unknown"
 
 def main():
     parser = argparse.ArgumentParser(description="AryaOS State CLI")
@@ -78,7 +79,7 @@ def main():
         if args.command == "list":
             machines = sorted(contracts.keys())
             if args.json:
-                print(json.dumps({"machines": machines}))
+                print(json.dumps({"machines": machines}, sort_keys=True))
             else:
                 print("Available state machines:")
                 for m in machines:
@@ -93,12 +94,15 @@ def main():
                 sys.exit(1)
                 
             contract = contracts[args.machine]
-            state = derive_state_refined(args.machine, contract, STATE_ROOT)
+            state, reason = derive_state_refined(args.machine, contract, os.environ.get("ARYAOS_STATE_ROOT", "/"))
             
             if args.json:
-                print(json.dumps({"machine": args.machine, "state": state}))
+                out = {"machine": args.machine, "state": state}
+                if reason:
+                    out["reason"] = reason
+                print(json.dumps(out, sort_keys=True))
             else:
-                print(f"{args.machine}: {state}")
+                print(f"{args.machine}: {state}" + (f" ({reason})" if reason else ""))
                 
     except Exception as e:
         print(f"Error: {str(e)}", file=sys.stderr)
