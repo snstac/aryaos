@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "machine": "zeroize",
+  "states": ["normal", "zeroizing", "done"],
+  "initial": "normal",
+  "transitions": [
+    {"from": "normal", "to": "zeroizing", "trigger": "start zeroize"},
+    {"from": "zeroizing", "to": "done", "trigger": "complete zeroize"}
+  ],
+  "non_derivable": ["zeroizing", "done"],
+  "sources": [
+    {"path": "/run/aryaos-zeroize.keep-network", "kind": "flag", "meaning": "Option request (--keep-network) consumed and deleted by aryaos-zeroize before the wipe; not a progress marker, never read for state"}
+  ]
+}

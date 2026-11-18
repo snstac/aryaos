@@ -90,6 +90,11 @@ install_file 0755 "${SHARED}/aryaos/dronecot-serial-ready" "/usr/local/libexec/a
 install_file 0755 "${SHARED}/aryaos/aryaos-config-backup" "/usr/local/sbin/aryaos-config-backup"
 install_file 0755 "${SHARED}/aryaos/aryaos-factory-reset" "/usr/local/sbin/aryaos-factory-reset"
 install_file 0755 "${SHARED}/aryaos/aryaos-zeroize" "/usr/local/sbin/aryaos-zeroize"
+install_file 0755 "${SHARED}/aryaos/aryaos-state" "/usr/local/sbin/aryaos-state"
+install_file 0644 "${SHARED}/aryaos/state/schema.json" "/usr/share/aryaos/state/schema.json"
+install_file 0644 "${SHARED}/aryaos/state/safe-mode.json" "/usr/share/aryaos/state/safe-mode.json"
+install_file 0644 "${SHARED}/aryaos/state/emcon.json" "/usr/share/aryaos/state/emcon.json"
+install_file 0644 "${SHARED}/aryaos/state/zeroize.json" "/usr/share/aryaos/state/zeroize.json"
 install_file 0755 "${SHARED}/aryaos/aryaos-safe-mode" "/usr/local/sbin/aryaos-safe-mode"
 install_file 0755 "${SHARED}/aryaos/aryaos-radio" "/usr/local/sbin/aryaos-radio"
 # Offline image backup: pull down this box's own release .img.xz.

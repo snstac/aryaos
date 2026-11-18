@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+import os
+import sys
+import json
+import stat
+import argparse
+
+STATE_ROOT = os.environ.get("ARYAOS_STATE_ROOT", "/")
+
+class SourceError(Exception):
+    pass
+
+
+def get_source_value(source, root):
+    """Return flag->bool, counter->int|None, text->str|None. Raise SourceError if unreadable."""
+    path = os.path.join(root, source["path"].lstrip("/"))
+    kind = source["kind"]
+    try:
+        if kind == "flag":
+            # Parity with `-f` in aryaos-radio: regular files only.
+            if not stat.S_ISREG(os.stat(path).st_mode):
+                raise SourceError("%s: not a regular file" % source["path"])
+            return True
+        with open(path, "r") as f:
+            val = f.read().strip()
+    except FileNotFoundError:
+        return False if kind == "flag" else None
+    except OSError as e:
+        raise SourceError("%s: %s" % (source["path"], e.strerror or type(e).__name__))
+    except UnicodeDecodeError:
+        raise SourceError("%s: not text" % source["path"])
+    if kind == "counter":
+        if not val.isdigit():
+            raise SourceError("%s: not an integer" % source["path"])
+        return int(val)
+    return val
+
+
+def derive_state_refined(machine, contract, root):
+    """Return (state, reason). reason is None unless state is unknown."""
+    if machine == "zeroize":
+        # D5: the keep-network flag is an option request that aryaos-zeroize
+        # consumes before the wipe. No observable progress marker exists.
+        return "unknown", "no observable progress marker"
+    sources = contract.get("sources", [])
+    if not sources:
+        return "unknown", "no sources in contract"
+    try:
+        first = get_source_value(sources[0], root)
+        if machine == "emcon":
+            return ("on" if first else "off"), None
+        if machine == "safe-mode":
+            if first:
+                return "safe", None
+            if len(sources) > 1:
+                n = get_source_value(sources[1], root)
+                if n:
+                    return "counting", None
+            return "normal", None
+    except SourceError as e:
+        return "unknown", str(e)
+    return "unknown", "no derivation for machine"
+
+
+def main():
+    parser = argparse.ArgumentParser(description="AryaOS State CLI")
+    parser.add_argument("command", choices=["list", "status"])
+    parser.add_argument("machine", nargs="?", help="Machine name")
+    parser.add_argument("--json", action="store_true", help="Output JSON")
+    
+    args = parser.parse_args()
+    
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    candidates = []
+    if os.environ.get("ARYAOS_STATE_CONTRACTS"):
+        candidates.append(os.environ["ARYAOS_STATE_CONTRACTS"])
+    candidates.append("/usr/share/aryaos/state")
+    candidates.append(os.path.join(script_dir, "state"))
+    contracts_dir = None
+    for cand in candidates:
+        if os.path.isdir(cand) and os.access(cand, os.R_OK):
+            contracts_dir = cand
+            break
+    if contracts_dir is None:
+        print("Error: no readable contracts directory; tried: "
+              + ", ".join(candidates), file=sys.stderr)
+        sys.exit(1)
+    
+    try:
+        contracts = {}
+        for f in os.listdir(contracts_dir):
+            if f.endswith(".json") and f != "schema.json":
+                try:
+                    with open(os.path.join(contracts_dir, f), "r") as jf:
+                        c = json.load(jf)
+                    contracts[c["machine"]] = c
+                except (OSError, ValueError, KeyError, TypeError) as e:
+                    print("Error: %s: malformed contract (%s: %s)"
+                          % (f, type(e).__name__, e), file=sys.stderr)
+                    sys.exit(1)
+        
+        if args.command == "list":
+            machines = sorted(contracts.keys())
+            if args.json:
+                print(json.dumps({"machines": machines}, sort_keys=True))
+            else:
+                print("Available state machines:")
+                for m in machines:
+                    print(f" - {m}")
+        
+        elif args.command == "status":
+            if args.machine and args.machine not in contracts:
+                print(f"Error: Unknown machine '{args.machine}'", file=sys.stderr)
+                sys.exit(1)
+
+            if not args.machine:
+                results = {}
+                for name in sorted(contracts):
+                    st, rs = derive_state_refined(name, contracts[name], STATE_ROOT)
+                    results[name] = {"state": st}
+                    if rs:
+                        results[name]["reason"] = rs
+                if args.json:
+                    print(json.dumps({"machines": results}, sort_keys=True))
+                else:
+                    for name, o in results.items():
+                        print(f"{name}: {o['state']}"
+                              + (f" ({o['reason']})" if "reason" in o else ""))
+                return
+
+            state, reason = derive_state_refined(args.machine, contracts[args.machine], STATE_ROOT)
+
+            if args.json:
+                out = {"machine": args.machine, "state": state}
+                if reason:
+                    out["reason"] = reason
+                print(json.dumps(out, sort_keys=True))
+            else:
+                print(f"{args.machine}: {state}" + (f" ({reason})" if reason else ""))
+
+    except SystemExit:
+        raise
+    except Exception as e:
+        print(f"Error: {str(e)}", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
