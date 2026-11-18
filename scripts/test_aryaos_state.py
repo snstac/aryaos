@@ -40,8 +40,8 @@ class TestAryosState(unittest.TestCase):
         root_path = root if root else self.state_root
         env["ARYAOS_STATE_ROOT"] = str(root_path)
 
-        # Use absolute path to ensure the CLI can find its 'state' directory
-        script_path = os.path.abspath("build/aryaos/shared_files/aryaos/aryaos-state")
+        # Use path relative to repo root
+        script_path = os.path.abspath("shared_files/aryaos/aryaos-state")
 
         args = ["python3", script_path, command]
         if machine:
@@ -75,7 +75,7 @@ class TestAryosState(unittest.TestCase):
 
     def test_schema_conformance(self):
         """Verify each contract follows the schema structure."""
-        base_path = "build/aryaos/shared_files/aryaos/state"
+        base_path = "shared_files/aryaos/state"
         success, msg = self.verify_contracts(base_path)
         self.assertTrue(success, msg)
 
