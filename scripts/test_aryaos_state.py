@@ -113,18 +113,12 @@ class TestAryaosState(unittest.TestCase):
         self.assertIn("zeroize", r.stdout)
 
     def test_flag_machines(self):
-        for machine, rel, on in [
-            ("emcon", "etc/aryaos/emcon", "on"),
-            ("zeroize", "run/aryaos-zeroize.keep-network", "zeroizing"),
-        ]:
-            with self.subTest(machine=machine):
-                with tempfile.TemporaryDirectory() as d:
-                    off = "off" if machine == "emcon" else "normal"
-                    self.assertEqual(status(d, machine),
-                                     {"machine": machine, "state": off})
-                    touch(d, rel)
-                    self.assertEqual(status(d, machine),
-                                     {"machine": machine, "state": on})
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(status(d, "emcon"),
+                             {"machine": "emcon", "state": "off"})
+            touch(d, "etc/aryaos/emcon")
+            self.assertEqual(status(d, "emcon"),
+                             {"machine": "emcon", "state": "on"})
 
     def test_safe_mode_states(self):
         t = self.tmp_path
@@ -173,7 +167,11 @@ class TestAryaosState(unittest.TestCase):
 
     def test_unknown_machine_and_missing_arg(self):
         self.assertEqual(run(self.tmp_path, "status", "nope").returncode, 1)
-        self.assertEqual(run(self.tmp_path, "status").returncode, 1)
+        r = run(self.tmp_path, "status")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(len(r.stdout.splitlines()), 3)
+        for m in ("emcon", "safe-mode", "zeroize"):
+            self.assertIn(m + ":", r.stdout)
 
     def test_read_only(self):
         touch(self.tmp_path, "etc/aryaos/emcon")
@@ -213,6 +211,86 @@ class TestAryaosState(unittest.TestCase):
         self.assertIn(str(share), r.stderr)
         self.assertIn("/usr/share/aryaos/state", r.stderr)
         self.assertIn(str(cli.parent / "state"), r.stderr)
+
+    def test_zeroize_never_zeroizing_from_keep_network(self):
+        want = {"machine": "zeroize", "state": "unknown",
+                "reason": "no observable progress marker"}
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(status(d, "zeroize"), want)
+            touch(d, "run/aryaos-zeroize.keep-network")
+            self.assertEqual(status(d, "zeroize"), want)
+
+    def test_non_derivable_states_never_reported(self):
+        self.assertEqual(
+            {p.stem: p.stem for p in CONTRACTS if json.loads(
+                p.read_text()).get("non_derivable")},
+            {"safe-mode": "safe-mode", "zeroize": "zeroize"})
+        nd = {}
+        for path in CONTRACTS:
+            doc = json.loads(path.read_text())
+            self.assertIn("non_derivable", doc)
+            for st in doc["non_derivable"]:
+                self.assertIn(st, doc["states"])
+            nd[doc["machine"]] = set(doc["non_derivable"])
+        self.assertEqual(nd["safe-mode"], {"cleared"})
+        self.assertTrue({"zeroizing", "done"} <= nd["zeroize"])
+        seen = {m: set() for m in nd}
+        scenarios = [
+            [], [("etc/aryaos/emcon", "")], [("etc/aryaos/safe-mode", "")],
+            [("var/lib/aryaos/boot-attempts", "0")],
+            [("var/lib/aryaos/boot-attempts", "2")],
+            [("var/lib/aryaos/boot-attempts", "x")],
+            [("run/aryaos-zeroize.keep-network", "")],
+            [("etc/aryaos/safe-mode", ""),
+             ("var/lib/aryaos/boot-attempts", "5"),
+             ("var/lib/aryaos/safe-mode-reason", "r")],
+        ]
+        for files in scenarios:
+            with tempfile.TemporaryDirectory() as d:
+                for rel, text in files:
+                    touch(d, rel, text)
+                r = run(d, "status", "--json")
+                self.assertEqual(r.returncode, 0, r.stderr)
+                for m, o in json.loads(r.stdout)["machines"].items():
+                    seen[m].add(o["state"])
+        for m in nd:
+            self.assertFalse(seen[m] & nd[m], (m, seen[m]))
+
+    def test_flag_source_requires_regular_file(self):
+        (self.tmp_path / "etc/aryaos/emcon").mkdir(parents=True)
+        d = status(self.tmp_path, "emcon")
+        self.assertEqual(d["state"], "unknown")
+        self.assertIn("not a regular file", d["reason"])
+        self.assertIn("/etc/aryaos/emcon", d["reason"])
+
+    def test_status_all_machines(self):
+        touch(self.tmp_path, "etc/aryaos/emcon")
+        r = run(self.tmp_path, "status", "--json")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(r.stdout, json.dumps({"machines": {
+            "emcon": {"state": "on"},
+            "safe-mode": {"state": "normal"},
+            "zeroize": {"reason": "no observable progress marker",
+                        "state": "unknown"}}}, sort_keys=True) + "\n")
+        t = run(self.tmp_path, "status")
+        self.assertEqual(t.returncode, 0)
+        self.assertEqual(t.stdout.splitlines(), [
+            "emcon: on", "safe-mode: normal",
+            "zeroize: unknown (no observable progress marker)"])
+
+    def test_malformed_contract_names_file(self):
+        cli, share = self._install_cli(True)
+        (share / "bad.json").write_text("{not json")
+        env = {"PATH": "/usr/bin:/bin", "ARYAOS_STATE_CONTRACTS": str(share)}
+        r = subprocess.run([sys.executable, str(cli), "list"], env=env,
+                           capture_output=True, text=True, timeout=30)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("bad.json", r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+
+    def test_state_root_constant_single_read(self):
+        text = CLI.read_text()
+        self.assertEqual(text.count("ARYAOS_STATE_ROOT"), 1)
 
 
 if __name__ == "__main__":

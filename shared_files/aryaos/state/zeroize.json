@@ -7,7 +7,8 @@
     {"from": "normal", "to": "zeroizing", "trigger": "start zeroize"},
     {"from": "zeroizing", "to": "done", "trigger": "complete zeroize"}
   ],
+  "non_derivable": ["zeroizing", "done"],
   "sources": [
-    {"path": "/run/aryaos-zeroize.keep-network", "kind": "flag", "meaning": "Zeroize in progress"}
+    {"path": "/run/aryaos-zeroize.keep-network", "kind": "flag", "meaning": "Option request (--keep-network) consumed and deleted by aryaos-zeroize before the wipe; not a progress marker, never read for state"}
   ]
 }

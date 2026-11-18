@@ -19,6 +19,7 @@
         "required": ["from", "to", "trigger"]
       }
     },
+    "non_derivable": {"type": "array", "items": {"type": "string"}},
     "sources": {
       "type": "array",
       "items": {

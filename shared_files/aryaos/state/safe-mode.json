@@ -9,6 +9,7 @@
     {"from": "safe", "to": "cleared", "trigger": "admin off"},
     {"from": "cleared", "to": "normal", "trigger": "reboot"}
   ],
+  "non_derivable": ["cleared"],
   "sources": [
     {"path": "/etc/aryaos/safe-mode", "kind": "flag", "meaning": "Safe mode active"},
     {"path": "/var/lib/aryaos/boot-attempts", "kind": "counter", "meaning": "Boot attempt count"},
