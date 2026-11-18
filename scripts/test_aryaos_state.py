@@ -3,6 +3,7 @@
 1:1 port of the f4038f4 pytest file. Paths derive from __file__, not cwd.
 """
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -180,6 +181,38 @@ class TestAryaosState(unittest.TestCase):
         run(self.tmp_path, "status", "emcon")
         run(self.tmp_path, "list")
         self.assertEqual(before, sorted(str(p) for p in self.tmp_path.rglob("*")))
+
+
+    def _install_cli(self, with_contracts):
+        sbin = self.tmp_path / "usr" / "local" / "sbin"
+        sbin.mkdir(parents=True)
+        cli = sbin / "aryaos-state"
+        shutil.copy2(CLI, cli)
+        share = self.tmp_path / "share"
+        if with_contracts:
+            shutil.copytree(STATE_DIR, share)
+        return cli, share
+
+    def test_installed_layout(self):
+        cli, share = self._install_cli(True)
+        env = {"PATH": "/usr/bin:/bin", "ARYAOS_STATE_CONTRACTS": str(share)}
+        r = subprocess.run([sys.executable, str(cli), "list", "--json"],
+                           env=env, capture_output=True, text=True, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(json.loads(r.stdout)["machines"],
+                         ["emcon", "safe-mode", "zeroize"])
+
+    def test_no_contracts_dir_clean_error(self):
+        cli, share = self._install_cli(False)
+        env = {"PATH": "/usr/bin:/bin",
+               "ARYAOS_STATE_CONTRACTS": str(share)}
+        r = subprocess.run([sys.executable, str(cli), "list"],
+                           env=env, capture_output=True, text=True, timeout=30)
+        self.assertEqual(r.returncode, 1)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn(str(share), r.stderr)
+        self.assertIn("/usr/share/aryaos/state", r.stderr)
+        self.assertIn(str(cli.parent / "state"), r.stderr)
 
 
 if __name__ == "__main__":

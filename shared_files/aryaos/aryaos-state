@@ -66,7 +66,20 @@ def main():
     args = parser.parse_args()
     
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    contracts_dir = os.path.join(script_dir, "state")
+    candidates = []
+    if os.environ.get("ARYAOS_STATE_CONTRACTS"):
+        candidates.append(os.environ["ARYAOS_STATE_CONTRACTS"])
+    candidates.append("/usr/share/aryaos/state")
+    candidates.append(os.path.join(script_dir, "state"))
+    contracts_dir = None
+    for cand in candidates:
+        if os.path.isdir(cand) and os.access(cand, os.R_OK):
+            contracts_dir = cand
+            break
+    if contracts_dir is None:
+        print("Error: no readable contracts directory; tried: "
+              + ", ".join(candidates), file=sys.stderr)
+        sys.exit(1)
     
     try:
         contracts = {}
