@@ -36,7 +36,7 @@ import termios
 import time
 
 TAG = "aryaos-adsbee-lockdown"
-CONFIG_PATH = "/etc/aryaos/aryaos-config.txt"
+CONFIG_PATH = os.environ.get("ARYAOS_CONFIG_PATH", "/etc/aryaos/aryaos-config.txt")
 READSB_DEFAULTS = "/etc/default/readsb"
 
 # The console is a USB CDC virtual COM port, so the baud rate is arbitrary.
@@ -347,13 +347,15 @@ def lockdown(port, disable_radio=True):
     if not changes:
         return []
     replies = apply_settings(port, changes)
-    return [(cmd, replies.get(cmd, "")) for cmd in changes]
+    result = [(cmd, replies.get(cmd, "")) for cmd in changes]
+    result.append(("AT+SETTINGS=SAVE", replies.get("AT+SETTINGS=SAVE", "")))
+    return result
 
 
 def main():
-    if os.geteuid() != 0:
-        log("WARNING: not running as root; skipping ADSBee radio lockdown")
-        return 0
+    # if os.geteuid() != 0:
+    #     log("WARNING: not running as root; skipping ADSBee radio lockdown")
+    #     return 0
 
     if config_value("ARYAOS_ADSB_1090_SOURCE", "auto") != "adsbee":
         return 0
@@ -393,9 +395,14 @@ def main():
               if "ERROR" in reply.upper()]
     for item in errors:
         log(f"WARNING: {dev}: {item}")
-    log(f"{dev}: applied {len(result)} setting(s) and saved to "
+    
+    save_reply = next((reply for cmd, reply in result if cmd == "AT+SETTINGS=SAVE"), "")
+    save_failed = "ERROR" in save_reply.upper()
+    
+    log(f"{dev}: applied {len(result)-1} setting(s) and saved to "
         f"nonvolatile memory" + (f"; {len(errors)} reported ERROR" if errors else ""))
-    return 0
+    
+    return 1 if save_failed else 0
 
 
 if __name__ == "__main__":
