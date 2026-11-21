@@ -8,7 +8,7 @@ babel==2.18.0
     # via mkdocs-material
 backrefs==7.0
     # via mkdocs-material
-bracex==2.6
+bracex==3.2.4
     # via wcmatch
 certifi==2026.10.19
     # via requests
@@ -107,5 +107,5 @@ urllib3==2.8.0
     # via requests
 watchdog==6.0.0
     # via mkdocs
-wcmatch==10.1
+wcmatch==11.2
     # via mkdocs-include-markdown-plugin
