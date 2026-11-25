@@ -244,7 +244,7 @@ jobs:
           test -f shared_files/aryaos/html/docs/index.html
 
       - name: Build RPi AryaOS image
-        uses: usimd/pi-gen-action@v1
+        uses: usimd/pi-gen-action@v2
         id: build_aryaos
         env:
           SHARED_FILES: ${{ env.SHARED_FILES }}
