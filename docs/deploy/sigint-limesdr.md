@@ -43,6 +43,26 @@ alternatives, not a simultaneous list.
   network (see [Remote access](#remote-access-soapyremote)).
 - **`soapysdr-tools`** - `SoapySDRUtil` for enumeration/probing.
 
+## Optional SDR-- receiver
+
+The `snstac/sdrmm` fork retains the upstream AGPL-3.0 source and build history.
+The planned `dragonegg-sdrmm-rx` package is optional. AryaOS does not install it on every image.
+
+Install it only after the package appears in the signed [snstac apt repository](https://snstac.github.io/packages/apt).
+
+```bash
+sudo apt update
+apt-cache policy dragonegg-sdrmm-rx
+sudo apt install dragonegg-sdrmm-rx
+```
+
+The package must install its services disabled. Installation must not claim the LimeSDR or interrupt another receiver.
+Use the receiver runbook to select an exact LimeSDR serial before starting a service.
+Keep transmit and antenna power disabled for receive-only use.
+
+A package in the repository is not proof that a specific DragonEgg passed RF acceptance.
+Check the host, antenna, service state, sample flow, and rollback plan before field use.
+
 ## First use
 
 Verify the device and update its gateware (a LimeSDR Mini usually needs a one-time update):
